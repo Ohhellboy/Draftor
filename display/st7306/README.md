@@ -14,3 +14,8 @@ Draftor currently supports the Osptek ST7306 black-white-red reflective TFT disp
 
 A minimal standalone demo and related source code will be added progressively.<br>
 后续将逐步加入最小独立示例和相关源码。
+
+## License / 许可证
+
+The Draftor ST7306 module is released under the MIT License. Third-party material retains its original copyright and license terms. See `THIRD_PARTY_NOTICES.md` for details.<br>
+Draftor ST7306 模块采用 MIT License 发布。第三方内容仍遵循其原有版权及许可条款，详见 `THIRD_PARTY_NOTICES.md`。
