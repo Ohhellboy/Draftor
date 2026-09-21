@@ -92,8 +92,8 @@ The unchanged `boot_app0.bin` helper comes from the installed ESP32 3.3.11 core'
 
 ## Flash Pico 2 W
 
-Hold **BOOTSEL** while connecting the Pico 2 W over USB. Release BOOTSEL once its
-**RP2350** boot drive appears. Manually copy the generated
+Hold **BOOTSEL** while connecting the Pico 2 W over USB. Release BOOTSEL once 
+the RP2350/Pico boot drive appears. Manually copy the generated
 `../st7306-pico-output/minimal_pico2w.ino.uf2` onto that drive. It restarts automatically.
 Use the matching RP2350/Pico 2 W board; no serial-port selection is needed.
 
@@ -112,9 +112,10 @@ The ESP32-S3 minimal demo has been flashed and visually checked on hardware.
 The Pico 2 W demo has not been tested on hardware in this publication cycle.
 See [DEVICE_SMOKE_TEST.md](DEVICE_SMOKE_TEST.md) for the test pattern and criteria.
 
-The eight driver files and two example sketches are unchanged from the reviewed
-candidate. SDKs, logs, ELF/map files, build caches and prebuilt firmware binaries
-are not included in this source folder.
+The eight driver files are the same versions used by the reviewed Draftor 
+builds, and the two example sketches contain only the minimal display test. 
+SDKs, logs, ELF/map files, build caches and prebuilt firmware binariesare not 
+included in this source folder.
 
 Existing source notices are retained in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
 and `licenses/`. Draftor-owned code and new files in this ST7306 module are
