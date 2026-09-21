@@ -3,6 +3,8 @@
 **A distraction-free local pocket text recording device**<br>
 一台无打搅本地口袋文本记录设备
 
+![Draftor prototype running Chinese input](draftor-prototype.jpg)
+
 ---
 
 ## Current Status / 当前状态
