@@ -16,7 +16,7 @@
 
 ### Display Support / 屏幕支持
 
-- Osptek ST7306 black-white-red reflective TFT display
+- [Osptek ST7306 black-white-red reflective TFT display](display/st7306/)
 
 ### Input Support / 输入支持
 
