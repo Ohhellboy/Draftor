@@ -1,0 +1,8 @@
+Draftor / bgIME
+Copyright 2026 Ruotao Wang
+Third-party components retain their original copyrights and licenses.
+See THIRD_PARTY.md and the notices distributed with each component.
+
+The previously published standalone display/st7306 module remains under its
+MIT License (display/st7306/LICENSE.md), with its original third-party notices.
+The root Apache-2.0 license does not replace those module-specific terms.

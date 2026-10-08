@@ -1,0 +1,1384 @@
+{
+  "schema_version": 1,
+  "enums": {
+    "WritingMode": {
+      "Unknown": 0,
+      "Horizontal": 1,
+      "VerticalRL": 2
+    },
+    "BaseInputMode": {
+      "Unknown": 0,
+      "Chinese": 1,
+      "English": 2
+    },
+    "EditContext": {
+      "Unknown": 0,
+      "Document": 1,
+      "Composition": 2,
+      "Find": 3,
+      "Candidate": 4,
+      "Literal": 5
+    },
+    "PhysicalKey": {
+      "Unknown": 0,
+      "Printable": 1,
+      "ArrowLeft": 2,
+      "ArrowRight": 3,
+      "ArrowUp": 4,
+      "ArrowDown": 5,
+      "Backspace": 6,
+      "Delete": 7,
+      "Enter": 8,
+      "Escape": 9,
+      "Tab": 10
+    },
+    "RouteTarget": {
+      "Unknown": 0,
+      "IME": 1,
+      "CandidateView": 2,
+      "Editor": 3,
+      "Literal": 4,
+      "Find": 5,
+      "System": 6
+    },
+    "SemanticAction": {
+      "Unknown": 0,
+      "Compose": 1,
+      "CandidateSelection": 2,
+      "CandidateNavigation": 3,
+      "MoveCaret": 4,
+      "CompositionBackspace": 5,
+      "DocumentBackspace": 6,
+      "DocumentDelete": 7,
+      "ReopenMember": 8,
+      "InsertNewline": 9,
+      "DirectInsert": 10,
+      "Cancel": 11
+    },
+    "RevisionCause": {
+      "Unknown": 0,
+      "Input": 1,
+      "Selection": 2,
+      "CompositionBackspace": 3,
+      "ReopenMember": 4
+    },
+    "CompositionOutcome": {
+      "Unknown": 0,
+      "Completed": 1,
+      "Cancelled": 2,
+      "AbandonedByContextChange": 3,
+      "Error": 4
+    },
+    "CompletionState": {
+      "Unknown": 0,
+      "Partial": 1,
+      "Complete": 2
+    },
+    "SelectionOutcome": {
+      "Other": 0,
+      "Accepted": 1,
+      "RejectedStale": 2,
+      "RejectedInvalid": 3,
+      "NoMatch": 4,
+      "Cancelled": 5
+    },
+    "SpatialDirection": {
+      "None": 0,
+      "Left": 1,
+      "Right": 2,
+      "Up": 3,
+      "Down": 4
+    },
+    "MutationType": {
+      "Unknown": 0,
+      "Insert": 1,
+      "Remove": 2,
+      "Replace": 3
+    },
+    "OperationOutcome": {
+      "Unknown": 0,
+      "Succeeded": 1,
+      "Failed": 2,
+      "Cancelled": 3
+    },
+    "FileOperation": {
+      "Unknown": 0,
+      "Save": 1,
+      "Open": 2,
+      "Close": 3,
+      "Autosave": 4,
+      "New": 5,
+      "Reload": 6,
+      "Other": 7
+    },
+    "InputScheme": {
+      "Unknown": 0,
+      "FullPinyin": 1,
+      "XiaoheShuangpin": 2,
+      "English": 3
+    },
+    "NavigationOutcome": {
+      "Unknown": 0,
+      "Moved": 1,
+      "BoundaryHit": 2,
+      "NoCandidates": 3,
+      "RejectedStale": 4,
+      "Other": 5
+    },
+    "ViewReason": {
+      "Unknown": 0,
+      "CompositionUpdate": 1,
+      "CandidateUpdate": 2,
+      "DocumentEdit": 3,
+      "CursorMove": 4,
+      "SelectionChange": 5,
+      "ViewportMove": 6,
+      "ModeChange": 7,
+      "Other": 8
+    },
+    "OutputCountUnit": {
+      "Unknown": 0,
+      "UnicodeScalar": 1,
+      "GraphemeCluster": 2,
+      "ProductUnit": 3
+    },
+    "ToggleState": {
+      "Unknown": 0,
+      "Off": 1,
+      "On": 2
+    },
+    "LearningMode": {
+      "Unknown": 0,
+      "Disabled": 1,
+      "ObserveOnly": 2,
+      "Enabled": 3
+    },
+    "IdentityScope": {
+      "Unknown": 0,
+      "Synthetic": 1,
+      "Product": 2
+    },
+    "Boolean": {
+      "False": 0,
+      "True": 1
+    }
+  },
+  "events": [
+    {
+      "id": 1,
+      "name": "SESSION_START",
+      "cpp_name": "SessionStart",
+      "fields": [
+        {
+          "name": "writing_mode",
+          "type": "u8",
+          "enum": "WritingMode",
+          "disallowed_enum_values": [
+            "Unknown"
+          ]
+        },
+        {
+          "name": "base_input_mode",
+          "type": "u8",
+          "enum": "BaseInputMode"
+        },
+        {
+          "name": "input_scheme",
+          "type": "u8",
+          "enum": "InputScheme"
+        },
+        {
+          "name": "edit_context",
+          "type": "u8",
+          "enum": "EditContext"
+        },
+        {
+          "name": "raw_length",
+          "type": "u32"
+        },
+        {
+          "name": "focus",
+          "type": "u32"
+        },
+        {
+          "name": "selected_member_count",
+          "type": "u32"
+        },
+        {
+          "name": "candidate_valid",
+          "type": "u8",
+          "enum": "Boolean"
+        }
+      ],
+      "purpose": "Starts a boot session; complete structural state supplied by integration.",
+      "detail": "raw",
+      "privacy": "BASIC",
+      "required_envelope": [
+        {
+          "field": "document_revision",
+          "nonzero": false
+        },
+        {
+          "field": "layout_revision",
+          "nonzero": false
+        },
+        {
+          "field": "composition_revision",
+          "nonzero": true,
+          "when": {
+            "source": "envelope",
+            "field": "composition_id",
+            "nonzero": true
+          }
+        },
+        {
+          "field": "candidate_snapshot_id",
+          "nonzero": true,
+          "when": {
+            "source": "payload",
+            "field": "candidate_valid",
+            "equals": 1
+          }
+        }
+      ],
+      "producer_responsibility": "Integration layer supplies the complete current structure; zero composition identity means no active composition. Candidate identity is meaningful only when candidate_valid=1. InputScheme and EditContext are caller facts; neither is inferred from BaseInputMode or RouteTarget."
+    },
+    {
+      "id": 2,
+      "name": "STATE_SNAPSHOT",
+      "cpp_name": "StateSnapshot",
+      "fields": [
+        {
+          "name": "writing_mode",
+          "type": "u8",
+          "enum": "WritingMode",
+          "disallowed_enum_values": [
+            "Unknown"
+          ]
+        },
+        {
+          "name": "base_input_mode",
+          "type": "u8",
+          "enum": "BaseInputMode"
+        },
+        {
+          "name": "input_scheme",
+          "type": "u8",
+          "enum": "InputScheme"
+        },
+        {
+          "name": "edit_context",
+          "type": "u8",
+          "enum": "EditContext"
+        },
+        {
+          "name": "raw_length",
+          "type": "u32"
+        },
+        {
+          "name": "focus",
+          "type": "u32"
+        },
+        {
+          "name": "selected_member_count",
+          "type": "u32"
+        },
+        {
+          "name": "candidate_valid",
+          "type": "u8",
+          "enum": "Boolean"
+        }
+      ],
+      "purpose": "Observes complete state without repairing an existing gap.",
+      "detail": "raw",
+      "privacy": "BASIC",
+      "required_envelope": [
+        {
+          "field": "document_revision",
+          "nonzero": false
+        },
+        {
+          "field": "layout_revision",
+          "nonzero": false
+        },
+        {
+          "field": "composition_revision",
+          "nonzero": true,
+          "when": {
+            "source": "envelope",
+            "field": "composition_id",
+            "nonzero": true
+          }
+        },
+        {
+          "field": "candidate_snapshot_id",
+          "nonzero": true,
+          "when": {
+            "source": "payload",
+            "field": "candidate_valid",
+            "equals": 1
+          }
+        }
+      ],
+      "producer_responsibility": "Integration layer supplies the complete current structure; zero composition identity means no active composition. Candidate identity is meaningful only when candidate_valid=1. InputScheme and EditContext are caller facts; neither is inferred from BaseInputMode or RouteTarget."
+    },
+    {
+      "id": 3,
+      "name": "STATE_CHANGE",
+      "cpp_name": "StateChange",
+      "fields": [
+        {
+          "name": "writing_mode",
+          "type": "u8",
+          "enum": "WritingMode",
+          "disallowed_enum_values": [
+            "Unknown"
+          ]
+        },
+        {
+          "name": "base_input_mode",
+          "type": "u8",
+          "enum": "BaseInputMode"
+        },
+        {
+          "name": "input_scheme",
+          "type": "u8",
+          "enum": "InputScheme"
+        },
+        {
+          "name": "edit_context",
+          "type": "u8",
+          "enum": "EditContext"
+        },
+        {
+          "name": "raw_length",
+          "type": "u32"
+        },
+        {
+          "name": "focus",
+          "type": "u32"
+        },
+        {
+          "name": "selected_member_count",
+          "type": "u32"
+        },
+        {
+          "name": "candidate_valid",
+          "type": "u8",
+          "enum": "Boolean"
+        }
+      ],
+      "purpose": "Records caller-decided mode/context state; does not infer routing.",
+      "detail": "raw",
+      "privacy": "BASIC",
+      "required_envelope": [
+        {
+          "field": "document_revision",
+          "nonzero": false
+        },
+        {
+          "field": "layout_revision",
+          "nonzero": false
+        },
+        {
+          "field": "composition_revision",
+          "nonzero": true,
+          "when": {
+            "source": "envelope",
+            "field": "composition_id",
+            "nonzero": true
+          }
+        },
+        {
+          "field": "candidate_snapshot_id",
+          "nonzero": true,
+          "when": {
+            "source": "payload",
+            "field": "candidate_valid",
+            "equals": 1
+          }
+        }
+      ],
+      "producer_responsibility": "Integration layer supplies the complete current structure; zero composition identity means no active composition. Candidate identity is meaningful only when candidate_valid=1. InputScheme and EditContext are caller facts; neither is inferred from BaseInputMode or RouteTarget."
+    },
+    {
+      "id": 4,
+      "name": "SYNC_SNAPSHOT",
+      "cpp_name": "SyncSnapshot",
+      "fields": [
+        {
+          "name": "writing_mode",
+          "type": "u8",
+          "enum": "WritingMode",
+          "disallowed_enum_values": [
+            "Unknown"
+          ]
+        },
+        {
+          "name": "base_input_mode",
+          "type": "u8",
+          "enum": "BaseInputMode"
+        },
+        {
+          "name": "input_scheme",
+          "type": "u8",
+          "enum": "InputScheme"
+        },
+        {
+          "name": "edit_context",
+          "type": "u8",
+          "enum": "EditContext"
+        },
+        {
+          "name": "raw_length",
+          "type": "u32"
+        },
+        {
+          "name": "focus",
+          "type": "u32"
+        },
+        {
+          "name": "selected_member_count",
+          "type": "u32"
+        },
+        {
+          "name": "candidate_valid",
+          "type": "u8",
+          "enum": "Boolean"
+        }
+      ],
+      "purpose": "Restores structural state after loss; history remains incomplete.",
+      "detail": "raw",
+      "privacy": "BASIC",
+      "required_envelope": [
+        {
+          "field": "document_revision",
+          "nonzero": false
+        },
+        {
+          "field": "layout_revision",
+          "nonzero": false
+        },
+        {
+          "field": "composition_revision",
+          "nonzero": true,
+          "when": {
+            "source": "envelope",
+            "field": "composition_id",
+            "nonzero": true
+          }
+        },
+        {
+          "field": "candidate_snapshot_id",
+          "nonzero": true,
+          "when": {
+            "source": "payload",
+            "field": "candidate_valid",
+            "equals": 1
+          }
+        }
+      ],
+      "producer_responsibility": "Integration layer supplies the complete current structure; zero composition identity means no active composition. Candidate identity is meaningful only when candidate_valid=1. InputScheme and EditContext are caller facts; neither is inferred from BaseInputMode or RouteTarget."
+    },
+    {
+      "id": 5,
+      "name": "TELEMETRY_HEALTH",
+      "cpp_name": "TelemetryHealth",
+      "fields": [
+        {
+          "name": "attempted",
+          "type": "u64"
+        },
+        {
+          "name": "enqueued",
+          "type": "u64"
+        },
+        {
+          "name": "dropped_queue",
+          "type": "u64"
+        },
+        {
+          "name": "dropped_invalid",
+          "type": "u64"
+        },
+        {
+          "name": "sink_busy",
+          "type": "u64"
+        },
+        {
+          "name": "dropped_sink_failed",
+          "type": "u64"
+        },
+        {
+          "name": "dropped_encode",
+          "type": "u64"
+        },
+        {
+          "name": "transport_failures",
+          "type": "u64"
+        },
+        {
+          "name": "queue_high_water",
+          "type": "u32"
+        },
+        {
+          "name": "frames_accepted",
+          "type": "u64"
+        },
+        {
+          "name": "bytes_accepted",
+          "type": "u64"
+        }
+      ],
+      "purpose": "Cumulative counters; integration schedules publication.",
+      "detail": "",
+      "privacy": "BASIC",
+      "required_envelope": [],
+      "producer_responsibility": "Integration schedules emitter.health_event(); counts are cumulative before emission of this health event. The core does not self-schedule. sink_busy counts offers that return Busy (not lost frames); accepted counters count ownership transfer to the sink, not successful delivery or reception."
+    },
+    {
+      "id": 6,
+      "name": "INPUT_RECEIVED",
+      "cpp_name": "InputReceived",
+      "fields": [
+        {
+          "name": "physical_key",
+          "type": "u8",
+          "enum": "PhysicalKey"
+        },
+        {
+          "name": "modifiers",
+          "type": "u8"
+        }
+      ],
+      "purpose": "Product input accepted; printable key is only the generic Printable enum.",
+      "detail": "printable",
+      "privacy": "BASIC",
+      "required_envelope": [
+        {
+          "field": "action_id",
+          "nonzero": true
+        }
+      ],
+      "producer_responsibility": "Input/router supplies already accepted input and its actual routing decision. Printable key remains a generic enum in BASIC."
+    },
+    {
+      "id": 7,
+      "name": "ROUTE_DECISION",
+      "cpp_name": "RouteDecision",
+      "fields": [
+        {
+          "name": "route_target",
+          "type": "u8",
+          "enum": "RouteTarget"
+        },
+        {
+          "name": "semantic_action",
+          "type": "u8",
+          "enum": "SemanticAction"
+        }
+      ],
+      "purpose": "Actual product routing decision; never reconstructed from a key.",
+      "detail": "",
+      "privacy": "BASIC",
+      "required_envelope": [
+        {
+          "field": "action_id",
+          "nonzero": true
+        }
+      ],
+      "producer_responsibility": "Input/router supplies already accepted input and its actual routing decision. Printable key remains a generic enum in BASIC."
+    },
+    {
+      "id": 8,
+      "name": "COMPOSITION_BEGIN",
+      "cpp_name": "CompositionBegin",
+      "fields": [
+        {
+          "name": "raw_length",
+          "type": "u32"
+        },
+        {
+          "name": "focus",
+          "type": "u32"
+        },
+        {
+          "name": "selected_member_count",
+          "type": "u32"
+        },
+        {
+          "name": "cause",
+          "type": "u8",
+          "enum": "RevisionCause"
+        }
+      ],
+      "purpose": "Begins a caller-assigned composition identity.",
+      "detail": "raw",
+      "privacy": "BASIC",
+      "required_envelope": [
+        {
+          "field": "action_id",
+          "nonzero": true
+        },
+        {
+          "field": "composition_id",
+          "nonzero": true
+        },
+        {
+          "field": "composition_revision",
+          "nonzero": true
+        }
+      ],
+      "producer_responsibility": "Composition owner supplies actual begin/revision/end, length, focus, member count and factual cause. No telemetry-owned composition engine."
+    },
+    {
+      "id": 9,
+      "name": "COMPOSITION_REVISION",
+      "cpp_name": "CompositionRevision",
+      "fields": [
+        {
+          "name": "raw_length",
+          "type": "u32"
+        },
+        {
+          "name": "focus",
+          "type": "u32"
+        },
+        {
+          "name": "selected_member_count",
+          "type": "u32"
+        },
+        {
+          "name": "cause",
+          "type": "u8",
+          "enum": "RevisionCause"
+        }
+      ],
+      "purpose": "New composition revision, including backspace or reopen.",
+      "detail": "raw",
+      "privacy": "BASIC",
+      "required_envelope": [
+        {
+          "field": "action_id",
+          "nonzero": true
+        },
+        {
+          "field": "composition_id",
+          "nonzero": true
+        },
+        {
+          "field": "composition_revision",
+          "nonzero": true
+        }
+      ],
+      "producer_responsibility": "Composition owner supplies actual begin/revision/end, length, focus, member count and factual cause. No telemetry-owned composition engine."
+    },
+    {
+      "id": 10,
+      "name": "COMPOSITION_END",
+      "cpp_name": "CompositionEnd",
+      "fields": [
+        {
+          "name": "outcome",
+          "type": "u8",
+          "enum": "CompositionOutcome"
+        }
+      ],
+      "purpose": "Composition completed or cancelled, separately from document acceptance.",
+      "detail": "",
+      "privacy": "BASIC",
+      "required_envelope": [
+        {
+          "field": "action_id",
+          "nonzero": true
+        },
+        {
+          "field": "composition_id",
+          "nonzero": true
+        },
+        {
+          "field": "composition_revision",
+          "nonzero": true
+        }
+      ],
+      "producer_responsibility": "Composition owner supplies actual begin/revision/end, length, focus, member count and factual cause. No telemetry-owned composition engine."
+    },
+    {
+      "id": 11,
+      "name": "IME_PLAN_BEGIN",
+      "cpp_name": "ImePlanBegin",
+      "fields": [
+        {
+          "name": "work_id",
+          "type": "u32"
+        },
+        {
+          "name": "range_start",
+          "type": "u32"
+        },
+        {
+          "name": "range_end",
+          "type": "u32"
+        }
+      ],
+      "purpose": "IME work starts for the specified revision/range.",
+      "detail": "path",
+      "privacy": "BASIC",
+      "required_envelope": [
+        {
+          "field": "action_id",
+          "nonzero": true
+        },
+        {
+          "field": "composition_id",
+          "nonzero": true
+        },
+        {
+          "field": "composition_revision",
+          "nonzero": true
+        }
+      ],
+      "producer_responsibility": "IME integration records endpoints for an existing work_id/range. Never query or materialize for telemetry. Candidate snapshot ID is assigned when known."
+    },
+    {
+      "id": 12,
+      "name": "IME_RANGE_READY",
+      "cpp_name": "ImeRangeReady",
+      "fields": [
+        {
+          "name": "work_id",
+          "type": "u32"
+        },
+        {
+          "name": "range_start",
+          "type": "u32"
+        },
+        {
+          "name": "range_end",
+          "type": "u32"
+        }
+      ],
+      "purpose": "Range is ready; shares work_id with the plan.",
+      "detail": "path",
+      "privacy": "BASIC",
+      "required_envelope": [
+        {
+          "field": "action_id",
+          "nonzero": true
+        },
+        {
+          "field": "composition_id",
+          "nonzero": true
+        },
+        {
+          "field": "composition_revision",
+          "nonzero": true
+        }
+      ],
+      "producer_responsibility": "IME integration records endpoints for an existing work_id/range. Never query or materialize for telemetry. Candidate snapshot ID is assigned when known."
+    },
+    {
+      "id": 13,
+      "name": "CANDIDATE_DATA_READY",
+      "cpp_name": "CandidateDataReady",
+      "fields": [
+        {
+          "name": "work_id",
+          "type": "u32"
+        },
+        {
+          "name": "range_start",
+          "type": "u32"
+        },
+        {
+          "name": "range_end",
+          "type": "u32"
+        },
+        {
+          "name": "candidate_count_known",
+          "type": "u32"
+        },
+        {
+          "name": "visible_start",
+          "type": "u32"
+        },
+        {
+          "name": "visible_count",
+          "type": "u32"
+        },
+        {
+          "name": "completion_state",
+          "type": "u8",
+          "enum": "CompletionState"
+        }
+      ],
+      "purpose": "Existing candidate data, no extra materialization; count UINT32_MAX means unknown.",
+      "detail": "",
+      "privacy": "BASIC",
+      "required_envelope": [
+        {
+          "field": "action_id",
+          "nonzero": true
+        },
+        {
+          "field": "composition_id",
+          "nonzero": true
+        },
+        {
+          "field": "composition_revision",
+          "nonzero": true
+        },
+        {
+          "field": "candidate_snapshot_id",
+          "nonzero": true
+        }
+      ],
+      "producer_responsibility": "IME integration records endpoints for an existing work_id/range. Never query or materialize for telemetry. Candidate snapshot ID is assigned when known."
+    },
+    {
+      "id": 14,
+      "name": "CANDIDATE_NAVIGATION",
+      "cpp_name": "CandidateNavigation",
+      "fields": [
+        {
+          "name": "previous_index",
+          "type": "u32"
+        },
+        {
+          "name": "global_index",
+          "type": "u32"
+        },
+        {
+          "name": "window_start",
+          "type": "u32"
+        },
+        {
+          "name": "window_count",
+          "type": "u32"
+        },
+        {
+          "name": "spatial_direction",
+          "type": "u8",
+          "enum": "SpatialDirection"
+        },
+        {
+          "name": "outcome",
+          "type": "u8",
+          "enum": "NavigationOutcome"
+        }
+      ],
+      "purpose": "Observed index/window transition on one candidate snapshot.",
+      "detail": "",
+      "privacy": "BASIC",
+      "required_envelope": [
+        {
+          "field": "action_id",
+          "nonzero": true
+        },
+        {
+          "field": "composition_id",
+          "nonzero": true
+        },
+        {
+          "field": "composition_revision",
+          "nonzero": true
+        },
+        {
+          "field": "candidate_snapshot_id",
+          "nonzero": true
+        }
+      ],
+      "producer_responsibility": "Candidate/selection owner supplies the observed snapshot and index/result. Request and result share selection_id; rejected requests do not imply mutation. Item detail uses already available content."
+    },
+    {
+      "id": 15,
+      "name": "SELECTION_REQUEST",
+      "cpp_name": "SelectionRequest",
+      "fields": [
+        {
+          "name": "selection_id",
+          "type": "u32"
+        },
+        {
+          "name": "global_index",
+          "type": "u32"
+        },
+        {
+          "name": "rank",
+          "type": "u32"
+        }
+      ],
+      "purpose": "Selection requested against a snapshot; rank is one based.",
+      "detail": "candidate",
+      "privacy": "BASIC",
+      "required_envelope": [
+        {
+          "field": "action_id",
+          "nonzero": true
+        },
+        {
+          "field": "composition_id",
+          "nonzero": true
+        },
+        {
+          "field": "composition_revision",
+          "nonzero": true
+        },
+        {
+          "field": "candidate_snapshot_id",
+          "nonzero": true
+        }
+      ],
+      "producer_responsibility": "Candidate/selection owner supplies the observed snapshot and index/result. Request and result share selection_id; rejected requests do not imply mutation. Item detail uses already available content."
+    },
+    {
+      "id": 16,
+      "name": "SELECTION_RESULT",
+      "cpp_name": "SelectionResult",
+      "fields": [
+        {
+          "name": "selection_id",
+          "type": "u32"
+        },
+        {
+          "name": "outcome",
+          "type": "u8",
+          "enum": "SelectionOutcome"
+        },
+        {
+          "name": "consumed_start",
+          "type": "u32"
+        },
+        {
+          "name": "consumed_end",
+          "type": "u32"
+        },
+        {
+          "name": "new_focus",
+          "type": "u32"
+        },
+        {
+          "name": "new_composition_revision",
+          "type": "u32"
+        },
+        {
+          "name": "confirmed_output_count",
+          "type": "u32",
+          "unknown": 4294967295
+        },
+        {
+          "name": "output_count_unit",
+          "type": "u8",
+          "enum": "OutputCountUnit"
+        }
+      ],
+      "purpose": "Selection acceptance/rejection; does not imply document mutation.",
+      "detail": "candidate",
+      "privacy": "BASIC",
+      "required_envelope": [
+        {
+          "field": "action_id",
+          "nonzero": true
+        },
+        {
+          "field": "composition_id",
+          "nonzero": true
+        },
+        {
+          "field": "composition_revision",
+          "nonzero": true
+        },
+        {
+          "field": "candidate_snapshot_id",
+          "nonzero": true
+        }
+      ],
+      "producer_responsibility": "Candidate/selection owner supplies the observed snapshot and index/result. Request and result share selection_id; rejected requests do not imply mutation. Item detail uses already available content. confirmed_output_count is optional (UINT32_MAX unknown); output_count_unit states its unit. Never scan/materialize or reuse consumed raw bytes as output character count."
+    },
+    {
+      "id": 17,
+      "name": "CANDIDATE_ITEM_DETAIL",
+      "cpp_name": "CandidateItemDetail",
+      "fields": [
+        {
+          "name": "global_index",
+          "type": "u32"
+        },
+        {
+          "name": "rank",
+          "type": "u32"
+        },
+        {
+          "name": "provenance",
+          "type": "u8"
+        }
+      ],
+      "purpose": "Bounded already-materialized candidate item; DETAILED only.",
+      "detail": "candidate",
+      "privacy": "DETAILED",
+      "required_envelope": [
+        {
+          "field": "action_id",
+          "nonzero": true
+        },
+        {
+          "field": "composition_id",
+          "nonzero": true
+        },
+        {
+          "field": "composition_revision",
+          "nonzero": true
+        },
+        {
+          "field": "candidate_snapshot_id",
+          "nonzero": true
+        }
+      ],
+      "producer_responsibility": "Candidate/selection owner supplies the observed snapshot and index/result. Request and result share selection_id; rejected requests do not imply mutation. Item detail uses already available content."
+    },
+    {
+      "id": 18,
+      "name": "EDITOR_ACTION",
+      "cpp_name": "EditorAction",
+      "fields": [
+        {
+          "name": "semantic_action",
+          "type": "u8",
+          "enum": "SemanticAction"
+        },
+        {
+          "name": "spatial_direction",
+          "type": "u8",
+          "enum": "SpatialDirection"
+        },
+        {
+          "name": "cursor_before",
+          "type": "u32"
+        },
+        {
+          "name": "cursor_after",
+          "type": "u32"
+        }
+      ],
+      "purpose": "Logical editor action; spatial direction is separate from cursor movement.",
+      "detail": "",
+      "privacy": "BASIC",
+      "required_envelope": [
+        {
+          "field": "action_id",
+          "nonzero": true
+        },
+        {
+          "field": "document_revision",
+          "nonzero": false
+        }
+      ],
+      "producer_responsibility": "Editor/Document owner supplies semantic action or accepted byte mutation and actual cursor endpoints. Only a real body change emits DOCUMENT_MUTATION."
+    },
+    {
+      "id": 19,
+      "name": "DOCUMENT_MUTATION",
+      "cpp_name": "DocumentMutation",
+      "fields": [
+        {
+          "name": "revision_before",
+          "type": "u32"
+        },
+        {
+          "name": "revision_after",
+          "type": "u32"
+        },
+        {
+          "name": "mutation_type",
+          "type": "u8",
+          "enum": "MutationType"
+        },
+        {
+          "name": "byte_start",
+          "type": "u32"
+        },
+        {
+          "name": "byte_end",
+          "type": "u32"
+        },
+        {
+          "name": "inserted_bytes",
+          "type": "u32"
+        },
+        {
+          "name": "removed_bytes",
+          "type": "u32"
+        },
+        {
+          "name": "cursor_before",
+          "type": "u32"
+        },
+        {
+          "name": "cursor_after",
+          "type": "u32"
+        }
+      ],
+      "purpose": "Accepted document change, with pre-mutation UTF-8 byte coordinates.",
+      "detail": "document_delta",
+      "privacy": "BASIC",
+      "required_envelope": [
+        {
+          "field": "action_id",
+          "nonzero": true
+        },
+        {
+          "field": "document_revision",
+          "nonzero": false
+        }
+      ],
+      "producer_responsibility": "Editor/Document owner supplies semantic action or accepted byte mutation and actual cursor endpoints. Only a real body change emits DOCUMENT_MUTATION."
+    },
+    {
+      "id": 20,
+      "name": "VIEW_READY",
+      "cpp_name": "ViewReady",
+      "fields": [
+        {
+          "name": "writing_mode",
+          "type": "u8",
+          "enum": "WritingMode",
+          "disallowed_enum_values": [
+            "Unknown"
+          ]
+        },
+        {
+          "name": "reason",
+          "type": "u8",
+          "enum": "ViewReason"
+        }
+      ],
+      "purpose": "Correct drawable view for the envelope document/layout revisions.",
+      "detail": "",
+      "privacy": "BASIC",
+      "required_envelope": [
+        {
+          "field": "action_id",
+          "nonzero": true
+        },
+        {
+          "field": "document_revision",
+          "nonzero": false
+        },
+        {
+          "field": "layout_revision",
+          "nonzero": false
+        }
+      ],
+      "producer_responsibility": "View/display owner supplies actual drawable view/submission/acknowledgement endpoints. display_id joins submit and ack; no inferred device completion."
+    },
+    {
+      "id": 21,
+      "name": "DISPLAY_SUBMIT",
+      "cpp_name": "DisplaySubmit",
+      "fields": [
+        {
+          "name": "display_id",
+          "type": "u32"
+        }
+      ],
+      "purpose": "View submitted to display; distinct from acknowledgement.",
+      "detail": "",
+      "privacy": "BASIC",
+      "required_envelope": [
+        {
+          "field": "action_id",
+          "nonzero": true
+        },
+        {
+          "field": "document_revision",
+          "nonzero": false
+        },
+        {
+          "field": "layout_revision",
+          "nonzero": false
+        }
+      ],
+      "producer_responsibility": "View/display owner supplies actual drawable view/submission/acknowledgement endpoints. display_id joins submit and ack; no inferred device completion."
+    },
+    {
+      "id": 22,
+      "name": "DISPLAY_ACK",
+      "cpp_name": "DisplayAck",
+      "fields": [
+        {
+          "name": "display_id",
+          "type": "u32"
+        },
+        {
+          "name": "outcome",
+          "type": "u8",
+          "enum": "OperationOutcome"
+        }
+      ],
+      "purpose": "Display acknowledgement for an explicit submission identity.",
+      "detail": "",
+      "privacy": "BASIC",
+      "required_envelope": [
+        {
+          "field": "action_id",
+          "nonzero": true
+        },
+        {
+          "field": "document_revision",
+          "nonzero": false
+        },
+        {
+          "field": "layout_revision",
+          "nonzero": false
+        }
+      ],
+      "producer_responsibility": "View/display owner supplies actual drawable view/submission/acknowledgement endpoints. display_id joins submit and ack; no inferred device completion."
+    },
+    {
+      "id": 23,
+      "name": "FILE_OP_BEGIN",
+      "cpp_name": "FileOpBegin",
+      "fields": [
+        {
+          "name": "file_operation_id",
+          "type": "u32"
+        },
+        {
+          "name": "operation",
+          "type": "u8",
+          "enum": "FileOperation"
+        }
+      ],
+      "purpose": "Begins a file operation without recording a path.",
+      "detail": "",
+      "privacy": "BASIC",
+      "required_envelope": [],
+      "producer_responsibility": "File operation owner supplies existing operation ID, operation, result and byte count. No filename/content and no synthetic IME endpoint."
+    },
+    {
+      "id": 24,
+      "name": "FILE_OP_END",
+      "cpp_name": "FileOpEnd",
+      "fields": [
+        {
+          "name": "file_operation_id",
+          "type": "u32"
+        },
+        {
+          "name": "operation",
+          "type": "u8",
+          "enum": "FileOperation"
+        },
+        {
+          "name": "outcome",
+          "type": "u8",
+          "enum": "OperationOutcome"
+        },
+        {
+          "name": "byte_count",
+          "type": "u32"
+        }
+      ],
+      "purpose": "File completion; independent from IME work.",
+      "detail": "",
+      "privacy": "BASIC",
+      "required_envelope": [],
+      "producer_responsibility": "File operation owner supplies existing operation ID, operation, result and byte count. No filename/content and no synthetic IME endpoint."
+    },
+    {
+      "id": 25,
+      "name": "RUNTIME_IDENTITY",
+      "cpp_name": "RuntimeIdentity",
+      "fields": [
+        {
+          "name": "identity_namespace",
+          "type": "u32"
+        },
+        {
+          "name": "firmware_build_id",
+          "type": "u32"
+        },
+        {
+          "name": "core_api_family_id",
+          "type": "u32"
+        },
+        {
+          "name": "input_host_family_id",
+          "type": "u32"
+        },
+        {
+          "name": "resource_generation",
+          "type": "u32"
+        },
+        {
+          "name": "rule_policy_generation",
+          "type": "u32"
+        },
+        {
+          "name": "runtime_config_id",
+          "type": "u32"
+        },
+        {
+          "name": "identity_scope",
+          "type": "u8",
+          "enum": "IdentityScope"
+        },
+        {
+          "name": "p2",
+          "type": "u8",
+          "enum": "ToggleState"
+        },
+        {
+          "name": "p3",
+          "type": "u8",
+          "enum": "ToggleState"
+        },
+        {
+          "name": "prefix_slots",
+          "type": "u32",
+          "unknown": 4294967295
+        },
+        {
+          "name": "tf_frequency_hz",
+          "type": "u32",
+          "unknown": 4294967295
+        },
+        {
+          "name": "profile_id",
+          "type": "u32"
+        },
+        {
+          "name": "locate",
+          "type": "u32",
+          "unknown": 4294967295
+        },
+        {
+          "name": "prefetch",
+          "type": "u8",
+          "enum": "ToggleState"
+        },
+        {
+          "name": "learning_mode",
+          "type": "u8",
+          "enum": "LearningMode"
+        }
+      ],
+      "purpose": "Identifies the actual runtime/build/resource/policy family and configuration without filenames or content.",
+      "detail": "",
+      "privacy": "BASIC",
+      "required_envelope": [],
+      "producer_responsibility": "Integration supplies stable IDs from a version-controlled namespace mapping and already-known configuration. 0 means unknown ID; UINT32_MAX means unknown numeric setting. No checksums, user text, business queries or real P23 values in synthetic fixtures."
+    }
+  ],
+  "schema_revision": 2,
+  "wire": {
+    "version": 1,
+    "schema_revision": 2,
+    "header_bytes": 56,
+    "max_payload_bytes": 272,
+    "text_capacity": 96,
+    "path_capacity": 64,
+    "queue_capacity": 32,
+    "diagnostic_chunk_bytes": 512
+  }
+}

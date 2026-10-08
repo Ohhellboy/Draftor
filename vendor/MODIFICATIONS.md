@@ -1,0 +1,9 @@
+# Fixed upstream and local changes
+
+TinyUSB 53f8c53c2 is unmodified MIT source. The fixed lib-builder ee57070 source list builds all 25 units. No archive member is removed by hand. Original and modified Arduino-ESP32 3.3.11 HAL source are included with its LGPL-2.1 license.
+
+Local HAL changes (2026-10-05) propagate PHY failure, reject a failed USB task creation, disconnect if that task cannot start and retain the first partial-start error until controlled reboot. Owned configuration disables unused Host/Hub and device classes, retaining Device MSC and its 4096-byte buffer. Product BLE changes retain first-Enter lifecycle handling and reconnect safety.
+
+The local SD library retains gated counters and a cooperative budget for device-owned initialization/mount attempts. `SD.cpp` records SPI-start/disk-registration failures; `sd_diskio.cpp` records stages and FAT/VFS failures, checks budget expiry, limits retry waits and handles expiry during cleanup. These protections can terminate initialization or mount early; they are not merely observation. With the budget inactive, normal command/CRC, retry-limit and wait/sync behavior remain inherited from fixed Arduino-ESP32 3.3.11. The product requests 20 MHz runtime SPI; the driver's initialization transaction remains 400 kHz. See [the complete SD modification notice](../integration/product/libraries/SD/NOTICE.md) and its adjacent source files. No claim is made that SD.cpp is unchanged from upstream.
+
+Build tools restore an owned SDK overlay and compare upstream headers/versions before compiling. Public sources rebuild TinyUSB from these same inputs; the prebuilt private archive is omitted. No installed SDK is modified. See [Build](../docs/BUILD.md). The upstream recipe and restricted resource requirements remain explicit external inputs under their existing distribution holds.

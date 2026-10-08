@@ -1,0 +1,8 @@
+add_library(s3_fatfs_host STATIC vendor/ff.c vendor/ffunicode.c)
+target_include_directories(s3_fatfs_host PUBLIC vendor shim)
+add_executable(s3_fat_tests s3_fat_tests.cpp shim.cpp ../../platform/esp32s3/fatfs_inbox.cpp)
+target_include_directories(s3_fat_tests PRIVATE ../../platform/esp32s3 "${EXCHANGE_ROOT}/tests")
+target_link_libraries(s3_fat_tests PRIVATE usb_host_reference s3_fatfs_host)
+target_compile_options(s3_fat_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+add_test(NAME USB_s3_real_fat COMMAND s3_fat_tests "${CMAKE_BINARY_DIR}/fixtures/s3_real_fat")
+set_tests_properties(USB_s3_real_fat PROPERTIES TIMEOUT 60)

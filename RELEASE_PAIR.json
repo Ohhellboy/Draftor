@@ -1,0 +1,43 @@
+{
+  "final_parent": "T06_TF20_R1",
+  "firmware": "DRAFTOR_S3_ALPHA_T06_TF20_R1_20261007",
+  "runtime_hz": 20000000,
+  "initialization_hz": 400000,
+  "exact_tested_app": "Draftor_Alpha_T06_TF20_R1.app.bin",
+  "tested_app_bytes": 2061808,
+  "static_internal_RAM_bytes": 138012,
+  "application_offset": "0x10000",
+  "application_capacity": "0x200000",
+  "resource_release": "LEXICON_R3_B2_20261006",
+  "runtime_payload_files": 14,
+  "resource_runtime_path": "/sd/HANIME/IME/LEXICON_R3_B2_20261006",
+  "font_runtime_path": "/sd/HANIME/IME/R1_API080/matched28.hbf1",
+  "pins": "release/integration_headers/release_pin.hpp",
+  "matching_product_pins": "integration/product/dependencies/release_resources/release_pin.hpp",
+  "sdk": "Arduino-ESP32 3.3.11; vendor/versions.txt and unchanged MSC-only overlay",
+  "device_qualification": "PASS_FINITE_SCENE_ONLY",
+  "rollback_only": {
+    "parent": "T06_Release_R1",
+    "runtime_hz": 10000000,
+    "firmware": "DRAFTOR_S3_ALPHA_T06_R1_20261007"
+  },
+  "source_license": "New self-owned Alpha code Apache-2.0; existing display/st7306 MIT; third-party exceptions retained",
+  "patent_publication": "PRIVATE_DOCUMENTS_EXCLUDED; NO_APACHE_DOCUMENT_REQUIREMENT; PRIVATE_COMPARISON_NOT_PERFORMED",
+  "resource_publication": "FULL_ORIGINAL_LOCAL_CANDIDATE; SPECIFIC_ITEMS_UNCONFIRMED",
+  "binary_publication": "EXACT_TESTED_APP_AND_ORIGINAL_FIRST_INSTALL_PREPARED; DISTRIBUTION_EVIDENCE_UNCONFIRMED",
+  "resources_payload_bytes": 126940251,
+  "assets": [
+    "Draftor_TF20_Alpha_Source.zip",
+    "Draftor_TF20_Alpha_Resources.zip",
+    "Draftor_TF20_Alpha_BuildInputs.zip",
+    "Draftor_TF20_Alpha_Firmware.zip"
+  ],
+  "tag": "v0.1.0-alpha.1",
+  "display_name": "Draftor TF20 Alpha",
+  "repository": "https://github.com/Ohhellboy/Draftor",
+  "base_commit": "7e3c8e2a6032ff6ea06335c41a1b4069922e98f7",
+  "source_archive": "Integrated tracked repository snapshot; no .git history in ZIP",
+  "d04": "INCLUDED_BY_OWNER_REQUEST; REDISTRIBUTION_GRANT_UNCONFIRMED",
+  "publication_record": "https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.1",
+  "publication_record_note": "Intended release identity; local presence of this metadata is not a publication receipt"
+}

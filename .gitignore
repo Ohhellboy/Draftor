@@ -1,0 +1,13 @@
+# Local outputs and personal files only. Resource suffixes/UNKNOWN are not filters.
+/TestBuilds/
+/evidence/
+/device_runs/
+/PRIVATE_PATENT/
+**/__pycache__/
+*.pyc
+.DS_Store
+.env
+.env.*
+*.pem
+*.key
+# Installed BuildInputs remain companion assets, tracked by explicit per-file manifests.

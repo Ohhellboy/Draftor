@@ -1,0 +1,382 @@
+[
+  {
+    "path": "integration/product/platform/composition_font_data.hpp",
+    "bytes": 62659,
+    "reason": "restricted derived resource or incomplete generated font provenance"
+  },
+  {
+    "path": "integration/product/platform/latin_font.hpp",
+    "bytes": 26193,
+    "reason": "restricted derived resource or incomplete generated font provenance"
+  },
+  {
+    "path": "integration/product/assets/u28fcd.hbf1",
+    "bytes": 148,
+    "reason": "external resource fixture/font input"
+  },
+  {
+    "path": "integration/product/assets/matched28.hbf1",
+    "bytes": 2464108,
+    "reason": "external resource fixture/font input"
+  },
+  {
+    "path": "integration/product/assets/rare_codepoints.json",
+    "bytes": 831,
+    "reason": "external resource fixture/font input"
+  },
+  {
+    "path": "integration/product/src/wubi_auto_safe_v1.hpp",
+    "bytes": 128605,
+    "reason": "restricted derived resource or incomplete generated font provenance"
+  },
+  {
+    "path": "integration/product/src/ui14_font_data.cpp",
+    "bytes": 1548935,
+    "reason": "restricted derived resource or incomplete generated font provenance"
+  },
+  {
+    "path": "integration/product/dependencies/release_resources/xiaohe_base.hbo",
+    "bytes": 13873768,
+    "reason": "matching restricted resource binding input"
+  },
+  {
+    "path": "integration/product/dependencies/release_resources/xiaohe_base.hnv",
+    "bytes": 449536,
+    "reason": "matching restricted resource binding input"
+  },
+  {
+    "path": "integration/product/dependencies/release_resources/full_pinyin_base.hbo",
+    "bytes": 10102232,
+    "reason": "matching restricted resource binding input"
+  },
+  {
+    "path": "integration/product/dependencies/release_resources/full_pinyin_base.hnv",
+    "bytes": 327680,
+    "reason": "matching restricted resource binding input"
+  },
+  {
+    "path": "integration/product/dependencies/release_resources/release_manifest.json",
+    "bytes": 13467,
+    "reason": "matching restricted resource binding input"
+  },
+  {
+    "path": "integration/product/dependencies/core/resources/step2f/README.md",
+    "bytes": 9012,
+    "reason": "external resource fixture/font input"
+  },
+  {
+    "path": "integration/product/dependencies/core/resources/step2f/candidate_adoption.json",
+    "bytes": 13123,
+    "reason": "external resource fixture/font input"
+  },
+  {
+    "path": "integration/product/dependencies/core/resources/step2f/source_v1_1.zip",
+    "bytes": 51746,
+    "reason": "external resource fixture/font input"
+  },
+  {
+    "path": "integration/product/dependencies/core/resources/step2f/full_pinyin.json",
+    "bytes": 6819,
+    "reason": "external resource fixture/font input"
+  },
+  {
+    "path": "integration/product/tests/data/ui14_expected.tsv",
+    "bytes": 1565170,
+    "reason": "external resource fixture/font input"
+  },
+  {
+    "path": "release/integration_headers/wubi_auto_safe_v1.hpp",
+    "bytes": 128605,
+    "reason": "restricted derived resource or incomplete generated font provenance"
+  },
+  {
+    "path": "integration/resources/legacy/shared.hns",
+    "bytes": 29349067,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "integration/resources/legacy/xiaohe.hnm",
+    "bytes": 2756648,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "integration/resources/legacy/full_pinyin.hnm",
+    "bytes": 2080808,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "integration/resources/staged/xiaohe_base.hbo",
+    "bytes": 13873768,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "integration/resources/staged/xiaohe_base.hnv",
+    "bytes": 449536,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "integration/resources/staged/shared.hns",
+    "bytes": 29349067,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "integration/resources/staged/full_pinyin_base.hbo",
+    "bytes": 10102232,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "integration/resources/staged/full_pinyin_base.hnv",
+    "bytes": 327680,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "integration/resources/staged/xiaohe.hnm",
+    "bytes": 2756648,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "integration/resources/staged/xiaohe.hnv",
+    "bytes": 91136,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "integration/resources/staged/wubi86.hnm",
+    "bytes": 1482792,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "integration/resources/staged/full_pinyin.hnm",
+    "bytes": 2080808,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "integration/resources/staged/wubi86.hnv",
+    "bytes": 50176,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "integration/resources/staged/full_pinyin.hnv",
+    "bytes": 68608,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "integration/resources/staged/shared.hnv",
+    "bytes": 58698752,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "integration/resources/staged/wubi86_base.hbo",
+    "bytes": 7369432,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "integration/resources/staged/wubi86_base.hnv",
+    "bytes": 239616,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "integration/evidence/cross_scheme.tsv",
+    "bytes": 409,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "integration/evidence/real_samples.tsv",
+    "bytes": 186,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "integration/evidence/auto_safe_expectations.tsv",
+    "bytes": 686669,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "integration/evidence/real_sample_identities.tsv",
+    "bytes": 1543,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "integration/evidence/parent-r1/render/host_product_v_punctuation_set.ppm",
+    "bytes": 360110,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "integration/evidence/parent-r1/render/host_product_v_chinese_sentence.ppm",
+    "bytes": 360110,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "integration/evidence/parent-r1/render/host_product_v_english_sentence.ppm",
+    "bytes": 360110,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "release/B2/xiaohe_base.hbo",
+    "bytes": 13873768,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "release/B2/xiaohe_base.hnv",
+    "bytes": 449536,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "release/B2/shared.hns",
+    "bytes": 29349067,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "release/B2/full_pinyin_base.hbo",
+    "bytes": 10102232,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "release/B2/full_pinyin_base.hnv",
+    "bytes": 327680,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "release/B2/release_pin.hpp",
+    "bytes": 7985,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "release/B2/xiaohe.hnm",
+    "bytes": 2756648,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "release/B2/xiaohe.hnv",
+    "bytes": 91136,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "release/B2/wubi86.hnm",
+    "bytes": 1482792,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "release/B2/full_pinyin.hnm",
+    "bytes": 2080808,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "release/B2/release_manifest.json",
+    "bytes": 13467,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "release/B2/wubi86.hnv",
+    "bytes": 50176,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "release/B2/full_pinyin.hnv",
+    "bytes": 68608,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "release/B2/shared.hnv",
+    "bytes": 58698752,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "release/B2/wubi86_base.hbo",
+    "bytes": 7369432,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "release/B2/wubi86_base.hnv",
+    "bytes": 239616,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "reference/UI14_pins/wubi_release_v1.hpp",
+    "bytes": 3352,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "reference/UI14_pins/release_pin.hpp",
+    "bytes": 5796,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "reference/UI14_pins/wubi_auto_safe_v1.hpp",
+    "bytes": 128605,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "reference/UI14_resources/xiaohe_base.hbo",
+    "bytes": 13739184,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "reference/UI14_resources/xiaohe_base.hnv",
+    "bytes": 445440,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "reference/UI14_resources/shared.hns",
+    "bytes": 29323042,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "reference/UI14_resources/full_pinyin_base.hbo",
+    "bytes": 9828968,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "reference/UI14_resources/full_pinyin_base.hnv",
+    "bytes": 318464,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "reference/UI14_resources/xiaohe.hnm",
+    "bytes": 2727976,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "reference/UI14_resources/xiaohe.hnv",
+    "bytes": 90112,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "reference/UI14_resources/wubi86.hnm",
+    "bytes": 1482792,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "reference/UI14_resources/full_pinyin.hnm",
+    "bytes": 2023464,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "reference/UI14_resources/wubi86.hnv",
+    "bytes": 50176,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "reference/UI14_resources/full_pinyin.hnv",
+    "bytes": 66560,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "reference/UI14_resources/shared.hnv",
+    "bytes": 58646528,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "reference/UI14_resources/wubi86_base.hbo",
+    "bytes": 7369432,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "reference/UI14_resources/wubi86_base.hnv",
+    "bytes": 239616,
+    "reason": "matching restricted lexicon or test resource"
+  },
+  {
+    "path": "vendor/CMakeLists.upstream.txt",
+    "bytes": 3400,
+    "reason": "upstream lib-builder recipe redistribution license not established"
+  }
+]

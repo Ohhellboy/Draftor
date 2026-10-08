@@ -1,5 +1,28 @@
 # Draftor 草稿机
 
+<!-- TF20_ALPHA_NAV_BEGIN -->
+## Draftor TF20 Alpha · v0.1.0-alpha.1
+
+**First complete Alpha software package / 首次完整 Alpha 软件发行包** — ESP32-S3 N16R8 (Thick), with all self-owned source including **bgIME Core**, full original resources and the original device-tested firmware. This version does not provide a complete Pico 2 W (Thin) firmware release; the independent display demos for both boards remain below.<br>
+本版本对应 ESP32-S3 N16R8（Thick），包含完整自有源码（含 bgIME Core）、原样完整词库与字体、构建输入及原实测固件。Pico 2 W（Thin）的独立屏幕示例继续保留，不将其等同于本版完整固件。
+
+[Alpha quick start](docs/TF20_ALPHA.md) · [中文发行导览](README.zh-CN.md) · [Installation / 安装](docs/INSTALL.md) · [Build / 构建](docs/BUILD.md) · [Release notes / 发行说明](docs/RELEASE_NOTES.md) · [GitHub releases](https://github.com/Ohhellboy/Draftor/releases)
+
+| Asset / 附件 | Contents / 内容 |
+|---|---|
+| `Draftor_TF20_Alpha_Source.zip` | Integrated repository source, bgIME Core, original ST7306 demos, documentation and prototype photo / 完整整合源码树 |
+| `Draftor_TF20_Alpha_Resources.zip` | Unchanged complete B2 lexicon and fonts / 原样完整词库与字形 |
+| `Draftor_TF20_Alpha_BuildInputs.zip` | 76 project inputs plus supplied source, font and license materials / 配套输入及来源材料 |
+| `Draftor_TF20_Alpha_Firmware.zip` | Exact tested app and paired first-install files / 原实测固件及首次安装四件 |
+
+The four assets are paired under `v0.1.0-alpha.1`; download availability is shown on GitHub Releases. Use all four assets from the same version. The firmware remains `DRAFTOR_S3_ALPHA_T06_TF20_R1_20261007`, TF runtime **20 MHz**, initialization **400 kHz**. [Version pairing](RELEASE_PAIR.json) and [known Alpha limits](docs/KNOWN_ISSUES.md) apply; this is not an all-green or long-run qualification claim.<br>
+四附件按 `v0.1.0-alpha.1` 配对，下载状态以 GitHub Releases 为准。有限实机验证沿用既有结果，未重编译或重测产品。
+
+New self-owned Alpha source uses **Apache-2.0**. The previously published independent [`display/st7306`](display/st7306/) module keeps its **MIT** license and original third-party notices. Fonts, data and other third-party components retain their own terms; specific unresolved distribution evidence is listed in [license status](docs/RESOURCE_STATUS.md).<br>
+新发布自有源码采用 Apache-2.0；原独立屏幕模块继续按其目录内 MIT 及第三方声明分发。以下原项目介绍、照片和 Thin/Thick 表达保留；[原硬件概览](HARDWARE.md)与[TF20具体接线](docs/HARDWARE.md)分别说明项目范围和本版目标。
+<!-- TF20_ALPHA_NAV_END -->
+
+
 **A distraction-free local pocket text recording device**<br>
 一台无打搅本地口袋文本记录设备
 
