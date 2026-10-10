@@ -110,7 +110,6 @@ selection listed only SPI in addition to the platform core.
 
 The ESP32-S3 minimal demo has been flashed and visually checked on hardware.
 The Pico 2 W demo has not been tested on hardware in this publication cycle.
-See [DEVICE_SMOKE_TEST.md](DEVICE_SMOKE_TEST.md) for the test pattern and criteria.
 
 The eight driver files are the same versions used by the reviewed Draftor 
 builds, and the two example sketches contain only the minimal display test. 
