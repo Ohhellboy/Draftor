@@ -1,4 +1,4 @@
-# Draftor TF20 Alpha · v0.1.0-alpha.1
+# Draftor Alpha · v0.1.0-alpha.1
 
 **Released / 发布日期：9 October 2026 / 2026年10月9日**
 
@@ -117,10 +117,10 @@ All four archives belong to **v0.1.0-alpha.1**.
 
 | File / 文件 | Contents / 内容 |
 |---|---|
-| `Draftor_TF20_Alpha_Source.zip` | Complete integrated source tree, including bgIME Core, display drivers, tools, and documentation / 完整整合源码 |
-| `Draftor_TF20_Alpha_Resources.zip` | Chinese dictionaries, indexes, bitmap fonts, and runtime resources / 词库、索引及字体资源 |
-| `Draftor_TF20_Alpha_BuildInputs.zip` | Project build inputs, fixed-version upstream materials, font sources, and license notices / 构建输入、来源及许可材料 |
-| `Draftor_TF20_Alpha_Firmware.zip` | Device-tested application firmware and associated first-install files / 原实测固件及首次烧录文件 |
+| `Draftor_Alpha_Source.zip` | Complete integrated source tree, including bgIME Core, display drivers, tools, and documentation / 完整整合源码 |
+| `Draftor_Alpha_Resources.zip` | Chinese dictionaries, indexes, bitmap fonts, and runtime resources / 词库、索引及字体资源 |
+| `Draftor_Alpha_BuildInputs.zip` | Project build inputs, fixed-version upstream materials, font sources, and license notices / 构建输入、来源及许可材料 |
+| `Draftor_Alpha_Firmware.zip` | Device-tested application firmware and associated first-install files / 原实测固件及首次烧录文件 |
 
 **Use matching files from the same release. Do not mix firmware and resource versions.**
 
@@ -249,9 +249,9 @@ bgIME 所采用的共享稳定词条身份相关技术已提交中国发明专�
 - [Building from Source / 源码构建](BUILD.md)
 - [Known Issues / 已知问题](KNOWN_ISSUES.md)
 
-If you try Draftor TF20 Alpha, feedback on Chinese input, horizontal and vertical editing, saving documents, and USB transfers would be especially useful.
+If you try Draftor Alpha, feedback on Chinese input, horizontal and vertical editing, saving documents, and USB transfers would be especially useful.
 
-如果你尝试了 Draftor TF20 Alpha，欢迎反馈中文输入、横竖排编辑、文档保存或 USB 传输中遇到的问题。
+如果你尝试了 Draftor Alpha，欢迎反馈中文输入、横竖排编辑、文档保存或 USB 传输中遇到的问题。
 
 You can report bugs, ask questions, or share improvements through [GitHub Issues](https://github.com/Ohhellboy/Draftor/issues) and Pull Requests.
 
