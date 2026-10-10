@@ -1,4 +1,4 @@
-##Draftor TF20 Alpha · v0.1.0-alpha.1##
+## Draftor TF20 Alpha · v0.1.0-alpha.1 ##
 
 Draftor's first public Alpha is now available for ESP32-S3 N16R8 (Thick). It includes bgIME (Big Goose Input Method Engine), supporting Full Pinyin, Xiaohe Shuangpin, Wubi 86, and English input, with both horizontal and vertical writing layouts.
 
