@@ -1,22 +1,127 @@
-# External inputs / 外部输入
+# External Build Inputs / 外部构建输入
 
-All **76/76** entries of the original [EXTERNAL_INPUTS.json](../EXTERNAL_INPUTS.json) are provided unchanged in the same-release **Draftor_Alpha_BuildInputs.zip**, under `BuildInputs/inputs/<path>`. They are installed into a fresh source copy with the existing explicit installer. No UNKNOWN batch is filtered. The inherited manifest's old reason strings describe the previous preparation policy; this document and the [per-file disposition](EXTERNAL_INPUT_DISPOSITIONS.json) give the current plan.
+**Version / 适用版本：Draftor Alpha · v0.1.0-alpha.1**
 
-| Target | Material readiness and limits |
+[Build Guide / 构建指南](BUILD.md) · [Source Structure / 源码结构](SOURCE_INTEGRATION.md) · [Resource Status / 资源与许可说明](RESOURCE_STATUS.md)
+
+Some files required to build Draftor are distributed separately from the source code. They include generated font data, dictionary resources, test fixtures and an SDK build recipe.
+
+Draftor 的部分构建输入没有直接放在源码树中，而是单独发行。这些文件包括生成的字体数据、词库资源、测试夹具及 SDK 构建配置。
+
+The current Alpha requires **76 external project inputs**. All 76 are included in the matching `Draftor_Alpha_BuildInputs.zip` archive.
+
+当前 Alpha 需要 **76 项外部项目输入**，均已包含在配套的 `Draftor_Alpha_BuildInputs.zip` 中。
+
+The complete list of expected file paths and sizes is recorded in [EXTERNAL_INPUTS.json](../EXTERNAL_INPUTS.json).
+
+完整文件路径与大小见 [EXTERNAL_INPUTS.json](../EXTERNAL_INPUTS.json)。
+
+## 1. Installing the Inputs / 安装构建输入
+
+Download `Draftor_Alpha_Source.zip` and `Draftor_Alpha_BuildInputs.zip` from the [same Alpha release](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.1).
+
+请从[同一个 Alpha 发行版本](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.1)下载 `Draftor_Alpha_Source.zip` 和 `Draftor_Alpha_BuildInputs.zip`。
+
+The external files are located under:
+
+构建输入位于：
+
+```text
+BuildInputs/
+└── inputs/
+    ├── integration/
+    ├── release/
+    ├── reference/
+    └── vendor/
+```
+
+The directory structure under `inputs/` corresponds to the paths expected by the Draftor source tree.
+
+`inputs/` 下的目录结构与 Draftor 源码所需的相对路径对应。
+
+Use the provided installer in a **fresh source copy**:
+
+请在**干净的源码副本**中运行安装脚本：
+
+```sh
+cd "/absolute/path/to/Draftor"
+
+export BUILD_INPUTS="/absolute/path/to/BuildInputs"
+
+python3 -B tools/install_external_inputs.py \
+  --from "$BUILD_INPUTS/inputs"
+```
+
+The installer checks the expected filenames and file sizes before copying them. It does not overwrite existing destination files.
+
+安装脚本会先检查文件名称和大小，再复制到源码树中对应的位置。脚本不会覆盖已有的目标文件。
+
+If an input is missing, has an unexpected size or already exists at its destination, inspect the problem before proceeding. For complete build instructions, see [Build Guide](BUILD.md).
+
+如果文件缺失、大小不符，或目标位置已经存在文件，请先检查原因。完整编译步骤见[构建指南](BUILD.md)。
+
+## 2. What These Files Are For / 文件用途
+
+The 76 inputs serve several different purposes:
+
+这 76 项输入具有不同用途：
+
+| Type / 类型 | Purpose / 用途 |
 |---|---|
-| Tested-hardware app update / first installation | Original app, bootloader, partitions, boot_app0 and full TF resource layout prepared; installation actions not executed this round |
-| S3 compilation | All 76 project inputs supplied; fixed official SDK/compiler installation is still required; previous clean build evidence reused |
-| Portable 224 Host checks | All listed resource/fixture inputs supplied, including seven historical Host fixtures; no claim that all pass (16 inherited failures) |
-| Internal historical 230 checks | Six private-workspace historical checks remain outside the public reproduction claim; see BUILD |
-| Upstream recreation of every mixed font / lexicon | Not complete: unidentified legacy source inputs/transform chains remain; this does not remove existing generated or runtime bytes |
+| Generated source inputs / 生成的源码输入 | Font data, Wubi tables and other files compiled into the application / 字体数据、五笔表及其他参与编译的生成文件 |
+| Resource and build bindings / 资源与构建配对 | Dictionaries, indexes, manifests and related resource bindings / 词库、索引、清单及相关配对材料 |
+| Host test fixtures / 电脑端测试夹具 | Reference resources and test data used by automated checks / 自动测试所需的参考资源和测试数据 |
+| SDK build recipe / SDK 构建配置 | Fixed configuration used to build the required TinyUSB component / 用于构建指定 TinyUSB 组件的固定配置 |
 
-The seven `integration/evidence/` entries are synthetic/recorded Host fixtures, not device logs or the TF runtime dictionary. `reference/UI14_resources` and `reference/UI14_pins` are old Host comparison inputs, not the active runtime release. `step2f/source_v1_1.zip` is the exact historical Core source fixture, including its self-contained validation record. Nested records are identified in the file manifest and are not device/audit-chat logs.
+Some entries under `integration/evidence/` and `reference/` are historical test inputs. They are not the active dictionaries installed on the TF card.
 
-Additional fixed original LXGW and Jigmo outlines, UI14 parent glyph dump, generator and parser are supplied beside the 76 inputs. Older Latin/composition outline identity, complete historical regeneration chain and dataset redistribution evidence remain unresolved. The supplied Step2A Wubi audit scripts are provenance source references with historical dependencies, not a claim of a complete portable B2-regeneration command.
+`integration/evidence/` 和 `reference/` 中的部分文件用于历史测试及对照，并不是当前需要安装到 TF 卡上的运行词库。
 
-The SDK recipe is supplied unchanged despite its unconfirmed distribution evidence; see RESOURCE_STATUS. SDK binaries/toolchain installation is an official fixed-version prerequisite, not a hidden private build input. Firmware distribution obligations are separately tracked in [FIRMWARE_DISTRIBUTION](FIRMWARE_DISTRIBUTION.md).
+The historical `step2f/source_v1_1.zip` is also included as a Core test and source-reference fixture. It is not a substitute for the current bgIME runtime resources.
 
-中文：全部76项已落实到同批附件；运行、生成输入、Host夹具和历史来源材料分开记账。提供材料不等于取得授权，S3可编译也不等于所有资源都能从已知上游重新生成。
+历史文件 `step2f/source_v1_1.zip` 作为 Core 测试及来源参考材料提供，不能代替当前 bgIME 的运行资源。
+
+For actual TF card installation, use the matching Resources archive and follow [Installation](INSTALL.md).
+
+如果需要准备真实设备的 TF 卡，请使用对应的 Resources 包，并参照[安装指南](INSTALL.md)。
+
+## 3. Other Build Materials / 其他构建材料
+
+BuildInputs also includes supporting materials outside the 76-file `inputs/` directory, including original font sources, font-generation tools and related source and license documents.
+
+BuildInputs 在这 76 项 `inputs/` 文件之外，还提供原始字体材料、字体生成工具，以及相关源码和许可文档。
+
+These materials help document and reproduce supported parts of the current build and resource-generation process.
+
+这些材料用于说明和复现当前构建及部分资源生成过程。
+
+The complete Arduino-ESP32 SDK and compiler toolchain must still be installed separately. They are not included in these 76 files.
+
+完整的 Arduino-ESP32 SDK 和编译器仍需单独安装，不包含在这 76 项文件中。
+
+## 4. Scope & Limitations / 适用范围与限制
+
+The supplied inputs support the current ESP32-S3 build, together with the specified toolchain. They do not guarantee that every historical version of Draftor, every test or every dictionary-generation step can be reproduced.
+
+这些输入配合指定工具链，可以用于构建当前 ESP32-S3 版本。但它们并不保证可以复现草稿机的所有历史版本、全部测试，或者每一次词库生成过程。
+
+The public Host workflow provides 224 portable tests. Six additional historical tests are outside that workflow, and the existing test suite still contains known failures. See [Build Guide](BUILD.md) and [Known Issues](KNOWN_ISSUES.md).
+
+公开 Host 测试流程提供 224 项可移植测试，另外六项历史测试不包含在这一流程中。现有测试仍保留部分已知失败。具体情况见[构建指南](BUILD.md)及[已知问题](KNOWN_ISSUES.md)。
+
+Some older mixed font and dictionary generation steps cannot yet be fully reconstructed from the available original materials. The generated inputs and runtime resources required by the current Alpha are nevertheless provided.
+
+部分历史混合字体和词库的生成过程尚无法从现有原始材料完整重建，但当前 Alpha 所需的生成输入和运行资源已经提供。
+
+**Availability of a file does not establish its redistribution rights.** Some third-party resource and SDK-related licensing questions remain unresolved. Their known scope is documented in [Resource Status](RESOURCE_STATUS.md) and [Firmware Distribution](FIRMWARE_DISTRIBUTION.md).
+
+**文件已经提供，不等于其再分发许可已经完全明确。** 部分第三方资源及 SDK 相关许可问题仍待确认。已知范围见[资源与许可说明](RESOURCE_STATUS.md)及[固件分发说明](FIRMWARE_DISTRIBUTION.md)。
+
+## 5. Complete Input List / 完整构建输入清单
+
+The following table lists the 76 required inputs, their expected relative paths, sizes, roles and locations in the BuildInputs archive.
+
+下表列出全部 76 项输入，包括预期相对路径、文件大小、用途及其在 BuildInputs 中的位置。
 
 | ID | Path | Bytes | Use | Supplied at |
 |---|---|---:|---|---|
