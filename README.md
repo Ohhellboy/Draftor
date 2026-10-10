@@ -1,4 +1,4 @@
-## Draftor TF20 Alpha · v0.1.0-alpha.1 ##
+## Draftor Alpha · v0.1.0-alpha.1 ##
 
 Draftor's first public Alpha is now available for ESP32-S3 N16R8 (Thick). It includes bgIME (Big Goose Input Method Engine), supporting Full Pinyin, Xiaohe Shuangpin, Wubi 86, and English input, with both horizontal and vertical writing layouts.
 
@@ -12,7 +12,7 @@ Download Alpha / 下载 Alpha · Quick Start · Build · Licenses
 
 New self-owned Alpha source uses **Apache-2.0**. The previously published independent [`display/st7306`](display/st7306/) module keeps its **MIT** license and original third-party notices. Fonts, data and other third-party components retain their own terms; specific unresolved distribution evidence is listed in [license status](docs/RESOURCE_STATUS.md).<br>
 新发布自有源码采用 Apache-2.0；原独立屏幕模块继续按其目录内 MIT 及第三方声明分发。[原硬件概览](HARDWARE.md)与[TF20具体接线](docs/HARDWARE.md)可查看细节。
-<!-- TF20_ALPHA_NAV_END -->
+<!-- ALPHA_NAV_END -->
 
 
 **A distraction-free local pocket text recording device**<br>
