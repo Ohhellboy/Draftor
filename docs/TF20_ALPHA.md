@@ -1,4 +1,4 @@
-# Draftor TF20 Alpha · v0.1.0-alpha.1
+# Draftor Alpha · v0.1.0-alpha.1
 
 [Project Introduction](../README.md) · [简体中文](../README.zh-CN.md)
 
@@ -6,7 +6,7 @@ Draftor is an offline writing device built around a microcontroller. It uses a r
 
 It is a machine for writing, not another all-purpose PDA. It keeps the editing and file management functions needed for writing, without trying to do everything else.
 
-The first public **TF20 Alpha** runs on **ESP32-S3 N16R8 (Thick)** and uses **bgIME (Big Goose Input Method Engine)**, a Chinese input method engine developed for Draftor.
+The first public **Alpha** runs on **ESP32-S3 N16R8 (Thick)** and uses **bgIME (Big Goose Input Method Engine)**, a Chinese input method engine developed for Draftor.
 
 It supports English, Full Pinyin (Quanpin), Xiaohe Shuangpin, and Wubi 86, with both horizontal and vertical writing layouts. You can save, reopen, and rename documents, export text as TXT files over USB, or import new drafts from a computer.
 
@@ -18,7 +18,7 @@ This is Draftor's first complete Alpha software release.
 
 ## 1. Download
 
-**[Draftor TF20 Alpha · v0.1.0-alpha.1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.1)**
+**[Draftor Alpha · v0.1.0-alpha.1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.1)**
 
 This release includes all Draftor-owned source code, including bgIME Core, along with the complete runtime dictionaries, font resources, build materials, and device-tested firmware.
 
@@ -26,10 +26,10 @@ Four ZIP archives are available:
 
 | File | Contents |
 |---|---|
-| `Draftor_TF20_Alpha_Source.zip` | Complete source tree, bgIME Core, display drivers, development tools, and documentation |
-| `Draftor_TF20_Alpha_Resources.zip` | Chinese dictionaries, lookup indexes, bitmap fonts, and associated runtime resources |
-| `Draftor_TF20_Alpha_BuildInputs.zip` | Required project build inputs, fixed-version upstream source materials, font sources, and license notices |
-| `Draftor_TF20_Alpha_Firmware.zip` | Device-tested ESP32-S3 firmware and the associated files needed for initial flashing |
+| `Draftor_Alpha_Source.zip` | Complete source tree, bgIME Core, display drivers, development tools, and documentation |
+| `Draftor_Alpha_Resources.zip` | Chinese dictionaries, lookup indexes, bitmap fonts, and associated runtime resources |
+| `Draftor_Alpha_BuildInputs.zip` | Required project build inputs, fixed-version upstream source materials, font sources, and license notices |
+| `Draftor_Alpha_Firmware.zip` | Device-tested ESP32-S3 firmware and the associated files needed for initial flashing |
 
 You can also browse the source code directly in this repository.
 
@@ -60,9 +60,9 @@ See the [Usage Guide](USAGE.md) for the complete procedure.
 
 ## 3. Hardware & Version
 
-The complete TF20 Alpha firmware is intended for **ESP32-S3 N16R8 (Thick)**.
+The complete Alpha firmware is intended for **ESP32-S3 N16R8 (Thick)**.
 
-The software build baseline is `T06_TF20_R1`. The TF card uses an SPI clock of **20 MHz** during normal operation and **400 kHz** during initialization.
+The software build baseline is `T06_R1`. The TF card uses an SPI clock of **20 MHz** during normal operation and **400 kHz** during initialization.
 
 The firmware included in this release is the version tested on the actual device.
 
