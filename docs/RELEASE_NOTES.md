@@ -4,7 +4,7 @@
 
 **Status / 版本状态：Alpha Pre-release**
 
-[Download / 下载](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.1) · [Project Introduction / 项目介绍](../README.md) · [中文导览](../README.zh-CN.md) · [English Guide](TF20_ALPHA.md)
+[Download / 下载](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.1) · [Project Introduction / 项目介绍](../README.md) · [中文导览](../README.zh-CN.md) · [English Guide](ALPHA.md)
 
 This is the first complete public Alpha software release of Draftor, an offline writing device built around a microcontroller.
 
@@ -177,9 +177,9 @@ The previously released [ST7306 standalone display driver and demos](../display/
 
 ## 5. Testing & Known Limitations / 测试与已知限制
 
-TF20 Alpha has passed selected real-device tests covering startup, Chinese candidate selection, saving and reopening documents, TXT export, and Inbox import.
+Alpha has passed selected real-device tests covering startup, Chinese candidate selection, saving and reopening documents, TXT export, and Inbox import.
 
-TF20 Alpha 已通过有限的实机测试，覆盖设备启动、中文候选选择、文档保存与重新打开、TXT 导出及 Inbox 导入等场景。
+Alpha 已通过有限的实机测试，覆盖设备启动、中文候选选择、文档保存与重新打开、TXT 导出及 Inbox 导入等场景。
 
 Wubi 86 and the editor integration also have earlier software and device acceptance evidence.
 
