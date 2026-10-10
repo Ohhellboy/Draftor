@@ -6,7 +6,7 @@ Draftor's first public Alpha is now available for ESP32-S3 N16R8 (Thick). It inc
 
 The source code, dictionaries, fonts and tested firmware are available on GitHub. A complete Pico 2 W (Thin) firmware is not included in this release.
 
-完整源码、词库、字体和实测固件均已发布。Pico 2 W（Thin）的完整固件暂不包含在本次发行中。
+完整源码、词库、字体和实测固件均已发布。Pico 2 W（Thin）的完整固件, 以及**电源模块**暂不包含在本次发行中。
 
 Download Alpha / 下载 Alpha · Quick Start · Build · Licenses
 
