@@ -6,12 +6,12 @@ Draftor's first public Alpha is now available for ESP32-S3 N16R8 (Thick). It inc
 
 The source code, dictionaries, fonts and tested firmware are available on GitHub. A complete Pico 2 W (Thin) firmware is not included in this release.
 
-完整源码、词库、字体和实测固件均已发布。Pico 2 W（Thin）的完整固件, 以及**电源模块**暂不包含在本次发行中。
+完整源码、词库、字体和实测固件均已发布。Pico 2 W（Thin）的完整写作固件暂未包含在本次发行中；独立电池供电模块仍在开发中。
 
-Download Alpha / 下载 Alpha · Quick Start · Build · Licenses
+[Download Alpha / 下载 Alpha](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.1) · [Quick Start / 安装指南](docs/INSTALL.md) · [Build / 源码构建](docs/BUILD.md) · [Licenses / 许可证](docs/LICENSE_INVENTORY.md)
 
 New self-owned Alpha source uses **Apache-2.0**. The previously published independent [`display/st7306`](display/st7306/) module keeps its **MIT** license and original third-party notices. Fonts, data and other third-party components retain their own terms; specific unresolved distribution evidence is listed in [license status](docs/RESOURCE_STATUS.md).<br>
-新发布自有源码采用 Apache-2.0；原独立屏幕模块继续按其目录内 MIT 及第三方声明分发。[原硬件概览](HARDWARE.md)与[TF20具体接线](docs/HARDWARE.md)可查看细节。
+新发布自有源码采用 Apache-2.0；原独立屏幕模块继续按其目录内 MIT 及第三方声明分发。[原硬件概览](HARDWARE.md)与[Alpha 硬件接线](docs/HARDWARE.md)可查看细节。
 <!-- ALPHA_NAV_END -->
 
 
@@ -28,6 +28,10 @@ New self-owned Alpha source uses **Apache-2.0**. The previously published indepe
 
 - ESP32-S3 N16R8
 - Raspberry Pi Pico 2 W
+
+The complete Alpha firmware currently targets ESP32-S3 N16R8 (Thick). Raspberry Pi Pico 2 W (Thin) has standalone ST7306 display demos, but no complete Alpha writing firmware in this release.
+
+当前完整 Alpha 固件适用于 ESP32-S3 N16R8（Thick）。Raspberry Pi Pico 2 W（Thin）目前公开了 ST7306 独立屏幕示例，本次发行不包含完整写作固件。
 
 ### Display Support / 屏幕支持
 
@@ -184,8 +188,8 @@ Friction might be a good thing, but tenosynovitis is not.<br>
 
 ---
 
-In short, if you need a stable, distraction-free long-text recording device with Chinese input methods, do not want to spend too much time adapting old equipment, and want something faster than handwriting, Draftor may be a good choice.<br>
-总之，如果你需要一台长期稳定的无打搅便携中文输入设备，并且不想在旧器材上花费太多时间，还希望比手写更快，草稿机可能会是一个好选择。
+In short, if you need a distraction-free long-text recording device with Chinese input methods, do not want to spend too much time adapting old equipment, and want something faster than handwriting, Draftor may be a good choice.<br>
+总之，如果你需要一台无打搅便携中文输入设备，并且不想在旧器材上花费太多时间，还希望比手写更快，草稿机可能会是一个好选择。
 
 **Source code and documentation will be added here progressively as the project develops.**<br>
 **欢迎收藏。草稿机项目的开发、源代码和文档将在此逐步更新。**

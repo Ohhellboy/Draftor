@@ -1,12 +1,12 @@
 # Draftor Usage & Interaction Guide / 操作手册
 
-This guide explains how to type, edit documents, manage files, and transfer text using Draftor TF20 Alpha.
+This guide explains how to type, edit documents, manage files, and transfer text using Draftor Alpha.
 
-本指南介绍 Draftor TF20 Alpha 的文字输入、文档编辑、文件管理以及 USB 导入导出操作。
+本指南介绍 Draftor Alpha 的文字输入、文档编辑、文件管理以及 USB 导入导出操作。
 
-The instructions apply to the ESP32-S3 N16R8 (Thick) version of Draftor TF20 Alpha.
+The instructions apply to the ESP32-S3 N16R8 (Thick) version of Draftor Alpha.
 
-本指南适用于 ESP32-S3 N16R8（Thick）版本的 Draftor TF20 Alpha。
+本指南适用于 ESP32-S3 N16R8（Thick）版本的 Draftor Alpha。
 
 ---
 
@@ -261,9 +261,9 @@ Inbox 通过临时可写 USB 磁盘接收 TXT 文件。电脑写入的内容不�
 
 ## 4. Troubleshooting / 异常处理
 
-Draftor TF20 is an Alpha release. Some error conditions and recovery scenarios have not been fully tested.
+Draftor is an Alpha release. Some error conditions and recovery scenarios have not been fully tested.
 
-Draftor TF20 仍属于 Alpha 版本，部分异常情况及恢复场景尚未完成充分测试。
+Draftor 仍处于 Alpha 阶段，部分异常情况及恢复场景尚未完成充分测试。
 
 If the device reports a fatal error, memory allocation failure, unexpected restart, or HALT message:
 
@@ -297,6 +297,6 @@ For known limitations and the current testing scope, see [Known Issues / 已知�
 
 ---
 
-**Draftor TF20 Alpha — v0.1.0-alpha.1**
+**Draftor Alpha — v0.1.0-alpha.1**
 
 [Project Home / 项目主页](https://github.com/Ohhellboy/Draftor) · [Download / 下载](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.1) · [Installation / 安装](INSTALL.md) · [Hardware / 硬件](HARDWARE.md)
