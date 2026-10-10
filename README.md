@@ -10,6 +10,9 @@ The source code, dictionaries, fonts and tested firmware are available on GitHub
 
 [Download Alpha / 下载 Alpha](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.1) · [Quick Start / 安装指南](docs/INSTALL.md) · [Build / 源码构建](docs/BUILD.md) · [Licenses / 许可证](docs/LICENSE_INVENTORY.md)
 
+For the input engine’s source layout, Core build instructions and integration limits, see the [bgIME module](ime/bgime/README.md).<br>
+输入引擎的源码结构、Core 独立构建及集成边界，见 [bgIME 模块](ime/bgime/README.zh-CN.md)。
+
 New self-owned Alpha source uses **Apache-2.0**. The previously published independent [`display/st7306`](display/st7306/) module keeps its **MIT** license and original third-party notices. Fonts, data and other third-party components retain their own terms; specific unresolved distribution evidence is listed in [license status](docs/RESOURCE_STATUS.md).<br>
 新发布自有源码采用 Apache-2.0；原独立屏幕模块继续按其目录内 MIT 及第三方声明分发。[原硬件概览](HARDWARE.md)与[Alpha 硬件接线](docs/HARDWARE.md)可查看细节。
 <!-- ALPHA_NAV_END -->
