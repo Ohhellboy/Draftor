@@ -73,10 +73,10 @@ Download the appropriate files from:
 
 | File / 文件 | Purpose / 用途 |
 |---|---|
-| `Draftor_TF20_Alpha_Firmware.zip` | Firmware and first-installation files / 固件与首次烧录文件 |
-| `Draftor_TF20_Alpha_Resources.zip` | Runtime dictionaries, indexes and fonts / 词库、索引及字体 |
-| `Draftor_TF20_Alpha_Source.zip` | Source code and resource preparation tools / 源码与资源准备工具 |
-| `Draftor_TF20_Alpha_BuildInputs.zip` | Additional inputs for compiling the firmware / 自行编译所需的配套输入 |
+| `Draftor_Alpha_Firmware.zip` | Firmware and first-installation files / 固件与首次烧录文件 |
+| `Draftor_Alpha_Resources.zip` | Runtime dictionaries, indexes and fonts / 词库、索引及字体 |
+| `Draftor_Alpha_Source.zip` | Source code and resource preparation tools / 源码与资源准备工具 |
+| `Draftor_Alpha_BuildInputs.zip` | Additional inputs for compiling the firmware / 自行编译所需的配套输入 |
 
 If you only want to install the released firmware, use the supplied Firmware and Resources archives. The Source archive also contains the optional resource preparation tool described below.
 
@@ -112,9 +112,9 @@ Turn off the device and disconnect all power before removing or inserting the TF
 
 ### 2.1 Resource Directory / 资源目录
 
-Extract `Draftor_TF20_Alpha_Resources.zip` on your computer.
+Extract `Draftor_Alpha_Resources.zip` on your computer.
 
-在电脑上解压 `Draftor_TF20_Alpha_Resources.zip`。
+在电脑上解压 `Draftor_Alpha_Resources.zip`。
 
 The archive contains a `Resources/HANIME/IME/` directory. On the TF card, the corresponding resource folders must be placed directly under `HANIME/IME/` at the card root.
 
@@ -274,9 +274,9 @@ If a serial monitor is running, close it before flashing.
 
 ### 3.2 Firmware Files / 固件文件
 
-Extract `Draftor_TF20_Alpha_Firmware.zip`.
+Extract `Draftor_Alpha_Firmware.zip`.
 
-解压 `Draftor_TF20_Alpha_Firmware.zip`。
+解压 `Draftor_Alpha_Firmware.zip`。
 
 The first installation uses these four files:
 

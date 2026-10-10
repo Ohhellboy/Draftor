@@ -24,10 +24,10 @@ Draftor（草稿机）是一台基于单片机的离线写作设备。它使用�
 
 | 文件 | 内容 |
 |---|---|
-| `Draftor_TF20_Alpha_Source.zip` | 完整源码、bgIME Core、显示驱动、开发工具和文档 |
-| `Draftor_TF20_Alpha_Resources.zip` | 中文输入法词库、索引、字库及配套运行资源 |
-| `Draftor_TF20_Alpha_BuildInputs.zip` | 配套构建输入、固定版本的外部源码、字体来源和许可证材料 |
-| `Draftor_TF20_Alpha_Firmware.zip` | 已经过实机验证的 ESP32-S3 固件，以及首次烧录所需的配套文件 |
+| `Draftor_Alpha_Source.zip` | 完整源码、bgIME Core、显示驱动、开发工具和文档 |
+| `Draftor_Alpha_Resources.zip` | 中文输入法词库、索引、字库及配套运行资源 |
+| `Draftor_Alpha_BuildInputs.zip` | 配套构建输入、固定版本的外部源码、字体来源和许可证材料 |
+| `Draftor_Alpha_Firmware.zip` | 已经过实机验证的 ESP32-S3 固件，以及首次烧录所需的配套文件 |
 
 源码也可以直接在本仓库浏览。
 

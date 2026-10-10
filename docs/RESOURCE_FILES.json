@@ -1,6 +1,6 @@
 [
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/product/platform/composition_font_data.hpp",
     "bytes": 62659,
     "use": "TF20_TESTED_INPUT",
@@ -12,7 +12,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/product/platform/latin_font.hpp",
     "bytes": 26193,
     "use": "TF20_TESTED_INPUT",
@@ -24,7 +24,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/product/assets/u28fcd.hbf1",
     "bytes": 148,
     "use": "TF20_TESTED_INPUT",
@@ -36,7 +36,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/product/assets/matched28.hbf1",
     "bytes": 2464108,
     "use": "TF20_TESTED_INPUT",
@@ -48,7 +48,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/product/assets/rare_codepoints.json",
     "bytes": 831,
     "use": "TF20_TESTED_INPUT",
@@ -60,7 +60,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/product/src/wubi_auto_safe_v1.hpp",
     "bytes": 128605,
     "use": "TF20_TESTED_INPUT",
@@ -72,7 +72,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/product/src/ui14_font_data.cpp",
     "bytes": 1548935,
     "use": "TF20_TESTED_INPUT",
@@ -84,7 +84,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/product/dependencies/release_resources/xiaohe_base.hbo",
     "bytes": 13873768,
     "use": "TF20_TESTED_INPUT",
@@ -96,7 +96,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/product/dependencies/release_resources/xiaohe_base.hnv",
     "bytes": 449536,
     "use": "TF20_TESTED_INPUT",
@@ -108,7 +108,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/product/dependencies/release_resources/full_pinyin_base.hbo",
     "bytes": 10102232,
     "use": "TF20_TESTED_INPUT",
@@ -120,7 +120,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/product/dependencies/release_resources/full_pinyin_base.hnv",
     "bytes": 327680,
     "use": "TF20_TESTED_INPUT",
@@ -132,7 +132,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/product/dependencies/release_resources/release_manifest.json",
     "bytes": 13467,
     "use": "TF20_TESTED_INPUT",
@@ -144,7 +144,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/product/dependencies/core/resources/step2f/README.md",
     "bytes": 9012,
     "use": "TF20_TESTED_INPUT",
@@ -156,7 +156,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/product/dependencies/core/resources/step2f/candidate_adoption.json",
     "bytes": 13123,
     "use": "TF20_TESTED_INPUT",
@@ -168,7 +168,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/product/dependencies/core/resources/step2f/source_v1_1.zip",
     "bytes": 51746,
     "use": "TF20_TESTED_INPUT",
@@ -180,7 +180,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/product/dependencies/core/resources/step2f/full_pinyin.json",
     "bytes": 6819,
     "use": "TF20_TESTED_INPUT",
@@ -192,7 +192,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/product/tests/data/ui14_expected.tsv",
     "bytes": 1565170,
     "use": "TF20_TESTED_INPUT",
@@ -204,7 +204,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/release/integration_headers/wubi_auto_safe_v1.hpp",
     "bytes": 128605,
     "use": "TF20_TESTED_INPUT",
@@ -216,7 +216,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/resources/legacy/shared.hns",
     "bytes": 29349067,
     "use": "TF20_TESTED_INPUT",
@@ -228,7 +228,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/resources/legacy/xiaohe.hnm",
     "bytes": 2756648,
     "use": "TF20_TESTED_INPUT",
@@ -240,7 +240,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/resources/legacy/full_pinyin.hnm",
     "bytes": 2080808,
     "use": "TF20_TESTED_INPUT",
@@ -252,7 +252,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/resources/staged/xiaohe_base.hbo",
     "bytes": 13873768,
     "use": "TF20_TESTED_INPUT",
@@ -264,7 +264,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/resources/staged/xiaohe_base.hnv",
     "bytes": 449536,
     "use": "TF20_TESTED_INPUT",
@@ -276,7 +276,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/resources/staged/shared.hns",
     "bytes": 29349067,
     "use": "TF20_TESTED_INPUT",
@@ -288,7 +288,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/resources/staged/full_pinyin_base.hbo",
     "bytes": 10102232,
     "use": "TF20_TESTED_INPUT",
@@ -300,7 +300,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/resources/staged/full_pinyin_base.hnv",
     "bytes": 327680,
     "use": "TF20_TESTED_INPUT",
@@ -312,7 +312,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/resources/staged/xiaohe.hnm",
     "bytes": 2756648,
     "use": "TF20_TESTED_INPUT",
@@ -324,7 +324,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/resources/staged/xiaohe.hnv",
     "bytes": 91136,
     "use": "TF20_TESTED_INPUT",
@@ -336,7 +336,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/resources/staged/wubi86.hnm",
     "bytes": 1482792,
     "use": "TF20_TESTED_INPUT",
@@ -348,7 +348,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/resources/staged/full_pinyin.hnm",
     "bytes": 2080808,
     "use": "TF20_TESTED_INPUT",
@@ -360,7 +360,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/resources/staged/wubi86.hnv",
     "bytes": 50176,
     "use": "TF20_TESTED_INPUT",
@@ -372,7 +372,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/resources/staged/full_pinyin.hnv",
     "bytes": 68608,
     "use": "TF20_TESTED_INPUT",
@@ -384,7 +384,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/resources/staged/shared.hnv",
     "bytes": 58698752,
     "use": "TF20_TESTED_INPUT",
@@ -396,7 +396,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/resources/staged/wubi86_base.hbo",
     "bytes": 7369432,
     "use": "TF20_TESTED_INPUT",
@@ -408,7 +408,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/resources/staged/wubi86_base.hnv",
     "bytes": 239616,
     "use": "TF20_TESTED_INPUT",
@@ -420,7 +420,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/evidence/cross_scheme.tsv",
     "bytes": 409,
     "use": "INHERITED_HOST_FIXTURE_ONLY",
@@ -432,7 +432,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/evidence/real_samples.tsv",
     "bytes": 186,
     "use": "INHERITED_HOST_FIXTURE_ONLY",
@@ -444,7 +444,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/evidence/auto_safe_expectations.tsv",
     "bytes": 686669,
     "use": "INHERITED_HOST_FIXTURE_ONLY",
@@ -456,7 +456,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/evidence/real_sample_identities.tsv",
     "bytes": 1543,
     "use": "INHERITED_HOST_FIXTURE_ONLY",
@@ -468,7 +468,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/evidence/parent-r1/render/host_product_v_punctuation_set.ppm",
     "bytes": 360110,
     "use": "INHERITED_HOST_FIXTURE_ONLY",
@@ -480,7 +480,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/evidence/parent-r1/render/host_product_v_chinese_sentence.ppm",
     "bytes": 360110,
     "use": "INHERITED_HOST_FIXTURE_ONLY",
@@ -492,7 +492,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/integration/evidence/parent-r1/render/host_product_v_english_sentence.ppm",
     "bytes": 360110,
     "use": "INHERITED_HOST_FIXTURE_ONLY",
@@ -504,7 +504,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/release/B2/xiaohe_base.hbo",
     "bytes": 13873768,
     "use": "TF20_TESTED_INPUT",
@@ -516,7 +516,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/release/B2/xiaohe_base.hnv",
     "bytes": 449536,
     "use": "TF20_TESTED_INPUT",
@@ -528,7 +528,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/release/B2/shared.hns",
     "bytes": 29349067,
     "use": "TF20_TESTED_INPUT",
@@ -540,7 +540,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/release/B2/full_pinyin_base.hbo",
     "bytes": 10102232,
     "use": "TF20_TESTED_INPUT",
@@ -552,7 +552,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/release/B2/full_pinyin_base.hnv",
     "bytes": 327680,
     "use": "TF20_TESTED_INPUT",
@@ -564,7 +564,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/release/B2/release_pin.hpp",
     "bytes": 7985,
     "use": "TF20_TESTED_INPUT",
@@ -576,7 +576,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/release/B2/xiaohe.hnm",
     "bytes": 2756648,
     "use": "TF20_TESTED_INPUT",
@@ -588,7 +588,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/release/B2/xiaohe.hnv",
     "bytes": 91136,
     "use": "TF20_TESTED_INPUT",
@@ -600,7 +600,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/release/B2/wubi86.hnm",
     "bytes": 1482792,
     "use": "TF20_TESTED_INPUT",
@@ -612,7 +612,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/release/B2/full_pinyin.hnm",
     "bytes": 2080808,
     "use": "TF20_TESTED_INPUT",
@@ -624,7 +624,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/release/B2/release_manifest.json",
     "bytes": 13467,
     "use": "TF20_TESTED_INPUT",
@@ -636,7 +636,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/release/B2/wubi86.hnv",
     "bytes": 50176,
     "use": "TF20_TESTED_INPUT",
@@ -648,7 +648,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/release/B2/full_pinyin.hnv",
     "bytes": 68608,
     "use": "TF20_TESTED_INPUT",
@@ -660,7 +660,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/release/B2/shared.hnv",
     "bytes": 58698752,
     "use": "TF20_TESTED_INPUT",
@@ -672,7 +672,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/release/B2/wubi86_base.hbo",
     "bytes": 7369432,
     "use": "TF20_TESTED_INPUT",
@@ -684,7 +684,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/release/B2/wubi86_base.hnv",
     "bytes": 239616,
     "use": "TF20_TESTED_INPUT",
@@ -696,7 +696,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/reference/UI14_pins/wubi_release_v1.hpp",
     "bytes": 3352,
     "use": "TF20_TESTED_INPUT",
@@ -708,7 +708,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/reference/UI14_pins/release_pin.hpp",
     "bytes": 5796,
     "use": "TF20_TESTED_INPUT",
@@ -720,7 +720,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/reference/UI14_pins/wubi_auto_safe_v1.hpp",
     "bytes": 128605,
     "use": "TF20_TESTED_INPUT",
@@ -732,7 +732,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/reference/UI14_resources/xiaohe_base.hbo",
     "bytes": 13739184,
     "use": "TF20_TESTED_INPUT",
@@ -744,7 +744,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/reference/UI14_resources/xiaohe_base.hnv",
     "bytes": 445440,
     "use": "TF20_TESTED_INPUT",
@@ -756,7 +756,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/reference/UI14_resources/shared.hns",
     "bytes": 29323042,
     "use": "TF20_TESTED_INPUT",
@@ -768,7 +768,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/reference/UI14_resources/full_pinyin_base.hbo",
     "bytes": 9828968,
     "use": "TF20_TESTED_INPUT",
@@ -780,7 +780,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/reference/UI14_resources/full_pinyin_base.hnv",
     "bytes": 318464,
     "use": "TF20_TESTED_INPUT",
@@ -792,7 +792,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/reference/UI14_resources/xiaohe.hnm",
     "bytes": 2727976,
     "use": "TF20_TESTED_INPUT",
@@ -804,7 +804,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/reference/UI14_resources/xiaohe.hnv",
     "bytes": 90112,
     "use": "TF20_TESTED_INPUT",
@@ -816,7 +816,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/reference/UI14_resources/wubi86.hnm",
     "bytes": 1482792,
     "use": "TF20_TESTED_INPUT",
@@ -828,7 +828,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/reference/UI14_resources/full_pinyin.hnm",
     "bytes": 2023464,
     "use": "TF20_TESTED_INPUT",
@@ -840,7 +840,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/reference/UI14_resources/wubi86.hnv",
     "bytes": 50176,
     "use": "TF20_TESTED_INPUT",
@@ -852,7 +852,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/reference/UI14_resources/full_pinyin.hnv",
     "bytes": 66560,
     "use": "TF20_TESTED_INPUT",
@@ -864,7 +864,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/reference/UI14_resources/shared.hnv",
     "bytes": 58646528,
     "use": "TF20_TESTED_INPUT",
@@ -876,7 +876,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/reference/UI14_resources/wubi86_base.hbo",
     "bytes": 7369432,
     "use": "TF20_TESTED_INPUT",
@@ -888,7 +888,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/reference/UI14_resources/wubi86_base.hnv",
     "bytes": 239616,
     "use": "TF20_TESTED_INPUT",
@@ -900,7 +900,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/inputs/vendor/CMakeLists.upstream.txt",
     "bytes": 3400,
     "use": "TF20_TESTED_INPUT",
@@ -912,7 +912,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_Resources.zip",
+    "archive": "Draftor_Alpha_Resources.zip",
     "path": "Resources/HANIME/IME/LEXICON_R3_B2_20261006/shared.hns",
     "bytes": 29349067,
     "use": "B2_RUNTIME_PAYLOAD",
@@ -924,7 +924,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_Resources.zip",
+    "archive": "Draftor_Alpha_Resources.zip",
     "path": "Resources/HANIME/IME/LEXICON_R3_B2_20261006/shared.hnv",
     "bytes": 58698752,
     "use": "B2_RUNTIME_PAYLOAD",
@@ -936,7 +936,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_Resources.zip",
+    "archive": "Draftor_Alpha_Resources.zip",
     "path": "Resources/HANIME/IME/LEXICON_R3_B2_20261006/xiaohe.hnm",
     "bytes": 2756648,
     "use": "B2_RUNTIME_PAYLOAD",
@@ -948,7 +948,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_Resources.zip",
+    "archive": "Draftor_Alpha_Resources.zip",
     "path": "Resources/HANIME/IME/LEXICON_R3_B2_20261006/xiaohe.hnv",
     "bytes": 91136,
     "use": "B2_RUNTIME_PAYLOAD",
@@ -960,7 +960,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_Resources.zip",
+    "archive": "Draftor_Alpha_Resources.zip",
     "path": "Resources/HANIME/IME/LEXICON_R3_B2_20261006/full_pinyin.hnm",
     "bytes": 2080808,
     "use": "B2_RUNTIME_PAYLOAD",
@@ -972,7 +972,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_Resources.zip",
+    "archive": "Draftor_Alpha_Resources.zip",
     "path": "Resources/HANIME/IME/LEXICON_R3_B2_20261006/full_pinyin.hnv",
     "bytes": 68608,
     "use": "B2_RUNTIME_PAYLOAD",
@@ -984,7 +984,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_Resources.zip",
+    "archive": "Draftor_Alpha_Resources.zip",
     "path": "Resources/HANIME/IME/LEXICON_R3_B2_20261006/wubi86.hnm",
     "bytes": 1482792,
     "use": "B2_RUNTIME_PAYLOAD",
@@ -996,7 +996,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_Resources.zip",
+    "archive": "Draftor_Alpha_Resources.zip",
     "path": "Resources/HANIME/IME/LEXICON_R3_B2_20261006/wubi86.hnv",
     "bytes": 50176,
     "use": "B2_RUNTIME_PAYLOAD",
@@ -1008,7 +1008,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_Resources.zip",
+    "archive": "Draftor_Alpha_Resources.zip",
     "path": "Resources/HANIME/IME/LEXICON_R3_B2_20261006/xiaohe_base.hbo",
     "bytes": 13873768,
     "use": "B2_RUNTIME_PAYLOAD",
@@ -1020,7 +1020,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_Resources.zip",
+    "archive": "Draftor_Alpha_Resources.zip",
     "path": "Resources/HANIME/IME/LEXICON_R3_B2_20261006/xiaohe_base.hnv",
     "bytes": 449536,
     "use": "B2_RUNTIME_PAYLOAD",
@@ -1032,7 +1032,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_Resources.zip",
+    "archive": "Draftor_Alpha_Resources.zip",
     "path": "Resources/HANIME/IME/LEXICON_R3_B2_20261006/full_pinyin_base.hbo",
     "bytes": 10102232,
     "use": "B2_RUNTIME_PAYLOAD",
@@ -1044,7 +1044,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_Resources.zip",
+    "archive": "Draftor_Alpha_Resources.zip",
     "path": "Resources/HANIME/IME/LEXICON_R3_B2_20261006/full_pinyin_base.hnv",
     "bytes": 327680,
     "use": "B2_RUNTIME_PAYLOAD",
@@ -1056,7 +1056,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_Resources.zip",
+    "archive": "Draftor_Alpha_Resources.zip",
     "path": "Resources/HANIME/IME/LEXICON_R3_B2_20261006/wubi86_base.hbo",
     "bytes": 7369432,
     "use": "B2_RUNTIME_PAYLOAD",
@@ -1068,7 +1068,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_Resources.zip",
+    "archive": "Draftor_Alpha_Resources.zip",
     "path": "Resources/HANIME/IME/LEXICON_R3_B2_20261006/wubi86_base.hnv",
     "bytes": 239616,
     "use": "B2_RUNTIME_PAYLOAD",
@@ -1080,7 +1080,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_Resources.zip",
+    "archive": "Draftor_Alpha_Resources.zip",
     "path": "Resources/HANIME/IME/LEXICON_R3_B2_20261006/release_manifest.json",
     "bytes": 13467,
     "use": "B2_BINDING_METADATA",
@@ -1092,7 +1092,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_Resources.zip",
+    "archive": "Draftor_Alpha_Resources.zip",
     "path": "Resources/HANIME/IME/LEXICON_R3_B2_20261006/release_pin.hpp",
     "bytes": 7985,
     "use": "B2_BINDING_METADATA",
@@ -1104,7 +1104,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_Resources.zip",
+    "archive": "Draftor_Alpha_Resources.zip",
     "path": "Resources/HANIME/IME/R1_API080/matched28.hbf1",
     "bytes": 2464108,
     "use": "TF_BODY_FONT",
@@ -1116,7 +1116,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_Firmware.zip",
+    "archive": "Draftor_Alpha_Firmware.zip",
     "path": "Firmware/Draftor_Alpha_T06_TF20_R1.app.bin",
     "bytes": 2061808,
     "use": "EXACT_TESTED_APP",
@@ -1128,7 +1128,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_Firmware.zip",
+    "archive": "Draftor_Alpha_Firmware.zip",
     "path": "Firmware/bootloader.bin",
     "bytes": 19968,
     "use": "PAIRED_FIRST_INSTALL",
@@ -1140,7 +1140,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_Firmware.zip",
+    "archive": "Draftor_Alpha_Firmware.zip",
     "path": "Firmware/partitions.bin",
     "bytes": 3072,
     "use": "PAIRED_FIRST_INSTALL",
@@ -1152,7 +1152,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_Firmware.zip",
+    "archive": "Draftor_Alpha_Firmware.zip",
     "path": "Firmware/boot_app0.bin",
     "bytes": 8192,
     "use": "PAIRED_FIRST_INSTALL",
@@ -1164,7 +1164,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_Firmware.zip",
+    "archive": "Draftor_Alpha_Firmware.zip",
     "path": "Firmware/partitions.csv",
     "bytes": 378,
     "use": "PAIRED_FIRST_INSTALL",
@@ -1176,7 +1176,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/font-sources/LxgwWenKai-v1.522/LXGWWenKai-Regular.ttf",
     "bytes": 25575676,
     "use": "ORIGINAL_FIXED_FONT_SOURCE",
@@ -1188,7 +1188,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/font-sources/LxgwWenKai-v1.522/OFL.txt",
     "bytes": 4448,
     "use": "ORIGINAL_FIXED_FONT_SOURCE",
@@ -1200,7 +1200,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/font-sources/Jigmo-20250912/Jigmo2.ttf",
     "bytes": 35661996,
     "use": "ORIGINAL_FIXED_FONT_SOURCE",
@@ -1212,7 +1212,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/font-sources/Jigmo-20250912/LICENSE.txt",
     "bytes": 7171,
     "use": "ORIGINAL_FIXED_FONT_SOURCE",
@@ -1224,7 +1224,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/font-sources/Jigmo-20250912/README.txt",
     "bytes": 6885,
     "use": "ORIGINAL_FIXED_FONT_SOURCE",
@@ -1236,7 +1236,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/font-generation/tools/generate_ui14.py",
     "bytes": 7487,
     "use": "FONT_GENERATOR_SOURCE",
@@ -1248,7 +1248,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/font-generation/tools/source_cmap.py",
     "bytes": 3729,
     "use": "FONT_GENERATOR_SOURCE",
@@ -1260,7 +1260,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/font-generation/evidence/font/parent_actual_glyphs.tsv",
     "bytes": 1565170,
     "use": "ORIGINAL_UI14_INPUT",
@@ -1272,7 +1272,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/font-generation/integration/product/platform/small_font.hpp",
     "bytes": 8469,
     "use": "ORIGINAL_UI14_INPUT",
@@ -1284,7 +1284,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/provenance/lexicon/ACTUAL_SOURCE_ROLES.json",
     "bytes": 777,
     "use": "LEXICON_PROVENANCE",
@@ -1296,7 +1296,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/provenance/lexicon/source_versions_R1.json",
     "bytes": 1687,
     "use": "LEXICON_PROVENANCE",
@@ -1308,7 +1308,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/provenance/lexicon/editorial_admissions.json",
     "bytes": 5165,
     "use": "LEXICON_PROVENANCE",
@@ -1320,7 +1320,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/provenance/lexicon/selected_contributions.jsonl.gz",
     "bytes": 526322,
     "use": "LEXICON_PROVENANCE",
@@ -1332,7 +1332,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/provenance/lexicon/NOTICE.json",
     "bytes": 530,
     "use": "LEXICON_PROVENANCE",
@@ -1344,7 +1344,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/provenance/wubi86/wubi86.dict.yaml",
     "bytes": 2289545,
     "use": "FIXED_WUBI_ORIGINAL",
@@ -1356,7 +1356,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/provenance/wubi86/AUTHORS",
     "bytes": 260,
     "use": "FIXED_WUBI_ORIGINAL",
@@ -1368,7 +1368,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/provenance/wubi86/LICENSE",
     "bytes": 7651,
     "use": "FIXED_WUBI_ORIGINAL",
@@ -1380,7 +1380,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/provenance/wubi86/README.md",
     "bytes": 399,
     "use": "FIXED_WUBI_ORIGINAL",
@@ -1392,7 +1392,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/provenance/wubi86/source-tools/audit_source.py",
     "bytes": 18570,
     "use": "WUBI_SOURCE_ADAPTER",
@@ -1404,7 +1404,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/provenance/wubi86/source-tools/verify_audit.py",
     "bytes": 3946,
     "use": "WUBI_SOURCE_ADAPTER",
@@ -1416,7 +1416,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/Arduino.h",
     "bytes": 10205,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1428,7 +1428,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/Client.h",
     "bytes": 1526,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1440,7 +1440,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/ColorFormat.c",
     "bytes": 8523,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1452,7 +1452,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/ColorFormat.h",
     "bytes": 2208,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1464,7 +1464,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/Esp.cpp",
     "bytes": 17114,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1476,7 +1476,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/Esp.h",
     "bytes": 3608,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1488,7 +1488,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/FirmwareMSC.cpp",
     "bytes": 16108,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1500,7 +1500,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/FirmwareMSC.h",
     "bytes": 1731,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1512,7 +1512,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/FunctionalInterrupt.cpp",
     "bytes": 945,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1524,7 +1524,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/FunctionalInterrupt.h",
     "bytes": 543,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1536,7 +1536,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/HEXBuilder.cpp",
     "bytes": 2704,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1548,7 +1548,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/HEXBuilder.h",
     "bytes": 1440,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1560,7 +1560,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/HWCDC.cpp",
     "bytes": 26614,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1572,7 +1572,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/HWCDC.h",
     "bytes": 3180,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1584,7 +1584,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/HardwareI2C.h",
     "bytes": 1517,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1596,7 +1596,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/HardwareSerial.cpp",
     "bytes": 23962,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1608,7 +1608,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/HardwareSerial.h",
     "bytes": 17931,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1620,7 +1620,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/HashBuilder.cpp",
     "bytes": 1100,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1632,7 +1632,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/HashBuilder.h",
     "bytes": 2172,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1644,7 +1644,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/IPAddress.cpp",
     "bytes": 13421,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1656,7 +1656,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/IPAddress.h",
     "bytes": 4470,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1668,7 +1668,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/MD5Builder.cpp",
     "bytes": 2539,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1680,7 +1680,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/MD5Builder.h",
     "bytes": 1624,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1692,7 +1692,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/MacAddress.cpp",
     "bytes": 6554,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1704,7 +1704,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/MacAddress.h",
     "bytes": 3207,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1716,7 +1716,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/Print.cpp",
     "bytes": 7526,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1728,7 +1728,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/Print.h",
     "bytes": 3561,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1740,7 +1740,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/Printable.h",
     "bytes": 1336,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1752,7 +1752,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/Server.h",
     "bytes": 952,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1764,7 +1764,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/Stream.cpp",
     "bytes": 8944,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1776,7 +1776,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/Stream.h",
     "bytes": 6391,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1788,7 +1788,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/StreamString.cpp",
     "bytes": 1657,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1800,7 +1800,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/StreamString.h",
     "bytes": 1178,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1812,7 +1812,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/StringUtils.cpp",
     "bytes": 1771,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1824,7 +1824,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/StringUtils.h",
     "bytes": 1937,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1836,7 +1836,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/Tone.cpp",
     "bytes": 4103,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1848,7 +1848,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/USB.cpp",
     "bytes": 10092,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1860,7 +1860,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/USB.h",
     "bytes": 3134,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1872,7 +1872,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/USBCDC.cpp",
     "bytes": 14880,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1884,7 +1884,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/USBCDC.h",
     "bytes": 3985,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1896,7 +1896,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/USBMSC.cpp",
     "bytes": 8514,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1908,7 +1908,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/USBMSC.h",
     "bytes": 1998,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1920,7 +1920,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/Udp.h",
     "bytes": 4387,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1932,7 +1932,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/WCharacter.h",
     "bytes": 4639,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1944,7 +1944,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/WMath.cpp",
     "bytes": 2463,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1956,7 +1956,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/WString.cpp",
     "bytes": 22205,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1968,7 +1968,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/WString.h",
     "bytes": 14149,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1980,7 +1980,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/apps/sntp/sntp.h",
     "bytes": 28,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -1992,7 +1992,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/base64.cpp",
     "bytes": 1829,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2004,7 +2004,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/base64.h",
     "bytes": 216,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2016,7 +2016,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/binary.h",
     "bytes": 21591,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2028,7 +2028,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/cbuf.cpp",
     "bytes": 7236,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2040,7 +2040,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/cbuf.h",
     "bytes": 1663,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2052,7 +2052,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/chip-debug-report.cpp",
     "bytes": 15046,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2064,7 +2064,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/chip-debug-report.h",
     "bytes": 201,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2076,7 +2076,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/core_version.h",
     "bytes": 169,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2088,7 +2088,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-adc.c",
     "bytes": 26575,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2100,7 +2100,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-adc.h",
     "bytes": 3140,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2112,7 +2112,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-alloc-ble-mem.h",
     "bytes": 1392,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2124,7 +2124,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-alloc-bt-classic-mem.h",
     "bytes": 1447,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2136,7 +2136,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-bt-mem.h",
     "bytes": 964,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2148,7 +2148,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-bt.c",
     "bytes": 13843,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2160,7 +2160,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-bt.h",
     "bytes": 2264,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2172,7 +2172,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-cpu.c",
     "bytes": 10661,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2184,7 +2184,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-cpu.h",
     "bytes": 3652,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2196,7 +2196,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-dac.c",
     "bytes": 2227,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2208,7 +2208,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-dac.h",
     "bytes": 402,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2220,7 +2220,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-gpio.c",
     "bytes": 9449,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2232,7 +2232,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-gpio.h",
     "bytes": 2850,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2244,7 +2244,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-hosted.c",
     "bytes": 15828,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2256,7 +2256,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-hosted.h",
     "bytes": 1977,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2268,7 +2268,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-i2c-ng.c",
     "bytes": 13692,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2280,7 +2280,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-i2c-slave.c",
     "bytes": 28700,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2292,7 +2292,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-i2c-slave.h",
     "bytes": 1411,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2304,7 +2304,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-i2c.c",
     "bytes": 12241,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2316,7 +2316,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-i2c.h",
     "bytes": 1885,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2328,7 +2328,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-ldo.c",
     "bytes": 5245,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2340,7 +2340,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-ldo.h",
     "bytes": 1975,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2352,7 +2352,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-ledc.c",
     "bytes": 29918,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2364,7 +2364,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-ledc.h",
     "bytes": 10343,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2376,7 +2376,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-log-wrapper.c",
     "bytes": 1521,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2388,7 +2388,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-log.h",
     "bytes": 13768,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2400,7 +2400,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-matrix.c",
     "bytes": 2629,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2412,7 +2412,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-matrix.h",
     "bytes": 1158,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2424,7 +2424,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-misc.c",
     "bytes": 14571,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2436,7 +2436,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-periman.c",
     "bytes": 11617,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2448,7 +2448,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-periman.h",
     "bytes": 8521,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2460,7 +2460,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-psram.c",
     "bytes": 4131,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2472,7 +2472,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-psram.h",
     "bytes": 1217,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2484,7 +2484,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-rgb-led.c",
     "bytes": 3111,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2496,7 +2496,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-rgb-led.h",
     "bytes": 1005,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2508,7 +2508,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-rmt.c",
     "bytes": 25210,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2520,7 +2520,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-rmt.h",
     "bytes": 11302,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2532,7 +2532,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-sigmadelta.c",
     "bytes": 2772,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2544,7 +2544,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-sigmadelta.h",
     "bytes": 495,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2556,7 +2556,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-spi.c",
     "bytes": 59724,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2568,7 +2568,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-spi.h",
     "bytes": 5232,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2580,7 +2580,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-time.c",
     "bytes": 3446,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2592,7 +2592,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-timer.c",
     "bytes": 7642,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2604,7 +2604,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-timer.h",
     "bytes": 1889,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2616,7 +2616,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-tinyusb.c",
     "bytes": 33146,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2628,7 +2628,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-tinyusb.h",
     "bytes": 3852,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2640,7 +2640,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-touch-ng.c",
     "bytes": 18371,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2652,7 +2652,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-touch-ng.h",
     "bytes": 5225,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2664,7 +2664,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-touch.c",
     "bytes": 11153,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2676,7 +2676,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-touch.h",
     "bytes": 3640,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2688,7 +2688,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-uart.c",
     "bytes": 87474,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2700,7 +2700,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal-uart.h",
     "bytes": 7768,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2712,7 +2712,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp32-hal.h",
     "bytes": 6548,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2724,7 +2724,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp8266-compat.h",
     "bytes": 879,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2736,7 +2736,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/esp_arduino_version.h",
     "bytes": 1721,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2748,7 +2748,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/extra_attr.h",
     "bytes": 164,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2760,7 +2760,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/firmware_msc_fat.c",
     "bytes": 7352,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2772,7 +2772,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/firmware_msc_fat.h",
     "bytes": 5748,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2784,7 +2784,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/freertos_stats.cpp",
     "bytes": 4162,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2796,7 +2796,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/freertos_stats.h",
     "bytes": 865,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2808,7 +2808,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/idf_openthread_mpool_wrapper.c",
     "bytes": 5216,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2820,7 +2820,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/io_pin_remap.h",
     "bytes": 9630,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2832,7 +2832,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/libb64/AUTHORS",
     "bytes": 166,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2844,7 +2844,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/libb64/LICENSE",
     "bytes": 1679,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2856,7 +2856,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/libb64/cdecode.c",
     "bytes": 3916,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2868,7 +2868,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/libb64/cdecode.h",
     "bytes": 883,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2880,7 +2880,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/libb64/cencode.c",
     "bytes": 2906,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2892,7 +2892,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/libb64/cencode.h",
     "bytes": 964,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2904,7 +2904,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/main.cpp",
     "bytes": 3048,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2916,7 +2916,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/pgmspace.h",
     "bytes": 3168,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2928,7 +2928,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/stdlib_noniso.c",
     "bytes": 4618,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2940,7 +2940,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/stdlib_noniso.h",
     "bytes": 1449,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2952,7 +2952,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/wiring_private.h",
     "bytes": 1152,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2964,7 +2964,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/wiring_pulse.c",
     "bytes": 2180,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2976,7 +2976,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/cores/esp32/wiring_shift.c",
     "bytes": 1722,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -2988,7 +2988,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/libraries/FS/library.properties",
     "bytes": 195,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -3000,7 +3000,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/libraries/FS/src/FS.cpp",
     "bytes": 5069,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -3012,7 +3012,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/libraries/FS/src/FS.h",
     "bytes": 3141,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -3024,7 +3024,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/libraries/FS/src/FSImpl.h",
     "bytes": 3859,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -3036,7 +3036,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/libraries/FS/src/vfs_api.cpp",
     "bytes": 13973,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -3048,7 +3048,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/libraries/FS/src/vfs_api.h",
     "bytes": 2236,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -3060,7 +3060,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/libraries/SPI/examples/SPI_Multiple_Buses/SPI_Multiple_Buses.ino",
     "bytes": 2767,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -3072,7 +3072,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/libraries/SPI/examples/SPI_Multiple_Buses/ci.yml",
     "bytes": 46,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -3084,7 +3084,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/libraries/SPI/examples/SPI_Multiple_Buses/multiple_bus_output.PNG",
     "bytes": 67268,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -3096,7 +3096,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/libraries/SPI/keywords.txt",
     "bytes": 832,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -3108,7 +3108,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/libraries/SPI/library.properties",
     "bytes": 335,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -3120,7 +3120,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/libraries/SPI/src/SPI.cpp",
     "bytes": 8726,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -3132,7 +3132,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/libraries/SPI/src/SPI.h",
     "bytes": 3153,
     "use": "MATCHING_ARDUINO_LIBRARY_SOURCE",
@@ -3144,7 +3144,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/platform.txt",
     "bytes": 29667,
     "use": "MATCHING_ARDUINO_BUILD_RECIPE",
@@ -3156,7 +3156,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/boards.txt",
     "bytes": 3046810,
     "use": "MATCHING_ARDUINO_BUILD_RECIPE",
@@ -3168,7 +3168,7 @@
     "remaining": "See group in RESOURCE_STATUS.md"
   },
   {
-    "archive": "Draftor_TF20_Alpha_BuildInputs.zip",
+    "archive": "Draftor_Alpha_BuildInputs.zip",
     "path": "BuildInputs/sdk-source/arduino-esp32-3.3.11/programmers.txt",
     "bytes": 230,
     "use": "MATCHING_ARDUINO_BUILD_RECIPE",

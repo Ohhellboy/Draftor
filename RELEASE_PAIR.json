@@ -27,13 +27,13 @@
   "binary_publication": "EXACT_TESTED_APP_AND_ORIGINAL_FIRST_INSTALL_PREPARED; DISTRIBUTION_EVIDENCE_UNCONFIRMED",
   "resources_payload_bytes": 126940251,
   "assets": [
-    "Draftor_TF20_Alpha_Source.zip",
-    "Draftor_TF20_Alpha_Resources.zip",
-    "Draftor_TF20_Alpha_BuildInputs.zip",
-    "Draftor_TF20_Alpha_Firmware.zip"
+    "Draftor_Alpha_Source.zip",
+    "Draftor_Alpha_Resources.zip",
+    "Draftor_Alpha_BuildInputs.zip",
+    "Draftor_Alpha_Firmware.zip"
   ],
   "tag": "v0.1.0-alpha.1",
-  "display_name": "Draftor TF20 Alpha",
+  "display_name": "Draftor Alpha",
   "repository": "https://github.com/Ohhellboy/Draftor",
   "base_commit": "7e3c8e2a6032ff6ea06335c41a1b4069922e98f7",
   "source_archive": "Integrated tracked repository snapshot; no .git history in ZIP",

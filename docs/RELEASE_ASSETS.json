@@ -1,28 +1,28 @@
 {
   "tag": "v0.1.0-alpha.1",
-  "display_name": "Draftor TF20 Alpha",
+  "display_name": "Draftor Alpha",
   "product_pair": "../RELEASE_PAIR.json",
   "source_archive": {
-    "file": "Draftor_TF20_Alpha_Source.zip",
+    "file": "Draftor_Alpha_Source.zip",
     "contents": "Complete tracked integrated tree under Draftor/; includes original public ST7306 module/hardware/photo; excludes .git history and private release-preparation files",
     "change": "One necessary source/document packaging update from original 991-file candidate",
     "exact_archive_metadata": "Final ZIP bytes/member count and commit are recorded alongside the release, avoiding a self-referential archive digest"
   },
   "unchanged_companions": [
     {
-      "file": "Draftor_TF20_Alpha_Resources.zip",
+      "file": "Draftor_Alpha_Resources.zip",
       "bytes": 51930616,
       "members": 73,
       "expanded_bytes": 133491220
     },
     {
-      "file": "Draftor_TF20_Alpha_BuildInputs.zip",
+      "file": "Draftor_Alpha_BuildInputs.zip",
       "bytes": 612137839,
       "members": 573,
       "expanded_bytes": 1152071802
     },
     {
-      "file": "Draftor_TF20_Alpha_Firmware.zip",
+      "file": "Draftor_Alpha_Firmware.zip",
       "bytes": 2574827,
       "members": 107,
       "expanded_bytes": 10729544

@@ -1,6 +1,6 @@
 # External inputs / 外部输入
 
-All **76/76** entries of the original [EXTERNAL_INPUTS.json](../EXTERNAL_INPUTS.json) are provided unchanged in the same-release **Draftor_TF20_Alpha_BuildInputs.zip**, under `BuildInputs/inputs/<path>`. They are installed into a fresh source copy with the existing explicit installer. No UNKNOWN batch is filtered. The inherited manifest's old reason strings describe the previous preparation policy; this document and the [per-file disposition](EXTERNAL_INPUT_DISPOSITIONS.json) give the current plan.
+All **76/76** entries of the original [EXTERNAL_INPUTS.json](../EXTERNAL_INPUTS.json) are provided unchanged in the same-release **Draftor_Alpha_BuildInputs.zip**, under `BuildInputs/inputs/<path>`. They are installed into a fresh source copy with the existing explicit installer. No UNKNOWN batch is filtered. The inherited manifest's old reason strings describe the previous preparation policy; this document and the [per-file disposition](EXTERNAL_INPUT_DISPOSITIONS.json) give the current plan.
 
 | Target | Material readiness and limits |
 |---|---|
