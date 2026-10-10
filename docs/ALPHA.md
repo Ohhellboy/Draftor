@@ -62,7 +62,7 @@ See the [Usage Guide](USAGE.md) for the complete procedure.
 
 The complete Alpha firmware is intended for **ESP32-S3 N16R8 (Thick)**.
 
-The software build baseline is `T06_R1`. The TF card uses an SPI clock of **20 MHz** during normal operation and **400 kHz** during initialization.
+The software build baseline is `T06_TF20_R1`. The TF card uses an SPI clock of **20 MHz** during normal operation and **400 kHz** during initialization.
 
 The firmware included in this release is the version tested on the actual device.
 
