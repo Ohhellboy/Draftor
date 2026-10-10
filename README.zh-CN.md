@@ -1,12 +1,12 @@
-# Draftor TF20 Alpha · v0.1.0-alpha.1
+# Draftor Alpha · v0.1.0-alpha.1
 
-[Draftor 项目介绍 / Project Introduction](README.md) · [English Alpha Guide](docs/TF20_ALPHA.md)
+[Draftor 项目介绍 / Project Introduction](README.md) · [English Alpha Guide](docs/ALPHA.md)
 
 Draftor（草稿机）是一台基于单片机的离线写作设备。它使用反射式液晶屏、蓝牙键盘和 TF 卡存储文字，不需要联网，也不依赖 AI 或云端服务。
 
 它是一台用来写东西的机器，而非全能掌上电脑（PDA, Personal Digital Assistant）。它只保留必要的编辑和文件管理功能，把注意力放在写作自身。
 
-本次公开的 **TF20 Alpha** 适用于 **ESP32-S3 N16R8（Thick）**，搭载自主开发的 **bgIME（Big Goose Input Method Engine，大鹅输入法）**。
+**Alpha** 适用于 **ESP32-S3 N16R8（Thick）**，搭载自主开发的 **bgIME（Big Goose Input Method Engine，大鹅输入法）**。
 
 目前支持英文、全拼、小鹤双拼和五笔86输入，提供横排、竖排两种写作布局。文档可以保存、重新打开和重命名，也可以通过 USB 导出 TXT 文件，或者从电脑导入新的草稿。
 
@@ -16,7 +16,7 @@ Draftor（草稿机）是一台基于单片机的离线写作设备。它使用�
 
 ## 1. 下载 / Download
 
-**[Draftor TF20 Alpha · v0.1.0-alpha.1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.1)**
+**[Draftor Alpha · v0.1.0-alpha.1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.1)**
 
 本次发布提供全部自有源码，包括 bgIME Core，同时附带完整的运行词库、字体资源、构建材料和经过实机测试的固件。
 
