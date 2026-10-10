@@ -1,6 +1,6 @@
 # License scopes and third-party notices
 
-New self-owned TF20 Alpha source, including bgIME Core, is Apache-2.0, Copyright 2026 Ruotao Wang. Original third-party headers, authors and license texts remain applicable within their own scopes.
+New self-owned Alpha source, including bgIME Core, is Apache-2.0, Copyright 2026 Ruotao Wang. Original third-party headers, authors and license texts remain applicable within their own scopes.
 
 The independent **display/st7306** module was already public before this integration. Its [MIT license](display/st7306/LICENSE.md), [third-party notices](display/st7306/THIRD_PARTY_NOTICES.md), OSPTEK declarations, drivers and demos are retained without changes. Root Apache-2.0 does not withdraw or replace that grant. Original README, prototype photo and hardware overview remain the author's project materials; this integration does not invent a new third-party image license.
 
