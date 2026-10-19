@@ -1,7 +1,11 @@
 # Firmware distribution / 固件分发
 
-Alpha 2's Firmware archive contains the unchanged 2,441,680-byte cumulative App, its build-generated bootloader and partition table, the fixed SDK OTA initializer, the exact CSV and host-only checks. It contains no device flash backup or NVS dump. The internal build label remains `DRAFTOR_CUMULATIVE_ROUND1_20261019_MEASURE`.
+Alpha 2 packages a newly built release derivative of the tested cumulative business source. By explicit author request, serial composition/input-timing observation is disabled. The internal label is `DRAFTOR_ALPHA2_20261019_RELEASE`; the original measured label and identity remain in the source pairing manifest as a reference. The exact release App length and checksum are in the Firmware pairing manifest, not borrowed from the predecessor.
 
-固件包原样封装实测App，附构建/SDK启动材料及离线检查，不含私人Flash或NVS。内部构建标识保留不改。
+本版按作者决定关闭输入观察后重新构建，明确区分原实测基线与发行派生版。原业务实现、format4资源及四项性能机制继承；尺寸和校验值取新App，不套用旧值。
 
-[Install/upgrade](INSTALL.md) distinguishes old 2 MiB migration, exact compatible 4 MiB updating and first installation. The Source and BuildInputs archives provide project-owned code plus corresponding sources/notices for included third-party components under their respective terms; they do not convert all resources to Apache-2.0. See [Resource Status](RESOURCE_STATUS.md) and [License Inventory](LICENSE_INVENTORY.md).
+The Firmware archive includes this App, its same-build bootloader/partition table, the fixed SDK OTA initializer and host-only file checks. It contains no private flash backup or NVS dump. It has software validation, without a separate new device session. Some original SDK assertion strings may contain build-machine paths; no binary patch is used to conceal them.
+
+固件包包含同次构建配套和离线检查，不含私人Flash/NVS；完成软件验证，尚无新的实机会话。部分原SDK断言可能保留编译机路径，不用二进制改字节掩盖。
+
+[Installation](INSTALL.md) separates old2 MiB migration, compatible4 MiB updating and fresh installation. Source + BuildInputs retain owned source and third-party corresponding materials under their respective terms; see [Resource Status](RESOURCE_STATUS.md).

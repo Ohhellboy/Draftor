@@ -145,12 +145,12 @@ helper_flags='-B'+str(helper_root/'libexec/gcc/xtensa-esp-elf/14.2.0')+'/ -B'+st
 flags=helper_flags+' -DHANIME_BUILD_HOST_ADAPTERS=0 -DHANIME_BUILD_TOOLS=0 -DHANIME_BUILD_FIXTURES=0 -DHANIME_BUILD_TESTS=0 -DHANIME_OUTPUT_PROFILE='+str(profile)+' -DHANIME_TF_RUNTIME_HZ='+str(tf_hz)+' -std=gnu++17 -fexceptions -Werror -fstack-usage -DHANIME_SAVE_SUBSTAGE_DIAGNOSTIC='+str(save_diagnostic)+' -DHANIME_BASE_ORDER_LOCATE_ENTRIES=8'
 flags+=' -DDRAFTOR_PERFORMANCE_COMMON=1 -DDRAFTOR_TEXT_RESIDENT=0 -DDRAFTOR_BLOCK_BACKEND=1 -DHANIME_TEXT_CHAIN=1 -DHANIME_STRUCTURAL_HOST_OBSERVE=0 -DDRAFTOR_INPUT_PRESENT_COORD=0 -DDRAFTOR_COORD_OBSERVE=0 -DDRAFTOR_SHARED_TEXT_VARIANT='+str(variant)
 pin_sha=hashlib.sha256(pin.read_bytes()+block_pin.read_bytes()+wubi_pin.read_bytes()).hexdigest()
-label='DRAFTOR_CUMULATIVE_ROUND1_20261019_MEASURE'
+label='DRAFTOR_ALPHA2_20261019_RELEASE'
 (stage/'block_build_metadata.hpp').write_text('#pragma once\n#define DRAFTOR_B_FIRMWARE_LABEL "'+label+'"\n#define DRAFTOR_B_PIN_SHA "'+pin_sha+'"\n#define DRAFTOR_LAYOUT_ARM "'+a.arm+'"\n#define DRAFTOR_LAYOUT_RESOURCE_ROOT "'+resource_root+'"\n')
 flags+=' -DDRAFTOR_DISPLAY_TRANSACTION='+str(display_tx)+' -DDRAFTOR_DISPLAY_TX_OBSERVE=0'
 flags+=' -DDRAFTOR_CP_OBSERVE='+str(int(observe))
 flags+=' -Wno-error=misleading-indentation'
-flags+=' -DDRAFTOR_AUTH_HANDOFF=1 -DHANIME_SHA256_BATCHED_FINAL=0 -DDRAFTOR_AUTH_OBSERVE=1'
+flags+=' -DDRAFTOR_AUTH_HANDOFF=1 -DHANIME_SHA256_BATCHED_FINAL=0 -DDRAFTOR_AUTH_OBSERVE=0'
 flags+=' -DDRAFTOR_RELEASE_BUILD=1 -DDRAFTOR_USB_ENABLED='+str(usb_enabled)
 mapping=' '.join(chr(34)+flag+prefix+'=.'+chr(34) for prefix in (str(R),) for flag in ('-ffile-prefix-map=','-fmacro-prefix-map='))
 flags+=' '+mapping
@@ -217,3 +217,13 @@ assert label.encode() in binary.read_bytes() and resource_root.encode() in binar
 artifacts={f.name:{'bytes':f.stat().st_size} for f in dist.iterdir() if f.is_file()}
 (evidence/'s3_artifacts.json').write_text(json.dumps(artifacts,indent=2)+'\n')
 print('Full S3 build, actual pins and stack checks complete. Validation output:',dist,flush=True)
+
+# The author explicitly requested removing composition/input-timing observation
+# from the release. Check actual linked output, not just the requested macro.
+for forbidden in (b'[SW] n=',b'[SW_VIEW]',b'[AUTH_DONE]',b'[SW_CONFIG]',b'[UI_TEXT]',b'[UI_FLOW]'):
+ assert forbidden not in binary.read_bytes(), 'Input observation leaked: '+repr(forbidden)
+symbols=(evidence/'ELF_SYMBOLS.txt').read_text()
+for forbidden in ('formatServiceEndpoint','snapshotServiceEndpoint','traceServiceFeedback'):
+ assert forbidden not in symbols, 'Linked input observer: '+forbidden
+(evidence/'QUIET_RELEASE.json').write_text(json.dumps({'result':'PASS_LINKED_INPUT_OBSERVER_ABSENCE','auth_observe':0,'telemetry_profile':0,'telemetry_capture':1,'input_endpoint_strings_absent':True,'input_observer_symbols_absent':True,'ordinary_boot_health_error_logs_retained':True,'device_tested':False},indent=2)+'\n')
+print('Release input-code/timing observation absent from linked image.',flush=True)

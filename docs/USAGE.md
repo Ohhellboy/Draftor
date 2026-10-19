@@ -307,6 +307,6 @@ Wi-Fi is off at startup. Finish current composition/save/USB actions before F10 
 
 启动默认关闭。处理完原码、保存与USB操作后，F10打开本地热点页，Tab切换连接/地址二维码，P显示手动连接信息。Esc只返回写作，F10再O才关闭热点。按屏幕信息连接，不需云账号；USB与Wi-Fi传输不可并行。本轮性能和自由写作检查保持Wi-Fi关闭。
 
-The tested firmware's serial diagnostics include composition codes by default. Read [privacy details](KNOWN_ISSUES.md) before connecting a logger or sharing its output.
+The release disables serial composition/input-timing observation and retains startup, connection, health and error diagnostics. Read [privacy details](KNOWN_ISSUES.md) before connecting a logger or sharing its output.
 
-实测固件默认串口诊断含组成码，连接采集器或分享内容前请读[隐私说明](KNOWN_ISSUES.md)。
+发行版关闭了串口组成码/输入计时观察，保留启动、连接、运行状态及错误诊断，连接采集器或分享内容前请读[隐私说明](KNOWN_ISSUES.md)。

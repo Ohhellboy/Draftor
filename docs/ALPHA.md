@@ -12,6 +12,6 @@ Alpha 2 主要改善写作时的跟手感，保留 ESP32-S3 N16R8 上现有输�
 - [Limits, diagnostics and privacy / 限制与诊断隐私](KNOWN_ISSUES.md)
 - [Resources and licensing / 资源与许可](RESOURCE_STATUS.md)
 
-The tested App is packaged unchanged; its retained internal label is `DRAFTOR_CUMULATIVE_ROUND1_20261019_MEASURE`. Alpha 2 is the distribution version, not a change to that label or the Core/API version numbers.
+The release App is built from the tested cumulative business source with input-code/timing observation disabled, as requested by the author. Its label is `DRAFTOR_ALPHA2_20261019_RELEASE`. The measured predecessor remains separately identified in `RELEASE_PAIR.json`; the release derivative does not claim byte identity or a new device validation.
 
-发行包原样封装实测 App，内部标识仍为 `DRAFTOR_CUMULATIVE_ROUND1_20261019_MEASURE`。Alpha 2 是整机发行版本，不改内部标识或 Core/API 版本号。
+发行App沿用实测累计业务源码，按作者决定关闭串口组成码/计时观察。新构建与原实测基线分别标识，不冒称原字节或新增实机验收。

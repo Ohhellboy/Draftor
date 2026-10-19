@@ -14,13 +14,17 @@ Alpha 2 已有有限对照及一次自然写作、保存重开核验。重要文
 
 ## Serial diagnostics / 串口诊断
 
-The exact tested build has `DRAFTOR_AUTH_OBSERVE=1`, telemetry profile 0 and capture 1. `src/service_endpoints.cpp::snapshotServiceEndpoint` copies up to 63 composition bytes into the existing RAM ring; `formatServiceEndpoint` emits them as `raw=%s`. `ui_trace.cpp` selects these records and `platform/device_main.cpp` drains them through the idle UART logger automatically. This happens despite the generic boot trace line saying `raw_text=0`: that line does not describe the AUTH endpoint overlay. No interactive enable command is required, and the ordinary diagnostic command parser returns immediately in this capture configuration.
+The author requested removing serial composition-code and input-timing observation from the release. Its build sets `DRAFTOR_AUTH_OBSERVE=0`, telemetry profile 0 and capture 1: `ui_trace.cpp::traceUi` returns before recording input events, `service_endpoints.cpp` is excluded by its existing guard, and `device_main.cpp::idleDiagnostics` returns without draining an input stream. The ordinary diagnostic command parser is also disabled in this configuration. The target check rejects linked observer symbols and SW/input-text format strings.
 
-准确镜像默认启用 AUTH 观察：组成码最多63字节进入原内存环，再自动由串口输出。通用启动行的 `raw_text=0` 不涵盖这条 AUTH 路径，不能据此声称没有原码记录；本配置也不靠用户手动开启。
+作者已决定发行版关闭组成码与输入计时观察。沿用现有编译开关关闭采集/排出路径，并检查实际链接镜像中没有对应观察符号和格式字符串；没有重写输入法业务。
 
-This observation path contains no persistent input-log file writer. It does not send an observation stream to a cloud service. A serial-connected computer can record input codes and timing/context information, so keep that connection private and inspect logs before sharing. This statement does not imply that saved manuscripts or ordinary device state disappear on reset. The packaged image preserves this behavior; a quieter firmware would be a separately built and separately validated version.
+Startup/build identity, connection, memory/health and error diagnostics remain on the serial port; it is not a silent port. No persistent input-log writer is introduced. Review diagnostic output before sharing it. The earlier measured baseline did emit composition codes automatically and remains privately retained as comparison evidence; its image is not substituted for this release App.
 
-此观察路径没有持久输入日志文件写入，也没有把观察流发送到云端；接入串口的电脑可以保存组成码及时间/上下文，分享前要清理私人信息。这不表示已保存文稿或普通设备状态会随复位消失。本包保留实测行为，静默版本需要单独构建与验证。
+串口仍保留启动标识、连接、内存/运行状态及错误诊断，不是完全静默；没有新增持久输入日志。分享诊断前仍应检查内容。此前实测基线确实默认输出组成码，作为原证据单独保留，不拿它替代这份发行App。
+
+The quieter App is newly compiled and checked in software, without a new device session. Earlier performance/save/reopen results identify the unchanged business baseline, not a newly tested release binary.
+
+关闭观察的App是新编译的软件检查版本，尚未另做实机会话；前述速度与保存重开成绩说明继承的业务基线，不表示新二进制已实测。
 
 ## Historical observations still open / 历史未彻底解释的现象
 

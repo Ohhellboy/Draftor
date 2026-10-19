@@ -34,14 +34,14 @@ ESP32-S3 N16R8（Thick）安装用户下载本版的 **Firmware + Resources**；
 
 | File / 文件 | Contents / 内容 |
 |---|---|
-| `Draftor_v0.1.0-alpha.2_Firmware.zip` | Unchanged tested App, startup files, partitions and installation checks / 原样实测 App、启动文件、分区及安装检查 |
+| `Draftor_v0.1.0-alpha.2_Firmware.zip` | Release App with input observation disabled, startup files, partitions and checks / 关闭输入观察的发行 App、启动文件、分区及检查 |
 | `Draftor_v0.1.0-alpha.2_Resources.zip` | Matching format4 dictionaries, indexes and font / 准确配套的 format4 词库、索引和字体 |
 | `Draftor_v0.1.0-alpha.2_Source.zip` | Complete project-owned source, bgIME Core, tools and documentation / 完整自有源码、bgIME Core、工具和文档 |
 | `Draftor_v0.1.0-alpha.2_BuildInputs.zip` | Fixed generated inputs, SDK overlay component and original source/license materials / 固定生成输入、SDK 配套组件及原始来源与许可材料 |
 
-The [Alpha 2 release URL](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2) is a **pending publication link** in this local preview. These files have not been uploaded. The tested App retains its original internal build label; the outer version is Alpha 2.
+The [Alpha 2 release URL](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2) is a **pending publication link** in this local preview. These files have not been uploaded. The release App uses the tested cumulative business source with serial input observation disabled. It is a new local build; the measurements above belong to its observed baseline.
 
-本地预览中的 [Alpha 2 下载地址](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2)是**待发布链接**，文件尚未上传。实测 App 保留原内部构建标识，外层发行版本为 Alpha 2。
+本地预览中的 [Alpha 2 下载地址](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2)是**待发布链接**，文件尚未上传。发行 App 沿用实测累计业务源码，关闭了串口输入观察；它是新的本地构建，上述实测数字属于带观察的原基线。
 
 ## Upgrading / 旧版如何升级
 
@@ -59,6 +59,6 @@ Some activation and warm-query stages remain slower, and full-screen redraws sti
 
 部分激活和热查询子阶段仍有代价，整屏重绘也仍会同步阻塞。长期运行、突然断电、新空板和跨版本回退尚未全面验证。固定固件中保留了实验性的本地 Wi-Fi 传输及二维码页面；本次性能对照和自由写作期间 Wi-Fi 均关闭。本版不提供 Pico 完整写作固件。
 
-**The tested firmware emits composition codes and timing records to its serial port by default.** The observation path uses RAM and UART, not a persistent input-log file; a connected computer can still record that stream. Review logs before sharing them. Third-party fonts and dictionaries retain their own terms, including the previously disclosed unresolved provenance questions. [Known limits and privacy](KNOWN_ISSUES.md) · [Resource and license status](RESOURCE_STATUS.md).
+The release build disables serial composition-code and input-timing observation. Startup, connection, health and error diagnostics remain. The writing results above come from the observed cumulative baseline; this quieter release build has software checks, but has not had a separate device session. Third-party fonts and dictionaries retain their own terms and the previously disclosed provenance questions. [Known limits and privacy](KNOWN_ISSUES.md) · [Resource and license status](RESOURCE_STATUS.md).
 
-**这份实测固件默认会向串口输出组成码和计时记录。** 这条观察路径使用内存和串口，不建立持久输入日志文件；连接的电脑仍可保存串口内容。分享日志前请检查私人信息。字体、词库等第三方材料沿用各自条款，既有来源未决事项继续披露。[已知限制与隐私](KNOWN_ISSUES.md) · [资源与许可说明](RESOURCE_STATUS.md)。
+发行构建已关闭串口组成码与输入计时观察，保留启动、连接、运行状态和错误诊断。前述写作成绩来自带观察的累计基线；关闭观察后的发行构建完成软件检查，尚未另做实机会话。字体、词库沿用各自条款及既有来源未决披露。[已知限制与隐私](KNOWN_ISSUES.md) · [资源与许可说明](RESOURCE_STATUS.md)。

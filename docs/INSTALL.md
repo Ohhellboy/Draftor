@@ -12,9 +12,9 @@
 | Exact compatible dual-4 MiB table / 准确兼容双4 MiB布局 | Check actual saved partition and OTA state, then App-only / 核对实际分区与活动槽后仅更新 App |
 | New blank board / 首次空板安装 | New table + SDK startup files + App0 / 新分区、SDK启动文件及 App0 |
 
-The App is **2,441,680 bytes**, larger than 2,097,152. An arbitrary 4 MiB slot is not enough: offsets and the whole table must match. Do not copy an address from another person's session.
+The release still requires slots larger than 2,097,152 bytes; the exact newly built App length is recorded in `Firmware/RELEASE_PAIR.json`. An arbitrary 4 MiB slot is not enough: offsets and the whole table must match. Do not copy an address from another person's session.
 
-App 为 **2,441,680 字节**，超过旧槽的 2,097,152 字节。仅有“4 MiB”字样也不够，整张分区表和偏移都要对应；不要照抄他人设备上的写入地址。
+发行App仍需要超过旧2 MiB的槽，准确新构建长度见 `Firmware/RELEASE_PAIR.json`。仅有“4 MiB”字样也不够，整张分区表和偏移都要对应；不要照抄他人设备上的写入地址。
 
 ## Files and TF resources / 文件与 TF 资源
 
@@ -92,7 +92,7 @@ New App0 overlaps old App1; new App1 and the IME reservation overlap old FFat. F
 
 ## First installation / 首次安装
 
-Only for a genuinely blank compatible board with no state to preserve. The checker above validates the host file combination. It does not mean a fresh board was qualified in this preparation. Use the supplied bootloader from the measured build, SDK `boot_app0.bin`, matching partitions and App. Do not use a private full-flash image. After hardware/identity checks, the separate command is:
+Only for a genuinely blank compatible board with no state to preserve. The checker above validates the host file combination. It does not mean a fresh board was qualified in this preparation. Use the supplied bootloader from the same release build, SDK `boot_app0.bin`, matching partitions and App. Do not use a private full-flash image. After hardware/identity checks, the separate command is:
 
 仅适用于确为空白、无待保留状态的兼容开发板。上述离线检查验证文件组合，本轮没有新空板实机验收。启动文件来自准确构建/SDK，不使用私人整片备份。核对硬件与身份后，独立命令为：
 

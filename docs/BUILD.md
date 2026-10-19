@@ -1,8 +1,8 @@
 # Building Alpha 2 / Alpha 2 源码构建
 
-The packaged tested App is unchanged. A local build is a new binary derived from the same business source and fixed configuration; it does not automatically inherit byte identity or device measurements.
+The packaged release App is a new build from the tested cumulative business source, with only the input observer configuration and build label changed by author request. It does not claim byte identity or device measurements from the observed baseline.
 
-发行 App 保持实测原字节。自行构建得到同一业务源码及固定配置的派生二进制，不自动继承逐字节相同或实机测量结论。
+发行 App 按作者决定关闭输入观察并使用新标识，业务源码继承实测累计版。新构建不冒称与观察基线逐字节相同或已实测。
 
 ## Inputs / 输入
 
@@ -40,8 +40,8 @@ Use a fresh extracted directory. Outputs are in `TestBuilds/s3/DISPLAY_TX_PROTO/
 | Synchronous delta display / 同步差量显示 | `DRAFTOR_DISPLAY_TRANSACTION=1` |
 | Resident location table / 完整定位驻留 | `DRAFTOR_TEXT_RESIDENT=0` |
 | Old input/display coordination / 旧协同机制 | `DRAFTOR_INPUT_PRESENT_COORD=0` |
-| AUTH / CP / display detail | `1 / 0 / 0` |
-| Telemetry profile / capture | `0 / 1` — AUTH serial diagnostics still active |
+| AUTH / CP / display detail | `0 / 0 / 0` |
+| Telemetry profile / capture | `0 / 1` — ordinary input logging muted, AUTH observer disabled |
 | SHA batched-final experiment | `HANIME_SHA256_BATCHED_FINAL=0` |
 | Output profile / TF runtime | `2 / 20000000 Hz` |
 | USB / release build | `1 / 1` |

@@ -1,6 +1,6 @@
 # Alpha 2 source integration / Alpha 2 源码整合
 
-The local preparation starts from public `main` commit `9c91bf03177c08377e99d1b49faf2d7462e906cd`, retaining its history and Alpha 1 tag. Cumulative business source comes from the exact build used in the paired comparison and FW1. Packaging changes are explicit build paths, external input selection, generation entrypoints, three active format4 pins and documentation; no query, output, candidate, commit or document-storage semantics were changed for packaging.
+The local preparation starts from public `main` commit `9c91bf03177c08377e99d1b49faf2d7462e906cd`, retaining its history and Alpha 1 tag. Cumulative business source comes from the exact build used in the paired comparison and FW1. Packaging changes are explicit build paths, external input selection, generation entrypoints, three active format4 pins and documentation; no query, output, candidate, commit or document-storage semantics were changed. The later explicit author decision disables only input observation and changes the release build label.
 
 本地副本保留原公开历史，继承准确实测累计业务源码。本轮仅处理构建路径、输入定位、生成入口、生效 pin与文档，不改查询、取字、候选、提交或文档语义。
 

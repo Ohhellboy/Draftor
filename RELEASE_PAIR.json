@@ -1,11 +1,11 @@
 {
   "version": "v0.1.0-alpha.2",
-  "firmware_label": "DRAFTOR_CUMULATIVE_ROUND1_20261019_MEASURE",
+  "firmware_label": "DRAFTOR_ALPHA2_20261019_RELEASE",
   "app": {
     "name": "Draftor_v0.1.0-alpha.2.app.bin",
-    "bytes": 2441680,
-    "sha256": "f9b0b4670316480004048d96020a2d8c8f0b0ac0639aa68ff227de8cad27eb26",
-    "origin": "exact unchanged cumulative image used in Round 2 and FW1"
+    "origin": "local release derivative; input-code/timing observer disabled by author request",
+    "exact_identity_location": "Firmware/RELEASE_PAIR.json and distribution PAIRING_MANIFEST.json",
+    "device_tested": false
   },
   "resources": {
     "shared_bundle_id": 17304919664082782091,
@@ -116,5 +116,20 @@
     "host": "0.8.4-rc.1",
     "combined_pin_sha256": "2b85265d958d6e47439a6fc75c4aff994fb8c615df72e9cb1205539a8f6de0a9"
   },
-  "publication": "local author review; not published"
+  "publication": "local author review; not published",
+  "measured_reference": {
+    "label": "DRAFTOR_CUMULATIVE_ROUND1_20261019_MEASURE",
+    "name": "Draftor_v0.1.0-alpha.2.app.bin",
+    "bytes": 2441680,
+    "sha256": "f9b0b4670316480004048d96020a2d8c8f0b0ac0639aa68ff227de8cad27eb26",
+    "origin": "exact unchanged cumulative image used in Round 2 and FW1"
+  },
+  "observation": {
+    "auth": 0,
+    "cp": 0,
+    "display_detail": 0,
+    "telemetry_profile": 0,
+    "telemetry_capture": 1,
+    "reason": "Explicit author decision 2026-10-19: remove serial composition/input timing feature for release; preserve business implementation."
+  }
 }

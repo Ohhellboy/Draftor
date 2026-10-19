@@ -8,9 +8,9 @@ This update makes Chinese writing more immediate: letters appear sooner, candida
 
 [What changed / 更新说明](docs/RELEASE_NOTES.md) · [Downloads and upgrade / 下载与升级](docs/INSTALL.md) · [Build / 源码构建](docs/BUILD.md) · [Usage / 操作手册](docs/USAGE.md)
 
-Installers need the matching Firmware and Resources packages. **The new App exceeds the old 2 MiB slots**; read the separate 2 MiB migration and 4 MiB update instructions before flashing. Keep important manuscripts backed up. The tested image retains default serial input diagnostics; details and other limits are collected in [Known Issues](docs/KNOWN_ISSUES.md).
+Installers need the matching Firmware and Resources packages. **The new App exceeds the old 2 MiB slots**; read the separate 2 MiB migration and 4 MiB update instructions before flashing. Keep important manuscripts backed up. The release build disables serial composition/input-timing observation; its baseline measurements and other limits are explained in [Known Issues](docs/KNOWN_ISSUES.md).
 
-安装需要同版 Firmware 和 Resources。**新 App 已超过旧2 MiB分区容量**，烧录前请区分旧布局迁移与兼容4 MiB更新，并独立备份重要文稿。实测镜像保留默认串口输入诊断，具体行为及其他限制集中列在[已知问题](docs/KNOWN_ISSUES.md)。
+安装需要同版 Firmware 和 Resources。**新 App 已超过旧2 MiB分区容量**，烧录前请区分旧布局迁移与兼容4 MiB更新，并独立备份重要文稿。发行构建已关闭串口组成码与输入计时观察，测量基线及其他限制集中列在[已知问题](docs/KNOWN_ISSUES.md)。
 
 The [Alpha 1 release](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.1) remains available. [Alpha 2's future release link](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2) is pending publication. No complete Pico 2 W firmware is included here; the independent display examples remain available.
 

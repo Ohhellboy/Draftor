@@ -8,6 +8,6 @@
 
 安装用户使用本版 Firmware + Resources；自行编译使用 Source + BuildInputs。新 App 需要准确兼容的双4 MiB布局，旧 Alpha 1 的2 MiB分区不能直接更新。新词库放入独立目录，保留旧资源、文稿和回退材料。
 
-完整固件仍针对 ESP32-S3 N16R8。Pico 独立显示示例与原有作者介绍继续保留。重要文字请独立备份；串口输入诊断、实验 Wi-Fi、长期可靠性及来源许可事项集中见[已知问题](docs/KNOWN_ISSUES.md)和[资源说明](docs/RESOURCE_STATUS.md)。
+完整固件仍针对 ESP32-S3 N16R8。Pico 独立显示示例与原有作者介绍继续保留。重要文字请独立备份；已关闭的串口输入观察、实验 Wi-Fi、长期可靠性及来源许可事项集中见[已知问题](docs/KNOWN_ISSUES.md)和[资源说明](docs/RESOURCE_STATUS.md)。
 
 全部自有源码（包括 bgIME Core）沿用 Apache-2.0，独立 ST7306 模块沿用 MIT。专利申请原件不在公开材料中；本地源码交付不表示外部审查已通过。

@@ -1,8 +1,8 @@
 # Input experience and measurements / 输入体验与测量
 
-The cumulative update shortens complete waits, not only lookup time. These are retained observations on the ESP32-S3 N16R8 prototype, original ST7306 wiring/font, TF runtime 20 MHz, horizontal layout, original BLE keyboard and Wi-Fi never enabled during the paired comparison or FW1. The old arm is Alpha 1 with minimal passive timing adaptation; the new arm is the exact cumulative App distributed here.
+The cumulative update shortens complete waits, not only lookup time. These are retained observations on the ESP32-S3 N16R8 prototype, original ST7306 wiring/font, TF runtime 20 MHz, horizontal layout, original BLE keyboard and Wi-Fi never enabled during the paired comparison or FW1. The old arm is Alpha 1 with minimal passive timing adaptation; the new arm is the observed cumulative baseline. The release package is a new build of that business source with input observation disabled; it has no new device-performance claim.
 
-累计收益针对完整等待，而非仅查词段。条件为同一 S3 N16R8、原 ST7306 接线/字体、TF20、H横排、原 BLE 键盘；对照和 FW1 全程 Wi-Fi 不启用。旧侧是 Alpha 1 最小测量派生版，新侧为本包原样实测累计 App。
+累计收益针对完整等待，而非仅查词段。条件为同一 S3 N16R8、原 ST7306 接线/字体、TF20、H横排、原 BLE 键盘；对照和 FW1 全程 Wi-Fi 不启用。旧侧是 Alpha 1 最小测量派生版，新侧为带观察的累计基线。本包发行构建关闭输入观察，没有新的实机性能主张。
 
 | Paired sample / 同轮配对样例 | Alpha measurement, ms | Cumulative, ms |
 |---|---:|---:|
@@ -35,6 +35,6 @@ Compared with the Alpha measurement arm, XH/PY activation was +1.373/+19.134 ms 
 
 相对 Alpha 测量臂，记录中的 XH/PY激活增加1.373/19.134 ms，热 `wo` 的查询到范围子段增加6.193/10.246 ms。早期第三次 `wo` 与长z串中 `zz` 处理两个慢例继续列账，缺少观察没有被写成关闭。55–64 ms等待、同步整屏阻塞及通用/命名输出成本仍在；本次封包未加入新优化、缓存或预算/内存政策变化。
 
-The exact App is 2,441,680 bytes; target static memory is 145,060 bytes. Against the measured Alpha arm, the whole integrated application adds 367,392 App bytes and 7,016 static bytes. Runtime dictionary files total 132,153,747 bytes, +5,213,496 over Alpha's 14 files. The synchronous display shadow uses 30,000 PSRAM bytes when available and retains full redraw fallback. These whole-version costs include platform/features and observation differences; they are not isolated costs of four algorithms. Five retained assertion signatures (ten paired failures) are historical open test evidence, not newly passing claims.
+The measured predecessor App is 2,441,680 bytes; its target static memory is 145,060 bytes. The new quiet-release build is listed separately in the distribution manifest. Against the measured Alpha arm, the whole integrated application adds 367,392 App bytes and 7,016 static bytes. Runtime dictionary files total 132,153,747 bytes, +5,213,496 over Alpha's 14 files. The synchronous display shadow uses 30,000 PSRAM bytes when available and retains full redraw fallback. These whole-version costs include platform/features and observation differences; they are not isolated costs of four algorithms. Five retained assertion signatures (ten paired failures) are historical open test evidence, not newly passing claims.
 
 App与静态内存、TF文件和动态显示影子分别列账如上。整版差额包含平台/功能及观察差异，不能全部归因于四项优化。原有五类断言、两臂共十次失败继续作为历史未决证据，不改写成全部通过。
