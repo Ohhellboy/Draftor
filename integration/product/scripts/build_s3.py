@@ -180,6 +180,8 @@ sdk_components={name:str((sdk_input/path).resolve()) for name,path in {
  'esp_x32_2601':'packages/esp32/tools/esp-x32/2601',
  'esp32s3_libs_3.3.11':'packages/esp32/tools/esp32s3-libs/3.3.11'}.items()}
 sdk_roots=[Path(path) for path in sdk_components.values()]
+sdk_files={}
+owned_sdk=R/'TestBuilds/arduino-data/data'
 for row in database:
  argv=row['arguments']
  if '-o' not in argv:continue
@@ -196,7 +198,19 @@ for row in database:
  for d in dependencies:
   assert d.is_file() and d.stat().st_mtime_ns<=obj.stat().st_mtime_ns,str(d)
   resolved=d.resolve()
-  assert R==resolved or R in resolved.parents or any(root==resolved or root in resolved.parents for root in sdk_roots), 'Undeclared input: '+str(d)
+  declared=R==resolved or R in resolved.parents or any(root==resolved or root in resolved.parents for root in sdk_roots)
+  # Installed SDKs can also contain symlinks below a component root. Accept
+  # such a file only when it resolves to the very same selected SDK input,
+  # never by permitting an unrelated parent checkout or experiment tree.
+  if not declared:
+   logical=Path(os.path.abspath(d))
+   for root in (owned_sdk,sdk_input):
+    try:relative=logical.relative_to(root)
+    except ValueError:continue
+    selected=sdk_input/relative
+    if selected.is_file() and selected.resolve()==resolved:
+     sdk_files[str(relative)]=str(resolved);declared=True;break
+  assert declared, 'Undeclared input: '+str(d)
  compiled.append({'source':str(source),'object':str(obj),'dependencies':list(map(str,dependencies))})
 assert {Path(r['object']) for r in compiled}==objects
 assert any(r['source'].endswith('/extension/segment_planner.cpp') for r in compiled)
@@ -211,7 +225,7 @@ for name in ('release_pin.hpp','block_release_pin.hpp','wubi_release_v1.hpp'):
   assert data_bytes==expected,'Wrong actual pin include: '+path
  included_pins[name]=paths
 (evidence/'PIN_INCLUDE_BINDING.json').write_text(json.dumps({'result':'PASS','pins':included_pins,'normalization':'exact Arduino stage #line 1 only'},indent=2)+'\n')
-(evidence/'CONSUMER_REBUILD.json').write_text(json.dumps({'fresh_objects':len(compiled),'all_dependencies_declared':True,'declared_sdk_components':sdk_components,'objects':compiled},indent=2)+'\n')
+(evidence/'CONSUMER_REBUILD.json').write_text(json.dumps({'fresh_objects':len(compiled),'all_dependencies_declared':True,'declared_sdk_components':sdk_components,'resolved_selected_sdk_files':sdk_files,'objects':compiled},indent=2)+'\n')
 stack=subprocess.run([sys.executable,str(p/'scripts/check_vertical_stack.py'),str(build/'sketch'),'--output',str(evidence/'STACK_GATE.json')],capture_output=True,text=True)
 (evidence/'STACK_GATE.log').write_text(stack.stdout+stack.stderr)
 if stack.returncode:raise SystemExit('Rendering stack check failed')
