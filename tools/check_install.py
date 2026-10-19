@@ -5,7 +5,7 @@ Inputs must be ordinary saved files/directories. This is a compatibility check,
 not a flashing program, backup creator, or substitute for runtime authentication.
 """
 from pathlib import Path
-import argparse,json,struct,zlib
+import argparse,json,struct,zlib,hashlib
 
 EXPECTED=[('nvs',1,2,0x9000,0x5000),('otadata',1,0,0xe000,0x2000),
  ('app0',0,0x10,0x10000,0x400000),('app1',0,0x11,0x410000,0x400000),
@@ -65,8 +65,13 @@ def check(firmware,resource_root,mode,partition=None,ota=None):
  if app.is_symlink() or app.stat().st_size!=pair['app']['bytes']:raise ValueError('Wrong App length')
  data=app.read_bytes()
  if data[0]!=0xe9 or struct.unpack_from('<H',data,12)[0]!=9:raise ValueError('App is not an ESP32-S3 image')
- if pair['firmware_label'].encode() not in data or pair['resources']['resource_root'].encode() not in data or pair['build']['combined_pin_sha256'].encode() not in data:
-  raise ValueError('App identity/resource pin metadata mismatch')
+ # The quiet build can discard the diagnostic-only printable pin digest.
+ # Verify the actual distributed App, not a log string. Compile receipts bind
+ # that App to all three consumed pins; runtime authentication is unchanged.
+ if hashlib.sha256(data).hexdigest()!=pair['app']['sha256']:
+  raise ValueError('App bytes do not match this release manifest')
+ if pair['firmware_label'].encode() not in data or pair['resources']['resource_root'].encode() not in data:
+  raise ValueError('App identity/resource metadata mismatch')
  rows=partitions(partition or firmware/'partitions.bin')
  slots=[r for r in rows if r[1]==0]
  if any(r[4]==0x200000 for r in slots):raise ValueError('2 MiB layout: App does not fit; separate migration required, not App-only')
