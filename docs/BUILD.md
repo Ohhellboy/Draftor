@@ -14,6 +14,10 @@ Install **Python 3, Arduino CLI 1.4.1, Arduino-ESP32 3.3.11 and esp-x32 2601 (GC
 
 工具链固定为上述版本。`DRAFTOR_SDK_SOURCE` 指向包含 `packages/` 的 Arduino **data目录**。构建创建自身 USB 覆盖层，不修改原安装；可选 Host 检查另需 CMake 3.20+及 C++17 编译器。
 
+An installed SDK may use symlinks for its versioned components. The build receipt records the resolved hardware, compiler and S3 library roots selected through `DRAFTOR_SDK_SOURCE`; dependency checks allow only these declared SDK components and this source tree.
+
+已安装SDK可能用符号链接组织不同版本组件。回执会明确列出经此配置选中的硬件包、编译器及S3库的实际位置；依赖检查只接受这些已声明组件及本源码树。
+
 ```sh
 cd Draftor
 python3 -B tools/install_external_inputs.py --from ../BuildInputs/inputs

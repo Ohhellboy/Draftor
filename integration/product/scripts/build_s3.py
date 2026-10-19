@@ -174,6 +174,12 @@ database=json.loads((build/'compile_commands.json').read_text())
 objects={f.resolve() for folder in (build/'sketch',build/'libraries/HanimePinned') for f in folder.rglob('*.o')}
 compiled=[]
 sdk_input=Path(os.environ['DRAFTOR_SDK_SOURCE']).resolve()
+sdk_components={name:str((sdk_input/path).resolve()) for name,path in {
+ 'installed_data':'.',
+ 'esp32_hardware_3.3.11':'packages/esp32/hardware/esp32/3.3.11',
+ 'esp_x32_2601':'packages/esp32/tools/esp-x32/2601',
+ 'esp32s3_libs_3.3.11':'packages/esp32/tools/esp32s3-libs/3.3.11'}.items()}
+sdk_roots=[Path(path) for path in sdk_components.values()]
 for row in database:
  argv=row['arguments']
  if '-o' not in argv:continue
@@ -190,7 +196,7 @@ for row in database:
  for d in dependencies:
   assert d.is_file() and d.stat().st_mtime_ns<=obj.stat().st_mtime_ns,str(d)
   resolved=d.resolve()
-  assert R==resolved or R in resolved.parents or sdk_input in resolved.parents, 'Undeclared input: '+str(d)
+  assert R==resolved or R in resolved.parents or any(root==resolved or root in resolved.parents for root in sdk_roots), 'Undeclared input: '+str(d)
  compiled.append({'source':str(source),'object':str(obj),'dependencies':list(map(str,dependencies))})
 assert {Path(r['object']) for r in compiled}==objects
 assert any(r['source'].endswith('/extension/segment_planner.cpp') for r in compiled)
@@ -205,7 +211,7 @@ for name in ('release_pin.hpp','block_release_pin.hpp','wubi_release_v1.hpp'):
   assert data_bytes==expected,'Wrong actual pin include: '+path
  included_pins[name]=paths
 (evidence/'PIN_INCLUDE_BINDING.json').write_text(json.dumps({'result':'PASS','pins':included_pins,'normalization':'exact Arduino stage #line 1 only'},indent=2)+'\n')
-(evidence/'CONSUMER_REBUILD.json').write_text(json.dumps({'fresh_objects':len(compiled),'all_dependencies_declared':True,'objects':compiled},indent=2)+'\n')
+(evidence/'CONSUMER_REBUILD.json').write_text(json.dumps({'fresh_objects':len(compiled),'all_dependencies_declared':True,'declared_sdk_components':sdk_components,'objects':compiled},indent=2)+'\n')
 stack=subprocess.run([sys.executable,str(p/'scripts/check_vertical_stack.py'),str(build/'sketch'),'--output',str(evidence/'STACK_GATE.json')],capture_output=True,text=True)
 (evidence/'STACK_GATE.log').write_text(stack.stdout+stack.stderr)
 if stack.returncode:raise SystemExit('Rendering stack check failed')
