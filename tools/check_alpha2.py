@@ -15,8 +15,8 @@ assert manifest['format']==4 and manifest['shared_bundle_id']==17304919664082782
 assert len(manifest['files'])==14 and sum(x['bytes'] for x in manifest['files'])==132153747
 for row in manifest['pins']:
  name=row['name'];expected=(R/'release/alpha2/pins'/name).read_bytes()
- assert expected==(R/'integration/product/dependencies/release_resources'/name).read_bytes()
- if name=='wubi_release_v1.hpp':assert expected==(R/'integration/product/src'/name).read_bytes()
+ duplicate=R/'integration/product/src'/name if name=='wubi_release_v1.hpp' else R/'integration/product/dependencies/release_resources'/name
+ assert expected==duplicate.read_bytes()
 
 # Exercise both active slots, invalid CRC and ambiguous boot selection without
 # accessing real metadata. These examples contain no device or document state.
