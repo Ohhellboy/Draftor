@@ -13,6 +13,7 @@ EXPECTED=[('nvs',1,2,0x9000,0x5000),('otadata',1,0,0xe000,0x2000),
  ('coredump',1,3,0xff0000,0x10000)]
 
 def partitions(path):
+ if path.is_symlink() or not path.is_file():raise ValueError('Use an ordinary saved partition file')
  data=path.read_bytes();rows=[]
  if len(data) not in (3072,4096):raise ValueError('Partition file must be a saved 3072/4096-byte table')
  for at in range(0,3072,32):
@@ -29,6 +30,7 @@ def partitions(path):
  return rows
 
 def active_slot(path):
+ if path.is_symlink() or not path.is_file():raise ValueError('Use an ordinary saved OTA file')
  data=path.read_bytes()
  if len(data)!=8192:raise ValueError('Saved OTA data must be exactly 8192 bytes')
  entries=[]
@@ -49,6 +51,12 @@ def resources(root,manifest):
   raise ValueError('Wrong release resource manifest')
  if (root/'STAGING_INCOMPLETE').exists() or not (root/'CANDIDATE_READY.json').is_file():
   raise ValueError('Incomplete resource installation')
+ ready=json.loads((root/'CANDIDATE_READY.json').read_text())
+ if ready.get('bundle')!=manifest['shared_bundle_id'] or ready.get('format')!=4 or ready.get('files')!=14:
+  raise ValueError('Ready marker belongs to a different resource set')
+ font=root.parent/'R1_API080/matched28.hbf1'
+ if font.is_symlink() or not font.is_file() or font.stat().st_size!=2464108:
+  raise ValueError('Missing/wrong-size matching font at R1_API080/matched28.hbf1')
  for row in manifest['files']:
   f=root/row['name']
   if f.is_symlink() or not f.is_file() or f.stat().st_size!=row['bytes']:raise ValueError('Missing/wrong-size resource: '+row['name'])

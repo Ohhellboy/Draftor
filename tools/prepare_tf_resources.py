@@ -12,7 +12,7 @@ import json
 import shutil
 
 RELEASE = 'B_SHORT_TEXT_20261018'
-FIRMWARE = 'DRAFTOR_CUMULATIVE_ROUND1_20261019_MEASURE'
+FIRMWARE = 'DRAFTOR_ALPHA2_20261019_RELEASE'
 
 def expected(folder):
     canonical=Path(__file__).resolve().parents[1]/'release/alpha2/RESOURCE_MANIFEST.json'
@@ -41,7 +41,8 @@ def validate(folder, files):
             raise ValueError('Resource digest mismatch: '+name)
 
 def ready(folder):
-    value = dict(release=RELEASE,firmware=FIRMWARE,files=14,
+    value = dict(release='v0.1.0-alpha.2',resource_directory=RELEASE,firmware=FIRMWARE,
+        bundle=17304919664082782091,format=4,files=14,
         validation='all final staged bytes checked against trusted software manifest; runtime pins remain authoritative')
     (folder/'CANDIDATE_READY.json').write_text(json.dumps(value,indent=2)+'\n')
 
