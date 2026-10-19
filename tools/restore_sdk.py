@@ -20,7 +20,23 @@ for f in (installed/'packages').iterdir():
  if f.name!='esp32':
   if f.is_dir():shutil.copytree(f,private/'packages'/f.name,symlinks=True)
   else:shutil.copy2(f,private/'packages'/f.name)
-shutil.copytree(installed/'packages/esp32/hardware/esp32/3.3.11',pack/'hardware/esp32/3.3.11',ignore=shutil.ignore_patterns('__pycache__','.DS_Store'))
+# Preserve a private path only where the fixed overlay writes. The rest of
+# the installed hardware package is a declared read-only SDK input, just like
+# the tools below. This avoids copying thousands of unchanged examples/files.
+hardware_source=installed/'packages/esp32/hardware/esp32/3.3.11'
+hardware_private=pack/'hardware/esp32/3.3.11'
+hardware_overlay=r/'vendor/overlay/hardware/esp32/3.3.11'
+changed={f.relative_to(hardware_overlay) for f in hardware_overlay.rglob('*') if f.is_file()}
+assert changed, 'Missing fixed hardware overlay'
+def private_scaffold(source,destination,relative=Path()):
+ destination.mkdir()
+ for f in source.iterdir():
+  if f.name in ('__pycache__','.DS_Store'):continue
+  rel=relative/f.name;dst=destination/f.name
+  if f.is_dir() and any(rel in c.parents for c in changed):private_scaffold(f,dst,rel)
+  elif rel in changed:dst.write_bytes(f.read_bytes())
+  else:dst.symlink_to(f,target_is_directory=f.is_dir())
+private_scaffold(hardware_source,hardware_private)
 for f in (installed/'packages/esp32/tools').iterdir():
  if f.name!='esp32s3-libs':(pack/'tools'/f.name).symlink_to(f,target_is_directory=True)
 sdk=pack/'tools/esp32s3-libs/3.3.11';sdk.mkdir(parents=True)
