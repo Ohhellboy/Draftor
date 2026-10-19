@@ -4,7 +4,7 @@
 #include "idle_log.hpp"
 #include "hanime/composition_commit.hpp"
 namespace ime_device {
-enum class UiTraceKind:uint8_t {KeyDown,KeyUp,Duplicate,Choice,Query,WindowReady,SelectionDone,Lcd,RouteDrop,RowRequest,RangeReady,ItemTextReady,CommitQueued,BodyAccepted,BodyLcd,CommitStopped,Intent,Text,NavigationApplied,SelectionResult,SubmissionResult};
+enum class UiTraceKind:uint8_t {KeyDown,KeyUp,Duplicate,Choice,Query,WindowReady,SelectionDone,Lcd,RouteDrop,RowRequest,RangeReady,ItemTextReady,CommitQueued,BodyAccepted,BodyLcd,CommitStopped,Intent,Text,NavigationApplied,SelectionResult,SubmissionResult,FeedbackLcd};
 enum IntentResult:uint8_t {Received=0,QueuedQuery,QueuedCommit,Executing,CapturedDisplayed,ResolvedDefault,Completed,NoCandidate,ExpiredInput,ExpiredTarget,QueueFull,CancelledByUser,UnassignedRawEnter,UnknownNumberedRow,DuplicateSuppressed,CommitFailed,InvalidContext,Applied,QueuedSuccessor,UnassignedIdleChoice,BodyRouted,AppBlocked,ResourceFailure,QueuedNavigation,NavigationInherited,BeforeRawEdit,QueryContextChanged,DefaultContextExpired,DisplayedChoiceExpired,RawNavigation,NumberAbsent,RawEdited,CapacityRejected,EditNoChange,EditBusy,EditInvalid,EditFailed,Consumed,ResourceOwnerRetired,SelectionCapacity,SelectionBusy,SelectionOutputError,SelectionInvalid,SelectionCancelled,QueryLimited,QueryUnresolved,SelectionAllocationFailure};
 // Main-loop-only diagnostic ring. No allocation, disk I/O, or BLE callback log.
 // Full identity is diagnostic; it is never used to authorize or replay a choice.

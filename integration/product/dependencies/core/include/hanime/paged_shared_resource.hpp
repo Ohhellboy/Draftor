@@ -4,11 +4,14 @@
 #include <array>
 
 #define HANIME_OUTPUT_REUSE_API 1
+#ifndef HANIME_TEXT_CHAIN
+#define HANIME_TEXT_CHAIN 0
+#endif
 
 namespace hanime {
 class VerifiedResourceReader;
 class OutputReader;
-namespace detail { class OutputReuseCache; }
+namespace detail { class OutputReuseCache; struct SharedStructuralAccess; }
 
 // Optional completed-output reuse, owned by one shared activation. Zero entries
 // disables it. Longer results bypass this pool without limiting candidates.
@@ -206,7 +209,15 @@ class PagedSharedResource {
  private:
   struct Impl;
   friend class OutputReader;
+  friend struct detail::SharedStructuralAccess;
   detail::OutputReuseCache* output_reuse_cache() const;
+#if HANIME_TEXT_CHAIN
+  // Only the resolver may transfer the owner's completed default descriptor.
+  // No caller-supplied descriptor or public authenticated-span capability.
+  SharedReadStatus begin_default_payload_read(const SharedActivationHandle&,
+      const SharedReadCursor&, RuntimeLexemeRef, std::uint32_t string_id,
+      char* destination, std::size_t capacity, SharedTextCursor*);
+#endif
   std::unique_ptr<Impl> impl_;
 };
 

@@ -135,13 +135,18 @@ void prefixContext(){
   }
  std::cout<<"PASS same-raw shorter-prefix query does not reuse old range rows\n";
 }
+// Structural Host initialization may require more calls; this is a finite test
+// termination guard, not a resource WorkBudget or product service window.
 void apiBoundary(){
- Resources r(RESOURCE_ROOT,std::make_shared<Mount>(),productionPins(),INDEX_ROOT);r.start(hanime_extension::SchemeRules::R1Xiaohe);for(unsigned i=0;!r.ready()&&i<256;++i)r.service();CHECK(r.ready());
+ Resources r(RESOURCE_ROOT,std::make_shared<Mount>(),productionPins(),INDEX_ROOT);r.start(hanime_extension::SchemeRules::R1Xiaohe);for(unsigned i=0;!r.ready()&&i<2000000;++i)r.service();CHECK(r.ready());
  hanime_extension::Composition c(r.scheme,r.shared,r.rules());CHECK(c.edit_raw(0,0,"ui")==hanime_extension::Status::Ready);CHECK(c.query_longest()==hanime_extension::Status::Working);
  auto op=c.operation();for(unsigned i=0;c.status()==hanime_extension::Status::Working&&i<100000;++i)c.tick(op,Resources::Budget);CHECK(c.status()==hanime_extension::Status::PageReady);
  auto selected=c.selection(0);CHECK(c.request_page(hanime::RangeDirection::After)==hanime_extension::Status::Working);auto prefetch=c.operation();
  CHECK(c.cancel(prefetch)==hanime_extension::Status::Cancelled);CHECK(!c.page().size);CHECK(c.select(selected)==hanime_extension::Status::Stale);CHECK(c.request_page(hanime::RangeDirection::Before)==hanime_extension::Status::Stale);
  std::cout<<"API_GAP cancel_pending_range clears current page and rank lineage; old Selection and Before return Stale. Needs extension-owned staging/cancel contract for zero-wait foreground interruption.\n";
+#ifdef STRUCTURAL_API_BOUNDARY_OBSERVE
+ STRUCTURAL_API_BOUNDARY_OBSERVE(r);
+#endif
 }
 void foregroundCosts(){
  Rig r;r.tap(0x39);r.settle();

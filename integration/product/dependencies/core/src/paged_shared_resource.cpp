@@ -1,12 +1,20 @@
 #include "paged_shared_internal.hpp"
 #include "output_reuse.hpp"
+#include "shared_structural.hpp"
 #include "hanime/verified_resource.hpp"
 
 #include <algorithm>
 #include <cstring>
 #include <limits>
 #include <numeric>
+#include <new>
 #include <utility>
+
+#if HANIME_STRUCTURAL_HOST_OBSERVE
+#define SHARED_STRUCTURAL_DIAGNOSTIC(...) do { __VA_ARGS__; } while (false)
+#else
+#define SHARED_STRUCTURAL_DIAGNOSTIC(...) do {} while (false)
+#endif
 
 namespace hanime {
 struct SharedActivationIdentity {};
@@ -14,6 +22,23 @@ namespace {
 using namespace detail;
 constexpr std::array<std::uint32_t, 5> kWidths{{52, 16, 8, 8, 4}};
 constexpr std::uint32_t kNo = kNoSharedString;
+constexpr std::uint32_t kCoLocatedMagic = 0x33485348U;
+constexpr std::uint32_t kCoLocatedLayoutMagic = 0x33444853U;
+constexpr std::uint32_t kCoLocatedPageMagic = 0x33504753U;
+constexpr std::uint32_t kShortTextMagic = 0x34485348U;
+constexpr std::uint32_t kShortTextLayoutMagic = 0x34444853U;
+constexpr std::uint32_t kShortTextPageMagic = 0x34504753U;
+constexpr std::size_t kShortTextCapacity = 10;
+bool short_text(const PagedSharedInfo& info) { return info.sections[0].record_bytes == 64; }
+bool colocated(const PagedSharedInfo& info) { return info.sections[0].record_bytes >= 60; }
+std::uint32_t records_per_page(const PagedSharedInfo& info, std::size_t s) {
+  return short_text(info) && s == 0 ? 63U : (info.page_bytes - 16) / info.sections[s].record_bytes;
+}
+std::size_t record_position(const PagedSharedInfo& info, std::size_t s, std::uint32_t i) {
+  const auto local = i % records_per_page(info,s);
+  if (short_text(info) && s == 0) return local < 7 ? 16 + local*64 : 512 + (local-7)*64;
+  return 16 + std::size_t(local)*info.sections[s].record_bytes;
+}
 
 std::uint32_t u32(const std::uint8_t* p) {
   return std::uint32_t(p[0]) | (std::uint32_t(p[1]) << 8U) |
@@ -40,8 +65,13 @@ bool valid_budget(const WorkBudget& b) {
 bool parse_layout(const std::uint8_t* h, std::size_t file_size,
                   PagedSharedInfo* info, std::string* error) {
   auto fail = [&](const char* s) { *error = s; return false; };
-  if (file_size < kSharedHeaderBytes || u32(h) != kSharedMagic || u32(h + 4) != 2 ||
-      u32(h + 40) != kSharedLayoutMagic || u32(h + 44) != 160 ||
+  const bool layout4 = u32(h) == kShortTextMagic && u32(h + 4) == 4 &&
+                       u32(h + 40) == kShortTextLayoutMagic;
+  const bool layout3 = u32(h) == kCoLocatedMagic && u32(h + 4) == 3 &&
+                       u32(h + 40) == kCoLocatedLayoutMagic;
+  const bool layout2 = u32(h) == kSharedMagic && u32(h + 4) == 2 &&
+                       u32(h + 40) == kSharedLayoutMagic;
+  if (file_size < kSharedHeaderBytes || (!layout2 && !layout3 && !layout4) || u32(h + 44) != 160 ||
       u64(h + 32) != file_size - 40) return fail("shared header/version/size mismatch");
   if (!u64(h + 8) || !u64(h + 16) || u32(h + 48) != kStableKeyFormat ||
       u32(h + 52) != 32 || u32(h + 60) != 5) return fail("shared namespace/key format mismatch");
@@ -49,13 +79,15 @@ bool parse_layout(const std::uint8_t* h, std::size_t file_size,
   info->key_format = u32(h + 48); info->page_bytes = u32(h + 56);
   info->file_bytes = file_size;
   if (info->page_bytes < 68 || info->page_bytes > 65536) return fail("invalid shared page width");
-  std::uint64_t expected_offset = kSharedHeaderBytes;
+  if (layout4 && info->page_bytes != 4096) return fail("short-text layout requires original 4096-byte logical pages");
+  std::uint64_t expected_offset = layout4 ? 512 : kSharedHeaderBytes;
   for (std::size_t s = 0; s < 5; ++s) {
     auto& section = info->sections[s]; const auto* d = h + 64 + 24 * s;
     section = {u64(d), u32(d + 8), u32(d + 12), u32(d + 16)};
-    if (section.record_bytes != kWidths[s] || u32(d + 20) ||
+    if (section.record_bytes != (s == 0 && layout4 ? 64U : (layout3 && s == 0 ? 60U : kWidths[s])) || u32(d + 20) ||
         section.offset != expected_offset) return fail("shared section layout mismatch");
-    const std::uint32_t per_page = (info->page_bytes - 16) / section.record_bytes;
+    const std::uint32_t per_page = records_per_page(*info,s);
+    if (!per_page) return fail("shared record does not fit physical page");
     const std::uint64_t pages = (std::uint64_t(section.count) + per_page - 1) / per_page;
     if (pages != section.page_count) return fail("shared section page count mismatch");
     // uint32 page count * bounded uint32 page width fits uint64; check before add.
@@ -74,12 +106,12 @@ bool parse_layout(const std::uint8_t* h, std::size_t file_size,
 }
 std::uint32_t page_records(const PagedSharedInfo& info, std::size_t s, std::uint32_t page) {
   const auto& sec = info.sections[s];
-  const auto per = (info.page_bytes - 16) / sec.record_bytes;
+  const auto per = records_per_page(info,s);
   return static_cast<std::uint32_t>(std::min<std::uint64_t>(per, sec.count - std::uint64_t(page) * per));
 }
 bool valid_page(const std::uint8_t* p, const PagedSharedInfo& info,
                 std::size_t s, std::uint32_t page) {
-  return u32(p) == kSharedPageMagic && u32(p + 4) == s && u32(p + 8) == page &&
+  return u32(p) == (short_text(info) ? kShortTextPageMagic : (colocated(info) ? kCoLocatedPageMagic : kSharedPageMagic)) && u32(p + 4) == s && u32(p + 8) == page &&
          u32(p + 12) == page_records(info, s, page);
 }
 bool string_ref(std::uint32_t id, const PagedSharedInfo& info, bool optional = false) {
@@ -93,7 +125,7 @@ bool lexeme_record(const std::uint8_t* p, const PagedSharedInfo& info, SharedLex
   out->default_payload = u32(p + 36); out->relation_start = u32(p + 40);
   out->relation_count = u32(p + 44); out->identity.kind = static_cast<LexemeKind>(p[48]);
   return !out->identity.stable_key.empty() && (p[48] == 1 || p[48] == 2) &&
-      !p[49] && !p[50] && !p[51] && string_ref(out->default_payload, info) &&
+      (short_text(info) || (!p[49] && !p[50] && !p[51])) && string_ref(out->default_payload, info) &&
       std::uint64_t(out->relation_start) + out->relation_count <= info.sections[1].count;
 }
 bool relation_record(const std::uint8_t* p, const PagedSharedInfo& info, SharedOutputRecord* out) {
@@ -114,9 +146,9 @@ bool string_record(const std::uint8_t* p, const PagedSharedInfo& info, SharedStr
 }
 const std::uint8_t* memory_record(const std::vector<std::uint8_t>& bytes,
                                   const PagedSharedInfo& info, std::size_t s, std::uint32_t index) {
-  const auto& sec = info.sections[s]; const auto per = (info.page_bytes - 16) / sec.record_bytes;
+  const auto& sec = info.sections[s]; const auto per = records_per_page(info,s);
   return bytes.data() + static_cast<std::size_t>(sec.offset) +
-      std::size_t(index / per) * info.page_bytes + 16 + (index % per) * sec.record_bytes;
+      std::size_t(index / per) * info.page_bytes + record_position(info,s,index);
 }
 
 struct Utf8State {
@@ -236,6 +268,21 @@ bool decode_shared_host(const ResourceReader& reader, DecodedSharedBundle* out, 
   std::uint64_t next_relation = 0;
   for (std::uint32_t i = 0; i < info.sections[0].count; ++i) {
     SharedLexemeRecord r; if (!lexeme_record(get(0, i), info, &r) || r.relation_start != next_relation) return fail();
+    if (colocated(info)) {
+      SharedStringDescriptor embedded, original;
+      const auto* p=get(0,i);
+      if (short_text(info)) {
+        embedded={u32(p+50),p[49] ? std::uint32_t(p[49]) : u32(p+54)};
+        if (p[49]>kShortTextCapacity || !embedded.length ||
+            std::uint64_t(embedded.offset)+embedded.length>info.payload_bytes ||
+            (!p[49] && embedded.length<=kShortTextCapacity)) return fail();
+        const auto padding=p[49] ? p[49] : 4U;
+        for (std::size_t j=padding;j<10;++j) if(p[54+j]) return fail();
+        if (p[49] && !std::equal(p+54,p+54+p[49],bytes.data()+info.payload_offset+embedded.offset)) return fail();
+      } else if (!string_record(p+52,info,&embedded)) return fail();
+      if (!string_record(get(3, r.default_payload), info, &original) ||
+          embedded.offset != original.offset || embedded.length != original.length) return fail();
+    }
     next_relation += r.relation_count; out->tables.lexemes.push_back(r);
   }
   if (next_relation != info.sections[1].count) return fail();
@@ -266,7 +313,11 @@ bool decode_shared_host(const ResourceReader& reader, DecodedSharedBundle* out, 
 }  // namespace detail
 
 struct PagedSharedResource::Impl {
-  enum class Phase { Closed, Hash, Pages, Lexemes, Relations, Selectors, Strings, Unique, Ready, Error };
+  enum class Phase { Closed, Hash, Pages, Lexemes, Relations, Selectors, Strings, Unique, Resident, Ready, Error };
+  struct ExternalRelease {
+    detail::SharedStructuralAccess::Release release{nullptr};
+    void operator()(std::uint8_t* p) const { if (p && release) release(p); }
+  };
   struct CacheSlot { std::uint64_t offset{0}; std::size_t filled{0}; bool assigned{false}, checked{false}; };
   std::shared_ptr<const ResourceReader> reader;
   std::shared_ptr<const SharedActivationIdentity> identity;
@@ -289,10 +340,33 @@ struct PagedSharedResource::Impl {
   SharedRecordKind read_kind{SharedRecordKind::Lexeme}; std::uint32_t read_index{0};
   bool read_second{false}, read_complete{false}, read_active{false}, io_failed{false};
   SharedLexemeRecord read_lexeme;
+#if HANIME_TEXT_CHAIN
+  SharedStringDescriptor read_default_span; // Valid only with this completed Lexeme revision.
+#endif
   std::size_t pending_read_bytes{0}; // Freeze a budgeted request across small/varying ticks.
   std::size_t slice_section{0}, slice_filled{0};
   std::uint32_t slice_index{0};
   bool slice_assigned{false};
+  detail::SharedStructuralStats structural;
+  std::unique_ptr<std::uint8_t, ExternalRelease> resident{nullptr, ExternalRelease{}};
+  bool resident_started{false}, resident_complete{false};
+  std::size_t resident_index{0}, resident_stage{0};
+  const std::uint8_t* resident_source{nullptr};
+  SharedStringDescriptor resident_span;
+  std::uint64_t resident_next_offset{0};
+  // One serial record slot: this pointer is consumed before any next record or
+  // reader operation can overwrite the authenticated slice. Cancellation/new
+  // begin clears it. RAM projection uses the same byte-metered parser.
+  const std::uint8_t* locator_source{nullptr};
+  std::size_t locator_position{0};
+  SharedStringDescriptor locator_span;
+  SharedLexemeRecord validation_lexeme;
+  SharedStringDescriptor validation_span;
+  // Pointer refers only to this owner's page allocation, never verifier cache.
+  // A serial read owns the allocation until begin/cancel/retirement replaces it.
+  const std::uint8_t* short_source{nullptr};
+  std::uint8_t short_length{0}, short_position{0};
+  bool short_checked{false}, short_payload_active{false};
 
   bool matches(const SharedReadContext& c) const {
     return phase == Phase::Ready && reader && reader->healthy() && identity && c.identity == identity && c.mount_epoch == epoch &&
@@ -350,9 +424,8 @@ struct PagedSharedResource::Impl {
   const std::uint8_t* verified_record_slice(std::size_t section_index,
       std::uint32_t record_index, const WorkBudget& budget, WorkCost& cost) {
     const auto& section_info = info.sections[section_index];
-    const auto records_per_page = (info.page_bytes - 16) / section_info.record_bytes;
-    const auto page_number = record_index / records_per_page;
-    const auto position_in_page = record_index % records_per_page;
+    const auto per_page = records_per_page(info,section_index);
+    const auto page_number = record_index / per_page;
 
     // parse_layout checked section spans, record widths and page counts using
     // authenticated global metadata. These products fit within that span.
@@ -360,8 +433,7 @@ struct PagedSharedResource::Impl {
     // pointers used here. Its static semantics were checked before publication;
     // do not fetch an unrelated 1 KiB block merely to recompute those values.
     const auto record_offset = section_info.offset +
-        std::uint64_t(page_number) * info.page_bytes + 16 +
-        std::uint64_t(position_in_page) * section_info.record_bytes;
+        std::uint64_t(page_number) * info.page_bytes + record_position(info,section_index,record_index);
     if (page_number >= section_info.page_count || record_offset > info.file_bytes ||
         section_info.record_bytes > info.file_bytes - record_offset) {
       fail("authenticated shared record bounds mismatch");
@@ -396,14 +468,51 @@ struct PagedSharedResource::Impl {
   const std::uint8_t* record(std::size_t s, std::uint32_t i, const WorkBudget& b, WorkCost& c) {
     const auto& sec = info.sections[s];
     if (i >= sec.count) { fail("shared record reference out of range"); return nullptr; }
-    const auto per = (info.page_bytes - 16) / sec.record_bytes;
-    if (verified && config.verified_record_slices && phase == Phase::Ready) {
+    const auto per = records_per_page(info,s);
+    if (verified && config.verified_record_slices && (phase == Phase::Ready || phase == Phase::Resident)) {
       return verified_record_slice(s, i, b, c);
     }
     const auto* p = page(s, i / per, b, c);
     if (!p || c.work_items == b.max_work_items) return nullptr;
     ++c.work_items;
-    return p + 16 + (i % per) * sec.record_bytes;
+    return p + record_position(info,s,i);
+  }
+  void start_short(const std::uint8_t* record_bytes) {
+    short_source=record_bytes+49; short_position=0; short_length=0;
+    short_checked=short_payload_active=false; utf8={}; locator_span={};
+  }
+  bool parse_short(const WorkBudget& b, WorkCost& c) {
+    // All 15 bytes of control, locator and inline/padding are consumed only
+    // after the complete 64-byte owner record was authenticated. Each byte is
+    // charged so tiny/changing work budgets preserve bounded forward progress.
+    while(short_position<15 && c.work_items<b.max_work_items) {
+      const auto pos=short_position++;const auto byte=short_source[pos];++c.work_items;
+      SHARED_STRUCTURAL_DIAGNOSTIC(++structural.runtime_parse_bytes; ++structural.short_control_parse_bytes);
+      if(pos==0) {
+        short_length=byte;
+        if(short_length>kShortTextCapacity) {fail("invalid short default length");return false;}
+        if(short_length) locator_span.length=short_length;
+      } else if(pos<5) locator_span.offset|=std::uint32_t(byte)<<((pos-1)*8);
+      else {
+        const auto i=pos-5;
+        if(short_length) {
+          if(i<short_length) {if(!utf8.consume(byte)){fail("invalid inline default UTF-8");return false;}}
+          else if(byte) {fail("nonzero inline default padding");return false;}
+        } else if(i<4) locator_span.length|=std::uint32_t(byte)<<(i*8);
+        else if(byte) {fail("nonzero external default padding");return false;}
+      }
+    }
+    if(short_position<15 || c.work_items==b.max_work_items) return false;
+    if(!short_checked) {
+      ++c.work_items;
+      if(!locator_span.length || std::uint64_t(locator_span.offset)+locator_span.length>info.payload_bytes ||
+          (!short_length && locator_span.length<=kShortTextCapacity) || utf8.remaining) {
+        fail("invalid short default span or truncated UTF-8");return false;
+      }
+      short_checked=true;
+      SHARED_STRUCTURAL_DIAGNOSTIC(if(short_length) ++structural.short_inline_records; else ++structural.short_external_records);
+    }
+    return true;
   }
   void start_stream(std::uint64_t start, std::uint64_t length) {
     stream_start = start; stream_size = length; stream_done = 0;
@@ -474,6 +583,9 @@ bool PagedSharedResource::open_verified(std::shared_ptr<const VerifiedResourceRe
   if (info().sections[0].count!=spec.runtime_ref_count || info().file_bytes!=spec.file_bytes) {
     deactivate(); if (error) *error="trusted shared metadata mismatch"; return false;
   }
+  if (spec.resource_format != (short_text(info()) ? 4U : (colocated(info()) ? 3U : 2U))) {
+    deactivate(); if (error) *error="trusted shared physical format pin mismatch"; return false;
+  }
   impl_->verified=reader.get(); impl_->phase=Impl::Phase::Ready; return true;
 }
 const ResourceReleaseSpec* PagedSharedResource::verified_release() const {
@@ -498,6 +610,9 @@ ValidationStepResult PagedSharedResource::advance_validation(
   if (!valid_budget(budget)) { result.status = ValidationStepStatus::InvalidBudget; return result; }
   if (x.reader && !x.reader->healthy()) x.fail("resource activation is no longer healthy");
   using Phase = Impl::Phase;
+  // Only the private adapter owns projection initialization. Ordinary public
+  // validation cannot accidentally drive or spin inside that private phase.
+  if (x.phase==Phase::Resident) {c.work_items=1;result.status=ValidationStepStatus::InProgress;return result;}
   while (c.work_items < budget.max_work_items && x.phase != Phase::Closed && x.phase != Phase::Error && x.phase != Phase::Ready) {
     if (x.phase == Phase::Hash) {
       if (!x.stream(true, budget, c)) break;
@@ -515,10 +630,52 @@ ValidationStepResult PagedSharedResource::advance_validation(
         if (x.next_relation != x.info.sections[1].count) { x.fail("shared relation coverage mismatch"); break; }
         x.phase = Phase::Relations; x.index = 0; continue;
       }
-      const auto* p = x.record(0, x.index, budget, c); if (!p) break;
-      SharedLexemeRecord r;
-      if (!lexeme_record(p, x.info, &r) || r.relation_start != x.next_relation) { x.fail("invalid shared lexeme or relation ownership"); break; }
-      x.next_relation += r.relation_count; ++x.index;
+      if (!x.secondary) {
+        const auto* p = x.record(0, x.index, budget, c); if (!p) break;
+        if (!lexeme_record(p, x.info, &x.validation_lexeme) || x.validation_lexeme.relation_start != x.next_relation) {
+          x.fail("invalid shared lexeme or relation ownership"); break;
+        }
+        if (colocated(x.info)) {
+          // The full validator compares the compatibility descriptor, whereas
+          // trusted runtime relies on the same comparison at publication.
+          if(short_text(x.info)) {x.start_short(p);x.stream_done=x.stream_pos=x.stream_filled=0;}
+          else {x.locator_source=p+52; x.locator_position=0; x.locator_span={};}
+        }
+        x.secondary=true;
+      }
+      if (colocated(x.info)) {
+        if(short_text(x.info)) {
+          if(!x.parse_short(budget,c)) break;
+          // The full validator must compare inline content with its generic
+          // source too; trusted runtime relies on that exact publisher proof.
+          if(x.short_length) {
+            while(c.work_items<budget.max_work_items) {
+              while(x.stream_pos<x.stream_filled && c.work_items<budget.max_work_items) {
+                const auto i=x.stream_pos++;++c.work_items;
+                if(x.stream_buffer[i]!=x.short_source[5+x.stream_start+i]) {x.fail("inline/default pool mismatch");break;}
+              }
+              if(x.stream_pos<x.stream_filled || x.phase==Phase::Error || x.stream_done==x.short_length) break;
+              const auto n=x.read_amount(x.short_length-static_cast<std::size_t>(x.stream_done),budget,c);
+              if(!n) break;
+              if(!x.read_bytes(x.info.payload_offset+x.locator_span.offset+x.stream_done,x.stream_buffer.data(),n,budget,c)) break;
+              x.stream_start=x.stream_done; x.stream_pos=0; x.stream_filled=n;
+              x.stream_done+=n;
+            }
+            if(x.phase==Phase::Error || x.stream_done<x.short_length || x.stream_pos<x.stream_filled) break;
+          }
+        } else while (x.locator_position < 8 && c.work_items < budget.max_work_items) {
+          const auto pos=x.locator_position++;
+          auto& field=pos<4 ? x.locator_span.offset : x.locator_span.length;
+          field |= std::uint32_t(x.locator_source[pos]) << ((pos%4)*8);
+          ++c.work_items;
+        }
+        if (!short_text(x.info) && x.locator_position<8) break;
+        const auto* p=x.record(3,x.validation_lexeme.default_payload,budget,c); if (!p) break;
+        SharedStringDescriptor original;
+        if (!string_record(p,x.info,&original) || original.offset!=x.locator_span.offset ||
+            original.length!=x.locator_span.length) {x.fail("co-located default descriptor mismatch");break;}
+      }
+      x.next_relation += x.validation_lexeme.relation_count; x.secondary=false; ++x.index;
     } else if (x.phase == Phase::Relations) {
       if (x.index == x.info.sections[1].count) { x.phase = Phase::Selectors; x.index = 0; continue; }
       const auto* p = x.record(1, x.index, budget, c); if (!p) break;
@@ -614,6 +771,9 @@ SharedReadStatus PagedSharedResource::begin_read(SharedRecordKind kind, std::uin
   ++x.revision; cursor->context_ = {x.identity, x.epoch, x.revision}; cursor->cancelled_ = false;
   x.read_kind = kind; x.read_index = slot; x.read_active = true; x.read_complete = x.read_second = false;
   x.io_failed = false; x.error.clear(); x.pending_read_bytes=0;
+  x.locator_source=nullptr; x.locator_position=0; x.locator_span={};
+  x.short_source=nullptr; x.short_length=x.short_position=0;
+  x.short_checked=x.short_payload_active=false;
   return SharedReadStatus::InProgress;
 }
 SharedReadResult PagedSharedResource::advance_read(SharedReadCursor* cursor, const WorkBudget& budget) {
@@ -628,8 +788,15 @@ SharedReadResult PagedSharedResource::advance_read(SharedReadCursor* cursor, con
     const auto* p = x.record(static_cast<std::size_t>(x.read_kind), x.read_index, budget, c);
     if (p) {
       bool valid = false;
+      SHARED_STRUCTURAL_DIAGNOSTIC(++x.structural.runtime_records;
+        x.structural.runtime_parse_bytes += x.read_kind==SharedRecordKind::Lexeme && short_text(x.info) ? 49 : kWidths[static_cast<std::size_t>(x.read_kind)]);
       switch (x.read_kind) {
-        case SharedRecordKind::Lexeme: valid = lexeme_record(p, x.info, &x.read_lexeme); x.read_second = valid; break;
+        case SharedRecordKind::Lexeme:
+          valid = lexeme_record(p, x.info, &x.read_lexeme); x.read_second = valid;
+          if (valid && short_text(x.info)) x.start_short(p);
+          else if (valid && colocated(x.info)) x.locator_source=p+52;
+          else if (valid && x.resident_complete) x.locator_source=x.resident.get()+std::size_t(x.read_lexeme.default_payload)*8;
+          break;
         case SharedRecordKind::Relation: valid = relation_record(p, x.info, &r.relation); break;
         case SharedRecordKind::Selector: valid = selector_record(p, x.info, &r.selector); break;
         case SharedRecordKind::StringDescriptor: valid = string_record(p, x.info, &r.string_descriptor); break;
@@ -639,15 +806,49 @@ SharedReadResult PagedSharedResource::advance_read(SharedReadCursor* cursor, con
     }
   }
   if (x.read_second && x.phase != Impl::Phase::Error && !x.io_failed) {
-    const auto* p = x.record(3, x.read_lexeme.default_payload, budget, c);
-    if (p) {
-      if (!string_record(p, x.info, &r.string_descriptor)) x.fail("invalid default payload descriptor");
-      else { r.lexeme = x.read_lexeme; r.status = SharedReadStatus::Ready; }
+    bool have_span=false;
+    if (x.short_source) {
+      if(x.parse_short(budget,c)) {r.string_descriptor=x.locator_span;have_span=true;}
+    } else if (x.locator_source) {
+      // Added byte decode/copy is charged, including tiny budgets. Identity was
+      // obtained from this operation's authenticated authoritative record.
+      while (x.locator_position<8 && c.work_items<budget.max_work_items) {
+        const auto pos=x.locator_position++;
+        auto& field=pos<4 ? x.locator_span.offset : x.locator_span.length;
+        field |= std::uint32_t(x.locator_source[pos]) << ((pos%4)*8);
+        ++c.work_items;
+        SHARED_STRUCTURAL_DIAGNOSTIC(++x.structural.runtime_parse_bytes; ++x.structural.runtime_locator_copy_bytes);
+      }
+      if (x.locator_position==8 && c.work_items<budget.max_work_items) {
+        ++c.work_items;
+        if (!x.locator_span.length || std::uint64_t(x.locator_span.offset)+x.locator_span.length>x.info.payload_bytes)
+          x.fail("invalid trusted default locator");
+        else {
+          r.string_descriptor=x.locator_span; have_span=true;
+          SHARED_STRUCTURAL_DIAGNOSTIC(if (!x.read_complete) {
+            if (colocated(x.info)) ++x.structural.layout_locator_hits;
+            else ++x.structural.resident_locator_hits;
+          });
+        }
+      }
+    } else {
+      const auto* p = x.record(3, x.read_lexeme.default_payload, budget, c);
+      if (p) {
+        SHARED_STRUCTURAL_DIAGNOSTIC(++x.structural.runtime_records; x.structural.runtime_parse_bytes+=8);
+        if (!string_record(p, x.info, &r.string_descriptor)) x.fail("invalid default payload descriptor");
+        else have_span=true;
+      }
+    }
+    if (have_span) {
+#if HANIME_TEXT_CHAIN
+      x.read_default_span = r.string_descriptor;
+#endif
+      r.lexeme = x.read_lexeme; r.status = SharedReadStatus::Ready;
     }
   }
   if (x.phase == Impl::Phase::Error) {
     r.status = SharedReadStatus::Error; r.error = x.error;
-    x.cache.reset(); x.slots.reset(); x.reader.reset();
+    x.cache.reset(); x.slots.reset(); x.reader.reset(); x.resident.reset(); x.resident_complete=false;
   }
   if (x.io_failed) { r.status = SharedReadStatus::Error; r.error = x.error; x.read_active = false; }
   if (r.status == SharedReadStatus::Ready) x.read_complete = true;
@@ -658,6 +859,7 @@ void PagedSharedResource::cancel_read(SharedReadCursor* cursor) {
   impl_->reader->cancel_read_budgeted({impl_->identity,impl_->revision});
   impl_->pending_read_bytes=0;
   cursor->cancelled_ = true; impl_->read_active = false;
+  impl_->short_source=nullptr; impl_->short_payload_active=false;
 }
 bool PagedSharedResource::result_is_current(const SharedReadResult& r) const {
   return r.status == SharedReadStatus::Ready && impl_->matches(r.context) && impl_->read_active;
@@ -673,6 +875,34 @@ SharedReadStatus PagedSharedResource::begin_payload_read(const SharedActivationH
   next.destination_ = dest; next.capacity_ = capacity; *cursor = next;
   return status;
 }
+#if HANIME_TEXT_CHAIN
+SharedReadStatus PagedSharedResource::begin_default_payload_read(const SharedActivationHandle& activation,
+    const SharedReadCursor& record, RuntimeLexemeRef ref, std::uint32_t id,
+    char* dest, std::size_t capacity, SharedTextCursor* cursor) {
+  auto& x = *impl_;
+  if (!activation_is_current(activation) || !x.matches(record.context_) || record.cancelled_ ||
+      !x.read_active || !x.read_complete || x.io_failed || x.read_kind != SharedRecordKind::Lexeme ||
+      !ref || x.read_index != ref - 1 || x.read_lexeme.default_payload != id)
+    return SharedReadStatus::Stale;
+  if (!cursor || !dest || !capacity || reinterpret_cast<std::uintptr_t>(dest) >
+      std::numeric_limits<std::uintptr_t>::max() - capacity) return SharedReadStatus::InvalidReference;
+  // The span belongs to the current completed owner operation. A new begin
+  // still retires that operation, including its read cursor and cancellation.
+  const auto span = x.read_default_span;
+  const auto* inline_bytes=x.short_checked && x.short_length ? x.short_source+5 : nullptr;
+  const auto inline_length=x.short_length;
+  SharedTextCursor next;
+  const auto status = begin_read(SharedRecordKind::StringDescriptor, id, &next.descriptor_);
+  if (status != SharedReadStatus::InProgress) return status;
+  next.destination_ = dest; next.capacity_ = capacity;
+  next.span_ = span; next.described_ = true; *cursor = next;
+  if(inline_bytes) {
+    x.short_source=inline_bytes; x.short_length=inline_length; x.short_payload_active=true;
+    SHARED_STRUCTURAL_DIAGNOSTIC(++x.structural.short_handoffs);
+  }
+  return status;
+}
+#endif
 SharedTextResult PagedSharedResource::advance_payload_read(SharedTextCursor* cursor, const WorkBudget& budget) {
   SharedTextResult out; auto& x = *impl_;
   if (!cursor || !x.matches(cursor->descriptor_.context_)) return out;
@@ -693,7 +923,18 @@ SharedTextResult PagedSharedResource::advance_payload_read(SharedTextCursor* cur
   }
   out.required_bytes = cursor->span_.length;
   if (out.required_bytes > cursor->capacity_) { out.status = SharedReadStatus::CapacityExceeded; return out; }
-  if (cursor->filled_ < cursor->span_.length) {
+  if (cursor->filled_ < cursor->span_.length && x.short_payload_active) {
+    // Same-owner verified record survives this serial operation. A successor,
+    // cancellation or resource retirement invalidates the ticket before any
+    // read/cache write; no verifier pointer and no partial view escapes.
+    if(!x.short_source || x.short_length!=cursor->span_.length) {
+      x.fail("invalid inline default handoff");out.status=SharedReadStatus::Error;return out;
+    }
+    const auto n=std::min<std::size_t>(cursor->span_.length-cursor->filled_,budget.max_work_items);
+    std::copy_n(x.short_source+cursor->filled_,n,cursor->destination_+cursor->filled_);
+    cursor->filled_+=n;out.cost.work_items=n;out.copied_bytes=n;
+    SHARED_STRUCTURAL_DIAGNOSTIC(x.structural.short_payload_copy_bytes+=n);
+  } else if (cursor->filled_ < cursor->span_.length) {
     const auto n = x.pending_read_bytes ? x.pending_read_bytes :
         std::min({std::size_t(cursor->span_.length)-cursor->filled_,
         budget.max_read_bytes,budget.max_work_items,x.config.max_single_read_bytes});
@@ -718,8 +959,100 @@ void PagedSharedResource::cancel_payload_read(SharedTextCursor* cursor) {
 bool PagedSharedResource::text_is_current(const SharedTextResult& out) const {
   return out.status == SharedReadStatus::Ready && impl_->matches(out.context) && impl_->read_active;
 }
+const void* detail::SharedStructuralAccess::allocation(const PagedSharedResource& owner) {
+  return owner.impl_->resident.get();
+}
+detail::SharedStructuralStats detail::SharedStructuralAccess::stats(const PagedSharedResource& owner) {
+  return owner.impl_->structural;
+}
+ValidationStepResult detail::SharedStructuralAccess::advance_resident(PagedSharedResource& owner,
+    const WorkBudget& budget, Allocate allocate, Release release) {
+  using Impl=PagedSharedResource::Impl;
+  ValidationStepResult result; auto& x=*owner.impl_; auto& cost=result.cost;
+  if (!valid_budget(budget)) {result.status=ValidationStepStatus::InvalidBudget;return result;}
+  SHARED_STRUCTURAL_DIAGNOSTIC(++x.structural.initialization_advances);
+  auto finish=[&]() {
+    SHARED_STRUCTURAL_DIAGNOSTIC(
+      x.structural.initialization_cost.read_calls+=cost.read_calls;
+      x.structural.initialization_cost.read_bytes+=cost.read_bytes;
+      x.structural.initialization_cost.work_items+=cost.work_items);
+    result.status=x.phase==Impl::Phase::Ready && x.resident_complete ? ValidationStepStatus::Ready :
+        x.phase==Impl::Phase::Resident ? ValidationStepStatus::InProgress : ValidationStepStatus::Error;
+    result.error=x.error;
+    if (result.status==ValidationStepStatus::Error && x.resident_started) {
+      x.resident.reset(); x.resident_complete=false; x.cache.reset(); x.slots.reset(); x.reader.reset();
+    }
+    return result;
+  };
+  if (!x.resident_started) {
+    if (!owner.ready() || !x.verified || colocated(x.info) || x.read_active || !allocate || !release) {
+      result.status=ValidationStepStatus::Error; result.error="resident projection requires unused trusted original activation and explicit allocator";
+      return result;
+    }
+    x.resident_started=true; x.phase=Impl::Phase::Resident;
+    x.reader->cancel_read_budgeted({x.identity,x.revision});
+    try { x.identity=std::make_shared<SharedActivationIdentity>(); }
+    catch (const std::bad_alloc&) { x.fail("resident activation allocation failed");return finish(); }
+    // VerifiedResourceReader requires a nonzero serial ticket even for the
+    // private initialization owner. First runtime begin advances to revision 2.
+    x.revision=1;
+    x.pending_read_bytes=0; x.slice_assigned=false;
+    x.structural.table_entries=x.info.sections[3].count;
+    if (x.structural.table_entries>std::numeric_limits<std::size_t>::max()/8) {
+      x.fail("resident projection size overflow");return finish();
+    }
+    x.structural.table_bytes=x.structural.table_entries*8;
+    ++cost.work_items; SHARED_STRUCTURAL_DIAGNOSTIC(++x.structural.allocation_attempts);
+    x.resident=decltype(x.resident)(static_cast<std::uint8_t*>(allocate(x.structural.table_bytes)),Impl::ExternalRelease{release});
+    if (!x.resident) {SHARED_STRUCTURAL_DIAGNOSTIC(++x.structural.allocation_failures);x.fail("resident projection allocation failed; no fallback");return finish();}
+  }
+  if (x.phase!=Impl::Phase::Resident) return finish();
+  if (!x.reader || !x.reader->healthy()) {x.fail("resident source no longer healthy");return finish();}
+  while (cost.work_items<budget.max_work_items && x.resident_index<x.structural.table_entries) {
+    if (!x.resident_source) {
+      x.resident_source=x.record(3,static_cast<std::uint32_t>(x.resident_index),budget,cost);
+      if (!x.resident_source) break;
+      x.resident_stage=0; x.resident_span={};
+    }
+    // Parse then check then copy. No zero-fill or unbounded constructor copy.
+    while (x.resident_stage<8 && cost.work_items<budget.max_work_items) {
+      const auto pos=x.resident_stage++;
+      auto& field=pos<4 ? x.resident_span.offset : x.resident_span.length;
+      field |= std::uint32_t(x.resident_source[pos]) << ((pos%4)*8);
+      ++cost.work_items; SHARED_STRUCTURAL_DIAGNOSTIC(++x.structural.initialization_parse_bytes);
+    }
+    if (x.resident_stage==8 && cost.work_items<budget.max_work_items) {
+      ++cost.work_items; ++x.resident_stage;
+      if (!x.resident_span.length || x.resident_span.offset!=x.resident_next_offset ||
+          std::uint64_t(x.resident_span.offset)+x.resident_span.length>x.info.payload_bytes) {
+        x.fail("resident descriptor bounds/coverage mismatch");break;
+      }
+    }
+    while (x.resident_stage>=9 && x.resident_stage<17 && cost.work_items<budget.max_work_items) {
+      const auto byte=x.resident_stage++-9;
+      x.resident.get()[x.resident_index*8+byte]=x.resident_source[byte];
+      ++cost.work_items; SHARED_STRUCTURAL_DIAGNOSTIC(++x.structural.initialization_store_bytes);
+    }
+    if (x.resident_stage<17) break;
+    x.resident_next_offset+=x.resident_span.length;
+    ++x.resident_index; x.structural.initialized_entries=x.resident_index; x.resident_source=nullptr;
+  }
+  if (x.phase==Impl::Phase::Resident && x.resident_index==x.structural.table_entries && cost.work_items<budget.max_work_items) {
+    ++cost.work_items;
+    if (x.resident_next_offset!=x.info.payload_bytes) x.fail("resident descriptor final coverage mismatch");
+    else {x.resident_complete=true;x.phase=Impl::Phase::Ready;}
+  }
+  return finish();
+}
 void PagedSharedResource::deactivate() {
   if (impl_->reader) impl_->reader->cancel_read_budgeted({impl_->identity,impl_->revision});
-  *impl_=Impl{};
+  // Retire in the existing owner storage. Aggregate move-assignment creates a
+  // full Impl temporary on the target stack; the projection's fixed cursors
+  // must not silently grow that frame. Default construction cannot allocate
+  // or fail, and each old owner is destroyed exactly once before replacement.
+  static_assert(noexcept(Impl{}), "shared owner reset must not throw");
+  auto* const storage=impl_.get();
+  storage->~Impl();
+  ::new (static_cast<void*>(storage)) Impl{};
 }
 }  // namespace hanime

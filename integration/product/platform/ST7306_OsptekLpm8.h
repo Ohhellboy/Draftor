@@ -8,6 +8,10 @@
 
 #include "st7306_osptek_lpm8_adapter.hpp"
 
+#ifndef DRAFTOR_DISPLAY_TRANSACTION
+#define DRAFTOR_DISPLAY_TRANSACTION 0
+#endif
+
 class ST7306OsptekLpm8 {
  public:
   using Color = st7306_osptek_lpm8::Color;
@@ -27,6 +31,16 @@ class ST7306OsptekLpm8 {
   void pixel(int x, int y, Color color);
   void fillRect(int x, int y, int width, int height, Color color);
   bool update();
+  // Synchronous borrowed shadow: valid only for this call, never retained.
+  // Its bytes must describe the last successfully completed panel memory.
+  bool update(const std::uint8_t* completed, std::size_t size);
+  struct TransferStats {
+    std::uint32_t serial=0, payload_bytes=0, wire_bytes=0, compare_span_bytes=0, staging_copy_bytes=0;
+    std::uint32_t staging_fill_bytes=0;
+    std::uint16_t windows=0, bus_transactions=0;
+    bool full=false, completed=false;
+  };
+  const TransferStats& lastTransfer() const { return transfer_; }
   const std::uint8_t* framebuffer() const { return framebuffer_; }
   std::uint32_t bufferCrc32() const;
 
@@ -38,7 +52,9 @@ class ST7306OsptekLpm8 {
   std::uint8_t dc_pin_;
   std::uint8_t reset_pin_;
   bool begun_ = false;
-  std::uint8_t framebuffer_[BufferSize]{};
+  bool updating_ = false;
+  alignas(4) std::uint8_t framebuffer_[BufferSize]{};
+  TransferStats transfer_{};
 
   void hardwareReset();
   void initPanel();
@@ -47,4 +63,5 @@ class ST7306OsptekLpm8 {
   void command(std::uint8_t value);
   void data(const std::uint8_t* values, std::size_t size);
   void setFullWindow();
+  void setNativeRows(std::uint8_t first, std::uint8_t last);
 };

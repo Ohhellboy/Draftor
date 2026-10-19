@@ -1,17 +1,7 @@
 {
-  "plan": "FULL_SOURCE_AND_UNCHANGED_RESOURCES_SAME_RELEASE",
-  "source_includes_core": true,
-  "repository": "https://github.com/Ohhellboy/Draftor",
-  "history": "INCREMENTAL_COMMIT_ON_EXISTING_PUBLIC_MAIN_NO_FORCE_PUSH",
-  "all_76_inputs_provided": true,
-  "unknown_filtered": false,
-  "firmware": "EXACT_TESTED_APP_AND_ORIGINAL_FIRST_INSTALL_PREPARED",
-  "distribution_evidence": "SPECIFIC_ITEMS_UNCONFIRMED",
-  "publication": "ARTIFACT_DESCRIPTION_NOT_REMOTE_DEPLOYMENT_RECEIPT",
-  "patent_images_included": false,
-  "base_commit": "7e3c8e2a6032ff6ea06335c41a1b4069922e98f7",
-  "tag": "v0.1.0-alpha.1",
-  "display_name": "Draftor Alpha",
-  "d04": "INCLUDED_BY_OWNER_DECISION_GRANT_UNCONFIRMED",
-  "source_archive": "INTEGRATED_TRACKED_TREE_WITH_EXISTING_PUBLIC_FILES"
+  "version": "v0.1.0-alpha.2",
+  "status": "LOCAL_AUTHOR_REVIEW_ONLY",
+  "remote_actions_authorized": false,
+  "tag_created": false,
+  "published": false
 }

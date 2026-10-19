@@ -12,5 +12,5 @@ for rel in paths:
  # Parent component is inherited through the exact vendor copy.
 (r/'evidence').mkdir(exist_ok=True)
 (r/'evidence/INHERITED_SDK.json').write_text(json.dumps(dict(status='PASS',origin='inherited reviewed T03 SDK via Lexicon Round3 R1',private=str(private),overlay_checked=paths,archive_origin='inherited binary if present; otherwise rebuilt fixed sources with recorded commands',hashes='NOT_COMPUTED'),indent=2)+'\n')
-env=dict(os.environ,HANIME_WORKSPACE=os.environ.get('HANIME_WORKSPACE',str(r.parent.parent)),HANIME_ESP32_DATA=str(r/'TestBuilds/arduino-data'),HANIME_BUILD_ROOT=str(r/'TestBuilds/product-s3'),HANIME_BUILD_EVIDENCE=str(r/'evidence/product-s3'),PYTHONDONTWRITEBYTECODE='1')
+env=dict(os.environ,HANIME_ESP32_DATA=str(r/'TestBuilds/arduino-data'),HANIME_BUILD_ROOT=str(r/'TestBuilds/product-s3'),HANIME_BUILD_EVIDENCE=str(r/'evidence/product-s3'),PYTHONDONTWRITEBYTECODE='1')
 subprocess.run([sys.executable,'-B',str(r/'integration/product/scripts/build_s3.py')],env=env,check=True)

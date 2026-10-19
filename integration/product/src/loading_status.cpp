@@ -25,6 +25,9 @@ LoadSnapshot loadSnapshot(const ChineseFont& font,const Resources& r){
   p.stage=LoadStage::TextAdmission;p.done=0;
   std::snprintf(p.text,sizeof(p.text),"Checking published text limits");break;
  }
+ case ResourceState::ResidentText:
+  p.stage=LoadStage::SharedOpen;p.done=r.residentTextLoaded();p.total=r.residentTextBytes();
+  std::snprintf(p.text,sizeof(p.text),"Preparing CN text: %llu%%",(unsigned long long)(p.total?p.done*100/p.total:0));break;
  case ResourceState::OpenScheme:case ResourceState::OpenSchemeIndex:case ResourceState::ActivateScheme:
   p.stage=LoadStage::SchemeOpen;std::snprintf(p.text,sizeof(p.text),"Opening verified %s scheme",schemeLabel(r.rules()));break;
  case ResourceState::ValidateScheme:p.stage=LoadStage::SchemeCheck;std::snprintf(p.text,sizeof(p.text),"%s bootstrap: %llu work",schemeLabel(r.rules()),(unsigned long long)p.done);break;

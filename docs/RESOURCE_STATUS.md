@@ -1,6 +1,6 @@
 # Resources & Licensing Status / 资源来源与许可情况
 
-**Version / 适用版本：Draftor Alpha · v0.1.0-alpha.1**
+**Version / 适用版本：Draftor Alpha 2 · v0.1.0-alpha.2**
 
 [Project / 项目主页](../README.md) · [Build / 源码构建](BUILD.md) · [License Inventory / 许可证清单](LICENSE_INVENTORY.md) · [Firmware Distribution / 固件分发](FIRMWARE_DISTRIBUTION.md)
 
@@ -16,38 +16,15 @@ This document explains what is known about their origins, which materials are pr
 
 **确认材料的来源，不等于已经确认其派生作品的再分发权利；反过来，许可问题尚未明确，也不等于已经认定存在侵权。**
 
-## 1. Current Resource Set / 当前资源版本
+## 1. Current resource set / 当前资源
 
-The Alpha release uses the **B2** resource set, identified as `LEXICON_R3_B2_20261006`.
+Alpha 2 uses format4 `B_SHORT_TEXT_20261018`, bundle `17304919664082782091`: 14 runtime files, 132,153,747 bytes, plus unchanged `matched28.hbf1` (2,464,108 bytes). It inherits the lexical identities and text content of the earlier B2 resource set; physical query, record and proof layout changed. The exact inventory/pins are [here](../release/alpha2/RESOURCE_MANIFEST.json).
 
-本次 Alpha 使用 **B2** 资源版本，内部标识为 `LEXICON_R3_B2_20261006`。
+本版使用 format4，共14个运行文件及原字体；继承原词条身份与文字，仅物理查询、记录及证明布局改变。原 B2 的242,793个继承身份、186个新增身份及4,157个接受映射目标属于既有来源记录，不是本轮新增词条。
 
-The recorded resource specifications are:
+Original materials and disclosures below are retained from Alpha 1. BuildInputs carries the corresponding fonts, dictionaries, source contributions and SDK/library materials needed to explain or redistribute the actual inputs. Current file mapping is in `RELEASE_PAIR.json`; old lists retained in provenance materials describe their original versions, not the new format4 byte layout.
 
-现有资源记录如下：
-
-| Item / 项目 | Value / 数据 |
-|---|---|
-| Runtime payload / 运行资源文件 | 14 files / 14 个文件 |
-| Runtime payload size / 运行资源大小 | 126,940,251 bytes |
-| Inherited lexical identities / 继承的词条身份 | 242,793 |
-| Added lexical identities / 新增词条身份 | 186 |
-| Accepted mapping targets / 已接受的映射目标 | 4,157 |
-| `matched28.hbf1` font | 2,464,108 bytes |
-
-These are the recorded properties of the released resource set, not results from a newly regenerated dictionary.
-
-以上数据描述本次发行使用的既有资源，并非重新生成词库后得到的新统计结果。
-
-The complete file inventory is available in [RESOURCE_FILES.json](RESOURCE_FILES.json). Additional release materials are described in [RELEASE_ASSETS.json](RELEASE_ASSETS.json).
-
-完整文件清单见 [RESOURCE_FILES.json](RESOURCE_FILES.json)；其他发行材料见 [RELEASE_ASSETS.json](RELEASE_ASSETS.json)。
-
-The current dictionaries, fonts, resource bindings and firmware use their recorded matching versions. This documentation update does not change those files.
-
-当前词库、字体、资源配对及固件继续使用原有的匹配版本。本次文档整理不修改这些文件。
-
----
+以下详细来源与未决披露沿用 Alpha 1。BuildInputs保留原对应材料；历史清单描述当时版本，不能当作新format4的文件摘要。
 
 ## 2. Dictionary Sources / 词库来源
 

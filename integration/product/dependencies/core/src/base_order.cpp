@@ -1,5 +1,6 @@
 #include "hanime/base_order.hpp"
 #include "base_order_wire.hpp"
+#include "base_order_block.hpp"
 #include <algorithm>
 #include <limits>
 #include <new>
@@ -10,7 +11,11 @@
 
 namespace hanime {
 struct BaseOrderCursor::Impl {
+  Impl()=default;
+  Impl(Impl&&)=default;
+  Impl& operator=(Impl&&)=default;
   ResourceReadContext context;
+  std::unique_ptr<detail::BlockCursor> block;
   std::weak_ptr<const VerifiedResourceReader> reader;
   std::array<char,detail::kBaseMaxCode> code{};
   std::array<std::uint8_t,detail::kBaseMaxCode+16> scratch{};
@@ -35,7 +40,7 @@ BaseOrderCursor::BaseOrderCursor():impl_(std::make_unique<Impl>()) {}
 BaseOrderCursor::~BaseOrderCursor()=default;
 std::uint32_t BaseOrderCursor::count() const {return impl_->count;}
 std::uint32_t BaseOrderCursor::member_position() const {return impl_->member_pos;}
-std::size_t BaseOrderCursor::memory_bytes() const {return sizeof(*this)+sizeof(Impl);}
+std::size_t BaseOrderCursor::memory_bytes() const {return sizeof(*this)+sizeof(Impl)+(impl_->block?sizeof(detail::BlockCursor):0);}
 struct BaseOrderIndex::Impl {
   struct Entry {
     std::array<char,detail::kBaseMaxCode> code{};
@@ -48,6 +53,8 @@ struct BaseOrderIndex::Impl {
   SharedActivationHandle shared_activation;
   std::shared_ptr<const int> identity{std::make_shared<const int>(0)};
   detail::BaseHeader header;
+  std::unique_ptr<detail::BlockState> block;
+  std::size_t requested_capacity{0};
   std::uint64_t revision{0};
   bool valid{false};
   std::unique_ptr<Entry[]> entries;
@@ -75,6 +82,18 @@ BaseOrderIndex::BaseOrderIndex(std::shared_ptr<const VerifiedResourceReader> r,
       pin.shared_bundle_id!=h->shared_bundle_id || pin.runtime_ref_count!=h->runtime_ref_count ||
       pin.text_capacity!=h->text_capacity || pin.name_capacity!=h->name_capacity) return;
   std::array<std::uint8_t,detail::kBaseHeader> bytes{};
+  p.requested_capacity=capacity;
+  p.stats.entry_bytes=sizeof(Impl::Entry);
+  if(pin.resource_format==105) {
+    p.block.reset(new(std::nothrow) detail::BlockState);
+    if(p.block) {
+      p.block->load_context={std::make_shared<const int>(0),1};
+      p.block->stats.workspace_bytes=1024;
+      p.block->stats.private_owner_bytes=sizeof(detail::BlockState);
+      p.block->stats.cursor_bytes=sizeof(detail::BlockCursor);
+    }
+    return;
+  }
   p.valid=p.reader->read(0,bytes.data(),bytes.size()) && detail::base_header(bytes.data(),p.reader->size(),p.header) &&
       p.header.format==pin.resource_format;
   p.stats.entry_bytes=sizeof(Impl::Entry);
@@ -85,6 +104,7 @@ BaseOrderIndex::BaseOrderIndex(std::shared_ptr<const VerifiedResourceReader> r,
 }
 BaseOrderIndex::~BaseOrderIndex() {
   if (impl_->reader) impl_->reader->cancel_read_budgeted({impl_->identity,impl_->revision});
+  if (impl_->block && impl_->reader) impl_->reader->cancel_read_budgeted(impl_->block->load_context);
 }
 bool BaseOrderIndex::ready() const {
   const auto& p=*impl_;
@@ -103,9 +123,19 @@ BaseOrderStatus BaseOrderIndex::begin(std::string_view code,BaseOrderCursor& cur
   if (code.empty() || code.size()>detail::kBaseMaxCode || !is_valid_utf8(code) ||
       p.revision==std::numeric_limits<std::uint64_t>::max()) return BaseOrderStatus::InvalidRequest;
   p.reader->cancel_read_budgeted({p.identity,p.revision}); cursor.impl_->release();
+  // One owned local cursor allocation, reused by serial begins. No per-prefix
+  // heap pool and no allocator churn on every input character.
+  auto block_cursor=std::move(cursor.impl_->block);
   *cursor.impl_=BaseOrderCursor::Impl{};
   auto& c=*cursor.impl_; c.context={p.identity,++p.revision}; c.reader=p.reader;
   std::copy(code.begin(),code.end(),c.code.begin()); c.code_size=code.size(); c.hi=p.header.codes;
+  if(p.block) {
+    c.block=std::move(block_cursor);
+    if(c.block)c.block->reset();
+    else c.block.reset(new(std::nothrow) detail::BlockCursor);
+    if(!c.block){c.cancelled=true;return BaseOrderStatus::Error;}
+    c.block->hi=p.block->h[5];
+  }
   return BaseOrderStatus::Pending;
 }
 BaseOrderStatus BaseOrderIndex::begin_prefix(std::string_view code, BaseOrderCursor& cursor,
@@ -115,6 +145,7 @@ BaseOrderStatus BaseOrderIndex::begin_prefix(std::string_view code, BaseOrderCur
   const bool same_resource = ready() && state.identity_.lock() == impl_->identity;
   const bool extension = same_resource && state.size_ && code.size() > state.size_ &&
       std::equal(state.code_.begin(), state.code_.begin() + state.size_, code.begin());
+  const auto prior_size = state.size_;
   const auto page = state.page_;
   const auto level = state.level_;
   state.reset();
@@ -123,6 +154,12 @@ BaseOrderStatus BaseOrderIndex::begin_prefix(std::string_view code, BaseOrderCur
   auto& c = *cursor.impl_;
   c.prefix_enabled = true;
   c.prefix_work = 1; // Full bounded prefix comparison and entry copy, no I/O.
+  if(impl_->block) {
+    c.prefix_work=static_cast<std::uint32_t>(prior_size+code.size()+1);
+    if(extension && page && page<=impl_->block->h[5]) {
+      c.block->hint=page-1;c.block->hint_restart=level;c.block->phase=detail::BlockCursor::Phase::HintLower;
+    }
+  }
   if (extension && impl_->header.format == 2 && page) {
     c.page = c.prefix_page = page;
     c.expected_level = c.prefix_level = level;
@@ -139,7 +176,7 @@ BaseOrderStep BaseOrderIndex::save_prefix_impl(const BaseOrderCursor& cursor,
   const auto& c = *cursor.impl_;
   const bool same_operation = ready() && c.context.owner == impl_->identity &&
       c.context.revision == impl_->revision && (!c.cancelled || released);
-  if (!same_operation || !c.located || !c.prefix_enabled || impl_->header.format != 2)
+  if (!same_operation || !c.located || !c.prefix_enabled || (impl_->header.format != 2 && !impl_->block))
     return {BaseOrderStatus::Stale,{},{}};
   // A zero page has no useful proven subtree; it stays an empty hint.
   if (c.prefix_page) {
@@ -165,6 +202,53 @@ BaseOrderStep BaseOrderIndex::locate(BaseOrderCursor& cursor,const WorkBudget& b
   auto& c=*cursor.impl_; auto& p=*impl_;
   if (!current(cursor)) return {};
   if (!b.max_work_items || !b.max_read_calls || !b.max_read_bytes) return {BaseOrderStatus::InvalidRequest,{},{}};
+  if(p.block) {
+    WorkCost used;
+    auto finish=[&](BaseOrderStatus status) {Impl::charge(p.stats.directory,used);return BaseOrderStep{status,used,{}};};
+    const auto work=std::min<std::size_t>(c.prefix_work,b.max_work_items);
+    c.prefix_work-=static_cast<std::uint32_t>(work);used.work_items+=work;
+    if(c.located)return finish(c.missing?BaseOrderStatus::NotFound:BaseOrderStatus::Ready);
+    if(c.block->phase==detail::BlockCursor::Phase::HintLower || c.block->phase==detail::BlockCursor::Phase::HintUpper) {
+      if(!detail::block_prepare_hint(*p.block,*c.block,{c.code.data(),c.code_size},b,used))return finish(BaseOrderStatus::Pending);
+      if(c.block->hinted){c.prefix_page=c.block->block+1;c.prefix_level=c.block->hint_restart;}
+    }
+    while(used.work_items<b.max_work_items && !c.cache_checked) {
+      if(c.cache_scan<p.stats.resident) {
+        const auto& e=p.entries[c.cache_scan++];++used.work_items;
+        if(e.size==c.code_size && std::equal(c.code.begin(),c.code.begin()+c.code_size,e.code.begin())) {
+          if(!e.count || e.start>p.header.groups || e.count>p.header.groups-e.start || e.paths<e.count) {
+            p.valid=false;return finish(BaseOrderStatus::Error);
+          }
+          c.located=true;c.start=e.start;c.count=e.count;c.paths=e.paths;++p.stats.hits;
+          return finish(BaseOrderStatus::Ready);
+        }
+      } else {c.cache_checked=true;++p.stats.misses;}
+    }
+    if(used.work_items==b.max_work_items)return finish(BaseOrderStatus::Pending);
+    const auto step=detail::block_locate(*p.block,*c.block,*p.reader,c.context,
+        {c.code.data(),c.code_size},detail::block_remaining(b,used));
+    Impl::charge(used,step.cost);
+    if(step.status==BaseOrderStatus::Error) {
+      p.valid=false;p.block->init=detail::BlockState::Init::Error;
+      p.reader->cancel_read_budgeted(c.context);
+    }
+    if(step.status==BaseOrderStatus::Ready || step.status==BaseOrderStatus::NotFound) {
+      c.located=true;c.missing=step.status==BaseOrderStatus::NotFound;
+      if(c.block->block!=detail::kBlockNone) {
+        c.prefix_page=c.block->block+1;c.prefix_level=c.block->restart;
+      }
+      if(!c.missing) {
+        c.start=c.block->start;c.count=c.block->count;c.paths=c.block->paths;
+        if(p.stats.capacity) {
+          auto& e=p.entries[p.next];
+          if(p.stats.resident==p.stats.capacity)++p.stats.evictions;else ++p.stats.resident;
+          e.code=c.code;e.size=static_cast<std::uint32_t>(c.code_size);e.start=c.start;e.count=c.count;e.paths=c.paths;
+          p.next=(p.next+1)%p.stats.capacity;
+        }
+      }
+    }
+    return finish(step.status);
+  }
   if (c.prefix_work) {
     --c.prefix_work;
     const WorkCost cost{0,0,1};
@@ -348,6 +432,50 @@ void BaseOrderIndex::cancel(BaseOrderCursor& cursor) {
   if (c.context.owner!=impl_->identity || c.context.revision!=impl_->revision) return;
   impl_->reader->cancel_read_budgeted(c.context); c.cancelled=true;
 }
-std::size_t BaseOrderIndex::memory_bytes() const {return sizeof(*this)+sizeof(Impl)+impl_->stats.pool_bytes;}
+std::size_t BaseOrderIndex::memory_bytes() const {return sizeof(*this)+sizeof(Impl)+impl_->stats.pool_bytes+(impl_->block?sizeof(detail::BlockState)+(impl_->block->nav?impl_->block->stats.nav_bytes:0):0);}
 BaseOrderLocateStats BaseOrderIndex::locate_stats() const {return impl_->stats;}
+
+namespace detail {
+bool BaseOrderBlockAccess::is_block(const BaseOrderIndex& index) {return index.impl_->reader && index.impl_->reader->spec().resource_format==105;}
+bool BaseOrderBlockAccess::cursor_descriptor(const BaseOrderIndex& index,const BaseOrderCursor& cursor,
+    std::uint32_t& start,std::uint32_t& count,std::uint32_t& paths) {
+  if(!index.current(cursor) || !cursor.impl_->located || cursor.impl_->missing)return false;
+  start=cursor.impl_->start;count=cursor.impl_->count;paths=cursor.impl_->paths;return true;
+}
+BaseOrderStep BaseOrderBlockAccess::advance_initialization(BaseOrderIndex& index,const WorkBudget& b,
+    void* (*allocate)(std::size_t),void (*release)(void*)) {
+  auto& p=*index.impl_;
+  if(!p.block)return {BaseOrderStatus::Error,{},{}};
+  if(!p.reader->healthy() || !p.scheme.activation_is_current(p.scheme_activation) ||
+     !p.shared.activation_is_current(p.shared_activation)) {
+    cancel_initialization(index);return {BaseOrderStatus::Stale,{},{}};
+  }
+  // Once initialized, any later query/rank/member failure is permanent.
+  // Re-entering this private loader cannot regrant a revoked index.
+  if(p.block->init==BlockState::Init::Ready && !p.valid) {
+    p.block->init=BlockState::Init::Error;
+    p.reader->cancel_read_budgeted({p.identity,p.revision});
+    return {BaseOrderStatus::Error,{},{}};
+  }
+  const auto out=p.block->advance(*p.reader,b,allocate,release);
+  if(out.status==BaseOrderStatus::Ready && !p.valid) {
+    const auto& h=p.block->h;
+    p.header={0,h[2],h[3],h[4],h[18],h[19],h[20],105,h[5]};
+    if(p.requested_capacity && p.requested_capacity<=8) {
+      p.entries.reset(new(std::nothrow) BaseOrderIndex::Impl::Entry[p.requested_capacity]);
+      if(p.entries){p.stats.capacity=p.requested_capacity;p.stats.pool_bytes=p.requested_capacity*sizeof(BaseOrderIndex::Impl::Entry);}
+    }
+    p.valid=true;
+  }
+  return out;
+}
+void BaseOrderBlockAccess::cancel_initialization(BaseOrderIndex& index) {
+  auto& p=*index.impl_;if(!p.block)return;
+  p.reader->cancel_read_budgeted(p.block->load_context);p.reader->cancel_read_budgeted({p.identity,p.revision});
+  p.valid=false;p.block->init=BlockState::Init::Cancelled;p.block->stats.cancelled=true;p.block->clear_nav();
+}
+BlockInitializationStats BaseOrderBlockAccess::initialization_stats(const BaseOrderIndex& index) {
+  return index.impl_->block?index.impl_->block->stats:BlockInitializationStats{};
+}
+}
 } // namespace hanime

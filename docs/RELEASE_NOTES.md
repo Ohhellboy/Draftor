@@ -1,270 +1,64 @@
-# Draftor Alpha · v0.1.0-alpha.1
+# Draftor Alpha 2 — Cumulative Performance Update
+# 草稿机 Alpha 2：累计性能优化版
 
-**Released / 发布日期：9 October 2026 / 2026年10月9日**
+This update is about making Chinese writing feel more immediate. Typed letters appear sooner, candidate lists spend less time waiting, and selected words reach the page faster. Full Pinyin, Xiaohe Shuangpin, Wubi 86 and English remain available, with the same horizontal and vertical writing layouts.
 
-**Status / 版本状态：Alpha Pre-release**
+这次更新主要让中文输入更跟手：字母反馈更及时，候选等待减少，选中的字词也更早出现在正文里。全拼、小鹤双拼、五笔86和英文输入，以及横排、竖排写作方式都保留下来。
 
-[Download / 下载](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.1) · [Project Introduction / 项目介绍](../README.md) · [中文导览](../README.zh-CN.md) · [English Guide](ALPHA.md)
+## What changed / 这次改了什么
 
-This is the first complete public Alpha software release of Draftor, an offline writing device built around a microcontroller.
+The input engine now looks up candidates in blocks, carries verified text locations forward, and retrieves complete short default text alongside its shared entry. The display sends changed regions where possible. Together, these changes shorten the journey from pressing a key to seeing the result; they do not add learning or abbreviated Pinyin.
 
-这是 Draftor（草稿机）的第一个完整公开 Alpha 软件版本。它是一台基于单片机的离线写作设备，专注于文字输入、编辑和保存。
+输入引擎改为分块查询，把已验证的文字位置接到后续取字过程，并让完整的短默认文字与共享词条同块取得。屏幕则在适用时只传输发生变化的区域。这些改动一起缩短了按键到看见结果的等待，本版没有新增学习或简拼功能。
 
-The release includes the writing application, bgIME Chinese input engine, runtime dictionaries, fonts, source code, and device-tested firmware for the **ESP32-S3 N16R8 (Thick)**.
+On the same ESP32-S3 prototype, the paired comparison recorded:
 
-本次发布包括适用于 **ESP32-S3 N16R8（Thick）** 的写作程序、bgIME 中文输入法、词库、字体、源码及经过实机验证的固件。
+同一台 ESP32-S3 原型机的本轮对照记录如下：
 
----
+| Action / 操作 | Alpha measurement build / Alpha 测量派生版 | Alpha 2 cumulative build / Alpha 2 累计版 |
+|---|---:|---:|
+| First Xiaohe `wo`, complete candidates / 小鹤首次 `wo` 完整候选 | 317.3 ms | 114.6 ms |
+| First Full Pinyin `shi`, complete candidates / 全拼首次 `shi` 完整候选 | 333.7 ms | 122.8 ms |
+| Last letter of first Xiaohe `wo`, letter feedback / 小鹤首次 `wo` 最后一键原码反馈 | 55.3 ms | 9.6 ms |
+| Xiaohe phrase selection, Space to body display / 小鹤词组空格选词至正文显示 | 72.1 ms | 36.4 ms |
 
-## 1. What's Included / 本次发布内容
+The old side is a minimal measurement derivative of Alpha 1. These times run from received input to completion of the corresponding screen transfer, with Wi-Fi off and natural manual input. They are examples, not a fixed latency for every word. A separate free-writing session also checked that an approximately 1,400-character draft was byte-for-byte identical after saving and genuinely reopening it. [Measurement details](PERFORMANCE.md).
 
-### Chinese Input / 中文输入
+旧侧是保留 Alpha 1 业务的最小测量派生版。计时从设备收到输入开始，到相应画面发送完成；两臂 Wi-Fi 关闭，使用自然手工输入。这些是对应样例，不是每个词的固定耗时。另外一次自由写作中，约1400字符的稿件在保存后与真正重新打开后逐字节一致。[测量详情](PERFORMANCE.md)。
 
-Draftor uses **bgIME (Big Goose Input Method Engine)**, developed for embedded Chinese text input.
+## Downloads / 下载哪些文件
 
-草稿机搭载自主开发的 **bgIME（Big Goose Input Method Engine，大鹅输入法）**。
+For the ESP32-S3 N16R8 (Thick), use **Firmware + Resources** from this version. To compile it yourself, use **Source + BuildInputs** and the fixed toolchain in the [Build Guide](BUILD.md). The automatic GitHub “Source code” archive is not a complete installation package.
 
-The current Alpha supports:
-
-目前支持：
-
-- **English / 英文直接输入**
-- **Quanpin / 全拼**
-- **Xiaohe Shuangpin / 小鹤双拼**
-- **Wubi 86 / 五笔86**
-
-Chinese output supports Simplified, Traditional, and selected variant characters, with the corresponding font resources.
-
-中文输出支持简体字、繁体字及部分异体字，并提供相应字库资源。
-
-### Writing & Editing / 写作与编辑
-
-The writing application supports both horizontal and vertical text layouts.
-
-写作程序支持横排和竖排两种文字布局。
-
-Documents can be created, edited, saved, reopened, and renamed. Chinese input is also available when renaming files.
-
-用户可以创建、编辑、保存、重新打开和重命名文档。文件重命名时也可以使用中文输入法。
-
-The editor and input method share the same document text, so switching layouts does not require converting or recreating the document.
-
-横排与竖排共用同一份文档正文，切换布局不需要转换或重新建立文件。
-
-### USB Document Transfer / USB 文档交换
-
-Draftor can exchange TXT files with a computer over USB, without an internet connection or a separate companion application.
-
-草稿机可以通过 USB 与电脑交换 TXT 文件，不需要网络，也不需要安装专门的配套应用。
-
-- **Export / 导出：** `F9` → `E` presents a read-only virtual USB drive containing the current document as `DOCUMENT.TXT`.
-
-  按 `F9` → `E`，电脑上会出现一个只读虚拟磁盘，其中的 `DOCUMENT.TXT` 是当前文档的快照。
-
-- **Import / 导入：** `F9` → `I` opens a temporary Inbox drive. After copying TXT files and safely ejecting the drive, select a file on Draftor to import it as a new draft.
-
-  按 `F9` → `I` 打开临时 Inbox 磁盘。复制 TXT 文件并安全弹出后，可以在草稿机上选择文件，将其导入为新稿。
-
-Importing does not overwrite the original document or automatically switch the active document.
-
-导入不会覆盖原稿，也不会自动切换当前正在编辑的文档。
-
-See [Usage Guide / 操作手册](USAGE.md) for details.
-
----
-
-## 2. Improvements in This Alpha / 本次 Alpha 的改进
-
-This release brings together the previously developed input methods, editor layouts, document management, and USB transfer functions into one ESP32-S3 firmware.
-
-本次 Alpha 将此前分别开发的输入法、编辑器布局、文档管理和 USB 交换功能整合到同一套 ESP32-S3 固件中。
-
-The development leading to this release also includes:
-
-本次发行包含此前完成的以下改进：
-
-- **Input and display / 输入与显示：** Integration of Full Pinyin, Xiaohe Shuangpin, and Wubi 86 with the writing application, along with candidate display and horizontal/vertical layout improvements.
-
-  将全拼、小鹤双拼及五笔86接入写作程序，并改进候选显示与横竖排交互。
-
-- **Document operations / 文档操作：** Improvements to save handling, file renaming, and the separation between document selection and actual document modification.
-
-  改进保存流程、文件重命名，以及文件选择与实际文档修改之间的操作边界。
-
-- **USB exchange / USB 交换：** Read-only TXT export and isolated Inbox import, including new-draft creation without overwriting the current manuscript.
-
-  提供只读 TXT 导出与独立 Inbox 导入，并支持在不覆盖当前文稿的情况下创建新草稿。
-
-- **Stability / 稳定性：** Targeted fixes and memory-use reductions in the ESP32-S3 application, including input, storage, and peripheral lifecycle handling.
-
-  针对 ESP32-S3 的输入、存储和外设生命周期进行修复，并减少部分内部内存占用。
-
-- **TF card access / TF 卡访问：** The TF card SPI runtime frequency is now **20 MHz**, while initialization remains at **400 kHz**.
-
-  TF 卡 SPI 运行频率调整为 **20 MHz**，初始化频率仍为 **400 kHz**。
-
-These changes have undergone software testing and selected device tests. They should not be taken as proof that every historical issue has been resolved.
-
-上述改进已经过软件测试及部分实机验证，但不代表所有历史问题都已彻底解决。
-
----
-
-## 3. Downloads / 发行文件
-
-All four archives belong to **v0.1.0-alpha.1**.
-
-本次发布包含四个相互配套的压缩包：
+ESP32-S3 N16R8（Thick）安装用户下载本版的 **Firmware + Resources**；自行编译则下载 **Source + BuildInputs**，并按[构建指南](BUILD.md)准备固定工具链。GitHub 自动生成的“Source code”压缩包不是完整安装包。
 
 | File / 文件 | Contents / 内容 |
 |---|---|
-| `Draftor_Alpha_Source.zip` | Complete integrated source tree, including bgIME Core, display drivers, tools, and documentation / 完整整合源码 |
-| `Draftor_Alpha_Resources.zip` | Chinese dictionaries, indexes, bitmap fonts, and runtime resources / 词库、索引及字体资源 |
-| `Draftor_Alpha_BuildInputs.zip` | Project build inputs, fixed-version upstream materials, font sources, and license notices / 构建输入、来源及许可材料 |
-| `Draftor_Alpha_Firmware.zip` | Device-tested application firmware and associated first-install files / 原实测固件及首次烧录文件 |
+| `Draftor_v0.1.0-alpha.2_Firmware.zip` | Unchanged tested App, startup files, partitions and installation checks / 原样实测 App、启动文件、分区及安装检查 |
+| `Draftor_v0.1.0-alpha.2_Resources.zip` | Matching format4 dictionaries, indexes and font / 准确配套的 format4 词库、索引和字体 |
+| `Draftor_v0.1.0-alpha.2_Source.zip` | Complete project-owned source, bgIME Core, tools and documentation / 完整自有源码、bgIME Core、工具和文档 |
+| `Draftor_v0.1.0-alpha.2_BuildInputs.zip` | Fixed generated inputs, SDK overlay component and original source/license materials / 固定生成输入、SDK 配套组件及原始来源与许可材料 |
 
-**Use matching files from the same release. Do not mix firmware and resource versions.**
+The [Alpha 2 release URL](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2) is a **pending publication link** in this local preview. These files have not been uploaded. The tested App retains its original internal build label; the outer version is Alpha 2.
 
-**请使用同一版本的源码、资源和固件，不要混用不同版本的文件。**
+本地预览中的 [Alpha 2 下载地址](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2)是**待发布链接**，文件尚未上传。实测 App 保留原内部构建标识，外层发行版本为 Alpha 2。
 
-The source can also be browsed directly in the repository. Building the firmware requires the separately installed toolchain versions listed in [BUILD.md](BUILD.md).
+## Upgrading / 旧版如何升级
 
-源码也可以直接在 GitHub 仓库中查看。自行编译需要另外安装 [BUILD.md](BUILD.md) 指定的工具链。
+**Alpha 2 does not fit the old 2 MiB application slots.** If you installed Alpha 1 using its original guide, do not use a normal App-only update. That layout needs a separate migration, whose release-ready procedure is still awaiting confirmation. An already compatible dual-4 MiB layout can use App-only updating after its actual partition and active slot are checked. First installation has a separate procedure. [Installation and migration guide](INSTALL.md).
 
----
+**Alpha 2 已装不进旧的 2 MiB 应用分区。** 按 Alpha 1 原指南安装的用户不能直接 App-only 更新，需要单独迁移；这条迁移路线的正式操作材料仍待确认。已经采用准确兼容双4 MiB布局的用户，在核对实际分区和活动槽后可进行 App-only 更新。首次安装另有独立步骤，见[安装与迁移指南](INSTALL.md)。
 
-## 4. Hardware & Firmware / 硬件与固件
+Use the new resource directory alongside the old one. Do not mix format2 and format4 files, format the TF card, or overwrite your document directory to install this update. Keep the old firmware, matching resources and a separate copy of important writing.
 
-The complete firmware in this release targets:
+新资源放在独立目录，与旧资源并存。不要混用 format2 与 format4 文件，也不要为升级格式化 TF 卡或覆盖文档目录。请保留旧固件、旧配套资源，并把重要文稿另外备份。
 
-本次完整固件适用于：
+## Still an Alpha / 仍需注意
 
-**ESP32-S3 N16R8 (Thick)**
+Some activation and warm-query stages remain slower, and full-screen redraws still block synchronously. Long-running use, unexpected power loss, new boards and cross-version rollback are not comprehensively qualified. Experimental local Wi-Fi transfer and QR pages are present; the performance comparison and free-writing session kept Wi-Fi off. This release does not include a complete Pico writing firmware.
 
-| Item / 项目 | Version / 内容 |
-|---|---|
-| Release / 发行版本 | `v0.1.0-alpha.1` |
-| Software baseline / 软件基线 | `T06_TF20_R1` |
-| Firmware ID / 固件标识 | `DRAFTOR_S3_ALPHA_T06_TF20_R1_20261007` |
-| Runtime resources / 运行资源 | `LEXICON_R3_B2_20261006` |
-| TF SPI runtime / 运行频率 | 20 MHz |
-| TF SPI initialization / 初始化频率 | 400 kHz |
+部分激活和热查询子阶段仍有代价，整屏重绘也仍会同步阻塞。长期运行、突然断电、新空板和跨版本回退尚未全面验证。固定固件中保留了实验性的本地 Wi-Fi 传输及二维码页面；本次性能对照和自由写作期间 Wi-Fi 均关闭。本版不提供 Pico 完整写作固件。
 
-The release includes the original device-tested application binary, not a newly compiled replacement.
+**The tested firmware emits composition codes and timing records to its serial port by default.** The observation path uses RAM and UART, not a persistent input-log file; a connected computer can still record that stream. Review logs before sharing them. Third-party fonts and dictionaries retain their own terms, including the previously disclosed unresolved provenance questions. [Known limits and privacy](KNOWN_ISSUES.md) · [Resource and license status](RESOURCE_STATUS.md).
 
-本次提供的是原先经过实机验证的固件，不是为了公开发布而重新编译的替代版本。
-
-### Power / 供电
-
-The standalone battery power module is still under development and is not included in this Alpha.
-
-独立电池供电模块尚在开发中，不包含在本次 Alpha 中。
-
-The current device requires a suitable external power supply. Check your board's electrical requirements before connecting power.
-
-目前设备需要外部供电。接入电源前，请确认开发板的电压、供电接口及连接方式。
-
-### Pico 2 W (Thin)
-
-A complete writing firmware for Raspberry Pi Pico 2 W (Thin) is not part of this release.
-
-Raspberry Pi Pico 2 W（Thin）的完整写作固件不包含在本次发行中。
-
-The previously released [ST7306 standalone display driver and demos](../display/st7306/) remain available for both Pico 2 W and ESP32-S3.
-
-此前公开的 [ST7306 独立显示驱动与示例](../display/st7306/) 仍然保留，支持 Pico 2 W 与 ESP32-S3。
-
----
-
-## 5. Testing & Known Limitations / 测试与已知限制
-
-Alpha has passed selected real-device tests covering startup, Chinese candidate selection, saving and reopening documents, TXT export, and Inbox import.
-
-Alpha 已通过有限的实机测试，覆盖设备启动、中文候选选择、文档保存与重新打开、TXT 导出及 Inbox 导入等场景。
-
-Wubi 86 and the editor integration also have earlier software and device acceptance evidence.
-
-五笔86及编辑器整合也保留了此前的软件与实机验收记录。
-
-However, this is still an **Alpha release**, not a fully qualified stable version.
-
-但它仍然是 **Alpha 版本**，尚未达到全面稳定性验证的程度。
-
-Known limitations include:
-
-目前仍需注意：
-
-- Long-duration operation, unexpected power loss, and extreme memory conditions have not been fully validated.
-
-  长时间运行、异常断电和极限内存工况尚未充分验证。
-
-- Some historical failure cases and unresolved causes remain under investigation. Earlier test failures are not automatically considered fixed.
-
-  部分历史故障及其原因仍有待调查，既有测试失败不能自动视为已修复。
-
-- Full Wi-Fi document transfer, emergency QR export, and several planned editing improvements are not included in this Alpha.
-
-  完整 Wi-Fi 文档传输、应急二维码导出及部分计划中的编辑功能尚未包含在本版中。
-
-- This release does not include a complete battery-powered standalone hardware system.
-
-  本次发布尚未提供完整的独立电池供电硬件系统。
-
-If you intend to write important documents, use a stable external power supply, export your work regularly, and keep backups.
-
-如果准备使用草稿机写重要文稿，请使用稳定的外部电源，定期导出文档，并保留备份。
-
-See [Known Issues / 已知问题](KNOWN_ISSUES.md) for further details.
-
----
-
-## 6. Source Code & Licenses / 源码与许可
-
-All newly released Draftor-owned source code, including bgIME Core, is provided under the **Apache License 2.0**.
-
-本次新公开的 Draftor 自有源码，包括 bgIME Core，采用 **Apache License 2.0**。
-
-Copyright © 2026 **Ruotao Wang**.
-
-The previously published [ST7306 display module](../display/st7306/) retains its **MIT License** and original third-party notices.
-
-此前已经公开的 [ST7306 显示模块](../display/st7306/) 继续采用原有 **MIT License**，并保留第三方声明。
-
-Third-party libraries, fonts, and dictionary data retain their applicable copyright and licensing terms. Some historical mixed resources and supplied third-party materials still have unresolved redistribution or license-scope questions; their known sources, notices, and remaining uncertainties are documented rather than treated as Apache-2.0 material.
-
-第三方库、字体和词库数据保留各自适用的版权及许可条件。部分历史混合资源和第三方材料的再分发依据或许可范围仍待明确；已知来源、声明及尚存问题均如实记录，不统一改为 Apache-2.0。
-
-See [LICENSE](../LICENSE), [NOTICE](../NOTICE), [Third-party Licenses](LICENSE_INVENTORY.md), and [Resource Status](RESOURCE_STATUS.md).
-
-bgIME's shared stable-lexeme-identity technology is the subject of a Chinese invention patent application. The patent filing documents are not part of this release.
-
-bgIME 所采用的共享稳定词条身份相关技术已提交中国发明专利申请。专利申请文件不包含在本次发布中。
-
----
-
-## 7. Getting Started & Feedback / 开始使用与反馈
-
-- [Hardware & Wiring / 硬件与接线](HARDWARE.md)
-- [Installation / 固件安装](INSTALL.md)
-- [Usage Guide / 操作手册](USAGE.md)
-- [Building from Source / 源码构建](BUILD.md)
-- [Known Issues / 已知问题](KNOWN_ISSUES.md)
-
-If you try Draftor Alpha, feedback on Chinese input, horizontal and vertical editing, saving documents, and USB transfers would be especially useful.
-
-如果你尝试了 Draftor Alpha，欢迎反馈中文输入、横竖排编辑、文档保存或 USB 传输中遇到的问题。
-
-You can report bugs, ask questions, or share improvements through [GitHub Issues](https://github.com/Ohhellboy/Draftor/issues) and Pull Requests.
-
-可以通过 [GitHub Issues](https://github.com/Ohhellboy/Draftor/issues) 报告问题，也欢迎提交 Pull Request。
-
-This is the first complete public Alpha, not the finished machine. There is still work to do.
-
-这是第一个完整公开的 Alpha，而不是草稿机的最终形态。后面还有不少事情要做。
-
-But now you can give it a try.
-
-不过现在诸君可以尝试了。
-
----
-
-[Draftor Project / 项目主页](https://github.com/Ohhellboy/Draftor) · [Download Alpha / 下载](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.1) · [Usage / 操作手册](USAGE.md) · [Known Issues / 已知问题](KNOWN_ISSUES.md)
+**这份实测固件默认会向串口输出组成码和计时记录。** 这条观察路径使用内存和串口，不建立持久输入日志文件；连接的电脑仍可保存串口内容。分享日志前请检查私人信息。字体、词库等第三方材料沿用各自条款，既有来源未决事项继续披露。[已知限制与隐私](KNOWN_ISSUES.md) · [资源与许可说明](RESOURCE_STATUS.md)。

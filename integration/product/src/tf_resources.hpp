@@ -9,6 +9,7 @@
 #include "io_profile.hpp"
 #include "hanime/base_order.hpp"
 #include "cache_profile.hpp"
+#include "static_text_residency.hpp"
 namespace ime_device {
 struct Mount { uint64_t epoch=1; bool available=true; };
 // Single loop task only. At most one bounded POSIX read per logical request.
@@ -25,6 +26,9 @@ class TfReader final:public hanime::ResourceReader {
  mutable IoCounters io_{};
  mutable uint64_t max_read_us_=0,max_seek_us_=0;
  FileRole role_=FileRole::Other;
+#if DRAFTOR_TEXT_RESIDENT
+ StaticTextResidency resident_;
+#endif
  bool readBounded(size_t,void*,size_t,size_t limit)const;
  public:
  static constexpr size_t MaximumRead=1024;
@@ -50,13 +54,22 @@ class TfReader final:public hanime::ResourceReader {
  bool read(size_t,void*,size_t)const override;
  // Uncached sequential-font/diagnostic path. Core ResourceReader remains 1KiB.
  bool readBlock(size_t offset,void* dst,size_t count)const{return !line_count_&&readBounded(offset,dst,count,MaximumBlockRead);}
+#if DRAFTOR_TEXT_RESIDENT
+ bool prepareTextResidency(size_t offset,size_t bytes){return valid()&&resident_.prepare(offset,bytes,bytes_);}
+ bool preloadTextStep(){return valid()&&resident_.advance([&](size_t offset,void* to,size_t n){return read(offset,to,n);},MaximumRead);}
+ const StaticTextResidency& residency()const{return resident_;}
+#endif
 };
 // Each open/index/bootstrap/fixed activation is a separate scheduled step.
-enum class ResourceState { Dormant, OpenShared, OpenSharedIndex, ValidateShared, ActivateShared, AdmitText, OpenScheme, OpenSchemeIndex, ValidateScheme, ActivateScheme, OpenOrder, OpenOrderIndex, ValidateOrder, ActivateOrder, Ready, Error };
+enum class ResourceState { Dormant, OpenShared, OpenSharedIndex, ValidateShared, ActivateShared, AdmitText, OpenScheme, OpenSchemeIndex, ValidateScheme, ActivateScheme, OpenOrder, OpenOrderIndex, ValidateOrder, ActivateOrder, Ready, Error, ResidentText };
 class Resources {
  std::string root_,index_root_; std::shared_ptr<Mount> mount_; ReleasePins pins_;
  std::shared_ptr<TfReader> shared_reader_,shared_index_,scheme_reader_,scheme_index_,order_reader_,order_index_;
  std::shared_ptr<hanime::VerifiedResourceReader> verified_shared_,verified_scheme_,verified_order_;
+#if defined(DRAFTOR_BLOCK_BACKEND) && DRAFTOR_BLOCK_BACKEND
+ // Not attached/queryable until the private, budgeted navigation loader is Ready.
+ std::shared_ptr<hanime::BaseOrderIndex> pending_order_;
+#endif
  hanime::TextAccessCheck admission_;
  ResourceState state_=ResourceState::Dormant;
  hanime_extension::SchemeRules rules_=hanime_extension::SchemeRules::R1Xiaohe;
@@ -67,6 +80,11 @@ class Resources {
  void closeScheme();bool checkHealth();
  const char* orderFile(bool proof=false)const;
  const char* schemeFile(bool proof=false)const;
+#if defined(DRAFTOR_SHARED_TEXT_VARIANT) && DRAFTOR_SHARED_TEXT_VARIANT == 2
+ size_t sharedDescriptorBytes()const;
+ size_t sharedDescriptorLoaded()const;
+ const void* sharedDescriptorAllocation()const;
+#endif
  public:
  hanime::PagedSharedResource shared;
  hanime::PagedSchemeIndex scheme;
@@ -84,6 +102,33 @@ class Resources {
  static constexpr unsigned ResourceOpenFiles=6,DocumentOpenFiles=3; // Mixed production actually uses 5; reserve supports format1 fixtures.
  static constexpr unsigned MaximumOpenFiles=ResourceOpenFiles+DocumentOpenFiles; // Close old scheme/order before opening replacement.
  size_t cacheBytes()const;
+ size_t residentTextBytes()const{
+#if defined(DRAFTOR_SHARED_TEXT_VARIANT) && DRAFTOR_SHARED_TEXT_VARIANT == 2
+  return sharedDescriptorBytes();
+#elif DRAFTOR_TEXT_RESIDENT
+  return shared_index_?shared_index_->residency().requested():0;
+#else
+  return 0;
+#endif
+ }
+ size_t residentTextLoaded()const{
+#if defined(DRAFTOR_SHARED_TEXT_VARIANT) && DRAFTOR_SHARED_TEXT_VARIANT == 2
+  return sharedDescriptorLoaded();
+#elif DRAFTOR_TEXT_RESIDENT
+  return shared_index_?shared_index_->residency().loaded():0;
+#else
+  return 0;
+#endif
+ }
+ const void* residentTextAllocation()const{
+#if defined(DRAFTOR_SHARED_TEXT_VARIANT) && DRAFTOR_SHARED_TEXT_VARIANT == 2
+  return sharedDescriptorAllocation();
+#elif DRAFTOR_TEXT_RESIDENT
+  return shared_index_?shared_index_->residency().allocation():nullptr;
+#else
+  return nullptr;
+#endif
+ }
  // These identify outer owners only, not their private allocations.
  const void* sharedCacheAllocation()const{return verified_shared_.get();}
  const void* schemeCacheAllocation()const{return verified_scheme_.get();}

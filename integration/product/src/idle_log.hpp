@@ -47,6 +47,7 @@ public:
     void service(LogPort&, const LogGate&);
     size_t size() const { return size_; }
     bool full() const { return size_ == Capacity; }
+    bool partial() const { return sent_ != 0; } // Existing finite-device UART line ownership guard.
     const LogCosts& costs() const { return costs_; }
 private:
     struct Line { std::array<char, LineBytes> bytes{}; size_t size = 0; };

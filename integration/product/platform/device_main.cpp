@@ -1,3 +1,7 @@
+#include "cp_observe.hpp"
+#if DRAFTOR_CP_OBSERVE && defined(DRAFTOR_BLOCK_BACKEND) && DRAFTOR_BLOCK_BACKEND
+#include "base_order_internal.hpp"
+#endif
 #include "horizontal_body.hpp"
 #include "stability_diagnostics.hpp"
 #include "behavior_bench.hpp"
@@ -13,6 +17,7 @@
 #include "candidate_build.hpp"
 #include "docmanager_display.hpp"
 #include "device_main.hpp"
+#include "service_endpoints.hpp"
 #include "operation_profile.hpp"
 #include "input_route.hpp"
 #include <Arduino.h>
@@ -39,6 +44,7 @@
 #include "ui_trace.hpp"
 #include "idle_log.hpp"
 #include "display_schedule.hpp"
+#include "display_tx_observe.hpp"
 #include "ime_presentation.hpp"
 #include "vertical_view.hpp"
 #include "product_input.hpp"
@@ -49,6 +55,9 @@
 #if DRAFTOR_USB_ENABLED
 #include "usb_platform_s3.hpp"
 #include "usb_runtime_allocation.hpp"
+#include "wifi_platform_s3.hpp"
+#include "platform_memory.hpp"
+#include "wifi_display.hpp"
 #endif
 
 #include "presentation_frame.hpp"
@@ -162,6 +171,36 @@ bool usbKey(const s3hid::Event& e){
 bool usbActive(){return false;}
 #endif
 
+#if DRAFTOR_USB_ENABLED
+// Wi-Fi reuses the document-transfer module in USB-enabled product builds.
+// It is a cold, separately owned runtime. No radio start at boot.
+struct WifiRuntime {
+ s3app::S3WifiTransport transport;
+ s3app::UsbDocumentImport sink;
+ s3app::WifiTransfer transfer;
+ WifiRuntime():sink(storage,app->catalog,app->persistence,app->session,app->editorPort),transfer(*app,transport,sink){}
+};
+WifiRuntime* wifiRuntime=nullptr;
+extern "C" __attribute__((used)) const volatile uint32_t s3_wifi_memory_abi[]={sizeof(WifiRuntime),sizeof(s3app::WifiTransfer),sizeof(s3app::S3WifiTransport)};
+bool wifiBlocked(){return wifiRuntime&&wifiRuntime->transfer.blocksInput();}
+void releaseWifiRuntime(){
+ if(wifiRuntime&&!wifiRuntime->transfer.active()){
+  wifiRuntime->~WifiRuntime();draftor::memory::release(wifiRuntime);wifiRuntime=nullptr;
+  s3app::S3WifiTransport measurement;measurement.measure("runtime_freed");
+ }
+}
+bool wifiKey(const s3hid::Event& e){
+ if(!wifiRuntime){
+  if(!s3app::wifiEntryKey(*app,e))return false;
+  if(usbActive()){app->notice="Close USB transfer before Wi-Fi";app->dirtyDisplay=true;return true;}
+  if(!s3app::ensureUsbRuntime(wifiRuntime)){app->notice="Wi-Fi unavailable: memory low";app->dirtyDisplay=true;return true;}
+ }
+ const bool consumed=wifiRuntime->transfer.key(e,usbInput());releaseWifiRuntime();return consumed;
+}
+#else
+bool wifiBlocked(){return false;}
+#endif
+
 uint32_t reportedDiscards=0,lastBodyFrameAction=0;
 bool lastPairingWarning=false;
 uint32_t lastDraw=0,lastMemory=0,lastOperation=0,lastEpoch=0,lastBleState=0,lastPasskey=0;
@@ -198,6 +237,11 @@ struct DeferredDiagnostics {
  ime_device::UiTraceRecord ui;
  unsigned ui_part=ime_device::UiTraceParts;
  uint32_t ui_lost=0,ui_keyups=0,ui_duplicates=0,ui_text_lost=0;
+#if DRAFTOR_AUTH_OBSERVE
+ // Bounded loss snapshots only; no extra queue or per-service event stream.
+ uint64_t observe_log_dropped=0,observe_log_oversized=0;
+ uint32_t observe_cp_dropped=0,observe_cp_overwritten=0;
+#endif
 };
 DeferredDiagnostics* diagnostics=nullptr;
 extern "C" __attribute__((used)) const volatile uint32_t s3_diagnostic_memory_abi[]={
@@ -234,7 +278,11 @@ public:
 void logLine(const char* format,...) __attribute__((format(printf,1,2)));
 void logLine(const char* format,...){
 #if DRAFTOR_TELEMETRY_CAPTURE
+#if DRAFTOR_AUTH_OBSERVE
+ if(std::strncmp(format,"[IME_LOAD_REQUEST]",18)!=0&&std::strncmp(format,"[IME_READY]",11)!=0)return;
+#else
  return;
+#endif
 #endif
 
  if(!diagnostics){++logsUnavailable;return;}
@@ -367,10 +415,18 @@ __attribute__((noinline)) void drawHorizontalBody(){
 
 void draw(){
 #if DRAFTOR_USB_ENABLED
+ if(wifiRuntime&&wifiRuntime->transfer.panel()){
+  s3app::paintWifiPanel(wifiRuntime->transfer,
+   [](int x,int y,int w,int h,bool ink){lcd.fillRect(x,y,w,h,ink?black:white);},
+   [](const char* text,int x,int y){label(text,x,y);});
+  if(!displaySchedule.presentCompared(lcd.framebuffer(),lcd.BufferSize,millis(),[](const uint8_t* previous,size_t size){return lcd.update(previous,size);}))return;
+  inputRoute.framePresented(app->focusToken());keyboard::publishFrame(inputRoute.epoch(),0);
+  lastDraw=millis();displaySchedule.completed(lastDraw);app->dirtyDisplay=false;return;
+ }
  if(usbActive()){
   lcd.fill(white);label(usbRuntime->transfer.title(),8,10);
   char text[128];for(unsigned i=0;i<8;++i){usbRuntime->transfer.line(i,text,sizeof(text));label(text,8,44+int(i)*38);}
-  if(!displaySchedule.present(lcd.framebuffer(),lcd.BufferSize,millis(),[]{return lcd.update();}))return;
+  if(!displaySchedule.presentCompared(lcd.framebuffer(),lcd.BufferSize,millis(),[](const uint8_t* previous,size_t size){return lcd.update(previous,size);}))return;
   // A modal frame advances only the input route, never publishes body/IME pixels.
   inputRoute.framePresented(app->focusToken());keyboard::publishFrame(inputRoute.epoch(),0);
   lastDraw=millis();displaySchedule.completed(lastDraw);app->dirtyDisplay=false;return;
@@ -380,6 +436,7 @@ void draw(){
  if(ime)keyboard::publishImeContext(ime->ingressContext(),ime->resourceOwner());
  s3profile::Scope timing(s3profile::Draw);
  const auto draw_started_us=ime_device::clockUs();
+ CPATTR_TIMER(cp_draw,Draw);CPATTR(cpattr::drawStart());
  uint32_t started=micros();lcd.fill(white);
  const auto presentation=app?app->presentationFrame():s3app::PresentationFrame{};
  const bool vertical=app&&!app->horizontalImeSurface();
@@ -497,9 +554,10 @@ void draw(){
  const auto transfers=displaySchedule.sent;
  const auto transfer_started_us=ime_device::clockUs();
  if(app){BT_OBSERVE(displayBegin(*app,ime,imeVisible&&ime->candidateAvailable()));}
- if(!displaySchedule.present(lcd.framebuffer(),lcd.BufferSize,millis(),[]{return lcd.update();})){BT_OBSERVE(displayEnd(false));if(app)app->candidateVisual.complete(false);return;}
+ if(!displaySchedule.presentCompared(lcd.framebuffer(),lcd.BufferSize,millis(),[](const uint8_t* previous,size_t size){return lcd.update(previous,size);})){BT_OBSERVE(displayEnd(false));if(app)app->candidateVisual.complete(false);return;}
  BT_OBSERVE(displayEnd(true));BT_MEASURE(drawn(vertical,draw_started_us));
  const auto lcd_completed_us=ime_device::clockUs();
+ CPATTR(cp_draw.stop(lcd_completed_us);cpattr::presented(transfer_started_us,lcd_completed_us,displaySchedule.sent!=transfers));
  const auto previousImeFrame=ime&&ime->window()?ime->window()->onScreenGeneration():0;
  const auto publication=app?ime_device::publishActivePresentation(*app,ime,presentation,verticalFrame.ime):ime_device::PresentationPublication{};
  if(app&&!publication.accepted){app->candidateVisual.complete(false);return;}
@@ -511,16 +569,29 @@ void draw(){
  // atomic hardware boundary; never hold a BLE spinlock across the LCD transfer.
  if(app&&!app->commandBarrier())inputRoute.framePresented(app->focusToken());
  keyboard::publishFrame(inputRoute.epoch(),publication.candidates);
+#if DRAFTOR_AUTH_OBSERVE
+ if(imeVisible&&ime)ime_device::traceServiceFeedback(ime->composition(),ime->window(),lcd_completed_us,uint8_t(displaySchedule.sent!=transfers));
+#endif
  if(imeVisible&&ime->window()&&previousImeFrame!=ime->window()->onScreenGeneration()){
   const auto& v=ime->window()->view();const ime_device::VisibleItem* item=nullptr;
   if(v.count&&v.row>=v.rows[0].index&&v.row<v.rows[0].index+v.count){const auto& row=v.rows[v.row-v.rows[0].index];if(v.col<row.count)item=&row.items[v.col];}
   ime_device::traceUi(ime_device::UiTraceKind::Lcd,ime->composition(),ime->window(),nullptr,item,displaySchedule.sent==transfers?1:0,v.action,lcd_completed_us);
+  CPATTR(cpattr::finish(lcd_completed_us,v.generation,v.action,ime->window()->querySerial());if(diagnostics)cpattr::emit(diagnostics->output));
   logLine("[PRESENT_TIMING] action=%u frame=%u draw_start_us=%llu transfer_start_us=%llu done_us=%llu transmitted=%u\n",unsigned(v.action),unsigned(v.generation),(unsigned long long)draw_started_us,(unsigned long long)transfer_started_us,(unsigned long long)lcd_completed_us,displaySchedule.sent!=transfers);
  }
  if(ime&&ime->acceptedAction()!=lastBodyFrameAction&&ime->acceptedDocumentCurrent()){
   lastBodyFrameAction=ime->acceptedAction();
   ime_device::traceUi(ime_device::UiTraceKind::BodyLcd,ime->composition(),ime->window(),nullptr,nullptr,0,lastBodyFrameAction,lcd_completed_us);
  }
+#if DRAFTOR_DISPLAY_TX_OBSERVE
+ if(diagnostics){
+  const auto* window=ime?ime->window():nullptr;
+  display_tx_observe::emit(diagnostics->output,displaySchedule.present_serial,
+   displaySchedule.sent!=transfers,lcd.lastTransfer(),transfer_started_us,lcd_completed_us,
+   window?window->view().action:0,window?window->querySerial():0,publication.candidates,
+   ime?ime->acceptedAction():0,presentation.revision);
+ }
+#endif
  if(imeVisible&&imeTiming.frame_pending&&imeResources&&imeResources->ready()&&ime&&ime->window()&&!ime->window()->busy()&&ime->window()->state()==ime_device::WindowState::Ready&&!ime->raw().empty()){
   const auto now=lcd_completed_us;logLine("[IME_FIRST_FRAME] request=%u uptime_us=%llu from_raw_us=%llu from_request_us=%llu rows=%u raw=%u from_last_key_us=%llu from_boot_log_us=%llu diagnostic=%u\n",unsigned(imeTiming.serial),(unsigned long long)now,(unsigned long long)(now-imeTiming.first_raw_us),(unsigned long long)(imeTiming.request_us?now-imeTiming.request_us:0),unsigned(ime->view()->count),unsigned(imeTiming.raw_serial),(unsigned long long)(now-imeTiming.last_raw_us),(unsigned long long)(now-bootLogUs),probeUsedThisBoot);imeTiming.frame_pending=false;
  }
@@ -750,6 +821,26 @@ void operationDiagnosticStep(){
  }
 }
 void idleDiagnostics(){
+#if DRAFTOR_AUTH_OBSERVE
+ {
+ if(!diagnostics||!logGate().transportReady()||diagnostics->output.full())return;
+ auto& d=*diagnostics;
+ if(d.ui_part<ime_device::UiTraceParts||ime_device::uiTrace.size())ime_device::drainUiTracePart(ime_device::uiTrace,d.ui,d.ui_part,d.output);
+ else {
+  const auto& costs=d.output.costs();
+  uint32_t cp_dropped=0,cp_overwritten=0;
+#if DRAFTOR_CP_OBSERVE
+  cp_dropped=cpattr::state.dropped;cp_overwritten=cpattr::state.overwritten;
+#endif
+  if(d.ui_lost!=ime_device::uiTrace.lost()||d.observe_log_dropped!=costs.dropped||d.observe_log_oversized!=costs.oversized||d.observe_cp_dropped!=cp_dropped||d.observe_cp_overwritten!=cp_overwritten){
+   if(d.output.printf("[SW_LOST] total=%u peak=%u log_dropped=%llu log_oversized=%llu cp_dropped=%u cp_overwritten=%u\n",unsigned(ime_device::uiTrace.lost()),unsigned(ime_device::uiTrace.peak()),(unsigned long long)costs.dropped,(unsigned long long)costs.oversized,unsigned(cp_dropped),unsigned(cp_overwritten))){
+    d.ui_lost=ime_device::uiTrace.lost();d.observe_log_dropped=costs.dropped;d.observe_log_oversized=costs.oversized;d.observe_cp_dropped=cp_dropped;d.observe_cp_overwritten=cp_overwritten;
+   }
+  }
+ }
+ return;
+ }
+#endif
 #if DRAFTOR_TELEMETRY_CAPTURE
  return;
 #endif
@@ -779,15 +870,18 @@ void deviceSetup(){
 #if DRAFTOR_TELEMETRY_CAPTURE
  esp_log_level_set("*",ESP_LOG_NONE);
 #if DRAFTOR_RELEASE_BUILD
- Serial.printf("[DRAFTOR_BUILD] firmware=%s release=1 telemetry=0 resources=LEXICON_R3_B2_20261006\n",Firmware);
+ Serial.printf("[DRAFTOR_BUILD] firmware=%s release=1 telemetry=0 resources=%s\n",Firmware,ime_device::CandidateResourceRoot);
 #else
  Serial.printf("[BT_BUILD] firmware=%s profile=%u capture=1 core=HN_CORE_PERF2_P3_PREFIX_CONTINUATION_C1_20260923 host=HN_INPUT_PERF2_P3_CONSUMER_C1_20260923\n",Firmware,DRAFTOR_TELEMETRY_PROFILE);
 #endif
 #endif
+#if DRAFTOR_AUTH_OBSERVE
+ Serial.printf("[SW_CONFIG] window_us=%u init_us=%u slices=%u record=%u capacity=%u capture=%u endpoints=1 sha_final=%u cp=%u shared_variant=%u text_chain=%u block=%u resident=%u structural_host=%u\n",unsigned(RunQuantumUs),unsigned(InitQuantumUs),unsigned(RunSlices),unsigned(sizeof(ime_device::UiTraceRecord)),unsigned(ime_device::UiTrace::Capacity),unsigned(DRAFTOR_TELEMETRY_CAPTURE),unsigned(HANIME_SHA256_BATCHED_FINAL),unsigned(DRAFTOR_CP_OBSERVE),unsigned(DRAFTOR_SHARED_TEXT_VARIANT),unsigned(HANIME_TEXT_CHAIN),unsigned(DRAFTOR_BLOCK_BACKEND),unsigned(DRAFTOR_TEXT_RESIDENT),unsigned(HANIME_STRUCTURAL_HOST_OBSERVE));
+#endif
  if(void* memory=heap_caps_malloc(sizeof(DeferredDiagnostics),MALLOC_CAP_SPIRAM|MALLOC_CAP_8BIT))diagnostics=new(memory) DeferredDiagnostics;
  if(diagnostics)ime_device::uiTrace.bind(diagnostics->ui_records.data());
- delay(300);bootLogUs=ime_device::clockUs();logLine("\n[BOOT] firmware=%s task=P23_PHASE2C_R3_R2_RUNTIME_HV core_release=HanIME-Core-0.13.1-rc.1 order_resource_format=2 core_api=0.13.0 extension=0.8.4-rc.1 locate_entries=8 base_order=1 record_slices=1 prefetch=0 auth_shared=2 auth_scheme=1 auth_order=1 release_pin_sha=d1ad4274b2756824b9da6e529aa7cac39c3515b8aa9059960405917f52188345 uptime_us=%llu built=%s %s\n",Firmware,(unsigned long long)bootLogUs,__DATE__,__TIME__);
- logLine("[CANDIDATE] firmware=%s arm=%s core_release=HanIME-Core-0.13.1-rc.1 order_resource_format=2 order_verification_format=1 resource_dir=/HANIME/IME/LEXICON_R3_B2_20261006 e1=1 n1_rows=%u prefetch=0 learning=Disabled profile=2 locate=8 tf_hz=20000000 pool_bytes=%u device=DEVICE_PENDING\n",Firmware,ime_device::CandidateArm,unsigned(HANIME_N1_ROWS),unsigned(ime_device::CandidateBuildDiagnostics::poolBytes()));
+ delay(300);bootLogUs=ime_device::clockUs();logLine("\n[BOOT] firmware=%s task=P23_PHASE2C_R3_R2_RUNTIME_HV core_release=HanIME-Core-0.13.1-rc.1 order_resource_format=%s core_api=0.13.0 extension=0.8.4-rc.1 locate_entries=8 base_order=1 record_slices=1 prefetch=0 auth_shared=2 auth_scheme=1 auth_order=1 release_pin_sha=%s uptime_us=%llu built=%s %s\n",Firmware,ime_device::CandidateOrderFormat,ime_device::CandidatePinSha,(unsigned long long)bootLogUs,__DATE__,__TIME__);
+ logLine("[CANDIDATE] firmware=%s arm=%s core_release=HanIME-Core-0.13.1-rc.1 order_resource_format=%s wubi_order_format=2 order_verification_format=1 resource_dir=%s e1=1 n1_rows=%u prefetch=0 learning=Disabled profile=2 locate=8 tf_hz=20000000 pool_bytes=%u device=DEVICE_PENDING\n",Firmware,ime_device::CandidateArm,ime_device::CandidateOrderFormat,ime_device::CandidateResourceRoot,unsigned(HANIME_N1_ROWS),unsigned(ime_device::CandidateBuildDiagnostics::poolBytes()));
  logLine("[PERF2_CONFIG] firmware=%s core_baseline=HanIME-Core-0.13.1-rc.1 core_api=0.13.0 core_candidate=HN_CORE_PERF2_P3_PREFIX_CONTINUATION_C1_20260923 host_candidate=HN_INPUT_PERF2_P3_CONSUMER_C1_20260923 p2_source=HN_INPUT_PERF2_P2_P_SC_20260923 p2=1 p3=1 prefix_slots=8 planner_allocation=DEFAULT_NEW device=DEVICE_NOT_RUN\n",Firmware);
  logLine("[MEM1_CONFIG] host=%s source=%s lc1=1 py1=1 mr1=%u arrays=4 policy=PSRAM_ONLY backend_bytes=%u record_bytes=%u context_bytes=%u xh_payload=%u py_payload=%u runtime_peak=DEVICE_PENDING\n",hanime_extension::host_candidate_version,hanime_extension::host_candidate_id,unsigned(hanime_extension::host_candidate_mr1),unsigned(s3_mem1_abi[0]),unsigned(s3_mem1_abi[1]),unsigned(s3_mem1_abi[2]),unsigned(s3_mem1_abi[3]),unsigned(s3_mem1_abi[4]));
  logLine("[LC1_CAPACITY] xh_members=%u py_members=%u xh_submission=%u py_submission=%u raw=%u word=%u name=%u text=%u request=%u\n",unsigned(s3_lc1_capacity_abi[0]),unsigned(s3_lc1_capacity_abi[1]),unsigned(s3_lc1_capacity_abi[2]),unsigned(s3_lc1_capacity_abi[3]),unsigned(s3_lc1_capacity_abi[4]),unsigned(s3_lc1_capacity_abi[5]),unsigned(s3_lc1_capacity_abi[6]),unsigned(s3_lc1_capacity_abi[7]),unsigned(s3_lc1_capacity_abi[8]));
@@ -797,8 +891,11 @@ void deviceSetup(){
  logLine("[HARDWARE] flash=%u psram=%u pins=DISPLAY(12,11,4,9,10,5),TF(16,17,18,15) power=IN-OUT_BRIDGED\n",unsigned(ESP.getFlashChipSize()),unsigned(ESP.getPsramSize()));
  logLine("[RESET] esp_reason=%u tf_power_control=NONE external_card_power=UNOBSERVED mount_attempt_limit=%u mount_admission_ms=%u single_attempt_ms=%u\n",unsigned(esp_reset_reason()),s3tf::MaximumAttempts,unsigned(s3tf::TotalBudgetMs),unsigned(s3tf::AttemptBudgetMs));
  // Display-before-TF order retained; only the task-owned SD fork has init guards.
- lcd.begin();
+ displaySchedule.invalidate();lcd.begin();
  if(!psramFound()||ESP.getPsramSize()!=8388608){fatal="PSRAM unavailable";draw();return;}
+#if DRAFTOR_USB_ENABLED
+ s3app::preparePlatformMemory();
+#endif
  displaySchedule.prepare(lcd.BufferSize);
  logLine("[CORE_CACHE_CONFIG] profile=%u shared_data_kib=%u shared_pages=%u shared_index_limit_kib=8 scheme_data_kib=16 scheme_pages=1 scheme_index_kib=8 order_data_kib=8 order_index_kib=8 output_entries=%u text_bytes=64 form_bytes=64 anchor_slots=%u record_slices=1 Q1=0.8.3\n",ime_device::OutputProfile,ime_device::SharedDataKiB,ime_device::SharedPages,ime_device::OutputEntries,ime_device::SharedAnchorSlots);
  logLine("[ADAPTER_CONFIG] fastseek=%u idf=%u.%u.%u mirror_bytes=%u dirty_interval_ms=33 dirty_pending_limit_ms=50 key_batch_us=2000 nav_capacity=32 file_cache_extra=0\n",FastSeekCompiled,ESP_IDF_VERSION_MAJOR,ESP_IDF_VERSION_MINOR,ESP_IDF_VERSION_PATCH,unsigned(displaySchedule.memoryBytes()));
@@ -829,6 +926,9 @@ void deviceSetup(){
  logLine("[RESOURCES] independent_ime=API0130_HOST084_RC1_MEM1_PY1_MR1 lexicon=LAZY_TF_READONLY scheme=XIAOHE_DEFAULT font=TF_TO_PSRAM_MATCHED28_U28FCD\n");
  logLine("[MEM_PLAN] app=%u document=%u editor=%u persistence=%u hid_map=%u event=%u\n",unsigned(s3_memory_abi[0]),unsigned(s3_memory_abi[1]),unsigned(s3_memory_abi[2]),unsigned(s3_memory_abi[3]),unsigned(s3_memory_abi[4]),unsigned(s3_memory_abi[5]));
  s3app::stability::capture(s3app::stability::Kind::Ready);
+#if DRAFTOR_USB_ENABLED
+ {s3app::S3WifiTransport measurement;measurement.measure("boot_off");}
+#endif
  memory("ready");if(app)presentContext();else draw();
  BT_MEASURE(setup());
 #if DRAFTOR_TELEMETRY_PROFILE
@@ -842,18 +942,36 @@ void deviceSetup(){
  }
 #endif
 }
+#if DRAFTOR_CP_OBSERVE
+// One existing-queue summary after each completed activation, no per-slice log.
+// No inline keeps this temporary snapshot out of the main loop's fixed frame.
+__attribute__((noinline)) static void observeBlockActivation(uint64_t ready_us){
+ if(!diagnostics||!imeResources)return;
+ const auto snap=imeResources->orderSnapshot();
+ uint64_t allocations=0,init_calls=0,local_work=0;unsigned nav=0;
+#if defined(DRAFTOR_BLOCK_BACKEND) && DRAFTOR_BLOCK_BACKEND
+ if(const auto order=imeResources->scheme.base_order()){
+  const auto stats=hanime::detail::BaseOrderBlockAccess::initialization_stats(*order);
+  nav=unsigned(stats.nav_bytes);allocations=stats.allocations;init_calls=stats.initialization_calls;local_work=stats.local_work;
+ }
+#endif
+ using U=unsigned long long;
+ diagnostics->output.printf("[B_ACTIVATE] request=%u start=%llu ready=%llu scheme=%u calls=%llu bytes=%llu work=%llu data=%llu proof=%llu logical=%llu logical_bytes=%llu nav=%u allocations=%llu init_calls=%llu local_work=%llu queue_dropped=%llu\n",
+  unsigned(imeTiming.serial),U(imeTiming.request_us),U(ready_us),unsigned(imeResources->rules()),U(snap.cost.read_calls),U(snap.cost.read_bytes),U(snap.cost.work_items),U(snap.authenticated_loads),U(snap.authenticated_index_loads),U(snap.logical_requests),U(snap.logical_bytes),nav,U(allocations),U(init_calls),U(local_work),U(diagnostics->output.costs().dropped));
+}
+#endif
 void deviceLoop(){
  if(heapIntegrityStopped){heapIntegrityStopTurn();return;}
  uint32_t start=micros();auto ble=keyboard::status();
  serialDiagnostic();
- if(ime&&!usbActive())ime->serviceVisuals(millis());
+ if(ime&&!usbActive()&&!wifiBlocked())ime->serviceVisuals(millis());
  auto observeEpoch=[&](uint32_t current){if(lastEpoch!=current){s3app::stability::capture(s3app::stability::Kind::BleBoundary,lastEpoch,current,unsigned(ble.phase));ime_device::uiTrace.setMode(1);detailedDiagnostics=false;lastEpoch=current;repeat.clear();if(ime)ime->interrupt();if(app)app->disconnected();}};
  observeEpoch(ble.epoch);
  if(uint32_t(ble.phase)!=lastBleState||ble.passkey!=lastPasskey||ble.pairing_not_saved!=lastPairingWarning){s3app::stability::event(s3app::stability::Kind::BlePhase,lastBleState,unsigned(ble.phase),ble.epoch);lastPairingWarning=ble.pairing_not_saved;lastBleState=uint32_t(ble.phase);lastPasskey=ble.passkey;if(app)app->dirtyDisplay=true;}
  if(app&&!fatal&&app->ready()){
   try{
    presentContext(); // publish reconnect/focus boundary before accepting queued keys
-   auto repeatContext=[&](){repeat.context(app->focusToken(),!usbActive()&&(!ime||!ime->chinese()||!ime->active())&&(app->renameOpen()||(app->session.hasCurrent()&&!app->filesOpen()&&!app->findOpen()&&!app->statsOpen()))&&!app->commandBarrier()&&app->manager.state().pending==hanime::documents::PendingAction::None);};
+   auto repeatContext=[&](){repeat.context(app->focusToken(),!usbActive()&&!wifiBlocked()&&(!ime||!ime->chinese()||!ime->active())&&(app->renameOpen()||(app->session.hasCurrent()&&!app->filesOpen()&&!app->findOpen()&&!app->statsOpen()))&&!app->commandBarrier()&&app->manager.state().pending==hanime::documents::PendingAction::None);};
    repeatContext();s3hid::Event e;unsigned processed=0;const auto keyBatchStart=micros();
    while(!app->commandBarrier()&&processed<64&&(!processed||micros()-keyBatchStart<2000)&&keyboard::pop(e)){
     ++processed;
@@ -863,7 +981,7 @@ void deviceLoop(){
     observeEpoch(currentEpoch);
     if(!admitted){ime_device::traceUi(ime_device::UiTraceKind::RouteDrop,ime?ime->composition():nullptr,ime?ime->window():nullptr,&e,nullptr,uint8_t(e.down));continue;}
 #if DRAFTOR_USB_ENABLED
-    if(usbActive()&&(!e.down||e.usage>=224)){
+    if((usbActive()||wifiBlocked())&&(!e.down||e.usage>=224)){
      // The existing owners see releases/modifiers even across modal route epochs.
      productInput.layout(*app,e);productInput.ime(*app,ime,e);repeat.clear();continue;
     }
@@ -877,6 +995,8 @@ void deviceLoop(){
      ime_device::traceUi(ime_device::UiTraceKind::RouteDrop,ime?ime->composition():nullptr,ime?ime->window():nullptr,&e,nullptr,uint8_t(e.down));continue;
     }
 #if DRAFTOR_USB_ENABLED
+    if(wifiKey(e)){repeat.clear();presentContext();continue;}
+    if(wifiRuntime&&s3app::usbEntryKey(*app,e)){app->notice="Turn Wi-Fi off before USB transfer";app->dirtyDisplay=true;continue;}
     if(usbKey(e)){if(heapIntegrityStopped){heapIntegrityStopTurn();return;}repeat.clear();presentContext();continue;}
 #endif
     // Layout is a product action. It never enters DeviceIme, even while
@@ -908,7 +1028,7 @@ void deviceLoop(){
     if(bodyInput){response.key_us=std::max(response.key_us,micros()-keyStart);if(app->sharedState().document.revision()!=oldRevision&&!response.awaiting){response.awaiting=true;response.pending_ms=e.ms;response.pending_focus=app->focusToken();}}if(s3profile::active)s3profile::record.max_main_step_us=std::max(s3profile::record.max_main_step_us,uint64_t(micros()-keyStart));presentContext();repeatContext();
    }
    ble=keyboard::status();observeEpoch(ble.epoch);
-   if(!usbActive()&&!app->commandBarrier()&&!keyboard::pending()&&ble.phase==keyboard::Phase::Ready&&repeat.poll(millis(),ble.epoch,e)){
+   if(!usbActive()&&!wifiBlocked()&&!app->commandBarrier()&&!keyboard::pending()&&ble.phase==keyboard::Phase::Ready&&repeat.poll(millis(),ble.epoch,e)){
     uint32_t currentEpoch=0;const bool admitted=keyboard::admit(e,currentEpoch);observeEpoch(currentEpoch);
     if(admitted){auto before=app->editStamp();auto nameBefore=app->renameRevision();app->key(e);auto after=app->editStamp();repeat.actionResult(app->bodyNavigationPending()||nameBefore!=app->renameRevision()||before.revision!=after.revision||before.selection!=after.selection);}
    }
@@ -919,15 +1039,19 @@ void deviceLoop(){
    if(usbActive()){const auto before=usbRuntime->transfer.phase();usbRuntime->transfer.tick(millis(),usbInput());if(before!=usbRuntime->transfer.phase())s3app::stability::capture(s3app::stability::Kind::UsbPhase,unsigned(before),unsigned(usbRuntime->transfer.phase()));}
    else
 #endif
-   app->service(millis(),deferSave);
+   if(!wifiBlocked())app->service(millis(),deferSave);
+#if DRAFTOR_USB_ENABLED
+   if(wifiRuntime){wifiRuntime->transfer.tick(millis(),usbInput());releaseWifiRuntime();}
+#endif
    ime_device::ioProfile.save_active=app->persistence.backgroundSaveActive();
    if(!deferSave){lastSaveTurn=millis();++initSchedule.save_turns;}else ++initSchedule.save_deferred;
    if(saving)response.save_us=std::max(response.save_us,micros()-serviceStart);
    if(keyboard::pending())++initSchedule.blocked_by_keys;
-   else if(!usbActive()){
+   else if(!usbActive()&&!wifiBlocked()){
     const bool initializing=(!font.ready()&&!font.failed())||(imeResources&&!imeResources->ready()&&imeResources->state()!=ime_device::ResourceState::Error&&imeResources->state()!=ime_device::ResourceState::Dormant);
     const auto quantum=initializing?InitQuantumUs:RunQuantumUs;const auto limit=initializing?InitSlices:RunSlices;
     const auto workStart=micros();unsigned slices=0;++initSchedule.turns;
+    CPATTR(cpattr::windowBegin());
     do{
      const auto sliceStart=micros();
      if(!font.ready()&&!font.failed())font.service();else if(tfProbe)tfProbe->service();else if(ime){
@@ -936,7 +1060,14 @@ void deviceLoop(){
       keyboard::publishImeContext(ime->ingressContext(),ime->resourceOwner());
      }
      initSchedule.max_slice_us=std::max(initSchedule.max_slice_us,micros()-sliceStart);++slices;
-    }while(slices<limit&&micros()-workStart<quantum&&!keyboard::pending()&&!ime_device::candidateWorkShouldYield(ime,app)&&((!font.ready()&&!font.failed())||(tfProbe&&!tfProbe->hasResult()&&!tfProbe->finished())||(!tfProbe&&ime&&ime->hasWork())));
+    }while(
+#if DRAFTOR_CP_OBSERVE
+    cpattr::again(slices,limit,quantum,[&]{return micros()-workStart;},[]{return keyboard::pending();},[]{return ime_device::candidateWorkShouldYield(ime,app);},[]{return (!font.ready()&&!font.failed())||(tfProbe&&!tfProbe->hasResult()&&!tfProbe->finished())||(!tfProbe&&ime&&ime->hasWork());})
+#else
+    slices<limit&&micros()-workStart<quantum&&!keyboard::pending()&&!ime_device::candidateWorkShouldYield(ime,app)&&((!font.ready()&&!font.failed())||(tfProbe&&!tfProbe->hasResult()&&!tfProbe->finished())||(!tfProbe&&ime&&ime->hasWork()))
+#endif
+    );
+    CPATTR(cpattr::windowEnd());
     initSchedule.slices+=slices;initSchedule.max_turn_us=std::max(initSchedule.max_turn_us,micros()-workStart);
    }
    BT_MEASURE(sample(ime_device::bench::ServiceTurn,micros()-serviceStart));
@@ -975,7 +1106,11 @@ void deviceLoop(){
    if(next.stage!=oldStage)logLine("[LOAD_STAGE] uptime_us=%llu stage=%u done=%llu total=%llu text=%s\n",(unsigned long long)ime_device::clockUs(),unsigned(next.stage),(unsigned long long)next.done,(unsigned long long)next.total,next.text);
   }
   if(imeTiming.ready_pending&&font.ready()&&imeResources->ready()){
-   const auto now=ime_device::clockUs();logLine("[IME_READY] request=%u uptime_us=%llu from_request_us=%llu from_boot_log_us=%llu scope=published_release_required_blocks diagnostic=%u\n",unsigned(imeTiming.serial),(unsigned long long)now,(unsigned long long)(now-imeTiming.request_us),(unsigned long long)(now-bootLogUs),probeUsedThisBoot);s3app::stability::event(s3app::stability::Kind::ImeReady,imeTiming.serial,unsigned(imeResources->state()),unsigned(ime&&ime->chinese()));imeTiming.ready_pending=false;memory("ime-ready");
+   const auto now=ime_device::clockUs();
+#if DRAFTOR_CP_OBSERVE
+   observeBlockActivation(now);
+#endif
+   logLine("[IME_READY] request=%u uptime_us=%llu from_request_us=%llu from_boot_log_us=%llu scope=published_release_required_blocks diagnostic=%u\n",unsigned(imeTiming.serial),(unsigned long long)now,(unsigned long long)(now-imeTiming.request_us),(unsigned long long)(now-bootLogUs),probeUsedThisBoot);s3app::stability::event(s3app::stability::Kind::ImeReady,imeTiming.serial,unsigned(imeResources->state()),unsigned(ime&&ime->chinese()));imeTiming.ready_pending=false;memory("ime-ready");
   }
   if(ime&&ime->raw().empty())imeTiming.frame_pending=false;
  }
@@ -992,9 +1127,15 @@ void deviceLoop(){
 #if DRAFTOR_TELEMETRY_PROFILE
  if(!behaviorSink.pending())stabilityOwnsUart=s3app::stability::service(keyboard::pending());
 #else
+#if DRAFTOR_AUTH_OBSERVE
+ if(!diagnostics||!diagnostics->output.partial())
+#endif
  stabilityOwnsUart=s3app::stability::service(keyboard::pending());
 #endif
  if(!stabilityOwnsUart){
+#if DRAFTOR_AUTH_OBSERVE
+ if(diagnostics)diagnostics->output.service(serialLogPort,logGate());
+#endif
  BT_OBSERVE(service(behaviorSink,keyboard::pending()));
  BT_MEASURE(sample(ime_device::bench::SerialDrain,ime_device::clockUs()-behavior_service_start));
 #if DRAFTOR_TELEMETRY_PROFILE
@@ -1006,5 +1147,10 @@ void deviceLoop(){
  BT_MEASURE(sample(ime_device::bench::Loop,micros()-start));
  maxLoop=std::max(maxLoop,micros()-start);
  const bool foreground=ime&&ime->hasWork();
+#if DRAFTOR_CP_OBSERVE
+ const auto cp_delay=loopYield.delayMs(ime_device::clockUs(),foreground);const auto cp_delay_begin=ime_device::clockUs();
+ delay(cp_delay);cpattr::yielded(cp_delay,cp_delay_begin,ime_device::clockUs());
+#else
  delay(loopYield.delayMs(ime_device::clockUs(),foreground));
+#endif
 }

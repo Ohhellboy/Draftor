@@ -1,5 +1,6 @@
 #include "ui_trace.hpp"
 #include "behavior_observer.hpp"
+#include "service_endpoints.hpp"
 #include <cstdio>
 namespace ime_device {
 #ifdef ARDUINO
@@ -13,7 +14,9 @@ void traceUi(UiTraceKind kind,const hanime_extension::Composition* c,const Candi
   if(kind==UiTraceKind::RangeReady){BT_OBSERVE(range(*c,*w));}
   else if(kind==UiTraceKind::WindowReady){BT_OBSERVE(window(*c,*w));}
  }
-#if DRAFTOR_TELEMETRY_CAPTURE
+#if DRAFTOR_AUTH_OBSERVE
+ if(!serviceEndpoint(kind,detail))return;
+#elif DRAFTOR_TELEMETRY_CAPTURE
  return; // Ordinary diagnostics own no UART bytes in Option A capture.
 #endif
  UiTraceRecord r;r.kind=kind;r.us=occurred_us?occurred_us:clockUs();r.detail=detail;r.action=action;
@@ -34,6 +37,9 @@ void traceUi(UiTraceKind kind,const hanime_extension::Composition* c,const Candi
  if(item){r.item_input=item->input;r.item_revision=item->revision;r.item_scheme=item->scheme;r.item_mount=item->activation.mount_epoch();r.item_bundle=item->activation.shared_bundle_id();r.key=item->key;r.ref=item->ref;r.begin=uint16_t(item->begin);r.end=uint16_t(item->end);r.page=uint16_t(item->page);r.slot=uint16_t(item->slot);r.page_generation=item->page_generation;}
  if(context){r.parent=context->parent;r.query=context->query;r.cursor=context->cursor;r.queued=context->queued;r.letters=context->letters;r.edits=context->edits;r.scheme_kind=context->scheme;r.target_session=context->target_session;r.target_focus=context->target_focus;r.raw=context->raw;r.pending_letters=context->pending_letters;r.current_resource_owner=context->resource_owner;}
  if(kind==UiTraceKind::SelectionResult&&w)r.usage=uint8_t(w->lastOutput());
+#if DRAFTOR_AUTH_OBSERVE
+ snapshotServiceEndpoint(r,c,w);
+#endif
  uiTrace.push(r);
 }
 size_t formatUiTrace(const UiTraceRecord& r,unsigned part,char* out,size_t cap){
@@ -70,6 +76,14 @@ size_t formatUiTrace(const UiTraceRecord& r,unsigned part,char* out,size_t cap){
 bool drainUiTracePart(UiTrace& trace,UiTraceRecord& record,unsigned& part,IdleLog& output){
  if(output.full())return false;
  if(part==UiTraceParts){if(!trace.pop(record))return false;part=record.kind==UiTraceKind::Text?5:0;}
+#if DRAFTOR_AUTH_OBSERVE
+ char line[384];auto bytes=formatServiceEndpoint(record,part,line,sizeof(line));
+ // A bounded formatter failure is an explicit missing part, never a stalled
+ // head record or a silently clipped endpoint. Preserve the original queues.
+ if(!bytes){const int n=std::snprintf(line,sizeof(line),"[SW_TRUNCATED] n=%u k=%u part=%u capacity=%u\n",unsigned(record.sequence),unsigned(record.kind),part,unsigned(sizeof(line)));if(n<=0||size_t(n)>=sizeof(line))return false;bytes=size_t(n);}
+ if(!output.append({line,bytes}))return false;
+ ++part;if(part==(serviceCompletion(record.kind)?3u:2u))part=UiTraceParts;return true;
+#else
  char line[384];const auto bytes=formatUiTrace(record,part,line,sizeof(line));
  if(!bytes||!output.append({line,bytes}))return false;
  ++part;
@@ -77,6 +91,7 @@ bool drainUiTracePart(UiTrace& trace,UiTraceRecord& record,unsigned& part,IdleLo
  if(part==5&&!trace.detailed()&&record.kind!=K::Intent&&record.kind!=K::KeyDown&&record.kind!=K::KeyUp&&record.kind!=K::SelectionDone&&record.kind!=K::RouteDrop&&record.kind!=K::SelectionResult&&record.kind!=K::SubmissionResult)part=UiTraceParts;
  if(part==1&&!trace.detailed()&&record.kind!=K::Choice&&record.kind!=K::SelectionDone&&record.kind!=K::Lcd)part=4;
  return true;
+#endif
 }
 
 const char* intentName(uint8_t n){

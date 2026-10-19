@@ -1,6 +1,12 @@
 #include "order_allocation.hpp"
 #include "tf_resources.hpp"
 #include "io_profile.hpp"
+#if defined(DRAFTOR_SHARED_TEXT_VARIANT) && DRAFTOR_SHARED_TEXT_VARIANT == 2
+#include "shared_structural.hpp"
+#endif
+#if defined(DRAFTOR_BLOCK_BACKEND) && DRAFTOR_BLOCK_BACKEND
+#include "base_order_internal.hpp"
+#endif
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -49,6 +55,12 @@ bool TfReader::readBounded(size_t offset,void* dst,size_t count,size_t limit)con
  ++role.sizes[IoProfile::bucket(count)];role.max_offset=std::max(role.max_offset,uint64_t(offset));
  IoCounters delta{};delta.requests=1;delta.requested_bytes=count;
  auto record=[&](){io_.add(delta);metrics.add(delta);};
+#if DRAFTOR_TEXT_RESIDENT
+ if(resident_.copy(offset,dst,count)){
+  delta.hits=1;delta.hit_bytes=count;++role.hits;record();ioProfile.request(count,true);
+  ioProfile.record(IoKind::CacheHit,count,count,clockUs()-requestStart,true);return true;
+ }
+#endif
  for(size_t i=0;i<line_count_;++i){auto& l=lines_[i];
   if(l.size&&offset>=l.offset&&offset-l.offset<=l.size&&count<=l.size-(offset-l.offset)){
    std::memcpy(dst,cache_.get()+i*MaximumRead+(offset-l.offset),count);l.used=++serial_;
@@ -96,12 +108,28 @@ bool TfReader::readBounded(size_t offset,void* dst,size_t count,size_t limit)con
  record();return ok;
 }
 Resources::~Resources(){retire();}
+#if defined(DRAFTOR_SHARED_TEXT_VARIANT) && DRAFTOR_SHARED_TEXT_VARIANT == 2
+size_t Resources::sharedDescriptorBytes()const{
+ return hanime::detail::SharedStructuralAccess::stats(shared).table_bytes;
+}
+size_t Resources::sharedDescriptorLoaded()const{
+ return hanime::detail::SharedStructuralAccess::stats(shared).initialized_entries*8;
+}
+const void* Resources::sharedDescriptorAllocation()const{
+ return hanime::detail::SharedStructuralAccess::allocation(shared);
+}
+#endif
 bool Resources::fail(const char* text,const char* detail){
  char message[192];std::snprintf(message,sizeof(message),"%s%s%s; install matched set/restart",text,*detail?": ":"",detail);error_=message;
  // Keep owners alive until DeviceIme stops its original tickets/transactions.
  state_=ResourceState::Error;return false;
 }
 void Resources::closeScheme(){
+#if defined(DRAFTOR_BLOCK_BACKEND) && DRAFTOR_BLOCK_BACKEND
+ // Retire the incomplete loader before either authenticated resource owner.
+ if(pending_order_)hanime::detail::BaseOrderBlockAccess::cancel_initialization(*pending_order_);
+ pending_order_.reset();
+#endif
  scheme.deactivate(); // Detaches BaseOrder while both primary owners are still alive.
  if(verified_order_)verified_order_->deactivate();
  verified_order_.reset();order_index_.reset();order_reader_.reset();
@@ -181,14 +209,54 @@ void Resources::service(){
  }
  case ResourceState::ActivateShared:
   if(!shared.open_verified(verified_shared_,mount_->epoch,{SharedCachePages,1024,true,SharedOutputReuse},&error_)){fail("shared verified open",error_.c_str());break;}
+#if defined(DRAFTOR_SHARED_TEXT_VARIANT) && DRAFTOR_SHARED_TEXT_VARIANT == 2
+  // Private shared-owner projection. It is not ready for consumers until the
+  // original authenticated descriptors have been loaded under InitBudget.
+  state_=ResourceState::ResidentText;break;
+#endif
   if(admission_.begin(shared,64,128)!=hanime::TextAccessStatus::Pending){fail("release text certificate begin");break;}
   state_=ResourceState::AdmitText;break;
  case ResourceState::AdmitText:{
   phase=Phase::Admission;const auto r=admission_.advance(InitBudget);cost=r.cost;admission_progress_=r;
-  if(r.status==hanime::TextAccessStatus::Ready)state_=ResourceState::OpenScheme;
+  if(r.status==hanime::TextAccessStatus::Ready){
+   state_=ResourceState::OpenScheme;
+#if DRAFTOR_TEXT_RESIDENT
+   // The bounds are from the already authenticated global layout. Retain the
+   // complete physical packets covering payload, including proofs. Runtime
+   // accesses still traverse the original verifier and its unchanged budgets.
+   hanime::PackedMerkleLayout packed;
+   if(pins_.shared->verification_format==2&&hanime::packed_merkle_layout(pins_.shared->file_bytes,&packed)){
+    const auto first=shared.info().payload_offset/hanime::kPackedDataBytes;
+    const auto offset=size_t(first*packed.packet_bytes);
+    const auto bytes=size_t(packed.file_bytes)-offset;
+    if(shared_index_->prepareTextResidency(offset,bytes))state_=ResourceState::ResidentText;
+    // Allocation/capacity refusal keeps the original authenticated TF path.
+    // A failed fill instead latches a resource error; partial bytes never hit.
+   }
+#endif
+  }
   else if(r.status!=hanime::TextAccessStatus::Pending)fail("release text capacity/certificate incompatible");
   break;
  }
+ case ResourceState::ResidentText:
+#if defined(DRAFTOR_SHARED_TEXT_VARIANT) && DRAFTOR_SHARED_TEXT_VARIANT == 2
+  {
+   phase=Phase::SharedValidation;
+   const auto step=hanime::detail::SharedStructuralAccess::advance_resident(
+     shared,InitBudget,&draftor::memory::allocate,&draftor::memory::release);
+   cost=step.cost;
+   if(step.status==hanime::ValidationStepStatus::InProgress)break;
+   if(step.status!=hanime::ValidationStepStatus::Ready){fail("shared default locator preload rejected",step.error.c_str());break;}
+   if(admission_.begin(shared,64,128)!=hanime::TextAccessStatus::Pending){fail("release text certificate begin");break;}
+   state_=ResourceState::AdmitText;
+  }
+#elif DRAFTOR_TEXT_RESIDENT
+  if(!shared_index_->preloadTextStep())fail("static text preload read failed");
+  else if(shared_index_->residency().ready())state_=ResourceState::OpenScheme;
+#else
+  state_=ResourceState::OpenScheme;
+#endif
+  break;
  case ResourceState::OpenScheme:
   if(pins_.scheme(rules_).verification_format==1){
   scheme_reader_=std::make_shared<TfReader>(mount_,(rules_==hanime_extension::SchemeRules::DirectExact?root_+"/"+schemeFile():root_+(rules_==hanime_extension::SchemeRules::R1Xiaohe?"/xiaohe.hnm":"/full_pinyin.hnm")));
@@ -230,6 +298,24 @@ void Resources::service(){
   break;
  }
  case ResourceState::ActivateOrder:{
+#if defined(DRAFTOR_BLOCK_BACKEND) && DRAFTOR_BLOCK_BACKEND
+  if(pins_.order(rules_)->resource_format==105U){
+   phase=Phase::OrderValidation;
+   if(!pending_order_){
+    OrderAllocationScope allocation_scope;
+    try {pending_order_=std::make_shared<hanime::BaseOrderIndex>(verified_order_,scheme,shared);}
+    catch(const std::bad_alloc&){fail(orderFile(),"block owner allocation failed");break;}
+   }
+   const auto step=hanime::detail::BaseOrderBlockAccess::advance_initialization(
+     *pending_order_,InitBudget,&draftor::memory::allocate,&draftor::memory::release);
+   cost=step.cost;
+   if(step.status==hanime::BaseOrderStatus::Pending)break;
+   if(step.status!=hanime::BaseOrderStatus::Ready){fail(orderFile(),"block navigation allocation/authentication/structure rejected");break;}
+   if(!checkHealth()||!scheme.attach_base_order(pending_order_)){fail(orderFile(),"block binding rejected");break;}
+   pending_order_.reset(); // Scheme owns the one complete navigation/workspace.
+   state_=ResourceState::Ready;break;
+  }
+#endif
   OrderAllocationScope allocation_scope;
   if(!scheme.attach_base_order(std::make_shared<hanime::BaseOrderIndex>(verified_order_,scheme,shared))){fail(orderFile(),"binding rejected");break;}
   state_=ResourceState::Ready;break;

@@ -1,20 +1,24 @@
-## Draftor Alpha · v0.1.0-alpha.1 ##
+## Draftor Alpha 2 · v0.1.0-alpha.2
 
-Draftor's first public Alpha is now available for ESP32-S3 N16R8 (Thick). It includes bgIME (Big Goose Input Method Engine), supporting Full Pinyin, Xiaohe Shuangpin, Wubi 86, and English input, with both horizontal and vertical writing layouts.
+This update makes Chinese writing more immediate: letters appear sooner, candidate waiting is shorter, and selected words reach the page faster. It keeps Full Pinyin, Xiaohe Shuangpin, Wubi 86, English, and both writing layouts on ESP32-S3 N16R8 (Thick).
 
-草稿机的第一个 Alpha 公开版本，适用于 ESP32-S3 N16R8（Thick）。它搭载 bgIME（大鹅输入法），支持全拼、小鹤双拼、五笔86和英文输入，以及横排、竖排两种写作布局。
+这次更新主要让中文输入更跟手：原码反馈更及时，候选等待减少，选词后的正文也更早出现。ESP32-S3 N16R8（Thick）上的全拼、小鹤双拼、五笔86、英文及横竖排写作均保留。
 
-The source code, dictionaries, fonts and tested firmware are available on GitHub. A complete Pico 2 W (Thin) firmware is not included in this release.
+**Local author-review preview; Alpha 2 is not published yet. / 本地作者审阅稿，Alpha 2 尚未发布。**
 
-完整源码、词库、字体和实测固件均已发布。Pico 2 W（Thin）的完整写作固件暂未包含在本次发行中；独立电池供电模块仍在开发中。
+[What changed / 更新说明](docs/RELEASE_NOTES.md) · [Downloads and upgrade / 下载与升级](docs/INSTALL.md) · [Build / 源码构建](docs/BUILD.md) · [Usage / 操作手册](docs/USAGE.md)
 
-[Download Alpha / 下载 Alpha](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.1) · [Quick Start / 安装指南](docs/INSTALL.md) · [Build / 源码构建](docs/BUILD.md) · [Licenses / 许可证](docs/LICENSE_INVENTORY.md)
+Installers need the matching Firmware and Resources packages. **The new App exceeds the old 2 MiB slots**; read the separate 2 MiB migration and 4 MiB update instructions before flashing. Keep important manuscripts backed up. The tested image retains default serial input diagnostics; details and other limits are collected in [Known Issues](docs/KNOWN_ISSUES.md).
 
-For the input engine’s source layout, Core build instructions and integration limits, see the [bgIME module](ime/bgime/README.md).<br>
-输入引擎的源码结构、Core 独立构建及集成边界，见 [bgIME 模块](ime/bgime/README.zh-CN.md)。
+安装需要同版 Firmware 和 Resources。**新 App 已超过旧2 MiB分区容量**，烧录前请区分旧布局迁移与兼容4 MiB更新，并独立备份重要文稿。实测镜像保留默认串口输入诊断，具体行为及其他限制集中列在[已知问题](docs/KNOWN_ISSUES.md)。
 
-New self-owned Alpha source uses **Apache-2.0**. The previously published independent [`display/st7306`](display/st7306/) module keeps its **MIT** license and original third-party notices. Fonts, data and other third-party components retain their own terms; specific unresolved distribution evidence is listed in [license status](docs/RESOURCE_STATUS.md).<br>
-新发布自有源码采用 Apache-2.0；原独立屏幕模块继续按其目录内 MIT 及第三方声明分发。[原硬件概览](HARDWARE.md)与[Alpha 硬件接线](docs/HARDWARE.md)可查看细节。
+The [Alpha 1 release](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.1) remains available. [Alpha 2's future release link](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2) is pending publication. No complete Pico 2 W firmware is included here; the independent display examples remain available.
+
+[Alpha 1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.1) 保持可用；[Alpha 2 未来下载链接](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2)待发布。本版不包含 Pico 2 W 完整固件，独立屏幕示例继续保留。
+
+Draftor-owned source uses Apache-2.0; the independent [ST7306 module](display/st7306/) retains MIT. Third-party materials keep their own terms and [existing disclosures](docs/RESOURCE_STATUS.md). [bgIME source layout](ime/bgime/README.md) · [Hardware](docs/HARDWARE.md).
+
+自有源码采用 Apache-2.0，独立 ST7306 模块保留 MIT；第三方材料按各自条款及[既有披露](docs/RESOURCE_STATUS.md)处理。下方保留项目的作者介绍和来历。
 <!-- ALPHA_NAV_END -->
 
 

@@ -1,8 +1,10 @@
 #include "ST7306_OsptekLpm8.h"
 
 #include <algorithm>
+#include <cstring>
 
 #include "st7306_osptek_lpm8_protocol.hpp"
+#include "display_delta.hpp"
 
 ST7306OsptekLpm8::ST7306OsptekLpm8(
     SPIClass& spi, const std::uint8_t sck_pin,
@@ -16,6 +18,7 @@ ST7306OsptekLpm8::ST7306OsptekLpm8(
       reset_pin_(reset_pin) {}
 
 bool ST7306OsptekLpm8::begin() {
+  if(updating_)return false;
   pinMode(cs_pin_, OUTPUT);
   pinMode(dc_pin_, OUTPUT);
   pinMode(reset_pin_, OUTPUT);
@@ -50,7 +53,22 @@ void ST7306OsptekLpm8::transaction(
   spi_.beginTransaction(SPISettings(SpiHz, MSBFIRST, SPI_MODE0));
   digitalWrite(dc_pin_, is_data ? HIGH : LOW);
   digitalWrite(cs_pin_, LOW);
-  spi_.writeBytes(bytes, size);
+  if(reinterpret_cast<std::uintptr_t>(bytes)%4==0&&size%4==0){
+    spi_.writeBytes(bytes,size);
+  }else{
+    // spiWriteNL reads ceil(n/4) uint32_t words even for short commands.
+    // Preserve the donor's exact CS/DC and transmitted byte counts while
+    // avoiding unaligned/out-of-range C++ reads in either logical arm.
+    alignas(4) std::uint8_t padded[64];
+    for(std::size_t offset=0;offset<size;){
+      const auto count=std::min(sizeof(padded),size-offset);
+      std::memcpy(padded,bytes+offset,count);
+      const auto padding=(4-count%4)%4;
+      std::memset(padded+count,0,padding);
+      if(updating_){transfer_.staging_copy_bytes+=count;transfer_.staging_fill_bytes+=padding;}
+      spi_.writeBytes(padded,count);offset+=count;
+    }
+  }
   digitalWrite(cs_pin_, HIGH);
   spi_.endTransaction();
 }
@@ -83,10 +101,13 @@ void ST7306OsptekLpm8::initPanel() {
 }
 
 void ST7306OsptekLpm8::setFullWindow() {
+  setNativeRows(0x00,0xC7);
+}
+
+void ST7306OsptekLpm8::setNativeRows(const std::uint8_t row_first,
+                                   const std::uint8_t row_last) {
   constexpr std::uint8_t column_first = 0x05;
   constexpr std::uint8_t column_last = 0x36;
-  constexpr std::uint8_t row_first = 0x00;
-  constexpr std::uint8_t row_last = 0xC7;
   command(0x2A);
   data(&column_first, 1U);
   data(&column_last, 1U);
@@ -117,10 +138,38 @@ void ST7306OsptekLpm8::fillRect(
 }
 
 bool ST7306OsptekLpm8::update() {
-  if (!begun_) return false;
-  setFullWindow();
-  command(0x2C);
-  data(framebuffer_, sizeof(framebuffer_));
+  return update(nullptr,0);
+}
+
+bool ST7306OsptekLpm8::update(const std::uint8_t* completed,std::size_t size) {
+  if (!begun_||updating_||(completed&&size!=BufferSize))return false;
+  updating_=true;
+  const auto serial=transfer_.serial+1;
+  transfer_={};transfer_.serial=serial;
+#if DRAFTOR_DISPLAY_TRANSACTION
+  const auto plan=st7306_osptek_lpm8::planDelta(framebuffer_,completed);
+#else
+  (void)completed;(void)size;
+  const auto plan=st7306_osptek_lpm8::fullDeltaPlan();
+#endif
+  transfer_.compare_span_bytes=plan.compare_span_bytes;
+  transfer_.full=plan.full;
+  for(unsigned i=0;i<plan.count;++i){
+    const auto& band=plan.bands[i];
+    const auto offset=std::size_t(band.first_tile)*st7306_osptek_lpm8::kDeltaTileBytes;
+    const auto bytes=std::size_t(band.last_tile-band.first_tile+1U)*st7306_osptek_lpm8::kDeltaTileBytes;
+    setNativeRows(band.first_tile*2,band.last_tile*2+1);
+    command(0x2C);
+    data(framebuffer_+offset,bytes);
+    ++transfer_.windows;transfer_.bus_transactions+=8;
+    transfer_.payload_bytes+=bytes;
+    transfer_.wire_bytes+=bytes+st7306_osptek_lpm8::kWindowWireBytes;
+  }
+  // writeBytes returns only after its blocking hardware FIFO writes finish;
+  // it has no error/timeout acknowledgement API. This is the inherited
+  // software-completion boundary, not panel settling or readback confirmation.
+  transfer_.completed=true;
+  updating_=false;
   return true;
 }
 

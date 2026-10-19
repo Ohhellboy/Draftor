@@ -1,3 +1,6 @@
+> Alpha 2: current cumulative product build and active format4 bindings are documented in [the Build Guide](../../docs/BUILD.md). The standalone Core source remains here in `integration/product/dependencies/core`; the older fixture notes below describe their original test scope.
+> Alpha 2累计构建与生效format4绑定见构建指南；下列旧回放资料保留原适用范围。
+
 # bgIME
 
 **Big Goose Input Method Engine · 大鹅输入法**

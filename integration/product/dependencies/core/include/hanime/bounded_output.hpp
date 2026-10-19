@@ -81,7 +81,11 @@ class OutputReader {
   OutputCapacityRequirement capacity_requirement() const { return capacity_; }
  private:
   enum class Phase { LexemeStart, LexemeRead, RelationStart, RelationRead, SelectorStart,
-                     SelectorRead, NameStart, NameRead, Compare, Decide, TextStart, TextRead, Done,
+                     SelectorRead, NameStart, NameRead, Compare, Decide, TextStart, TextRead,
+#if HANIME_TEXT_CHAIN
+                     DefaultTextStart,
+#endif
+                     Done,
                      ReuseLookup, ReuseCompare, ReuseCopy, ReuseReserve, ReuseStore };
   PagedSharedResource* resource_{nullptr};
   SharedActivationHandle activation_;

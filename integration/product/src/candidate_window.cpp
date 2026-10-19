@@ -1,3 +1,4 @@
+#include "cp_observe.hpp"
 #include "behavior_bench.hpp"
 #include "candidate_window.hpp"
 #include "behavior_observer.hpp"
@@ -38,6 +39,7 @@ const VisibleItem* CandidateWindow::focusedCurrent()const{
  return &item;
 }
 void CandidateWindow::cancel(){
+ CPATTR(cpattr::cancel());
  if(layout_serial_<UINT32_MAX)++layout_serial_;
  last_status_=Status::Ready;last_output_=hanime::OutputStatus::Cancelled;
  if(background_||prefetched_.count)++costs_.prefetch_cancelled;
@@ -122,6 +124,7 @@ void CandidateWindow::query(size_t prefix,uint32_t action){
  // no mutable scoring/output context exists, so context revision is zero.
  beginScan(prefix?c_.choose_prefix(prefix):c_.query_next({},0));
  BT_OBSERVE(query(c_,*this,prefix));
+ CPATTR(cpattr::begin(action_,query_serial_,s.input_id,s.revision,s.scheme_epoch,s.activation.mount_epoch(),s.activation.shared_bundle_id()));
  traceUi(UiTraceKind::Query,&c_,this);
 }
 Status CandidateWindow::tryPrefix(size_t prefix,uint32_t action){
@@ -333,6 +336,7 @@ void CandidateWindow::finishScan(bool end){
   occupied_columns_=expanded_?view_.count:1;
  if(vertical_seen_&&expanded_)stage_expanded_=true;
  BT_MEASURE(ready(view_.action));
+ CPATTR(cpattr::ready());
  traceUi(UiTraceKind::WindowReady,&c_,this);
  if(choosing_){startAuth();return;}
  if(pending_.valid){const auto n=pending_;pending_={};request(n.row,n.col,n.expand,n.exact,n.action);}
@@ -426,7 +430,7 @@ void CandidateWindow::tickDone(Status s){
   forward_more_=task_==Task::Query?c_.page().has_more:last_move_before_||c_.page().has_more;
   // Keep the first usable range timestamp for this action. Page counts stay
   // in WindowCosts; a deep scan must not fill the trace ring with every range.
-  if(!range_traced_&&!background_){traceUi(UiTraceKind::RangeReady,&c_,this);range_traced_=true;}
+  if(!range_traced_&&!background_){CPATTR(cpattr::range());traceUi(UiTraceKind::RangeReady,&c_,this);range_traced_=true;}
  }
  if(task_==Task::Text&&s==Status::Ready&&uiTrace.detailed())traceUi(UiTraceKind::ItemTextReady,&c_,this,nullptr,&reading_);
  if(choosing_&&(task_==Task::Query||task_==Task::Page||task_==Task::Seek||task_==Task::Text)&&(s==Status::PageReady||s==Status::Ready)){
@@ -448,6 +452,7 @@ void CandidateWindow::tickDone(Status s){
  failStatus(s,last_output_);
 }
 void CandidateWindow::service(bool allow_prefetch){
+ CPATTR_TIMER(cp_window,Window);
  if(task_==Task::CachedText){appendText();return;}
  if(background_&&!allow_prefetch&&!choosing_&&!pending_.valid)return;
  if(!working()){if(allow_prefetch)prefetch();return;}
@@ -455,6 +460,7 @@ void CandidateWindow::service(bool allow_prefetch){
  const auto r=c_.tick(op_,Resources::Budget);
  if(hidden)++costs_.prefetch_steps;
  metrics.step(hidden?Phase::RowPrefetch:task==Task::Text?Phase::VisibleText:Phase::Query,start,r.core_cost.read_calls,r.core_cost.read_bytes,r.core_cost.work_items,io);
+ CPATTR(cpattr::interval(cpattr::Core,start,metrics.phases[unsigned(hidden?Phase::RowPrefetch:task==Task::Text?Phase::VisibleText:Phase::Query)].last_us));
  if(r.status!=Status::Working){last_output_=r.output;tickDone(r.status);}
 }
 }

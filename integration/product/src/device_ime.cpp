@@ -1,3 +1,4 @@
+#include "cp_observe.hpp"
 #include "behavior_bench.hpp"
 #include "device_ime.hpp"
 #include "wubi_product.hpp"
@@ -855,6 +856,7 @@ bool DeviceIme::dispatch(const s3hid::Event& e,bool successor){
  ++metrics.blocked;noteIntent(AppBlocked,e,current_action_);mark("App action blocked by CN");return true;
 }
 void DeviceIme::service(bool allow_prefetch){
+ CPATTR_TIMER(cp_ime,Ime);CPATTR(cpattr::call());
  IngressScope ingress_scope(*this);
  serviceVisuals(uint32_t(clockUs()/1000));
  if(flow_.guarded&&!flowCurrent()){

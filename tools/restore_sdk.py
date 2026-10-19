@@ -6,7 +6,6 @@ patched file and the rebuilt archive live in this task, never in that input.
 from pathlib import Path
 import os, shutil, json, subprocess, sys
 r=Path(__file__).resolve().parents[1]
-base=Path(os.environ.get('HANIME_WORKSPACE',str(r.parent.parent)))
 installed=Path(os.environ['DRAFTOR_SDK_SOURCE']).resolve()
 private=r/'TestBuilds/arduino-data/data'
 assert installed.is_dir()

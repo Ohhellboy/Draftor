@@ -3,6 +3,7 @@
 #include "hanime/verified_resource.hpp"
 
 namespace hanime {
+namespace detail { struct BaseOrderBlockAccess; }
 // Optional immutable BaseOnly rule-1 derived index, never a learning identity.
 // The original raw query remains available and retains every mapping path.
 enum class BaseOrderStatus { Pending, Ready, NotFound, Stale, Error, InvalidRequest };
@@ -43,6 +44,7 @@ class BaseOrderCursor {
   std::size_t memory_bytes() const;
  private:
   friend class BaseOrderIndex;
+  friend struct detail::BaseOrderBlockAccess;
   struct Impl;
   std::unique_ptr<Impl> impl_;
 };
@@ -78,6 +80,7 @@ class BaseOrderIndex {
   BaseOrderLocateStats locate_stats() const; // Read-only, no work/I/O.
  private:
   friend class ExactRanker;
+  friend struct detail::BaseOrderBlockAccess;
   // Only the ranker may resume its own released operation lineage. A public
   // cancellation does not authorize another consumer to resume that cursor.
   bool continue_range(BaseOrderCursor&);

@@ -126,6 +126,14 @@ OutputStep OutputReader::advance(const WorkBudget& budget) {
   const bool reuse_step=phase_>=Phase::ReuseLookup;
   WorkCost accumulated;
   for (;;) {
+#if HANIME_TEXT_CHAIN
+  // Metadata tickets and cache copies need only work. A lower-level advance
+  // requires all three nonzero allowances under the existing shared API.
+  const bool lower=phase_==Phase::LexemeRead || phase_==Phase::RelationRead ||
+      phase_==Phase::SelectorRead || phase_==Phase::NameRead || phase_==Phase::TextRead;
+  if (lower && (!b.max_read_calls || !b.max_read_bytes)) break;
+  bool lower_pending=false;
+#endif
   out.cost={0,0,1};
   switch (phase_) {
     case Phase::ReuseLookup:
@@ -197,19 +205,42 @@ OutputStep OutputReader::advance(const WorkBudget& budget) {
     case Phase::SelectorStart: start_record(SharedRecordKind::Selector,relation_.selector,Phase::SelectorRead); break;
     case Phase::LexemeRead: case Phase::RelationRead: case Phase::SelectorRead: {
       auto s=resource_->advance_read(&record_cursor_,b); out.cost=s.cost; add(costs_.metadata,s.cost);
-      if (s.status==SharedReadStatus::InProgress) break;
+      if (s.status==SharedReadStatus::InProgress) {
+#if HANIME_TEXT_CHAIN
+        lower_pending=true;
+#endif
+        break;
+      }
       reading_record_=false;
       if (s.status!=SharedReadStatus::Ready) {finish(read_status(s.status)); break;}
       if (!resource_->result_is_current(s)) {finish(OutputStatus::Stale); break;}
       if (phase_==Phase::LexemeRead) {
         lexeme_=s.lexeme;
         if (!(lexeme_.identity.stable_key==expected_key_)) {finish(OutputStatus::Stale); break;}
-        if (request_.form.empty()) {payload_=lexeme_.default_payload; resolved_=OutputStatus::Default; phase_=Phase::TextStart;}
+        if (request_.form.empty()) {
+          payload_=lexeme_.default_payload; resolved_=OutputStatus::Default;
+#if HANIME_TEXT_CHAIN
+          // Keep the current record owned until the private transfer succeeds;
+          // cancellation or an intervening metadata begin must invalidate it.
+          reading_record_=true; phase_=Phase::DefaultTextStart;
+#else
+          phase_=Phase::TextStart;
+#endif
+        }
         else phase_=Phase::RelationStart;
       } else if (phase_==Phase::RelationRead) {relation_=s.relation; phase_=Phase::SelectorStart;}
       else {name_id_=s.selector.name; phase_=Phase::NameStart;}
       break;
     }
+#if HANIME_TEXT_CHAIN
+    case Phase::DefaultTextStart: {
+      const auto s=resource_->begin_default_payload_read(activation_,record_cursor_,ref_,payload_,
+          destination_,l_,&text_cursor_);
+      if (s!=SharedReadStatus::InProgress) finish(read_status(s));
+      else {reading_record_=false; reading_text_=true; phase_=Phase::TextRead;}
+      break;
+    }
+#endif
     case Phase::NameStart: case Phase::TextStart: {
       const bool name=phase_==Phase::NameStart;
       auto s=resource_->begin_payload_read(activation_,name ? name_id_ : payload_,
@@ -223,7 +254,12 @@ OutputStep OutputReader::advance(const WorkBudget& budget) {
       auto s=resource_->advance_payload_read(&text_cursor_,b); out.cost=s.cost;
       add(name ? costs_.names : costs_.payload,s.cost);
       (name ? costs_.name_payload_bytes : costs_.text_payload_bytes)+=s.copied_bytes;
-      if (s.status==SharedReadStatus::InProgress) break;
+      if (s.status==SharedReadStatus::InProgress) {
+#if HANIME_TEXT_CHAIN
+        lower_pending=true;
+#endif
+        break;
+      }
       reading_text_=false;
       if (s.status==SharedReadStatus::CapacityExceeded) {
         capacity_={s.required_bytes,name};
@@ -258,6 +294,19 @@ OutputStep OutputReader::advance(const WorkBudget& budget) {
     case Phase::Done: break;
   }
   add(accumulated,out.cost);
+#if HANIME_TEXT_CHAIN
+  if (request_.form.empty()) {
+    // Only completed default-path phases may chain. A true Pending always
+    // returns to the caller, even when some budget remains. Work charges bound
+    // every local transition; lower calls keep their actual three-axis cost.
+    if (status_!=OutputStatus::Pending || lower_pending ||
+        accumulated.work_items==budget.max_work_items) break;
+    b={budget.max_read_calls-accumulated.read_calls,
+       budget.max_read_bytes-accumulated.read_bytes,
+       budget.max_work_items-accumulated.work_items};
+    continue;
+  }
+#endif
   // Use remaining work for RAM cache work after a completed payload advance.
   // A lookup miss may also create the normal record ticket (no I/O), but must
   // yield before advancing it. Never perform two lower-level advances here.

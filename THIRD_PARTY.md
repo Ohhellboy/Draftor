@@ -179,3 +179,9 @@ Original third-party license texts and attribution records remain applicable. Th
 第三方许可证原文及署名记录继续有效。本页是说明与索引，不替代原始许可文本。
 
 [LICENSE](LICENSE) · [NOTICE](NOTICE) · [License Inventory / 许可证清单](docs/LICENSE_INVENTORY.md) · [Resource Status / 资源许可](docs/RESOURCE_STATUS.md)
+
+## Alpha 2 addition / Alpha 2 新增组件
+
+The already-integrated Wi-Fi QR feature uses Nayuki's QR-Code-generator C implementation at commit `3c6d0b3cefb4e049dc337e82237c9644399716a8` under MIT. Source, original license and source identity are in `integration/qr/vendor/nayuki/`. The wrapper is Draftor-owned. No new dictionary or font licensing grant is claimed. Existing D01/D04/D08 provenance and redistribution questions remain disclosed; preparing this release does not resolve them.
+
+既有二维码功能使用上述 MIT 实现，原源码、许可证与来源一并保留；封装为项目自有代码。本次不新增词库/字体许可主张，原D01/D04/D08未决事项继续披露，不因封包变为已解决。

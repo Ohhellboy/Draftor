@@ -1,43 +1,120 @@
 {
-  "final_parent": "T06_TF20_R1",
-  "firmware": "DRAFTOR_S3_ALPHA_T06_TF20_R1_20261007",
-  "runtime_hz": 20000000,
-  "initialization_hz": 400000,
-  "exact_tested_app": "Draftor_Alpha_T06_TF20_R1.app.bin",
-  "tested_app_bytes": 2061808,
-  "static_internal_RAM_bytes": 138012,
-  "application_offset": "0x10000",
-  "application_capacity": "0x200000",
-  "resource_release": "LEXICON_R3_B2_20261006",
-  "runtime_payload_files": 14,
-  "resource_runtime_path": "/sd/HANIME/IME/LEXICON_R3_B2_20261006",
-  "font_runtime_path": "/sd/HANIME/IME/R1_API080/matched28.hbf1",
-  "pins": "release/integration_headers/release_pin.hpp",
-  "matching_product_pins": "integration/product/dependencies/release_resources/release_pin.hpp",
-  "sdk": "Arduino-ESP32 3.3.11; vendor/versions.txt and unchanged MSC-only overlay",
-  "device_qualification": "PASS_FINITE_SCENE_ONLY",
-  "rollback_only": {
-    "parent": "T06_Release_R1",
-    "runtime_hz": 10000000,
-    "firmware": "DRAFTOR_S3_ALPHA_T06_R1_20261007"
+  "version": "v0.1.0-alpha.2",
+  "firmware_label": "DRAFTOR_CUMULATIVE_ROUND1_20261019_MEASURE",
+  "app": {
+    "name": "Draftor_v0.1.0-alpha.2.app.bin",
+    "bytes": 2441680,
+    "sha256": "f9b0b4670316480004048d96020a2d8c8f0b0ac0639aa68ff227de8cad27eb26",
+    "origin": "exact unchanged cumulative image used in Round 2 and FW1"
   },
-  "source_license": "New self-owned Alpha code Apache-2.0; existing display/st7306 MIT; third-party exceptions retained",
-  "patent_publication": "PRIVATE_DOCUMENTS_EXCLUDED; NO_APACHE_DOCUMENT_REQUIREMENT; PRIVATE_COMPARISON_NOT_PERFORMED",
-  "resource_publication": "FULL_ORIGINAL_LOCAL_CANDIDATE; SPECIFIC_ITEMS_UNCONFIRMED",
-  "binary_publication": "EXACT_TESTED_APP_AND_ORIGINAL_FIRST_INSTALL_PREPARED; DISTRIBUTION_EVIDENCE_UNCONFIRMED",
-  "resources_payload_bytes": 126940251,
-  "assets": [
-    "Draftor_Alpha_Source.zip",
-    "Draftor_Alpha_Resources.zip",
-    "Draftor_Alpha_BuildInputs.zip",
-    "Draftor_Alpha_Firmware.zip"
-  ],
-  "tag": "v0.1.0-alpha.1",
-  "display_name": "Draftor Alpha",
-  "repository": "https://github.com/Ohhellboy/Draftor",
-  "base_commit": "7e3c8e2a6032ff6ea06335c41a1b4069922e98f7",
-  "source_archive": "Integrated tracked repository snapshot; no .git history in ZIP",
-  "d04": "INCLUDED_BY_OWNER_REQUEST; REDISTRIBUTION_GRANT_UNCONFIRMED",
-  "publication_record": "https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.1",
-  "publication_record_note": "Intended release identity; local presence of this metadata is not a publication receipt"
+  "resources": {
+    "shared_bundle_id": 17304919664082782091,
+    "all_files_bytes": 132153747,
+    "format": 4,
+    "resource_root": "/sd/HANIME/IME/B_SHORT_TEXT_20261018",
+    "files": [
+      {
+        "name": "shared.hns",
+        "bytes": 32384515,
+        "sha256": "f6a2afec4759ff879e6052f6c582606f33e78270a53d82d1e3deb85351a17339"
+      },
+      {
+        "name": "shared.hnv",
+        "bytes": 64770048,
+        "sha256": "49fe7363b2ce7b1ff0fd53ec17e65e5c98ff588a5bf6aac016af932a7701c93b"
+      },
+      {
+        "name": "xiaohe.hnm",
+        "bytes": 2756648,
+        "sha256": "9a0585f1662e6337a0936c6a5479b1a3ff9e76840927def05ace14070da56328"
+      },
+      {
+        "name": "xiaohe.hnv",
+        "bytes": 91136,
+        "sha256": "8ef5237e2638364510f0fb7514ecbb52e7a58cc46395c257efd5d42061787ae2"
+      },
+      {
+        "name": "full_pinyin.hnm",
+        "bytes": 2080808,
+        "sha256": "d91b7ae982d80cfc59885852b3f5abdfb0b01d1940f8b811ab22b655aaa9723b"
+      },
+      {
+        "name": "full_pinyin.hnv",
+        "bytes": 68608,
+        "sha256": "c8600a8a36a4a2cf0fdcd410fd0ceb8cce2b3dca534c2869b9e373a9641c73c9"
+      },
+      {
+        "name": "wubi86.hnm",
+        "bytes": 1482792,
+        "sha256": "0fa4b31c9e817626f434f5e3802c8ad7b53ef7a583d499febb87beba54c8fd84"
+      },
+      {
+        "name": "wubi86.hnv",
+        "bytes": 50176,
+        "sha256": "9e13336d42d326808e9d00451d607c6c2f0a5ca81b30044c4d9ec4bb2fdd0319"
+      },
+      {
+        "name": "xiaohe_base.hbo",
+        "bytes": 11986536,
+        "sha256": "f9109dd7b89c5573e09d74a14c2f294565e9bd649a7f34f386dbb87234d08530"
+      },
+      {
+        "name": "xiaohe_base.hnv",
+        "bytes": 388096,
+        "sha256": "49c54c0f55d11b6bcd0e5e13e5228b923ba6e5d162d9de10741ee34a8fee2bb9"
+      },
+      {
+        "name": "full_pinyin_base.hbo",
+        "bytes": 8219096,
+        "sha256": "bd23b97291e2c486dcec2e2d3930d4ab0d718bdac5ba59a947986b80c0f39365"
+      },
+      {
+        "name": "full_pinyin_base.hnv",
+        "bytes": 266240,
+        "sha256": "08b0dd721fab3be4b7919ca29b3ffa7904b51dee8a37b03b0e207024d1561ff1"
+      },
+      {
+        "name": "wubi86_base.hbo",
+        "bytes": 7369432,
+        "sha256": "cae1470b8537e696a3f81f9c6b963292918efafeec75ac49f39beabbfa3a5c5e"
+      },
+      {
+        "name": "wubi86_base.hnv",
+        "bytes": 239616,
+        "sha256": "5945d83a0750c5e582b784db156ead0d35f2e5f3a515d958280e60fcf374e28f"
+      }
+    ],
+    "pins": [
+      {
+        "bytes": 5756,
+        "name": "release_pin.hpp",
+        "sha256": "2ec45bfa39cd4542c07d5c6501c7a69f889dad1af4b05e35efc6bade48e17db4"
+      },
+      {
+        "bytes": 2764,
+        "name": "block_release_pin.hpp",
+        "sha256": "1a3f943f81d176b474d8d18a8cd81cbb8bcf44ee831326461f0a794afb440f8b"
+      },
+      {
+        "bytes": 3318,
+        "name": "wubi_release_v1.hpp",
+        "sha256": "c8b98b40da4a9cbd0b5b95346685a1eb4c220853556f475428d08f4f1a6a82e1"
+      }
+    ]
+  },
+  "partition": {
+    "flash_bytes": 16777216,
+    "app_slot_bytes": 4194304,
+    "old_2MiB_app_only_supported": false
+  },
+  "build": {
+    "arduino_cli": "1.4.1",
+    "arduino_esp32": "3.3.11",
+    "esp_x32": "2601",
+    "core": "0.13.1-rc.1 (CMake 0.13.1)",
+    "api": "0.13.0",
+    "host": "0.8.4-rc.1",
+    "combined_pin_sha256": "2b85265d958d6e47439a6fc75c4aff994fb8c615df72e9cb1205539a8f6de0a9"
+  },
+  "publication": "local author review; not published"
 }

@@ -1,7 +1,16 @@
+#include "structural_auth_observation.hpp"
+#ifndef HANIME_STRUCTURAL_HOST_OBSERVE
+#define HANIME_STRUCTURAL_HOST_OBSERVE 0
+#endif
 #include "hanime/verified_resource.hpp"
 #include <algorithm>
 #include <cstring>
 #include <limits>
+
+// Isolated research switch; the accepted/common implementation remains default.
+#ifndef HANIME_SHA256_BATCHED_FINAL
+#define HANIME_SHA256_BATCHED_FINAL 0
+#endif
 
 namespace hanime {
 namespace {
@@ -65,12 +74,27 @@ void Sha256::update(const void* source,std::size_t n) {
 }
 Sha256Digest Sha256::final() const {
   auto x=*this; const auto bits=bytes_*8U;
+#if HANIME_SHA256_BATCHED_FINAL
+  // Construct exactly the same FIPS padding in the private copy. Avoid routing
+  // every zero byte through update()/memcpy. The message length, compression
+  // sequence, digest and const/repeated-final semantics remain unchanged.
+  x.buffer_[x.filled_++]=0x80;
+  if(x.filled_>56) {
+    std::fill(x.buffer_.begin()+x.filled_,x.buffer_.end(),0);
+    x.compress(x.buffer_.data());
+    x.filled_=0;
+  }
+  std::fill(x.buffer_.begin()+x.filled_,x.buffer_.begin()+56,0);
+  for(unsigned i=0;i<8;++i)x.buffer_[56+i]=static_cast<std::uint8_t>(bits>>((7U-i)*8U));
+  x.compress(x.buffer_.data());
+#else
   const std::uint8_t start=0x80; x.update(&start,1);
   const std::uint8_t zero=0;
   while(x.filled_!=56)x.update(&zero,1);
   std::array<std::uint8_t,8> length{};
   for(unsigned i=0;i<8;++i)length[i]=static_cast<std::uint8_t>(bits>>((7U-i)*8U));
   x.update(length.data(),length.size());
+#endif
   Sha256Digest out{};
   for(unsigned i=0;i<8;++i)for(unsigned j=0;j<4;++j)
     out[i*4+j]=static_cast<std::uint8_t>(x.state_[i]>>((3U-j)*8U));
@@ -101,6 +125,23 @@ bool merkle_layout(std::uint64_t bytes,MerkleLayout* out) {
   *out=r;return true;
 }
 
+namespace detail {
+#if HANIME_STRUCTURAL_HOST_OBSERVE
+static StructuralAuthStats structural_auth_values[4];
+#endif
+StructuralAuthStats structural_auth_stats(ResourceReleaseRole role) {
+#if HANIME_STRUCTURAL_HOST_OBSERVE
+ return structural_auth_values[static_cast<unsigned>(role)];
+#else
+ (void)role;return {};
+#endif
+}
+}
+#if HANIME_STRUCTURAL_HOST_OBSERVE
+#define STRUCT_AUTH_ADD(field,n) (detail::structural_auth_values[static_cast<unsigned>(spec.role)].field+=(n))
+#else
+#define STRUCT_AUTH_ADD(field,n) ((void)0)
+#endif
 struct VerifiedResourceReader::Impl {
   struct DataSlot {std::uint64_t block{0};bool valid{false};std::uint64_t age{0};};
   struct IndexSlot {std::uint32_t level{0},page{0};bool valid{false};std::uint64_t age{0};};
@@ -200,6 +241,11 @@ struct VerifiedResourceReader::Impl {
     if(!r.healthy()||!r.read(static_cast<std::size_t>(start)+filled,target+filled,n)||!r.healthy()) {
       fail("resource or verification index read failed");return false;
     }
+    STRUCT_AUTH_ADD(lower_read_calls,1);
+    if(phase==Phase::PacketLoad){const auto data_part=filled<kPackedDataBytes?std::min(n,kPackedDataBytes-filled):0;
+      STRUCT_AUTH_ADD(lower_data_bytes,data_part);STRUCT_AUTH_ADD(lower_proof_bytes,n-data_part);(void)data_part;
+    }else if(phase==Phase::DataLoad){STRUCT_AUTH_ADD(lower_data_bytes,n);}
+    else{STRUCT_AUTH_ADD(lower_proof_bytes,n);}
     filled+=n;return true;
   }
   void start_hash(bool leaf) {
@@ -211,6 +257,8 @@ struct VerifiedResourceReader::Impl {
     if(c.work_items==b.max_work_items)return false;
     if(prefix_pos<prefix_size) {
       const auto n=std::min(prefix_size-prefix_pos,b.max_work_items-c.work_items);
+      STRUCT_AUTH_ADD(hash_update_calls,1);STRUCT_AUTH_ADD(hash_update_bytes,n);STRUCT_AUTH_ADD(hash_prefix_bytes,n);
+      STRUCT_AUTH_ADD(hash_compression_blocks,(prefix_pos+hashed+n)/64-(prefix_pos+hashed)/64);
       hash.update(prefix.data()+prefix_pos,n);prefix_pos+=n;c.work_items+=n;return true;
     }
     if(hashed<size) {
@@ -223,6 +271,9 @@ struct VerifiedResourceReader::Impl {
         for(auto i=std::max<std::size_t>(hashed,static_cast<std::size_t>(entries)*32);i<hashed+n;++i)
           if(bytes[i]){fail("nonzero verification index padding");return false;}
       }
+      STRUCT_AUTH_ADD(hash_update_calls,1);STRUCT_AUTH_ADD(hash_update_bytes,n);
+      if(phase==Phase::IndexHash||phase==Phase::PacketParent){STRUCT_AUTH_ADD(hash_proof_bytes,n);}else{STRUCT_AUTH_ADD(hash_data_bytes,n);}
+      STRUCT_AUTH_ADD(hash_compression_blocks,(prefix_pos+hashed+n)/64-(prefix_pos+hashed)/64);
       hash.update(bytes+hashed,n);hashed+=n;c.work_items+=n;return true;
     }
     return false;
@@ -230,6 +281,7 @@ struct VerifiedResourceReader::Impl {
   void descend() {
     const auto* bytes=index_bytes.get()+index_slot*kVerifiedIndexPageBytes;
     const auto child=level ? path[level-1] : block;
+    STRUCT_AUTH_ADD(proof_digest_copy_bytes,32);
     std::copy_n(bytes+(child%kVerifiedFanout)*32,32,expected.begin());
     if(level){--level;phase=Phase::IndexStart;}
     else {
@@ -246,6 +298,7 @@ struct VerifiedResourceReader::Impl {
   void start_packet_parent() {
     const auto* sibling = index_bytes.get() + kPackedDataBytes + 32 * level;
     const bool right = ((block >> level) & 1U) != 0;
+    STRUCT_AUTH_ADD(proof_digest_copy_bytes,64);
     std::copy_n(right ? sibling : expected.data(), 32, parent_bytes.begin());
     std::copy_n(right ? expected.data() : sibling, 32, parent_bytes.begin() + 32);
     hash = Sha256{};
@@ -283,6 +336,7 @@ struct VerifiedResourceReader::Impl {
             return false;
           }
         }
+        STRUCT_AUTH_ADD(padding_checked_bytes,n);
         filled += n;
         cost.work_items += n;
       } else {
@@ -294,6 +348,7 @@ struct VerifiedResourceReader::Impl {
       if (prefix_pos < prefix_size || hashed < true_bytes)
         return hash_more(index_bytes.get(), true_bytes, budget, cost);
       if (!work(budget, cost)) return false;
+      STRUCT_AUTH_ADD(hash_final_calls,1);STRUCT_AUTH_ADD(hash_compression_blocks,((prefix_pos+hashed)%64+9+63)/64);
       expected = hash.final();
       level = 0;
       if (!packed_layout.depth) return finish_packet_path();
@@ -303,6 +358,7 @@ struct VerifiedResourceReader::Impl {
       if (prefix_pos < prefix_size || hashed < parent_bytes.size())
         return hash_more(parent_bytes.data(), parent_bytes.size(), budget, cost);
       if (!work(budget, cost)) return false;
+      STRUCT_AUTH_ADD(hash_final_calls,1);STRUCT_AUTH_ADD(hash_compression_blocks,((prefix_pos+hashed)%64+9+63)/64);
       expected = hash.final();
       ++level;
       if (anchors && level==anchor_level) pending_anchor=expected;
@@ -324,6 +380,7 @@ struct VerifiedResourceReader::Impl {
       if (filled < true_bytes) {
         const auto n = std::min(true_bytes - filled, budget.max_work_items - cost.work_items);
         if (!n) return false;
+        STRUCT_AUTH_ADD(packet_cache_copy_bytes,n);
         std::memcpy(data_bytes.get() + data_slot * data_block_bytes + filled, index_bytes.get() + filled, n);
         filled += n;
         cost.work_items += n;
@@ -403,6 +460,7 @@ struct VerifiedResourceReader::Impl {
           if(!hash_more(index_bytes.get()+index_slot*kVerifiedIndexPageBytes,kVerifiedIndexPageBytes,b,c))break;
         } else {
           if(!work(b,c))break;
+          STRUCT_AUTH_ADD(hash_final_calls,1);STRUCT_AUTH_ADD(hash_compression_blocks,((prefix_pos+hashed)%64+9+63)/64);
           if(hash.final()!=expected){fail("verification index digest mismatch");break;}
           index_slots[index_slot].valid=true;index_slots[index_slot].age=touch();
           saturated_add(index_loads,std::uint64_t{1});descend();
@@ -416,6 +474,7 @@ struct VerifiedResourceReader::Impl {
           if(!hash_more(data_bytes.get()+data_slot*kVerifiedBlockBytes,true_bytes,b,c))break;
         } else {
           if(!work(b,c))break;
+          STRUCT_AUTH_ADD(hash_final_calls,1);STRUCT_AUTH_ADD(hash_compression_blocks,((prefix_pos+hashed)%64+9+63)/64);
           if(hash.final()!=expected){fail("resource block digest mismatch");break;}
           data_slots[data_slot].valid=true;data_slots[data_slot].age=touch();
           saturated_add(loads,std::uint64_t{1});phase=Phase::Copy;
@@ -424,6 +483,7 @@ struct VerifiedResourceReader::Impl {
         if(c.work_items==b.max_work_items)break;
         const auto within=(offset+copied)%data_block_bytes;
         const auto n=std::min({count-copied,data_block_bytes-within,b.max_work_items-c.work_items});
+        STRUCT_AUTH_ADD(caller_copy_bytes,n);
         std::memcpy(destination+copied,data_bytes.get()+data_slot*data_block_bytes+within,n);
         copied+=n;c.work_items+=n;
         if(copied==count){active=false;context={};out.status=ResourceReadStatus::Ready;return out;}
@@ -445,7 +505,11 @@ VerifiedResourceReader::VerifiedResourceReader(std::shared_ptr<const ResourceRea
      (spec.verification_format!=1 && !packed) ||
      spec.rule_version!=kResourceVerificationRule||
      (spec.role==ResourceReleaseRole::BaseOrder ?
-        (spec.resource_format!=1U && spec.resource_format!=2U) : spec.resource_format!=2U)||spec.key_format!=kStableKeyFormat||
+        (spec.resource_format!=1U && spec.resource_format!=2U
+#if defined(DRAFTOR_BLOCK_BACKEND) && DRAFTOR_BLOCK_BACKEND
+         && spec.resource_format!=105U // This isolated candidate admits only the pinned block format.
+#endif
+        ) : (spec.resource_format!=2U && !(spec.role==ResourceReleaseRole::Shared && (spec.resource_format==3U || spec.resource_format==4U))))||spec.key_format!=kStableKeyFormat||
      !spec.registry_namespace||!spec.shared_bundle_id||!spec.runtime_ref_count||!spec.text_capacity||!spec.name_capacity||
      !nonzero(spec.file_sha256)||!nonzero(spec.merkle_root)||
      config.data_cache_blocks<3||config.data_cache_blocks>64||!config.index_cache_pages||config.index_cache_pages>64||
@@ -518,6 +582,9 @@ bool VerifiedResourceReader::read(std::size_t offset,void* destination,std::size
   while(done<n) {
     const auto block=(offset+done)/p.data_block_bytes,within=(offset+done)%p.data_block_bytes;
     const auto amount=std::min(n-done,p.data_block_bytes-within);
+#if HANIME_STRUCTURAL_HOST_OBSERVE
+    detail::structural_auth_values[static_cast<unsigned>(p.spec.role)].cache_only_copy_bytes+=amount;
+#endif
     std::memcpy(dest+done,p.data_bytes.get()+p.find_data(block)*p.data_block_bytes+within,amount);done+=amount;
   }
   return true;

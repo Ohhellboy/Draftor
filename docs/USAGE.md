@@ -297,6 +297,16 @@ For known limitations and the current testing scope, see [Known Issues / 已知�
 
 ---
 
-**Draftor Alpha — v0.1.0-alpha.1**
+**Draftor Alpha — v0.1.0-alpha.2**
 
-[Project Home / 项目主页](https://github.com/Ohhellboy/Draftor) · [Download / 下载](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.1) · [Installation / 安装](INSTALL.md) · [Hardware / 硬件](HARDWARE.md)
+[Project Home / 项目主页](https://github.com/Ohhellboy/Draftor) · [Download / 下载](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2) · [Installation / 安装](INSTALL.md) · [Hardware / 硬件](HARDWARE.md)
+
+## Experimental local Wi-Fi / 实验本地 Wi-Fi
+
+Wi-Fi is off at startup. Finish current composition/save/USB actions before F10 opens the local hotspot page. Tab switches between connection/address QR pages; P shows manual connection details. Esc returns to writing while the hotspot remains active. F10 then O closes it. Use the displayed local connection details; no cloud account is required. USB and Wi-Fi transfer cannot be active together. These features are inherited from the fixed build; the latest performance and free-writing checks kept Wi-Fi off.
+
+启动默认关闭。处理完原码、保存与USB操作后，F10打开本地热点页，Tab切换连接/地址二维码，P显示手动连接信息。Esc只返回写作，F10再O才关闭热点。按屏幕信息连接，不需云账号；USB与Wi-Fi传输不可并行。本轮性能和自由写作检查保持Wi-Fi关闭。
+
+The tested firmware's serial diagnostics include composition codes by default. Read [privacy details](KNOWN_ISSUES.md) before connecting a logger or sharing its output.
+
+实测固件默认串口诊断含组成码，连接采集器或分享内容前请读[隐私说明](KNOWN_ISSUES.md)。

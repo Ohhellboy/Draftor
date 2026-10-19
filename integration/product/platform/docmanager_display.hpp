@@ -58,7 +58,7 @@ template<class Label,class Rect> bool documentMenu(const App& app,const s3host::
    label(preview,12,y,selected);label(state.page.items[i].id.shortHex().c_str(),12,y+14,selected);
   }
   if(app.restoredName()){label("Restored to files (not opened):",8,204,false);documentName(app.restoredName(),222,font,label);}
-  char page[48];snprintf(page,sizeof(page),trash?"Page %u%s  Esc: files":"Page %u%s  Esc:return U:USB out I:in",unsigned(state.page.offset/ds::kMaxListPage+1),state.page.has_more?" +":"");label(page,8,330,false);
+  char page[48];snprintf(page,sizeof(page),trash?"Page %u%s  Esc: files":"Page %u%s U:USB I:in W:Wi-Fi",unsigned(state.page.offset/ds::kMaxListPage+1),state.page.has_more?" +":"");label(page,8,330,false);
  }else if(!app.session.hasCurrent()){
   label("No active document",8,70,false);label("F2 / Cmd+O: files   N: new",8,100,false);
  }else return false;

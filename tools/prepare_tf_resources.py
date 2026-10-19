@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Ruotao Wang
-"""Prepare a new, explicitly selected offline B2 directory; no device access.
+"""Prepare a new, explicitly selected offline format4 directory; no device access.
 
 Packaging adaptation of the accepted whole-directory staging procedure.
 Original payload digest verification and runtime authentication are preserved.
@@ -11,22 +11,21 @@ import hashlib
 import json
 import shutil
 
-RELEASE = 'LEXICON_R3_B2_20261006'
-FIRMWARE = 'DRAFTOR_S3_ALPHA_T06_TF20_R1_20261007'
+RELEASE = 'B_SHORT_TEXT_20261018'
+FIRMWARE = 'DRAFTOR_CUMULATIVE_ROUND1_20261019_MEASURE'
 
 def expected(folder):
-    manifest = json.loads((folder/'release_manifest.json').read_text())
-    if manifest['status'] != 'HOST_FINAL_BYTES_VALIDATED':
-        raise ValueError('Unexpected manifest status')
-    files = {}
+    canonical=Path(__file__).resolve().parents[1]/'release/alpha2/RESOURCE_MANIFEST.json'
+    manifest=json.loads(canonical.read_text())
+    supplied=json.loads((folder/'RESOURCE_MANIFEST.json').read_text())
+    if supplied != manifest:raise ValueError('Wrong same-release resource manifest')
+    files={}
     for row in manifest['files']:
-        for name_key,size_key,hash_key in [('source_file','file_bytes','file_sha256'),('index_file','index_bytes','index_sha256')]:
-            name = row[name_key]
-            if Path(name).name != name or name in files:
-                raise ValueError('Unsafe or duplicate resource member')
-            files[name] = (row[size_key],row[hash_key])
-    if len(files) != 14 or sum(v[0] for v in files.values()) != 126940251:
-        raise ValueError('Unexpected B2 payload set')
+        name=row['name']
+        if Path(name).name!=name or name in files:raise ValueError('Unsafe resource name')
+        files[name]=(row['bytes'],row['sha256'])
+    if len(files) != 14 or sum(v[0] for v in files.values()) != 132153747:
+        raise ValueError('Unexpected format4 payload set')
     return files
 
 def validate(folder, files):
@@ -58,7 +57,7 @@ def stage(resources,target,write=False):
     temp = target.with_name('.'+RELEASE+'.staging')
     if temp.exists() or temp.is_symlink():
         raise ValueError('Interrupted stage retained; investigate it first')
-    plan = dict(status='DRY_RUN',target=str(target),files=14,payload_bytes=126940251)
+    plan = dict(status='DRY_RUN',target=str(target),files=14,payload_bytes=132153747)
     if not write:
         validate(origin,files)
         return plan
@@ -66,7 +65,7 @@ def stage(resources,target,write=False):
         raise ValueError('Target parent must exist without symlink ancestors')
     temp.mkdir()
     (temp/'STAGING_INCOMPLETE').write_text('Not an active resource root.\n')
-    for name in [*files,'release_manifest.json','release_pin.hpp']:
+    for name in [*files,'RESOURCE_MANIFEST.json']:
         src=origin/name
         if src.is_symlink():
             raise ValueError('Source member must not be a symlink')
