@@ -5,6 +5,11 @@ patched file and the rebuilt archive live in this task, never in that input.
 """
 from pathlib import Path
 import os, shutil, json, subprocess, sys
+def owned_copy(source,destination):
+ source=Path(source);destination=Path(destination)
+ with source.open('rb') as inp,destination.open('wb') as out:shutil.copyfileobj(inp,out,1024*1024)
+ shutil.copymode(source,destination)
+ return str(destination)
 r=Path(__file__).resolve().parents[1]
 installed=Path(os.environ['DRAFTOR_SDK_SOURCE']).resolve()
 private=r/'TestBuilds/arduino-data/data'
@@ -18,7 +23,7 @@ for f in installed.iterdir():
 pack=private/'packages/esp32';(pack/'hardware/esp32').mkdir(parents=True);(pack/'tools').mkdir()
 for f in (installed/'packages').iterdir():
  if f.name!='esp32':
-  if f.is_dir():shutil.copytree(f,private/'packages'/f.name,symlinks=True)
+  if f.is_dir():(private/'packages'/f.name).symlink_to(f,target_is_directory=True)
   else:shutil.copy2(f,private/'packages'/f.name)
 # Preserve a private path only where the fixed overlay writes. The rest of
 # the installed hardware package is a declared read-only SDK input, just like
@@ -48,7 +53,7 @@ for folder,changed in [('include','arduino_tinyusb'),('lib','libarduino_tinyusb.
  (sdk/folder).mkdir()
  for f in (sdk0/folder).iterdir():
   if f.name==changed:
-   if f.is_dir():shutil.copytree(f,sdk/folder/f.name)
+   if f.is_dir():shutil.copytree(f,sdk/folder/f.name,copy_function=owned_copy)
   else:(sdk/folder/f.name).symlink_to(f,target_is_directory=f.is_dir())
 headers=0
 for f in (sdk/'include/arduino_tinyusb/tinyusb/src').rglob('*'):

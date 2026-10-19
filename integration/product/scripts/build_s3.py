@@ -139,8 +139,9 @@ helper_root=out/'toolchain_helpers'
 helper_names=['libexec/gcc/xtensa-esp-elf/14.2.0/'+n for n in ('cc1','cc1plus','collect2','liblto_plugin.so')]+['xtensa-esp-elf/bin/'+n for n in ('as','ld','ar')]
 for name in helper_names:
  source=original_helpers/name;target=helper_root/name
- target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(source,target)
- assert target.read_bytes()==source.read_bytes(),name
+ target.parent.mkdir(parents=True,exist_ok=True)
+ data_bytes=source.read_bytes();target.write_bytes(data_bytes);shutil.copymode(source,target)
+ assert target.read_bytes()==data_bytes,name
 helper_flags='-B'+str(helper_root/'libexec/gcc/xtensa-esp-elf/14.2.0')+'/ -B'+str(helper_root/'xtensa-esp-elf/bin')+'/'
 flags=helper_flags+' -DHANIME_BUILD_HOST_ADAPTERS=0 -DHANIME_BUILD_TOOLS=0 -DHANIME_BUILD_FIXTURES=0 -DHANIME_BUILD_TESTS=0 -DHANIME_OUTPUT_PROFILE='+str(profile)+' -DHANIME_TF_RUNTIME_HZ='+str(tf_hz)+' -std=gnu++17 -fexceptions -Werror -fstack-usage -DHANIME_SAVE_SUBSTAGE_DIAGNOSTIC='+str(save_diagnostic)+' -DHANIME_BASE_ORDER_LOCATE_ENTRIES=8'
 flags+=' -DDRAFTOR_PERFORMANCE_COMMON=1 -DDRAFTOR_TEXT_RESIDENT=0 -DDRAFTOR_BLOCK_BACKEND=1 -DHANIME_TEXT_CHAIN=1 -DHANIME_STRUCTURAL_HOST_OBSERVE=0 -DDRAFTOR_INPUT_PRESENT_COORD=0 -DDRAFTOR_COORD_OBSERVE=0 -DDRAFTOR_SHARED_TEXT_VARIANT='+str(variant)
