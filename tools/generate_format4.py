@@ -106,7 +106,16 @@ def main():
                      'logical_shared_bytes': len(new if short else old),
                      'shared_bundle_id': ni['shared_bundle_id'] if short else oi['shared_bundle_id'],
                      'pins': pinrows}
-        g.json_exact(dst / 'RESOURCE_MANIFEST.json', arms[arm])
+        # The public installer consumes the release manifest schema. Keep the
+        # canonical pairing only after the generated files AND pins match it;
+        # users must never hand-edit JSON to make regenerated resources pass.
+        canonical=json.loads((Path(__file__).resolve().parents[1]/'release/alpha2/RESOURCE_MANIFEST.json').read_text())
+        normalize=lambda values:{x['name']:(x['bytes'],x['sha256']) for x in values}
+        assert ni['shared_bundle_id']==canonical['shared_bundle_id'] and canonical['format']==4
+        assert normalize(rows)==normalize(canonical['files']), 'Generated files differ from the released pairing'
+        assert normalize(pinrows)==normalize(canonical['pins']), 'Generated pins differ from the released pairing'
+        g.json_exact(dst / 'RESOURCE_MANIFEST.json', canonical)
+        g.json_exact(dst / 'CANDIDATE_READY.json',{'release':'v0.1.0-alpha.2','bundle':canonical['shared_bundle_id'],'files':14,'format':4,'note':'Generation equality and release pairing checked; compiled pins authenticate consumption.'})
     g.json_exact(args.output/'GENERATION_CHECK.json',{'all_identity_default_general_records_equal':True,'shared_bundle_id':ni['shared_bundle_id'],'full_semantics':semantics,'physical':equality,'schemes':schemes})
     print('Complete format4 resources and pins written:',args.output)
 if __name__=='__main__':main()
