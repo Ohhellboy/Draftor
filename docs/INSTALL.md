@@ -1,83 +1,172 @@
 # Installing and upgrading Alpha 2 / Alpha 2 安装与升级
 
-**Local review copy; nothing has been published or flashed by this preparation.** Target: ESP32-S3 N16R8, 16 MiB flash, 8 MiB OPI PSRAM and the existing [hardware wiring](HARDWARE.md). The software does not qualify an untested board or battery arrangement.
+Target hardware: ESP32-S3 N16R8 (Thick), 16 MiB flash, 8 MiB OPI PSRAM and the [existing display/TF wiring](HARDWARE.md). Commands below use Python 3 and esptool 5.3.1 in a macOS/Linux shell. Set the actual serial port and TF mount path; do not copy another device's values. Windows users must use their actual COM port and adapt shell paths/activation commands.
 
-**本地待审材料；本轮没有发布或刷写。** 目标为 ESP32-S3 N16R8、16 MiB Flash、8 MiB OPI PSRAM及[原接线](HARDWARE.md)。未据此确认其他开发板或电池方案。
+适用硬件：ESP32-S3 N16R8（Thick）、16 MiB Flash、8 MiB OPI PSRAM及[原屏幕/TF接线](HARDWARE.md)。以下命令使用 macOS/Linux shell、Python 3 与 esptool 5.3.1；必须填写实际串口和 TF 挂载路径。Windows 用户需换为实际 COM 端口，并对应调整 shell 路径及环境激活命令。
 
-## Choose the right route / 先区分布局
+Run each step only after the previous one succeeds. If a command fails, stop before any erase or write. The commands are separate instructions, not a script to run unattended.
 
-| Your installation / 当前情况 | Route / 路线 |
-|---|---|
-| Alpha 1 original 2 MiB App slots / 原 Alpha 1 的2 MiB应用槽 | **No App-only update. Migration pending confirmation. / 不能直接更新，迁移材料待确认。** |
-| Exact compatible dual-4 MiB table / 准确兼容双4 MiB布局 | Check actual saved partition and OTA state, then App-only / 核对实际分区与活动槽后仅更新 App |
-| New blank board / 首次空板安装 | New table + SDK startup files + App0 / 新分区、SDK启动文件及 App0 |
+每步成功后再继续；命令报错时先停止，不能继续清除或写入。以下为分步操作，不应整篇作为无人值守脚本执行。
 
-The release still requires slots larger than 2,097,152 bytes; the exact newly built App length is recorded in `Firmware/RELEASE_PAIR.json`. An arbitrary 4 MiB slot is not enough: offsets and the whole table must match. Do not copy an address from another person's session.
+## 1. Choose the installation route / 选择安装路线
 
-发行App仍需要超过旧2 MiB的槽，准确新构建长度见 `Firmware/RELEASE_PAIR.json`。仅有“4 MiB”字样也不够，整张分区表和偏移都要对应；不要照抄他人设备上的写入地址。
+| Current installation / 当前情况 | Route / 路线 |
+| --- | --- |
+| Alpha 1 / 旧版 Alpha 1 | **Back up, erase internal flash, then install Alpha 2 fresh. A direct upgrade is not recommended. / 先备份，清除内部 Flash 后全新安装；不建议直接升级。** |
+| New board / 首次安装 | Prepare the TF resources, erase internal flash, then write the supplied boot/partition/App files / 准备 TF 资源，清除内部 Flash 后写入配套启动、分区和 App 文件 |
+| Confirmed exact compatible dual-4 MiB layout / 已确认准确兼容双4 MiB布局 | Use the separate App-only route in section 6 / 使用第6节的独立 App-only 更新路线 |
 
-## Files and TF resources / 文件与 TF 资源
+The release App is **2,429,104 bytes**, labelled `DRAFTOR_ALPHA2_20261019_RELEASE`. It does not fit the old 2 MiB slots. The recommended Alpha 1 route is a fresh installation, not an automatic migration of internal data.
 
-Download matching `Draftor_v0.1.0-alpha.2_Firmware.zip` and `Draftor_v0.1.0-alpha.2_Resources.zip`. Extract them to `Firmware/` and `Resources/`. Source and BuildInputs are needed only for building or obtaining corresponding third-party source. Future download links are listed in [Release Notes](RELEASE_NOTES.md).
+本版 App 为 **2,429,104 字节**，标签 `DRAFTOR_ALPHA2_20261019_RELEASE`，装不进旧2 MiB槽。Alpha 1 的推荐路线是全新安装，不是自动保留内部数据的迁移。
 
-安装使用同版 Firmware 与 Resources；构建或取得第三方对应源码时再下载 Source 与 BuildInputs。下载入口见[发行说明](RELEASE_NOTES.md)，本地预览中链接仍待发布。
+**Erasing internal flash removes the old firmware, partitions and all data/state stored there, including internal filesystem data, settings and pairing data. Back up important manuscripts and necessary data before running the erase command. It does not format the TF card, and TF formatting is not required. Keeping the TF card is not a substitute for a separate backup.**
 
-Save and independently export important documents first, empty the composition, exit USB transfer, and turn Wi-Fi off. Shut down safely before removing the TF card. Copy only these package paths into the TF root:
+**清除内部 Flash 会删除旧固件、分区及其中所有数据和状态，包括内部文件系统数据、设置、配对信息。执行清除命令前，必须备份重要文稿和必要数据。这不等于无损保留旧内部数据；TF 卡不需要格式化，保留 TF 卡也不能代替独立备份。**
 
-先保存并另行导出重要文稿，清空原码、退出 USB、关闭 Wi-Fi；安全关机后才移卡。只把包内以下路径复制到 TF 根目录：
+## 2. Files, tools and backups / 文件、工具与备份
 
+Download these two matching attachments from the [Alpha 2 release](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2) once published, and extract them side by side. The link is pending while this is a local review copy.
+
+发布后从 [Alpha 2 发行页](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2)取得以下同版附件，解压到同一父目录；本地待审期间下载链接尚未上线。
+
+```text
+Draftor_v0.1.0-alpha.2_Firmware.zip  -> Firmware/
+Draftor_v0.1.0-alpha.2_Resources.zip -> Resources/
 ```
-HANIME/IME/B_SHORT_TEXT_20261018/  # all 14 payload files + manifest + supplied Ready marker
+
+Source and BuildInputs are needed for building, not for ordinary installation. Use this updated guide in Firmware or Source; unchanged BuildInputs/Resources archives contain older guide copies. Their firmware inputs and resource payloads remain compatible.
+
+普通安装不需要 Source 和 BuildInputs；自行构建时再取这两包。安装以新版 Firmware 或 Source 中的本指南为准，原样复用的 BuildInputs/Resources 内仍附有旧说明，配套输入和资源未变。
+
+1. While the old firmware still runs, save important manuscripts, export them to a computer and **open the exported files to check the text**. Export each needed manuscript; a current-document export is not a backup of all drafts. Preserve native TF manuscripts, directory/state files and any other necessary card data separately. Keep the old firmware and matching resources.
+2. Finish composition, wait for Saved, leave USB transfer and turn Wi-Fi off. Close any serial monitor. Power down before moving the TF card. Back up the card before installing resources; never replace the entire card with the Resources folder.
+3. If you need the previous internal state for rollback, also retain a verified private full-flash backup using the commands below. This does not replace readable text exports or the TF backup.
+
+1. 在旧固件仍可运行时，保存重要文稿，导出到电脑并**打开文件核对正文**。逐一导出需要保留的稿件，当前稿导出不等于全部稿件备份。另存 TF 原生文稿、目录/状态及其他必要文件，保留旧固件及配套资源。
+2. 处理原码、等 Saved、退出 USB、关闭 Wi-Fi，关闭电脑串口监视器。关机后再移卡，安装资源前备份 TF；不要用 Resources 文件夹替换整张卡。
+3. 如需恢复旧内部状态，再按下文读取并核验完整 Flash，私下保管；它不能代替可读正文和 TF 备份。
+
+Run commands from the directory containing `Firmware/` and `Resources/`. For example, set `PORT` to your board's serial port; `/dev/tty.YOUR_DEVICE` is a placeholder that must be replaced.
+
+在含 `Firmware/` 与 `Resources/` 的目录执行，`PORT` 必须换成实际开发板串口，以下占位值不能直接使用。
+
+```sh
+python3 -m venv .venv
+. .venv/bin/activate
+python3 -m pip install esptool==5.3.1
+PORT=/dev/tty.YOUR_DEVICE
+python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset read-mac
+python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset flash-id
+python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset get-security-info
+```
+
+Confirm the intended ESP32-S3 and 16 MiB flash. The board specification must also confirm N16R8/8 MiB OPI PSRAM; flash-id alone cannot establish PSRAM. If flash encryption or Secure Boot is enabled, stop: these plain-image instructions do not cover that configuration. Do not use `--force` or change eFuses to bypass it. If automatic boot entry fails, use the board's documented BOOT/RESET sequence and retry the same identification checks.
+
+确认是目标 ESP32-S3、16 MiB Flash，并按板卡规格确认 N16R8/8 MiB OPI PSRAM，不能只靠 flash-id 判断 PSRAM。若启用 Flash 加密或 Secure Boot，本指南的明文镜像流程不适用，应停止，不用 `--force` 或改 eFuse 绕过。不能自动进入下载模式时，按板卡说明使用 BOOT/RESET，再执行相同身份核对。
+
+For an existing device, use a new empty private backup directory; never overwrite an older backup:
+
+有数据设备请使用新的空备份目录，不覆盖旧备份：
+
+```sh
+mkdir private-backup-alpha2
+python3 -m esptool --chip esp32s3 --port "$PORT" --baud 460800 --after no-reset read-flash \
+  0x0 0x1000000 private-backup-alpha2/full-flash-before-alpha2.bin
+python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset verify-flash \
+  0x0 private-backup-alpha2/full-flash-before-alpha2.bin
+```
+
+The file must be 16,777,216 bytes and verification must succeed. Keep it private and separately copy it to your backup location. Do not proceed with erasure if readable manuscript backups or required data are missing.
+
+完整备份必须为16,777,216字节且核验成功，另存到自己的备份位置，不公开上传。文稿或必要数据尚未备妥时，不能继续清除。
+
+## 3. Install the matching TF resources / 安装配套 TF 资源
+
+Mount the backed-up TF card through a card reader. Set `TF_ROOT` to its actual mount directory, not a raw disk device. This example path is a placeholder. The existing staging helper below only installs a **new** independent resource directory, verifies its contents and writes Ready last. It refuses to replace an existing directory.
+
+用读卡器挂载已备份 TF，将 `TF_ROOT` 改为实际挂载目录，不能填原始磁盘设备。下例路径为占位值。既有安装工具只建立**新的**独立资源目录，核验内容并最后写 Ready，拒绝覆盖已存在目录。
+
+```sh
+TF_ROOT=/Volumes/YOUR_TF_CARD
+mkdir -p "$TF_ROOT/HANIME/IME"
+python3 Firmware/tools/prepare_tf_resources.py --resources Resources \
+  --target "$TF_ROOT/HANIME/IME/B_SHORT_TEXT_20261018" --write
+```
+
+If this exact release directory is already present and its provenance is known, retain it and run the checker below before use. If its origin is uncertain or it is incomplete, back it up and rename it to a different unused name, then stage a fresh independent directory. Do not combine format2 files with format4 or invent a Ready marker. Do not delete documents, CURRENT, state files or old complete resource sets.
+
+如果已有来源明确的本版准确目录，可复用并执行下文检查；如果来源不明或不完整，先备份并改为另一个未占用的目录名，再完整安装。不要混合 format2/format4，不伪造 Ready，不删除文稿、CURRENT、状态文件或旧完整配套。
+
+Copy the font only if it is absent, then compare the bytes. A differing existing font is an installation conflict; preserve it and resolve the mismatch rather than overwriting it blindly.
+
+字体只在缺失时复制，然后逐字节核对。已有字体不一致时保留原件、先解决配套冲突，不盲目覆盖。
+
+```sh
+mkdir -p "$TF_ROOT/HANIME/IME/R1_API080"
+cp -n Resources/HANIME/IME/R1_API080/matched28.hbf1 \
+  "$TF_ROOT/HANIME/IME/R1_API080/matched28.hbf1"
+cmp Resources/HANIME/IME/R1_API080/matched28.hbf1 \
+  "$TF_ROOT/HANIME/IME/R1_API080/matched28.hbf1"
+python3 Firmware/check_install.py --firmware Firmware \
+  --resources "$TF_ROOT/HANIME/IME/B_SHORT_TEXT_20261018" --mode fresh
+```
+
+The final card paths are:
+
+```text
+HANIME/IME/B_SHORT_TEXT_20261018/
+  shared.hns, shared.hnv
+  xiaohe.hnm, xiaohe.hnv, xiaohe_base.hbo, xiaohe_base.hnv
+  full_pinyin.hnm, full_pinyin.hnv, full_pinyin_base.hbo, full_pinyin_base.hnv
+  wubi86.hnm, wubi86.hnv, wubi86_base.hbo, wubi86_base.hnv
+  RESOURCE_MANIFEST.json, CANDIDATE_READY.json
 HANIME/IME/R1_API080/matched28.hbf1
 ```
 
-Keep `LEXICON_R3_B2_20261006` and every existing document, CURRENT and state file. Do not format the card. The old font path is deliberately retained; if the matching 2,464,108-byte font already exists, compare it with the package before reusing it, and never overwrite a differing file blindly. Copy into a new temporary resource directory, verify it, then rename it to the final independent directory; the supplied `CANDIDATE_READY.json` goes last. Never create a Ready marker to excuse missing files. JSON checks completeness; compiled pins still authenticate the actual consumed bytes.
+There are 14 payload files (132,153,747 bytes), plus the manifest/Ready and 2,464,108-byte font. The shared bundle is `17304919664082782091`, format4. The checker verifies installation shape/pairing; compiled pins authenticate actual consumed bytes at runtime. Safely eject the TF card and put it back with the device powered off. **Do not format the card.**
 
-保留旧 `LEXICON_R3_B2_20261006`、文稿、CURRENT及状态文件，不格式化。字形仍使用原路径；已存在的2,464,108字节字体须与包内文件一致后复用，遇到不同文件不要盲目覆盖。资源先复制到新的临时目录并核对，完成后改为目标独立目录，随包 Ready 标记最后放入。Ready 只说明安装完整，实际消费仍由固件中的可信绑定认证。
+14个资源文件合计132,153,747字节，另有清单/Ready和2,464,108字节字体。共享 bundle 为 `17304919664082782091`、format4。检查器核对安装结构及配对，固件可信绑定继续认证实际消费字节。安全弹出 TF，在设备断电时放回。**不格式化 TF。**
 
-The included checker operates on ordinary host files only:
+## 4. Fresh installation: erase, write and verify / 全新安装：清除、写入、核验
 
-随包检查器只读电脑上的普通文件，不连接或写设备：
+This section applies both to a new board and to an Alpha 1 device **after the backups in section 2 are complete and checked**. Reconnect the device, confirm the same port/identity and enter download mode. The next command erases all internal flash. The TF card is unaffected by this command; its separate backup remains necessary.
 
-```sh
-python3 Firmware/check_install.py --firmware Firmware   --resources Resources/HANIME/IME/B_SHORT_TEXT_20261018 --mode fresh
-```
-
-## Existing compatible 4 MiB layout / 已有兼容4 MiB布局
-
-Before any write, retain a **current private backup** of flash, the partition table, both App slots and OTA selection, plus the TF documents and matching old resources. Do not upload that backup. Obtain the actual current table (`0x8000`, 4096 bytes) and OTA data (`0xe000`, 8192 bytes) with the normal board-specific backup procedure; the files in this release are not evidence of what is on your device. Check identity and flash/PSRAM configuration using that same established procedure.
-
-写入前保留**当前设备的私有备份**：Flash、分区表、两个 App 槽、OTA选择状态，以及 TF 文稿和旧配套资源。不要上传备份。按开发板既有备份流程取得实际分区表（`0x8000`，4096字节）及 OTA 数据（`0xe000`，8192字节），核对设备身份和 Flash/PSRAM；发行包里的表不能代替现场读取。
+本节适用于新板，也适用于**完成并核对第2节备份后的 Alpha 1 设备**。重新连接，确认同一串口/身份并进入下载模式。下一条命令会清除整个内部 Flash；不会格式化 TF，但 TF 仍应独立备份。
 
 ```sh
-python3 Firmware/check_install.py --firmware Firmware   --resources Resources/HANIME/IME/B_SHORT_TEXT_20261018 --mode update   --partition private-current-partition.bin --otadata private-current-otadata.bin
+python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset erase-flash
 ```
 
-The checker derives the slot from the saved OTA entry, verifies its CRC and settled state, and reports `app_offset`. It currently accepts the measured, unambiguous one-valid/one-erased entry pattern; two populated entries, pending/rollback states, sequence ambiguity, encryption or a different partition map are refused. Resolve those cases using an appropriate device-specific procedure; do not edit the saved data to make the check pass.
+After a successful erase, write these four files from the same Firmware package. `keep` preserves the supplied image headers.
 
-检查器从已保存 OTA 记录校验 CRC、稳定状态并推导活动槽，输出 `app_offset`。目前覆盖已测的“一条有效、一条擦空”明确状态；双记录、待确认/回滚、序号歧义、加密或不同布局会拒绝。此时需另行确认实际启动选择，不得修改记录以绕过检查。
-
-After matching the result to the device's running slot, the App-only command template is:
-
-把结果与设备实际启动槽对应后，App-only 命令模板为：
+清除成功后写入同一 Firmware 包的四个文件；`keep` 保留原镜像头参数：
 
 ```sh
-python3 -m esptool --chip esp32s3 --port YOUR_PORT --baud 460800   write-flash CHECKED_APP_OFFSET Firmware/Draftor_v0.1.0-alpha.2.app.bin
-python3 -m esptool --chip esp32s3 --port YOUR_PORT   verify-flash CHECKED_APP_OFFSET Firmware/Draftor_v0.1.0-alpha.2.app.bin
+python3 -m esptool --chip esp32s3 --port "$PORT" --baud 460800 --after no-reset write-flash \
+  --flash-mode keep --flash-freq keep --flash-size keep \
+  0x0 Firmware/bootloader.bin \
+  0x8000 Firmware/partitions.bin \
+  0xe000 Firmware/boot_app0.bin \
+  0x10000 Firmware/Draftor_v0.1.0-alpha.2.app.bin
+python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset verify-flash \
+  0x0 Firmware/bootloader.bin \
+  0x8000 Firmware/partitions.bin \
+  0xe000 Firmware/boot_app0.bin \
+  0x10000 Firmware/Draftor_v0.1.0-alpha.2.app.bin
 ```
 
-Replace the placeholders with the confirmed values; the template is deliberately not runnable unchanged. Do not write partition, OTA, bootloader or another slot during this route. The slot is **not always `0x10000` or always `0x410000`**. Restore the saved original App in the same slot if returning to the exact prior installation, while preserving its partition/OTA and matching resources. A changed partition or document state needs separate recovery planning.
+| Supplied file / 配套文件 | Address / 地址 | Bytes / 字节 |
+| --- | --- | ---: |
+| `bootloader.bin` | `0x0` | 19,968 |
+| `partitions.bin` | `0x8000` | 3,072 |
+| `boot_app0.bin` | `0xe000` | 8,192 |
+| `Draftor_v0.1.0-alpha.2.app.bin` | `0x10000` | 2,429,104 |
 
-占位参数必须换成已确认值，此模板不能原样执行。此路线不写分区、OTA、启动文件或另一槽。地址**既不总是 `0x10000`，也不总是 `0x410000`**。恢复准确原状态时，将原 App 写回同槽，并保留原分区/OTA及配套资源；分区或文档状态改变时需单独处理。
-
-## Old 2 MiB layout / 旧2 MiB迁移
-
-The original table has App0 at `[0x10000,0x210000)`, App1 at `[0x210000,0x410000)` and FFat at `[0x410000,0xff0000)`. The new table is:
-
-旧表 App0、App1、FFat 范围如上；新表为：
+The package supplies a dual-4 MiB layout:
 
 | Partition / 分区 | Offset / 偏移 | Size / 容量 |
-|---|---:|---:|
+| --- | --- | --- |
 | NVS | `0x9000` | `0x5000` |
 | OTA data | `0xe000` | `0x2000` |
 | App0 | `0x10000` | `0x400000` |
@@ -86,26 +175,54 @@ The original table has App0 at `[0x10000,0x210000)`, App1 at `[0x210000,0x410000
 | FFat | `0xa10000` | `0x5e0000` |
 | Coredump | `0xff0000` | `0x10000` |
 
-New App0 overlaps old App1; new App1 and the IME reservation overlap old FFat. FFat's starting address changes. Copying a new partition table is therefore **not** a complete safe migration. This package supplies the target table and overlap analysis, but not a qualified automatic data/state migration. The old-layout route remains **pending author confirmation and separate validation**. Keep using Alpha 1 until that route is provided; do not erase the chip or try the fresh-install command on a used device.
+The old layout used 2 MiB slots and started FFat at `0x410000`; the new App slots overlap old areas and FFat moves to `0xa10000`. Merely replacing the partition file cannot preserve the old internal filesystem. Do not copy an old internal-filesystem image into the new layout.
 
-新 App0 占用旧 App1，新 App1 与 IME 保留区占用旧 FFat，FFat 起点也改变。只换分区表不构成安全迁移。本包给出目标布局及重叠分析，尚未提供经过确认的数据/状态自动迁移流程。旧布局路线仍**待作者确认及单独验证**；在此之前继续使用 Alpha 1，不全片擦除，也不对有数据设备套用空板命令。
+旧布局使用2 MiB应用槽，FFat始于 `0x410000`；新应用槽占用旧区域，FFat移到 `0xa10000`。单换分区表不能保留原内部文件系统，也不要把旧内部文件系统镜像直接填入新布局。
 
-## First installation / 首次安装
+## 5. First start / 首次启动
 
-Only for a genuinely blank compatible board with no state to preserve. The checker above validates the host file combination. It does not mean a fresh board was qualified in this preparation. Use the supplied bootloader from the same release build, SDK `boot_app0.bin`, matching partitions and App. Do not use a private full-flash image. After hardware/identity checks, the separate command is:
+After all four files verify, release BOOT and reset the board with the prepared TF card inserted. Confirm Ready and normal BLE keyboard connection; internal pairing data may need to be established again after erasure. In a new disposable draft, type a short Chinese sentence, select words, save, leave that draft and reopen it from the file list to check the text. See [Usage](USAGE.md) for the keys.
 
-仅适用于确为空白、无待保留状态的兼容开发板。上述离线检查验证文件组合，本轮没有新空板实机验收。启动文件来自准确构建/SDK，不使用私人整片备份。核对硬件与身份后，独立命令为：
+四个文件均核验成功后松开 BOOT，保持配套 TF 在设备中，复位启动。确认 Ready 和蓝牙键盘连接；清除内部配对状态后可能需要重新配对。新建可丢弃稿，输入短句、选词、保存，离开后从文件页重新打开，核对正文。键位见[操作手册](USAGE.md)。
+
+If mounting, PSRAM, resource authentication or saving fails, stop the relevant operation and keep backups intact. Do not fabricate Ready or repeatedly overwrite a problematic document. Restore required text through the supported document import path, as new documents; keep backups until the recovered text is checked. Same-version save/reopen evidence does not prove every cross-version native-state restore.
+
+若挂载、PSRAM、资源认证或保存报错，停止相关操作并保留备份；不伪造 Ready、不反复覆盖问题稿。需要恢复正文时，通过支持的导入功能新建文稿并核对，在此之前保留备份。同版本保存重开证据不能代替所有跨版本原生状态恢复验证。
+
+## 6. Existing exact compatible 4 MiB layout / 已有准确兼容4 MiB布局更新
+
+This route **does not erase internal flash** and writes only the App to the confirmed currently selected slot. First make the backups in section 2 and install/retain the matching TF resources in section 3. Obtain the actual current partition and OTA bytes while the device is in download mode; package defaults cannot substitute for them:
+
+此路线**不清除内部 Flash**，只向已确认的当前启动槽写 App。先完成第2节备份及第3节资源准备，再在下载模式读取实际分区与 OTA 字节，不能以包内文件代替现场状态：
 
 ```sh
-python3 -m esptool --chip esp32s3 --port YOUR_PORT --baud 460800 write-flash   0x0 Firmware/bootloader.bin 0x8000 Firmware/partitions.bin   0xe000 Firmware/boot_app0.bin 0x10000 Firmware/Draftor_v0.1.0-alpha.2.app.bin
+python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset read-flash \
+  0x8000 0x1000 private-backup-alpha2/current-partition.bin
+python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset read-flash \
+  0xe000 0x2000 private-backup-alpha2/current-otadata.bin
+python3 Firmware/check_install.py --firmware Firmware \
+  --resources Resources/HANIME/IME/B_SHORT_TEXT_20261018 --mode update \
+  --partition private-backup-alpha2/current-partition.bin \
+  --otadata private-backup-alpha2/current-otadata.bin
 ```
 
-There is no `erase-flash` step. Confirm each written file using `verify-flash`, then start with the prepared TF inserted and check Ready before writing. If TF, PSRAM or resource validation fails, stop and correct the installation; do not manufacture Ready files or repeatedly save over a problem. Follow [Usage](USAGE.md) for saving and exporting your first draft.
+The checker must report `COMPATIBLE_FILES_ONLY` for the exact table above. It verifies OTA CRC/settled state and reports `app_offset`. It accepts the known unambiguous one-valid/one-erased record pattern; other populated/ambiguous/pending/rollback states are refused. Stop if refused, rather than editing the data to pass. Match the result to the actual boot selection.
 
-这里没有全片擦除步骤。逐项 `verify-flash` 后，插入已准备 TF 启动，先确认 Ready 再写作。挂载、PSRAM或资源认证失败时应先处理安装问题，不伪造 Ready、不反复覆盖保存。首篇稿件的保存和导出见[操作手册](USAGE.md)。
+检查器必须确认上表的完整布局并输出 `COMPATIBLE_FILES_ONLY`，校验 OTA CRC和稳定状态后给出 `app_offset`。只接受已有明确的一条有效/一条擦空记录；其他双记录、歧义、待确认或回滚状态会拒绝。拒绝时停止，不改数据绕过，并将结果与实际启动选择对应。
 
-## Document compatibility / 文档兼容范围
+Set `APP_OFFSET` to that **checked** value. The example placeholder below must be replaced; the address is not universally `0x10000` or `0x410000`.
 
-The cumulative source retains the document codec, storage model and atomic publication contracts. FW1 compared the actual saved and reopened body successfully in this same version. That does not establish arbitrary cross-version downgrade compatibility. Preserve exports and exact prior firmware/resources/state together; do not promise rollback solely from possession of an old `.bin`.
+将以下占位值替换为**检查确认的** `app_offset`，不能一律套用 `0x10000` 或 `0x410000`：
 
-累计源码保留文档编解码、存储及原子发布合同；FW1 已核验同版本保存/重开的实际正文相同。任意跨版本降级尚未据此证明。回退要共同保留导出稿及准确原固件、资源、状态，不能仅靠一个旧 `.bin` 保证。
+```sh
+APP_OFFSET=REPLACE_WITH_CHECKED_OFFSET
+python3 -m esptool --chip esp32s3 --port "$PORT" --baud 460800 --after no-reset write-flash \
+  --flash-mode keep --flash-freq keep --flash-size keep \
+  "$APP_OFFSET" Firmware/Draftor_v0.1.0-alpha.2.app.bin
+python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset verify-flash \
+  "$APP_OFFSET" Firmware/Draftor_v0.1.0-alpha.2.app.bin
+```
+
+Do not write bootloader, partitions, OTA data, NVS or the other App slot on this route. Then reset and perform the short save/reopen check in section 5. For rollback conditions, see [Rollback](ROLLBACK.md).
+
+此路线不写启动文件、分区、OTA、NVS或另一个 App 槽。完成后复位，并按第5节做简短保存/重开检查。回退条件见[回退说明](ROLLBACK.md)。

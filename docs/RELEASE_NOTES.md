@@ -1,64 +1,147 @@
-# Draftor Alpha 2 — Cumulative Performance Update
-# 草稿机 Alpha 2：累计性能优化版
+# Draftor Alpha 2: Faster Chinese Input and Wi-Fi Document Transfer
 
-This update is about making Chinese writing feel more immediate. Typed letters appear sooner, candidate lists spend less time waiting, and selected words reach the page faster. Full Pinyin, Xiaohe Shuangpin, Wubi 86 and English remain available, with the same horizontal and vertical writing layouts.
+The main update in Alpha 2 is a noticeable improvement in Chinese input speed.
 
-这次更新主要让中文输入更跟手：字母反馈更及时，候选等待减少，选中的字词也更早出现在正文里。全拼、小鹤双拼、五笔86和英文输入，以及横排、竖排写作方式都保留下来。
+Candidates appear sooner after you type Pinyin, and selected words reach the document faster. These changes improve individual input responses and reduce some of the waiting when paging through candidates or typing continuously.
 
-## What changed / 这次改了什么
+Alpha 2 also adds **local Wi-Fi document transfer**. You can connect to Draftor with your phone's browser to import and export documents. The phone connects directly to the ESP32-S3's Wi-Fi module, without relying on a nearby Wi-Fi network or any cloud text service.
 
-The input engine now looks up candidates in blocks, carries verified text locations forward, and retrieves complete short default text alongside its shared entry. The display sends changed regions where possible. Together, these changes shorten the journey from pressing a key to seeing the result; they do not add learning or abbreviated Pinyin.
+## What changed
 
-输入引擎改为分块查询，把已验证的文字位置接到后续取字过程，并让完整的短默认文字与共享词条同块取得。屏幕则在适用时只传输发生变化的区域。这些改动一起缩短了按键到看见结果的等待，本版没有新增学习或简拼功能。
+This round of performance work has four main parts:
 
-On the same ESP32-S3 prototype, the paired comparison recorded:
+1. **Block-based lookup:** reorganizes the input method's code index to reduce the data read while finding candidates.
+2. **Less repeated lookup:** text locations that have already been found and verified can be passed directly to the text reader.
+3. **Short text in the same block:** eligible complete short texts are read together with their shared entries, reducing additional reads and verification.
+4. **Differential display updates:** the screen updates only the parts that have changed where possible, instead of sending the entire frame every time.
 
-同一台 ESP32-S3 原型机的本轮对照记录如下：
+Together with other small adjustments, these changes reduce the wait between pressing a key and seeing the result.
 
-| Action / 操作 | Alpha measurement build / Alpha 测量派生版 | Alpha 2 cumulative build / Alpha 2 累计版 |
-|---|---:|---:|
-| First Xiaohe `wo`, complete candidates / 小鹤首次 `wo` 完整候选 | 317.3 ms | 114.6 ms |
-| First Full Pinyin `shi`, complete candidates / 全拼首次 `shi` 完整候选 | 333.7 ms | 122.8 ms |
-| Last letter of first Xiaohe `wo`, letter feedback / 小鹤首次 `wo` 最后一键原码反馈 | 55.3 ms | 9.6 ms |
-| Xiaohe phrase selection, Space to body display / 小鹤词组空格选词至正文显示 | 72.1 ms | 36.4 ms |
+This version continues to support Full Pinyin, Xiaohe Shuangpin, Wubi 86 and English input, with both horizontal and vertical writing.
 
-The old side is a minimal measurement derivative of Alpha 1. These times run from received input to completion of the corresponding screen transfer, with Wi-Fi off and natural manual input. They are examples, not a fixed latency for every word. A separate free-writing session also checked that an approximately 1,400-character draft was byte-for-byte identical after saving and genuinely reopening it. [Measurement details](PERFORMANCE.md).
+## Input speed improvements
 
-旧侧是保留 Alpha 1 业务的最小测量派生版。计时从设备收到输入开始，到相应画面发送完成；两臂 Wi-Fi 关闭，使用自然手工输入。这些是对应样例，不是每个词的固定耗时。另外一次自由写作中，约1400字符的稿件在保存后与真正重新打开后逐字节一致。[测量详情](PERFORMANCE.md)。
+Here are several corresponding results from the Alpha 1 and cumulative Alpha 2 measurement builds, tested on the same ESP32-S3 prototype.
 
-## Downloads / 下载哪些文件
+| Action | Alpha 1 | Alpha 2 |
+| --- | --- | --- |
+| First Xiaohe `wo`: complete candidates | 317.3 ms | **114.6 ms** |
+| First Full Pinyin `shi`: complete candidates | 333.7 ms | **122.8 ms** |
+| First Xiaohe `wo`: typed-code feedback | 55.3 ms | **9.6 ms** |
+| Xiaohe phrase selected with Space: document display | 72.1 ms | **36.4 ms** |
 
-For the ESP32-S3 N16R8 (Thick), use **Firmware + Resources** from this version. To compile it yourself, use **Source + BuildInputs** and the fixed toolchain in the [Build Guide](BUILD.md). The automatic GitHub “Source code” archive is not a complete installation package.
+The first two complete-candidate waits were reduced by about 64% and 63%.
 
-ESP32-S3 N16R8（Thick）安装用户下载本版的 **Firmware + Resources**；自行编译则下载 **Source + BuildInputs**，并按[构建指南](BUILD.md)准备固定工具链。GitHub 自动生成的“Source code”压缩包不是完整安装包。
+Timing starts when the ESP32-S3 receives the relevant keyboard event and ends when the software finishes sending the corresponding typed-code, complete-candidate or document image to the display.
 
-| File / 文件 | Contents / 内容 |
-|---|---|
-| `Draftor_v0.1.0-alpha.2_Firmware.zip` | Release App with input observation disabled, startup files, partitions and checks / 关闭输入观察的发行 App、启动文件、分区及检查 |
-| `Draftor_v0.1.0-alpha.2_Resources.zip` | Matching format4 dictionaries, indexes and font / 准确配套的 format4 词库、索引和字体 |
-| `Draftor_v0.1.0-alpha.2_Source.zip` | Complete project-owned source, bgIME Core, tools and documentation / 完整自有源码、bgIME Core、工具和文档 |
-| `Draftor_v0.1.0-alpha.2_BuildInputs.zip` | Fixed generated inputs, SDK overlay component and original source/license materials / 固定生成输入、SDK 配套组件及原始来源与许可材料 |
+We also used the cumulative Alpha 2 build for a natural writing test of about 1,400 characters. Among valid samples, the median complete-candidate wait was **84.4 ms**, typed-code feedback took **17.8 ms**, and document display after selection took **46.5 ms**.
 
-The [Alpha 2 release URL](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2) is a **pending publication link** in this local preview. These files have not been uploaded. The release App uses the tested cumulative business source with serial input observation disabled. It is a new local build; the measurements above belong to its observed baseline.
+See [docs/PERFORMANCE.md](PERFORMANCE.md) for the full results and measurement method.
 
-本地预览中的 [Alpha 2 下载地址](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2)是**待发布链接**，文件尚未上传。发行 App 沿用实测累计业务源码，关闭了串口输入观察；它是新的本地构建，上述实测数字属于带观察的原基线。
+## Which files to download
 
-## Upgrading / 旧版如何升级
+To install on an ESP32-S3 N16R8 (Thick), download **Firmware** and **Resources** from the same version.
 
-**Alpha 2 does not fit the old 2 MiB application slots.** If you installed Alpha 1 using its original guide, do not use a normal App-only update. That layout needs a separate migration, whose release-ready procedure is still awaiting confirmation. An already compatible dual-4 MiB layout can use App-only updating after its actual partition and active slot are checked. First installation has a separate procedure. [Installation and migration guide](INSTALL.md).
+If you want to build the firmware yourself, also download **Source** and **BuildInputs**, and follow [docs/BUILD.md](BUILD.md).
 
-**Alpha 2 已装不进旧的 2 MiB 应用分区。** 按 Alpha 1 原指南安装的用户不能直接 App-only 更新，需要单独迁移；这条迁移路线的正式操作材料仍待确认。已经采用准确兼容双4 MiB布局的用户，在核对实际分区和活动槽后可进行 App-only 更新。首次安装另有独立步骤，见[安装与迁移指南](INSTALL.md)。
+| File | Purpose |
+| --- | --- |
+| `Firmware.zip` | Firmware, boot files and partition files |
+| `Resources.zip` | Matching dictionaries, indexes and font |
+| `Source.zip` | Draftor, bgIME and related project-owned source |
+| `BuildInputs.zip` | Generated files and dependency materials needed for the fixed build |
 
-Use the new resource directory alongside the old one. Do not mix format2 and format4 files, format the TF card, or overwrite your document directory to install this update. Keep the old firmware, matching resources and a separate copy of important writing.
+GitHub's automatically generated Source code archives are not complete installation packages.
 
-新资源放在独立目录，与旧资源并存。不要混用 format2 与 format4 文件，也不要为升级格式化 TF 卡或覆盖文档目录。请保留旧固件、旧配套资源，并把重要文稿另外备份。
+## Upgrading from an earlier version
 
-## Still an Alpha / 仍需注意
+**A direct upgrade from Alpha 1 to Alpha 2 is not recommended.**
 
-Some activation and warm-query stages remain slower, and full-screen redraws still block synchronously. Long-running use, unexpected power loss, new boards and cross-version rollback are not comprehensively qualified. Experimental local Wi-Fi transfer and QR pages are present; the performance comparison and free-writing session kept Wi-Fi off. This release does not include a complete Pico writing firmware.
+The new version changes the firmware partition layout. We recommend exporting your manuscripts and backing them up to a computer, then following the fresh-install procedure to erase the old system from the ESP32-S3's internal flash and install Alpha 2.
 
-部分激活和热查询子阶段仍有代价，整屏重绘也仍会同步阻塞。长期运行、突然断电、新空板和跨版本回退尚未全面验证。固定固件中保留了实验性的本地 Wi-Fi 传输及二维码页面；本次性能对照和自由写作期间 Wi-Fi 均关闭。本版不提供 Pico 完整写作固件。
+**Reinstallation erases the existing data in internal flash, but does not require formatting the TF card.** Install the new dictionaries that match the Alpha 2 firmware.
 
-The release build disables serial composition-code and input-timing observation. Startup, connection, health and error diagnostics remain. The writing results above come from the observed cumulative baseline; this quieter release build has software checks, but has not had a separate device session. Third-party fonts and dictionaries retain their own terms and the previously disclosed provenance questions. [Known limits and privacy](KNOWN_ISSUES.md) · [Resource and license status](RESOURCE_STATUS.md).
+See [docs/INSTALL.md](INSTALL.md) for installation instructions.
 
-发行构建已关闭串口组成码与输入计时观察，保留启动、连接、运行状态和错误诊断。前述写作成绩来自带观察的累计基线；关闭观察后的发行构建完成软件检查，尚未另做实机会话。字体、词库沿用各自条款及既有来源未决披露。[已知限制与隐私](KNOWN_ISSUES.md) · [资源与许可说明](RESOURCE_STATUS.md)。
+## Things to keep in mind
+
+Alpha 2 is still a test release. Local Wi-Fi document transfer remains experimental, and some usage scenarios have not been fully tested. This release does not include complete writing firmware for the Pico 2 W.
+
+The release firmware has not yet been independently tested on a device.
+
+See [docs/KNOWN_ISSUES.md](KNOWN_ISSUES.md) and [docs/RESOURCE_STATUS.md](RESOURCE_STATUS.md) for other known issues, resource sources and licensing information.
+
+---
+
+# 草稿机 Alpha 2：中文输入提速与 Wi-Fi 文稿传输
+
+本次 Alpha 2 的主要更新，是让草稿机的中文输入速度明显提升。
+
+输入拼音后，候选词更快出现；选中的字词，也更快地显示在正文中。这次优化不仅改善了单次输入的响应，还缩短了部分候选翻页和连续输入的等待。
+
+此外，Alpha 2 加入了 **本地 Wi-Fi 传输功能**。用户可通过手机浏览器连接草稿机以导入、导出文稿。它通过 ESP32-S3 的Wi-Fi模块直连手机，不依赖所在场地的Wi-Fi网络和任何云端文本服务。
+
+## 这次改了什么
+
+本次性能优化主要包括四项：
+
+1. **分块查询：**重新组织输入法的编码索引，减少寻找候选词时需要读取的资料。
+2. **减少重复查询：**已经取得并验证的文字位置，可以直接交给后续取字过程使用。
+3. **短文字同块读取：**让符合条件的完整短文字与共享词条一同取得，减少额外读取和验证。
+4. **差量显示：**屏幕尽量只更新实际发生变化的部分，不再每次都重新传输整幅画面。
+
+这些改进，加上其他细节调整，缩短了从按下按键到看到输入结果的等待时间。
+
+本版继续支持全拼、小鹤双拼、五笔86和英文输入，以及横排、竖排写作。
+
+## 输入速度改善
+
+以下是同一台 ESP32-S3 原型机上，Alpha 1 与 Alpha 2 累计测量版本的几项对应测试结果。
+
+| 操作 | Alpha 1 | Alpha 2 |
+| --- | --- | --- |
+| 小鹤首次 `wo`，完整候选 | 317.3 ms | **114.6 ms** |
+| 全拼首次 `shi`，完整候选 | 333.7 ms | **122.8 ms** |
+| 小鹤首次 `wo`，原码反馈 | 55.3 ms | **9.6 ms** |
+| 小鹤词组空格选词，正文显示 | 72.1 ms | **36.4 ms** |
+
+其中，前两项完整候选等待缩短了约64%和63%。
+
+计时从 ESP32-S3 接收到对应的键盘输入事件开始，到原码、完整候选或正文的相应画面完成软件传输为止。
+
+另外，我们还使用 Alpha 2 累计版进行了一次自然写作测试。在这次约1400字符的写作中，有效完整候选等待的中位数为 **84.4 ms**，原码反馈为 **17.8 ms**，选词后正文显示为 **46.5 ms**。
+
+完整测试结果和测量方法见 [docs/PERFORMANCE.md](PERFORMANCE.md)。
+
+## 下载哪些文件
+
+ESP32-S3 N16R8（Thick）用户安装时，需要下载同一版本的 **Firmware** 和 **Resources**。
+
+希望自行编译固件的用户，还需要 **Source** 与 **BuildInputs**，并参考 [docs/BUILD.md](BUILD.md)。
+
+| 文件 | 用途 |
+| --- | --- |
+| `Firmware.zip` | 固件、启动文件及分区文件 |
+| `Resources.zip` | 配套词库、索引和字体 |
+| `Source.zip` | Draftor、bgIME及相关自有源码 |
+| `BuildInputs.zip` | 固定构建所需的生成文件和相关依赖材料 |
+
+GitHub自动生成的Source code压缩包，不等于完整安装包。
+
+## 从旧版升级
+
+**不建议直接从 Alpha 1 升级到 Alpha 2。**
+
+由于新版本调整了固件分区，建议旧版用户先将文稿导出并备份到电脑，再按照全新安装流程，清除 ESP32-S3 内部Flash上的旧版系统并重新安装 Alpha 2。
+
+**重新安装会清除内部Flash中的原有数据，但不需要格式化TF卡。** 新版词库应与Alpha 2固件配套安装。
+
+具体安装方法见 [docs/INSTALL.md](INSTALL.md)。
+
+## 仍需注意
+
+Alpha 2 仍然是测试版本。本地Wi-Fi文稿传输仍属于实验功能，部分使用情境尚未充分测试。本版暂不提供Pico 2 W的完整写作固件。
+
+发行固件尚未经过独立实机验证。
+
+其他已知问题、资源来源及许可信息，见 [docs/KNOWN_ISSUES.md](KNOWN_ISSUES.md) 和 [docs/RESOURCE_STATUS.md](RESOURCE_STATUS.md)。

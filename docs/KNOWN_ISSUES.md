@@ -6,7 +6,7 @@ Alpha 2 已有有限对照及一次自然写作、保存重开核验。重要文
 
 ## Current limits / 当前限制
 
-- **2 MiB slots cannot accept this App.** Old-layout migration is pending; use [Installation](INSTALL.md), not the old App-only command. / 旧2 MiB槽装不下本版，迁移待确认。
+- **2 MiB slots cannot accept this App.** Alpha 1 users should back up manuscripts and necessary data, erase internal flash, and follow the [fresh-install procedure](INSTALL.md). The TF card does not need formatting. / 旧2 MiB槽装不下本版；Alpha 1 用户请先备份，清除内部 Flash 后全新安装，不格式化 TF 卡。
 - Resources must be the exact format4 set; format2 files/Ready markers do not make a mixed directory compatible. / 不混用旧新资源或伪造 Ready。
 - Some activation/warm-query costs and synchronous full-screen blocking remain; see [Performance](PERFORMANCE.md). / 激活、热查询子段及同步整屏仍有代价。
 - No learned frequency/personal dictionary, abbreviated or mixed Pinyin, Chinese Find entry, complete UI localization, selectable new fonts or complete Pico writing firmware is added. / 未新增学习、简拼混拼、中文查找、完整汉化、字体切换或 Pico 整机固件。
@@ -34,9 +34,9 @@ An intermittent first `n` in a longer Pinyin input was reported in earlier sessi
 
 ## Not fully qualified / 尚未充分覆盖
 
-Long continuous use, unexpected power interruption during every storage phase, extreme memory pressure, different cards/keyboards/power arrangements, fresh-board installation and arbitrary cross-version downgrade remain incompletely qualified. Current software support uses the original external-power prototype; this release does not make a new claim about battery hardware. USB save/export/reopen evidence is retained, but Wi-Fi/QR was not requalified by the latest performance or free-writing sessions.
+Long continuous use, unexpected power interruption during every storage phase, extreme memory pressure, different cards/keyboards/power arrangements, fresh-board installation and arbitrary cross-version downgrade remain incompletely qualified. Current software support uses the original external-power prototype; this release does not make a new claim about battery hardware. Existing USB save/export/reopen evidence and earlier Wi-Fi/QR software and device evidence are retained; the latest performance and free-writing sessions kept Wi-Fi off. See the [inherited Wi-Fi evidence and remaining gaps](WIFI_STATUS.md).
 
-长期连续使用、存储各阶段断电、极限内存、不同卡/键盘/供电、新空板及任意降级尚未全面覆盖。软件范围沿用原外部供电原型，不推断电池硬件的新状态。USB保存导出重开有既有证据，本轮性能及自由写作没有重新验收 Wi-Fi/二维码。
+长期连续使用、存储各阶段断电、极限内存、不同卡/键盘/供电、新空板及任意降级尚未全面覆盖。软件范围沿用原外部供电原型，不推断电池硬件的新状态。USB保存导出重开及此前 Wi-Fi/二维码的软件、实机证据继续沿用；后续性能和自由写作会话保持 Wi-Fi 关闭。具体范围见[既有 Wi-Fi 证据与缺项](WIFI_STATUS.md)。
 
 Report a short reproducible example, version and hardware details via [Issues](https://github.com/Ohhellboy/Draftor/issues). You do not need to upload a manuscript, full serial log or flash backup. Third-party provenance questions remain in [Resource Status](RESOURCE_STATUS.md).
 
