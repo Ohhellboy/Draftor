@@ -6,7 +6,7 @@ Alpha 2 让中文输入更快，并加入本地 Wi-Fi 文稿传输；继续支�
 
 - [Release notes / 中英双语更新说明](RELEASE_NOTES.md)
 - [Installation and upgrades / 安装与升级](INSTALL.md)
-- [Writing, saving and transfer / 写作、保存与传输](USAGE.md)
+- [Writing, saving and transfer](USAGE.md) / [写作、保存与传输](USAGE.zh-CN.md)
 - [Source build / 源码构建](BUILD.md)
 - [Measurements / 性能数据](PERFORMANCE.md)
 - [Known issues / 已知问题](KNOWN_ISSUES.md)

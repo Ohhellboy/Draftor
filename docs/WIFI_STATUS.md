@@ -22,4 +22,4 @@ The retained device report did not fully establish the before/after CURRENT iden
 
 The subsequent Alpha/cumulative performance comparison and FW1 writing session kept Wi-Fi off. They do not replace the earlier Wi-Fi evidence. The exact observer-disabled release App has not yet had its separate brief device check. See [Usage](USAGE.md) for current keys and [Known Issues](KNOWN_ISSUES.md) for other limitations.
 
-之后的 Alpha/累计性能对照与 FW1 写作保持 Wi-Fi 关闭，不代替此前无线证据。关闭输入观察的准确发行 App 尚待单独短检查。操作键位见[使用说明](USAGE.md)，其他限制见[已知问题](KNOWN_ISSUES.md)。
+之后的 Alpha/累计性能对照与 FW1 写作保持 Wi-Fi 关闭，不代替此前无线证据。关闭输入观察的准确发行 App 尚待单独短检查。操作键位见[使用说明](USAGE.zh-CN.md)，其他限制见[已知问题](KNOWN_ISSUES.md)。

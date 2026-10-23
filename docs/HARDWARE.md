@@ -2,7 +2,7 @@
 
 **Version / 适用版本：Draftor Alpha · v0.1.0-alpha.1**
 
-[Installation / 安装](INSTALL.md) · [Usage / 操作手册](USAGE.md) · [Original Hardware Overview / 原硬件概览](../HARDWARE.md) · [ST7306 Display Demo / 屏幕示例](../display/st7306/README.md)
+[Installation / 安装](INSTALL.md) · [Usage](USAGE.md) / [操作手册](USAGE.zh-CN.md) · [Original Hardware Overview / 原硬件概览](../HARDWARE.md) · [ST7306 Display Demo / 屏幕示例](../display/st7306/README.md)
 
 This guide describes the hardware used by Draftor Alpha, including its main components, GPIO connections, power requirements, and USB interfaces.
 
@@ -218,7 +218,7 @@ The internal TF card filesystem is not directly exposed to the computer through 
 
 See the [Usage Guide](USAGE.md) for complete instructions.
 
-完整操作步骤见[操作手册](USAGE.md)。
+完整操作步骤见[操作手册](USAGE.zh-CN.md)。
 
 ---
 
@@ -242,7 +242,7 @@ Not every Bluetooth keyboard model or layout has been tested.
 
 For English/Chinese switching, candidate selection, document management, and layout shortcuts, refer to the [Usage Guide](USAGE.md).
 
-中英文切换、候选选择、文件管理及横竖排快捷键，请参阅[操作手册](USAGE.md)。
+中英文切换、候选选择、文件管理及横竖排快捷键，请参阅[操作手册](USAGE.zh-CN.md)。
 
 ---
 
@@ -410,7 +410,7 @@ If a problem can be reproduced, you can report it through [GitHub Issues](https:
 ## 10. Further Documentation / 更多文档
 
 - [Installation / 安装指南](INSTALL.md)
-- [Usage Guide / 操作手册](USAGE.md)
+- [Usage Guide](USAGE.md) / [操作手册](USAGE.zh-CN.md)
 - [Building from Source / 源码构建](BUILD.md)
 - [Known Issues / 已知问题](KNOWN_ISSUES.md)
 - [ST7306 Display Demo / 独立屏幕示例](../display/st7306/README.md)
