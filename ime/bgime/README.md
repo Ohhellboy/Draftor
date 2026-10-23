@@ -29,7 +29,7 @@ Core can be built independently. Turning it into a complete input method still r
 | Host / Platform | [Core ports and Host adapters](../../integration/product/dependencies/core/include/hanime/), [Draftor platform](../../integration/product/platform/) | Resource I/O adapters; the host also supplies input events, scheduling, display and a destination for committed text |
 | Draftor | [Product integration](../../integration/product/) | The existing keyboard, editor and interaction code, including horizontal and vertical candidate presentation |
 
-The input schemes share Core's lexical resources and runtime services; they do not all use the same decoding or segmentation rules. Wubi is not routed through the Full Pinyin planner. For more context, see [Source Structure](../../docs/SOURCE_INTEGRATION.md#3-bgime--大鹅输入法).
+The input schemes share Core's lexical resources and runtime services; they do not all use the same decoding or segmentation rules. Wubi is not routed through the Full Pinyin planner. For more context, see [Source Structure](../../docs/SOURCE_INTEGRATION.md).
 
 ## Build and use
 
@@ -37,7 +37,7 @@ The current sources identify Core as **0.13.1-rc.1**, with public API **0.13.0**
 
 ### Core static library
 
-Core has a standalone CMake build requiring **CMake 3.20 or later** and **C++17**. Start with [Build bgIME Core Separately](../../docs/BUILD.md#5-build-bgime-core-separately--独立编译-bgime-core).
+Core has a standalone CMake build requiring **CMake 3.20 or later** and **C++17**. Start with [Build bgIME Core Separately](../../docs/BUILD.md).
 
 The runtime-only instructions set these options to `OFF`:
 
@@ -64,7 +64,7 @@ All three have been tested on macOS with small, isolated test resources and need
 
 ### Draftor firmware
 
-The complete firmware also builds the editor and device integration, with its own toolchain and external build inputs. Follow the [ESP32-S3 firmware build instructions](../../docs/BUILD.md#3-build-the-esp32-s3-firmware--编译-esp32-s3-固件) and use the matching Alpha resources.
+The complete firmware also builds the editor and device integration, with its own toolchain and external build inputs. Follow the [ESP32-S3 firmware build instructions](../../docs/BUILD.md) and use the matching Alpha resources.
 
 ## Resources and licenses
 
@@ -74,7 +74,7 @@ The B2 resource set, `LEXICON_R3_B2_20261006`, accompanies Draftor Alpha. It is 
 
 Resource provenance and unresolved licensing matters are documented in the existing [Third-Party Notices](../../THIRD_PARTY.md), [License Inventory](../../docs/LICENSE_INVENTORY.md) and [Resources & Licensing Status](../../docs/RESOURCE_STATUS.md).
 
-The project has announced a Chinese invention patent application concerning the shared stable lexical identity technology. The application documents are not included in this repository; see the [public patent note](../../README.zh-CN.md#关于专利--patent).
+The project has announced a Chinese invention patent application concerning the shared stable lexical identity technology. The application documents are not included in this repository.
 
 ## Current limits and next steps
 

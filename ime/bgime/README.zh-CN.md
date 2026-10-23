@@ -29,7 +29,7 @@ bgIME 的 Core 已有独立构建能力。要运行完整输入法，还需要�
 | Host / Platform | [Core 接口与 Host 适配器](../../integration/product/dependencies/core/include/hanime/)、[Draftor 平台层](../../integration/product/platform/) | 资源读写适配；输入事件、调度、显示及提交文本的接收端由宿主提供 |
 | Draftor | [产品集成](../../integration/product/) | 现有键盘、编辑器及交互实现，包括横竖排候选呈现 |
 
-不同输入方案共用 Core 的词条资源和运行时能力，但解码与切分规则并不相同。五笔不会经过全拼分段器。更多说明见[源码结构](../../docs/SOURCE_INTEGRATION.md#3-bgime--大鹅输入法)。
+不同输入方案共用 Core 的词条资源和运行时能力，但解码与切分规则并不相同。五笔不会经过全拼分段器。更多说明见[源码结构](../../docs/SOURCE_INTEGRATION.md)。
 
 ## 构建与使用
 
@@ -37,7 +37,7 @@ bgIME 的 Core 已有独立构建能力。要运行完整输入法，还需要�
 
 ### Core 静态库
 
-Core 的独立构建需要 **CMake 3.20 或更新版本**和 **C++17**。具体命令见[独立编译 bgIME Core](../../docs/BUILD.md#5-build-bgime-core-separately--独立编译-bgime-core)。
+Core 的独立构建需要 **CMake 3.20 或更新版本**和 **C++17**。具体命令见[独立编译 bgIME Core](../../docs/BUILD.md)。
 
 该文档中的最小运行库构建将以下选项设为 `OFF`：
 
@@ -64,7 +64,7 @@ Host 消费者程序通过现有 [Core 公开接口](../../integration/product/d
 
 ### Draftor 完整固件
 
-完整固件还要构建编辑器和设备集成，需要相应工具链及外部构建输入。请按 [ESP32-S3 固件构建说明](../../docs/BUILD.md#3-build-the-esp32-s3-firmware--编译-esp32-s3-固件)操作，并使用配套的 Alpha 资源。
+完整固件还要构建编辑器和设备集成，需要相应工具链及外部构建输入。请按 [ESP32-S3 固件构建说明](../../docs/BUILD.md)操作，并使用配套的 Alpha 资源。
 
 ## 资源与许可证
 
@@ -74,7 +74,7 @@ B2 资源集 `LEXICON_R3_B2_20261006` 是 Draftor Alpha 的配套资源，不是
 
 资源来源和未解决的许可事项，以现有[第三方声明](../../THIRD_PARTY.md)、[许可证清单](../../docs/LICENSE_INVENTORY.md)及[资源与许可说明](../../docs/RESOURCE_STATUS.md)为准。
 
-项目已公开说明，共享稳定词条身份相关技术已提交中国发明专利申请。申请文件不包含在本仓库中，见[已有专利说明](../../README.zh-CN.md#关于专利--patent)。
+项目已公开说明，共享稳定词条身份相关技术已提交中国发明专利申请。申请文件不包含在本仓库中。
 
 ## 当前限制与后续方向
 

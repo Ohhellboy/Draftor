@@ -1,53 +1,82 @@
-# Alpha 2 安装与升级
+# Alpha 2 安装指南
 
 [English](INSTALL.md) | **简体中文**
 
-适用硬件：ESP32-S3 N16R8（Thick）、16 MiB Flash、8 MiB OPI PSRAM及[原屏幕/TF接线](HARDWARE.md)。以下命令使用 macOS/Linux shell、Python 3 与 esptool 5.3.1；必须填写实际串口和 TF 挂载路径。Windows 用户需换为实际 COM 端口，并对应调整 shell 路径及环境激活命令。
+本指南适用于 ESP32-S3 N16R8（Thick）：16 MiB Flash、8 MiB OPI PSRAM，并使用项目规定的[屏幕和TF卡接线](HARDWARE.md)。
 
-每步成功后再继续；命令报错时先停止，不能继续清除或写入。以下为分步操作，不应整篇作为无人值守脚本执行。
+下面的命令适用于 macOS 和 Linux，使用 Python 3 与 esptool 5.3.1。Windows用户需要使用实际的COM端口，并相应调整路径和虚拟环境的启动命令。
 
-## 1. 选择安装路线
+请按步骤操作。每一步成功后再继续；出现错误时先停止，不要继续执行清除或写入命令。
 
-| 当前情况 | 路线 |
+## 1. 选择安装方式
+
+| 你的设备目前是什么情况？ | 使用哪种方式？ |
 | --- | --- |
-| 旧版 Alpha 1 | **先备份，清除内部 Flash 后全新安装；不建议直接升级。** |
-| 首次安装 | 准备 TF 资源，清除内部 Flash 后写入配套启动、分区和 App 文件 |
-| 已确认准确兼容双4 MiB布局 | 使用第6节的独立 App-only 更新路线 |
+| 正在使用Alpha 1 | 先备份文稿和需要保留的数据，再按照本指南全新安装。不建议直接覆盖旧App。 |
+| 首次安装的新开发板 | 准备TF资源后，按照本指南全新安装。 |
+| 已经使用与本版兼容的双4 MiB分区 | 完成第2、3节的准备后，使用第6节更新App。不要执行第4节的清除命令。 |
 
-本版 App 为 **2,429,104 字节**，标签 `DRAFTOR_ALPHA2_20261019_RELEASE`，装不进旧2 MiB槽。Alpha 1 的推荐路线是全新安装，不是自动保留内部数据的迁移。
+Alpha 2的App为2,429,104字节，已经超过旧版2 MiB应用分区的容量，因此旧版设备需要重新安装。
 
-**清除内部 Flash 会删除旧固件、分区及其中所有数据和状态，包括内部文件系统数据、设置、配对信息。执行清除命令前，必须备份重要文稿和必要数据。这不等于无损保留旧内部数据；TF 卡不需要格式化，保留 TF 卡也不能代替独立备份。**
+全新安装会清除ESP32-S3内部Flash中的旧固件、设置、蓝牙配对信息及其他内部数据。请先做好备份。
 
-## 2. 文件、工具与备份
+这项操作不会格式化TF卡，安装Alpha 2也不需要格式化TF卡。不过，TF卡中的文稿仍应另外备份到电脑，不能只保留卡上的一份。
 
-发布后从 [Alpha 2 发行页](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2)取得以下同版附件，解压到同一父目录。
+## 2. 准备文件、工具和备份
+
+### 下载文件
+
+从Alpha 2发行页下载同一版本的两个附件，并解压到同一个文件夹：
 
 ```text
-Draftor_v0.1.0-alpha.2_Firmware.zip  -> Firmware/
-Draftor_v0.1.0-alpha.2_Resources.zip -> Resources/
+Draftor_v0.1.0-alpha.2_Firmware.zip  → Firmware/
+Draftor_v0.1.0-alpha.2_Resources.zip → Resources/
 ```
 
-普通安装不需要 Source 和 BuildInputs；自行构建时再取这两包。安装以新版 Firmware 或 Source 中的本指南为准，原样复用的 BuildInputs/Resources 内仍附有旧说明，配套输入和资源未变。
+普通安装只需要这两包。Source和BuildInputs供自行编译使用，不必为了安装而下载。
 
-1. 在旧固件仍可运行时，保存重要文稿，导出到电脑并**打开文件核对正文**。逐一导出需要保留的稿件，当前稿导出不等于全部稿件备份。另存 TF 原生文稿、目录/状态及其他必要文件，保留旧固件及配套资源。
-2. 处理原码、等 Saved、退出 USB、关闭 Wi-Fi，关闭电脑串口监视器。关机后再移卡，安装资源前备份 TF；不要用 Resources 文件夹替换整张卡。
-3. 如需恢复旧内部状态，再按下文读取并核验完整 Flash，私下保管；它不能代替可读正文和 TF 备份。
+安装请以本版Firmware包中的指南为准。 Resources和BuildInputs中可能还附有旧版说明，不要交叉使用不同版本的安装步骤。
 
-在含 `Firmware/` 与 `Resources/` 的目录执行，`PORT` 必须换成实际开发板串口，以下占位值不能直接使用。
+### 备份文稿
+
+旧版设备请在仍能正常运行时完成备份。新开发板没有旧数据，可以跳过这一小节。
+
+先保存需要保留的文稿，逐一导出到电脑，并打开导出的文件，确认文字完整。只导出当前稿件，不等于已经备份其他稿件。
+
+把还要保留的输入完成并保存，等屏幕显示Saved。退出USB传输模式；如果开启了Wi-Fi，也将它关闭。关闭电脑上占用开发板串口的监视窗口，然后关机取出TF卡。
+
+将TF卡中的文稿和其他文件备份到电脑，保留原来的目录结构，同时保留旧固件和配套资源。不要用下载得到的Resources文件夹替换整张TF卡的内容。
+
+### 安装工具并确认开发板
+
+在终端中进入包含Firmware/和Resources/的文件夹，执行：
 
 ```sh
 python3 -m venv .venv
 . .venv/bin/activate
 python3 -m pip install esptool==5.3.1
+```
+
+把下面的/dev/tty.YOUR_DEVICE替换为开发板实际使用的串口：
+
+```sh
 PORT=/dev/tty.YOUR_DEVICE
 python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset read-mac
 python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset flash-id
 python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset get-security-info
 ```
 
-确认是目标 ESP32-S3、16 MiB Flash，并按板卡规格确认 N16R8/8 MiB OPI PSRAM，不能只靠 flash-id 判断 PSRAM。若启用 Flash 加密或 Secure Boot，本指南的明文镜像流程不适用，应停止，不用 `--force` 或改 eFuse 绕过。不能自动进入下载模式时，按板卡说明使用 BOOT/RESET，再执行相同身份核对。
+核对结果，确认连接的是你要安装的ESP32-S3，Flash容量为16 MiB。8 MiB OPI PSRAM需要根据板卡型号和规格确认，不能仅凭flash-id的输出判断。
 
-有数据设备请使用新的空备份目录，不覆盖旧备份：
+如果开发板启用了 **Secure Boot（安全启动）**或 Flash Encryption（Flash加密），请停止。本指南不适用于这些配置，不要使用--force或修改eFuse来绕过限制。
+
+如果电脑无法让开发板自动进入下载模式，请按板卡说明操作BOOT和RESET按键，再重新执行上面的检查。
+
+### 保留完整Flash备份
+
+已有数据的设备，如需保留恢复旧系统和内部设置的可能，请在清除前完成这一步。它不能代替前面的文稿导出和TF卡备份。
+
+使用一个新的备份目录，不要覆盖旧备份：
 
 ```sh
 mkdir private-backup-alpha2
@@ -57,25 +86,41 @@ python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset verify-flash \
   0x0 private-backup-alpha2/full-flash-before-alpha2.bin
 ```
 
-完整备份必须为16,777,216字节且核验成功，另存到自己的备份位置，不公开上传。文稿或必要数据尚未备妥时，不能继续清除。
+生成的文件应为 16,777,216字节，验证命令也必须成功。把它另存到你的备份位置，私下保管，不要上传到公开仓库。
 
-## 3. 安装配套 TF 资源
+需要保留的文稿或数据尚未备份好时，不要继续清除Flash。
 
-用读卡器挂载已备份 TF，将 `TF_ROOT` 改为实际挂载目录，不能填原始磁盘设备。下例路径为占位值。既有安装工具只建立**新的**独立资源目录，核验内容并最后写 Ready，拒绝覆盖已存在目录。
+## 3. 将词库和字体安装到TF卡
+
+### 确认TF卡路径
+
+用读卡器连接已经备份好的TF卡。把下面的路径替换为电脑上实际显示的TF卡目录：
 
 ```sh
 TF_ROOT=/Volumes/YOUR_TF_CARD
 ```
 
-先判断目标目录状态，再决定是否执行安装命令：
+这里应填写可以打开、查看文件的目录，不是/dev/disk...这样的磁盘设备名。
 
-| 目标目录实际情况 | 操作 |
+接下来先查看TF卡上是否已有：
+
+```text
+HANIME/IME/B_SHORT_TEXT_20261018
+```
+
+根据实际情况操作：
+
+| 目录情况 | 接下来怎么做？ |
 | --- | --- |
-| 目录不存在 | 执行下方新目录安装命令，再进行后面的检查。 |
-| 已有来源明确的本版准确目录 | 跳过安装命令，直接进入[字体与配套检查](#字体与配套检查)。 |
-| 来源不明或安装不完整 | 先备份并改为未占用的目录名，再按原流程安装完整的新目录。 |
+| 没有这个目录 | 执行下面的词库安装命令。 |
+| 已经从本版完整资源包安装过这个目录 | 跳过词库安装命令，继续检查字体和资源。 |
+| 有同名目录，但不确定来源，或上次安装中断 | 先备份这个目录，再将其改成一个未使用的名字，然后重新安装。 |
 
-“跳过安装”不等于跳过字体与配套检查。不要混合 format2/format4，不伪造 Ready，不删除文稿、CURRENT、状态文件或旧完整配套。
+不要把不同版本的词库文件合并到同一个目录，也不要删除已有文稿、CURRENT或其他文档状态文件。旧版的完整词库目录可以保留。
+
+### 安装词库
+
+仅在目标目录不存在时执行：
 
 ```sh
 mkdir -p "$TF_ROOT/HANIME/IME"
@@ -83,43 +128,88 @@ python3 Firmware/tools/prepare_tf_resources.py --resources Resources \
   --target "$TF_ROOT/HANIME/IME/B_SHORT_TEXT_20261018" --write
 ```
 
-### 字体与配套检查
+工具会复制资源、检查文件，并在全部完成后写入安装完成标记。它不会覆盖已有的同名目录。
 
-字体只在缺失时复制，然后逐字节核对。已有字体不一致时保留原件、先解决配套冲突，不盲目覆盖。
+如果报错，请先处理错误，不要继续写入固件。
+
+### 安装字体并检查资源
+
+准备字体目录：
 
 ```sh
 mkdir -p "$TF_ROOT/HANIME/IME/R1_API080"
+```
+
+如果目录中还没有matched28.hbf1，执行：
+
+```sh
 cp -n Resources/HANIME/IME/R1_API080/matched28.hbf1 \
   "$TF_ROOT/HANIME/IME/R1_API080/matched28.hbf1"
+```
+
+无论字体是刚复制的还是之前已有，都要执行下面的核对：
+
+```sh
 cmp Resources/HANIME/IME/R1_API080/matched28.hbf1 \
   "$TF_ROOT/HANIME/IME/R1_API080/matched28.hbf1"
 python3 Firmware/check_install.py --firmware Firmware \
   --resources "$TF_ROOT/HANIME/IME/B_SHORT_TEXT_20261018" --mode fresh
 ```
 
-最终 TF 卡路径如下：
+如果已有字体与本版不同，先保留原文件并查清原因，不要直接覆盖。资源检查失败时也应停止，不能混用其他版本的文件继续安装。
+
+完成后，TF卡应包含以下内容：
 
 ```text
 HANIME/IME/B_SHORT_TEXT_20261018/
-  shared.hns, shared.hnv
-  xiaohe.hnm, xiaohe.hnv, xiaohe_base.hbo, xiaohe_base.hnv
-  full_pinyin.hnm, full_pinyin.hnv, full_pinyin_base.hbo, full_pinyin_base.hnv
-  wubi86.hnm, wubi86.hnv, wubi86_base.hbo, wubi86_base.hnv
-  RESOURCE_MANIFEST.json, CANDIDATE_READY.json
-HANIME/IME/R1_API080/matched28.hbf1
+  shared.hns
+  shared.hnv
+  xiaohe.hnm
+  xiaohe.hnv
+  xiaohe_base.hbo
+  xiaohe_base.hnv
+  full_pinyin.hnm
+  full_pinyin.hnv
+  full_pinyin_base.hbo
+  full_pinyin_base.hnv
+  wubi86.hnm
+  wubi86.hnv
+  wubi86_base.hbo
+  wubi86_base.hnv
+  RESOURCE_MANIFEST.json
+  CANDIDATE_READY.json
+
+HANIME/IME/R1_API080/
+  matched28.hbf1
 ```
 
-14个资源文件合计132,153,747字节，另有清单/Ready和2,464,108字节字体。共享 bundle 为 `17304919664082782091`、format4。检查器核对安装结构及配对，固件可信绑定继续认证实际消费字节。安全弹出 TF，在设备断电时放回。**不格式化 TF。**
+检查完成后，在电脑上安全弹出TF卡，再将它插回已经断电的草稿机。
 
-## 4. 全新安装：清除、写入、核验
+整个过程不需要格式化TF卡。
 
-本节适用于新板，也适用于**完成并核对第2节备份后的 Alpha 1 设备**。重新连接，确认同一串口/身份并进入下载模式。下一条命令会清除整个内部 Flash；不会格式化 TF，但 TF 仍应独立备份。
+## 4. 全新安装Alpha 2
+
+这一节适用于新开发板，以及已经完成备份、准备重新安装的Alpha 1设备。
+
+已有兼容双4 MiB分区、只想更新App的用户，请跳到第6节。
+
+重新连接开发板，确认仍使用前面检查过的设备和串口，并进入下载模式。
+
+### 清除内部Flash
+
+下面的命令会清除ESP32-S3的全部内部Flash，包括旧固件和内部数据。它不会格式化TF卡。
+
+确认备份齐全后再执行：
 
 ```sh
 python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset erase-flash
 ```
 
-清除成功后写入同一 Firmware 包的四个文件；`keep` 保留原镜像头参数：
+清除失败时不要继续。
+
+### 写入固件
+
+清除成功后，写入同一个Firmware包中的四个文件：
 
 ```sh
 python3 -m esptool --chip esp32s3 --port "$PORT" --baud 460800 --after no-reset write-flash \
@@ -128,6 +218,13 @@ python3 -m esptool --chip esp32s3 --port "$PORT" --baud 460800 --after no-reset 
   0x8000 Firmware/partitions.bin \
   0xe000 Firmware/boot_app0.bin \
   0x10000 Firmware/Draftor_v0.1.0-alpha.2.app.bin
+```
+
+这些命令中的keep表示保留镜像中原有的Flash参数，不需要另行填写。
+
+写入成功后，核对设备中的内容：
+
+```sh
 python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset verify-flash \
   0x0 Firmware/bootloader.bin \
   0x8000 Firmware/partitions.bin \
@@ -135,36 +232,25 @@ python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset verify-flash \
   0x10000 Firmware/Draftor_v0.1.0-alpha.2.app.bin
 ```
 
-| 配套文件 | 地址 | 字节 |
-| --- | --- | ---: |
-| `bootloader.bin` | `0x0` | 19,968 |
-| `partitions.bin` | `0x8000` | 3,072 |
-| `boot_app0.bin` | `0xe000` | 8,192 |
-| `Draftor_v0.1.0-alpha.2.app.bin` | `0x10000` | 2,429,104 |
+四个文件都验证成功后，再启动设备。
 
-本包采用双4 MiB布局：
+## 5. 启动并检查
 
-| 分区 | 偏移 | 容量 |
-| --- | --- | --- |
-| NVS | `0x9000` | `0x5000` |
-| OTA 数据 | `0xe000` | `0x2000` |
-| App0 | `0x10000` | `0x400000` |
-| App1 | `0x410000` | `0x400000` |
-| IME 保留区 | `0x810000` | `0x200000` |
-| FFat | `0xa10000` | `0x5e0000` |
-| 崩溃转储 | `0xff0000` | `0x10000` |
+确认配套TF卡已经插好，松开BOOT按键，复位启动开发板。
 
-旧布局使用2 MiB应用槽，FFat始于 `0x410000`；新应用槽占用旧区域，FFat移到 `0xa10000`。单换分区表不能保留原内部文件系统，也不要把旧内部文件系统镜像直接填入新布局。
+等待设备显示Ready，然后连接蓝牙键盘。清除内部Flash后，原来的配对信息也会消失，可能需要重新配对。
 
-## 5. 首次启动
+先新建一篇不重要的测试稿，输入一小段中文，选词并保存。离开这篇稿件，再从文件列表中重新打开，确认文字仍然正确。具体键位见[操作手册](USAGE.md)。
 
-四个文件均核验成功后松开 BOOT，保持配套 TF 在设备中，复位启动。确认 Ready 和蓝牙键盘连接；清除内部配对状态后可能需要重新配对。新建可丢弃稿，输入短句、选词、保存，离开后从文件页重新打开，核对正文。键位见[操作手册](USAGE.md)。
+如果出现存储挂载、PSRAM、词库检查或保存错误，请停止相关操作，保留备份，不要反复覆盖有问题的稿件。
 
-若挂载、PSRAM、资源认证或保存报错，停止相关操作并保留备份；不伪造 Ready、不反复覆盖问题稿。需要恢复正文时，通过支持的导入功能新建文稿并核对，在此之前保留备份。同版本保存重开证据不能代替所有跨版本原生状态恢复验证。
+需要恢复旧文稿时，通过已有的导入功能建立新稿，并打开检查内容。确认恢复无误之前，继续保留电脑上的备份。旧版内部文件系统的备份不能直接写入Alpha 2的新分区。
 
-## 6. 已有准确兼容4 MiB布局更新
+## 6. 已有兼容4 MiB分区：只更新App
 
-此路线**不清除内部 Flash**，只向已确认的当前启动槽写 App。先完成第2节备份及第3节资源准备，再在下载模式读取实际分区与 OTA 字节，不能以包内文件代替现场状态：
+这一节仅适用于与本版兼容的双4 MiB分区设备，不清除内部Flash，只写入当前使用的应用分区。
+
+先完成第2节的备份和第3节的TF资源准备。设备进入下载模式后，读取它实际使用的分区表和启动记录：
 
 ```sh
 python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset read-flash \
@@ -177,9 +263,19 @@ python3 Firmware/check_install.py --firmware Firmware \
   --otadata private-backup-alpha2/current-otadata.bin
 ```
 
-检查器必须确认上表的完整布局并输出 `COMPATIBLE_FILES_ONLY`，校验 OTA CRC和稳定状态后给出 `app_offset`。只接受已有明确的一条有效/一条擦空记录；其他双记录、歧义、待确认或回滚状态会拒绝。拒绝时停止，不改数据绕过，并将结果与实际启动选择对应。
+不要用下载包中的分区文件替代刚从设备读取的文件。
 
-将以下占位值替换为**检查确认的** `app_offset`，不能一律套用 `0x10000` 或 `0x410000`：
+检查通过后，工具会输出：
+
+```text
+COMPATIBLE_FILES_ONLY
+```
+
+同时给出app_offset，即本次应写入App的位置。确认它与设备实际使用的启动分区一致后，再继续。
+
+目前的检查器只接受能够明确判断的一种启动记录组合：一条有效记录和一条空记录。如果提示不兼容，或者无法确定启动位置，请停止，不要猜测地址。
+
+把下面的REPLACE_WITH_CHECKED_OFFSET替换为检查确认的app_offset。不要直接套用别人设备上的0x10000或0x410000。
 
 ```sh
 APP_OFFSET=REPLACE_WITH_CHECKED_OFFSET
@@ -190,4 +286,52 @@ python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset verify-flash \
   "$APP_OFFSET" Firmware/Draftor_v0.1.0-alpha.2.app.bin
 ```
 
-此路线不写启动文件、分区、OTA、NVS或另一个 App 槽。完成后复位，并按第5节做简短保存/重开检查。回退条件见[回退说明](ROLLBACK.md)。
+这条更新路线不写入启动文件、分区表、OTA数据、NVS或另一个App分区。
+
+验证成功后，按第5节启动设备，做一次简短的保存和重开检查。需要恢复旧版时，请先阅读[回退说明](ROLLBACK.md)。
+
+## 附录：文件与分区参考
+
+这一节供核对文件和分区使用。普通安装按前面的步骤操作即可，无需自行调整这些数值。
+
+### 固件文件
+
+发行App标签：
+
+```text
+DRAFTOR_ALPHA2_20261019_RELEASE
+```
+
+| 文件 | 全新安装时的写入地址 | 文件大小 |
+| --- | --- | --- |
+| bootloader.bin | 0x0 | 19,968字节 |
+| partitions.bin | 0x8000 | 3,072字节 |
+| boot_app0.bin | 0xe000 | 8,192字节 |
+| Draftor_v0.1.0-alpha.2.app.bin | 0x10000 | 2,429,104字节 |
+
+### TF资源
+
+本版有14个词库和索引文件，总计132,153,747字节，另有资源清单、安装完成标记，以及2,464,108字节的字体文件。
+
+资源标识如下：
+
+```text
+bundle: 17304919664082782091
+format: 4
+```
+
+安装检查器用于检查文件是否齐全、版本是否配套；固件运行时仍会验证实际读取的资源内容。
+
+### 内部Flash分区
+
+| 分区 | 起始地址 | 容量 |
+| --- | --- | --- |
+| NVS | 0x9000 | 0x5000 |
+| OTA数据 | 0xe000 | 0x2000 |
+| App0 | 0x10000 | 0x400000 |
+| App1 | 0x410000 | 0x400000 |
+| IME保留区域 | 0x810000 | 0x200000 |
+| FFat内部文件系统 | 0xa10000 | 0x5e0000 |
+| 崩溃转储区域 | 0xff0000 | 0x10000 |
+
+旧版的应用分区为2 MiB，FFat从0x410000开始；新版扩大了应用分区，FFat移动到0xa10000。因此，不能只替换分区表来保留旧内部文件系统，也不能把旧文件系统镜像直接写入新位置。

@@ -1,53 +1,82 @@
-# Installing and upgrading Alpha 2
+# Alpha 2 Installation Guide
 
 **English** | [简体中文](INSTALL.zh-CN.md)
 
-Target hardware: ESP32-S3 N16R8 (Thick), 16 MiB flash, 8 MiB OPI PSRAM and the [existing display/TF wiring](HARDWARE.md). Commands below use Python 3 and esptool 5.3.1 in a macOS/Linux shell. Set the actual serial port and TF mount path; do not copy another device's values. Windows users must use their actual COM port and adapt shell paths/activation commands.
+This guide is for the ESP32-S3 N16R8 (Thick), with 16 MiB flash, 8 MiB OPI PSRAM and the project's specified [display and TF card wiring](HARDWARE.md).
 
-Run each step only after the previous one succeeds. If a command fails, stop before any erase or write. The commands are separate instructions, not a script to run unattended.
+The commands below are for macOS and Linux, using Python 3 and esptool 5.3.1. Windows users need to use their actual COM port and adjust the paths and virtual environment activation commands accordingly.
 
-## 1. Choose the installation route
+Follow the steps in order. Continue only after each step succeeds. If an error occurs, stop before running any further erase or write commands.
 
-| Current installation | Route |
+## 1. Choose an installation method
+
+| What is currently on your device? | Which method should you use? |
 | --- | --- |
-| Alpha 1 | **Back up, erase internal flash, then install Alpha 2 fresh. A direct upgrade is not recommended.** |
-| New board | Prepare the TF resources, erase internal flash, then write the supplied boot/partition/App files |
-| Confirmed exact compatible dual-4 MiB layout | Use the separate App-only route in section 6 |
+| Alpha 1 | Back up your manuscripts and any data you need to keep, then follow the fresh-install procedure in this guide. Directly overwriting the old App is not recommended. |
+| A new development board being installed for the first time | Prepare the TF resources, then follow the fresh-install procedure in this guide. |
+| A compatible layout with two 4 MiB App partitions | Complete the preparations in sections 2 and 3, then update the App using section 6. Do not run the erase command in section 4. |
 
-The release App is **2,429,104 bytes**, labelled `DRAFTOR_ALPHA2_20261019_RELEASE`. It does not fit the old 2 MiB slots. The recommended Alpha 1 route is a fresh installation, not an automatic migration of internal data.
+The Alpha 2 App is 2,429,104 bytes, which exceeds the capacity of the old 2 MiB App partitions. Devices using the old layout therefore need a fresh installation.
 
-**Erasing internal flash removes the old firmware, partitions and all data/state stored there, including internal filesystem data, settings and pairing data. Back up important manuscripts and necessary data before running the erase command. It does not format the TF card, and TF formatting is not required. Keeping the TF card is not a substitute for a separate backup.**
+A fresh installation erases the old firmware, settings, Bluetooth pairing information and other data in the ESP32-S3's internal flash. Make your backups first.
 
-## 2. Files, tools and backups
+This operation does not format the TF card, and installing Alpha 2 does not require formatting it. However, you should still back up the manuscripts on the TF card to a computer rather than keeping only the copy on the card.
 
-Download these two matching attachments from the [Alpha 2 release](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2) once published, and extract them side by side.
+## 2. Prepare files, tools and backups
+
+### Download the files
+
+Download these two attachments from the same version on the Alpha 2 release page, and extract them into the same folder:
 
 ```text
-Draftor_v0.1.0-alpha.2_Firmware.zip  -> Firmware/
-Draftor_v0.1.0-alpha.2_Resources.zip -> Resources/
+Draftor_v0.1.0-alpha.2_Firmware.zip  → Firmware/
+Draftor_v0.1.0-alpha.2_Resources.zip → Resources/
 ```
 
-Source and BuildInputs are needed for building, not for ordinary installation. Use this updated guide in Firmware or Source; unchanged BuildInputs/Resources archives contain older guide copies. Their firmware inputs and resource payloads remain compatible.
+These two packages are all you need for ordinary installation. Source and BuildInputs are for compiling the firmware yourself; you do not need to download them just to install it.
 
-1. While the old firmware still runs, save important manuscripts, export them to a computer and **open the exported files to check the text**. Export each needed manuscript; a current-document export is not a backup of all drafts. Preserve native TF manuscripts, directory/state files and any other necessary card data separately. Keep the old firmware and matching resources.
-2. Finish composition, wait for Saved, leave USB transfer and turn Wi-Fi off. Close any serial monitor. Power down before moving the TF card. Back up the card before installing resources; never replace the entire card with the Resources folder.
-3. If you need the previous internal state for rollback, also retain a verified private full-flash backup using the commands below. This does not replace readable text exports or the TF backup.
+Use the installation guide in this version's Firmware package. Resources and BuildInputs may still include older instructions; do not mix installation steps from different versions.
 
-Run commands from the directory containing `Firmware/` and `Resources/`. For example, set `PORT` to your board's serial port; `/dev/tty.YOUR_DEVICE` is a placeholder that must be replaced.
+### Back up your manuscripts
+
+If your device runs an older version, back it up while it still works normally. A new development board has no old data, so you can skip this subsection.
+
+Save the manuscripts you want to keep, export each one to your computer, and open the exported files to check that the text is complete. Exporting only the current manuscript does not back up the others.
+
+Finish entering any text you want to keep, save it and wait for Saved on the screen. Exit USB transfer mode and turn off Wi-Fi if it is on. Close any serial monitor on your computer that is using the board's port, then power off the device before removing the TF card.
+
+Back up the manuscripts and other files on the TF card to your computer, keeping the original directory structure. Also keep the old firmware and its matching resources. Do not replace the entire contents of the TF card with the downloaded Resources folder.
+
+### Install the tools and identify the board
+
+In a terminal, change to the folder containing Firmware/ and Resources/, then run:
 
 ```sh
 python3 -m venv .venv
 . .venv/bin/activate
 python3 -m pip install esptool==5.3.1
+```
+
+Replace /dev/tty.YOUR_DEVICE below with the serial port your board actually uses:
+
+```sh
 PORT=/dev/tty.YOUR_DEVICE
 python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset read-mac
 python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset flash-id
 python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset get-security-info
 ```
 
-Confirm the intended ESP32-S3 and 16 MiB flash. The board specification must also confirm N16R8/8 MiB OPI PSRAM; flash-id alone cannot establish PSRAM. If flash encryption or Secure Boot is enabled, stop: these plain-image instructions do not cover that configuration. Do not use `--force` or change eFuses to bypass it. If automatic boot entry fails, use the board's documented BOOT/RESET sequence and retry the same identification checks.
+Check the results to confirm that this is the ESP32-S3 you intend to install and that its flash capacity is 16 MiB. Confirm the 8 MiB OPI PSRAM from the board model and specifications; flash-id alone cannot establish that.
 
-For an existing device, use a new empty private backup directory; never overwrite an older backup:
+If the board has **Secure Boot** or Flash Encryption enabled, stop. This guide does not cover those configurations. Do not use --force or change eFuses to bypass the restriction.
+
+If the computer cannot put the board into download mode automatically, follow the board's instructions for its BOOT and RESET buttons, then repeat the checks above.
+
+### Keep a full flash backup
+
+For a device that already contains data, complete this step before erasing if you want to retain the option of restoring the old system and internal settings. It does not replace the manuscript exports and TF card backup above.
+
+Use a new backup directory; do not overwrite an older backup:
 
 ```sh
 mkdir private-backup-alpha2
@@ -57,25 +86,41 @@ python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset verify-flash \
   0x0 private-backup-alpha2/full-flash-before-alpha2.bin
 ```
 
-The file must be 16,777,216 bytes and verification must succeed. Keep it private and separately copy it to your backup location. Do not proceed with erasure if readable manuscript backups or required data are missing.
+The resulting file should be 16,777,216 bytes, and the verification command must succeed. Save another copy in your backup location, keep it private and do not upload it to a public repository.
 
-## 3. Install the matching TF resources
+Do not erase the flash until you have backed up the manuscripts and data you need to keep.
 
-Mount the backed-up TF card through a card reader. Set `TF_ROOT` to its actual mount directory, not a raw disk device. This example path is a placeholder. The existing staging helper below only installs a **new** independent resource directory, verifies its contents and writes Ready last. It refuses to replace an existing directory.
+## 3. Install dictionaries and the font on the TF card
+
+### Confirm the TF card path
+
+Connect the backed-up TF card through a card reader. Replace the path below with the TF card directory shown on your computer:
 
 ```sh
 TF_ROOT=/Volumes/YOUR_TF_CARD
 ```
 
-Check the target directory before running the installation command:
+Use a directory you can open to view files, not a disk device name such as `/dev/disk...`.
 
-| Target directory | Action |
+First check whether the TF card already contains:
+
+```text
+HANIME/IME/B_SHORT_TEXT_20261018
+```
+
+Choose the next step according to what you find:
+
+| Directory status | What to do next |
 | --- | --- |
-| Does not exist | Run the new-directory installation command below, then continue with the checks. |
-| This exact release directory is present and its provenance is known | Skip the installation command and go directly to [font and pairing checks](#font-and-pairing-checks). |
-| Origin is uncertain or installation is incomplete | Back it up and rename it to a different unused name, then install a complete new directory using the existing procedure. |
+| The directory does not exist | Run the dictionary installation command below. |
+| You have already installed this directory from this version's complete Resources package | Skip the dictionary installation command and continue with the font and resource checks. |
+| A directory with the same name exists, but its origin is uncertain or the previous installation was interrupted | Back it up, rename it to a name that is not already in use, then install again. |
 
-Skipping installation does not skip the font and pairing checks. Do not combine format2 files with format4 or invent a Ready marker. Do not delete documents, CURRENT, state files or old complete resource sets.
+Do not combine dictionary files from different versions in one directory, or delete existing manuscripts, CURRENT or other document state files. You can retain complete resource directories from older versions.
+
+### Install the dictionaries
+
+Run this only when the target directory does not exist:
 
 ```sh
 mkdir -p "$TF_ROOT/HANIME/IME"
@@ -83,43 +128,88 @@ python3 Firmware/tools/prepare_tf_resources.py --resources Resources \
   --target "$TF_ROOT/HANIME/IME/B_SHORT_TEXT_20261018" --write
 ```
 
-### Font and pairing checks
+The tool copies the resources, checks the files and writes the installation completion marker only after everything is complete. It will not overwrite an existing directory with the same name.
 
-Copy the font only if it is absent, then compare the bytes. A differing existing font is an installation conflict; preserve it and resolve the mismatch rather than overwriting it blindly.
+If it reports an error, resolve that error before writing the firmware.
+
+### Install the font and check the resources
+
+Prepare the font directory:
 
 ```sh
 mkdir -p "$TF_ROOT/HANIME/IME/R1_API080"
+```
+
+If matched28.hbf1 is not already in the directory, run:
+
+```sh
 cp -n Resources/HANIME/IME/R1_API080/matched28.hbf1 \
   "$TF_ROOT/HANIME/IME/R1_API080/matched28.hbf1"
+```
+
+Whether you have just copied the font or it was already there, run these checks:
+
+```sh
 cmp Resources/HANIME/IME/R1_API080/matched28.hbf1 \
   "$TF_ROOT/HANIME/IME/R1_API080/matched28.hbf1"
 python3 Firmware/check_install.py --firmware Firmware \
   --resources "$TF_ROOT/HANIME/IME/B_SHORT_TEXT_20261018" --mode fresh
 ```
 
-The final card paths are:
+If an existing font differs from this version's font, preserve the original file and investigate before overwriting it. Stop if the resource check fails as well; do not continue the installation with a mixture of files from different versions.
+
+When you finish, the TF card should contain:
 
 ```text
 HANIME/IME/B_SHORT_TEXT_20261018/
-  shared.hns, shared.hnv
-  xiaohe.hnm, xiaohe.hnv, xiaohe_base.hbo, xiaohe_base.hnv
-  full_pinyin.hnm, full_pinyin.hnv, full_pinyin_base.hbo, full_pinyin_base.hnv
-  wubi86.hnm, wubi86.hnv, wubi86_base.hbo, wubi86_base.hnv
-  RESOURCE_MANIFEST.json, CANDIDATE_READY.json
-HANIME/IME/R1_API080/matched28.hbf1
+  shared.hns
+  shared.hnv
+  xiaohe.hnm
+  xiaohe.hnv
+  xiaohe_base.hbo
+  xiaohe_base.hnv
+  full_pinyin.hnm
+  full_pinyin.hnv
+  full_pinyin_base.hbo
+  full_pinyin_base.hnv
+  wubi86.hnm
+  wubi86.hnv
+  wubi86_base.hbo
+  wubi86_base.hnv
+  RESOURCE_MANIFEST.json
+  CANDIDATE_READY.json
+
+HANIME/IME/R1_API080/
+  matched28.hbf1
 ```
 
-There are 14 payload files (132,153,747 bytes), plus the manifest/Ready and 2,464,108-byte font. The shared bundle is `17304919664082782091`, format4. The checker verifies installation shape/pairing; compiled pins authenticate actual consumed bytes at runtime. Safely eject the TF card and put it back with the device powered off. **Do not format the card.**
+After the checks complete, safely eject the TF card on your computer, then put it back into Draftor while the device is powered off.
 
-## 4. Fresh installation: erase, write and verify
+No part of this process requires formatting the TF card.
 
-This section applies both to a new board and to an Alpha 1 device **after the backups in section 2 are complete and checked**. Reconnect the device, confirm the same port/identity and enter download mode. The next command erases all internal flash. The TF card is unaffected by this command; its separate backup remains necessary.
+## 4. Install Alpha 2 fresh
+
+This section is for new development boards and for Alpha 1 devices whose backups are complete and which are ready for a fresh installation.
+
+If you already have a compatible layout with two 4 MiB App partitions and only want to update the App, skip to section 6.
+
+Reconnect the board, confirm that it is still the device and serial port checked earlier, and enter download mode.
+
+### Erase internal flash
+
+The command below erases all of the ESP32-S3's internal flash, including the old firmware and internal data. It does not format the TF card.
+
+Run it only after confirming that your backups are complete:
 
 ```sh
 python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset erase-flash
 ```
 
-After a successful erase, write these four files from the same Firmware package. `keep` preserves the supplied image headers.
+Do not continue if erasing fails.
+
+### Write the firmware
+
+After erasing succeeds, write the four files from the same Firmware package:
 
 ```sh
 python3 -m esptool --chip esp32s3 --port "$PORT" --baud 460800 --after no-reset write-flash \
@@ -128,6 +218,13 @@ python3 -m esptool --chip esp32s3 --port "$PORT" --baud 460800 --after no-reset 
   0x8000 Firmware/partitions.bin \
   0xe000 Firmware/boot_app0.bin \
   0x10000 Firmware/Draftor_v0.1.0-alpha.2.app.bin
+```
+
+In these commands, keep means retaining the flash parameters already in the images. You do not need to specify them separately.
+
+After writing succeeds, verify the contents on the device:
+
+```sh
 python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset verify-flash \
   0x0 Firmware/bootloader.bin \
   0x8000 Firmware/partitions.bin \
@@ -135,36 +232,25 @@ python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset verify-flash \
   0x10000 Firmware/Draftor_v0.1.0-alpha.2.app.bin
 ```
 
-| Supplied file | Address | Bytes |
-| --- | --- | ---: |
-| `bootloader.bin` | `0x0` | 19,968 |
-| `partitions.bin` | `0x8000` | 3,072 |
-| `boot_app0.bin` | `0xe000` | 8,192 |
-| `Draftor_v0.1.0-alpha.2.app.bin` | `0x10000` | 2,429,104 |
+Start the device only after all four files verify successfully.
 
-The package supplies a dual-4 MiB layout:
+## 5. Start and check the device
 
-| Partition | Offset | Size |
-| --- | --- | --- |
-| NVS | `0x9000` | `0x5000` |
-| OTA data | `0xe000` | `0x2000` |
-| App0 | `0x10000` | `0x400000` |
-| App1 | `0x410000` | `0x400000` |
-| IME reserved | `0x810000` | `0x200000` |
-| FFat | `0xa10000` | `0x5e0000` |
-| Coredump | `0xff0000` | `0x10000` |
+Make sure the matching TF card is inserted, release the BOOT button and reset the board to start it.
 
-The old layout used 2 MiB slots and started FFat at `0x410000`; the new App slots overlap old areas and FFat moves to `0xa10000`. Merely replacing the partition file cannot preserve the old internal filesystem. Do not copy an old internal-filesystem image into the new layout.
+Wait for Ready on the screen, then connect the Bluetooth keyboard. Erasing internal flash also removes the old pairing information, so you may need to pair the keyboard again.
 
-## 5. First start
+First create a disposable test manuscript, type a short passage in Chinese, select words and save it. Leave that manuscript, reopen it from the file list and check that the text is still correct. See the [usage guide](USAGE.md) for the keys.
 
-After all four files verify, release BOOT and reset the board with the prepared TF card inserted. Confirm Ready and normal BLE keyboard connection; internal pairing data may need to be established again after erasure. In a new disposable draft, type a short Chinese sentence, select words, save, leave that draft and reopen it from the file list to check the text. See [Usage](USAGE.md) for the keys.
+If storage mounting, PSRAM, dictionary checks or saving report an error, stop the relevant operation and keep your backups. Do not repeatedly overwrite a manuscript that has a problem.
 
-If mounting, PSRAM, resource authentication or saving fails, stop the relevant operation and keep backups intact. Do not fabricate Ready or repeatedly overwrite a problematic document. Restore required text through the supported document import path, as new documents; keep backups until the recovered text is checked. Same-version save/reopen evidence does not prove every cross-version native-state restore.
+To restore an old manuscript, use the existing import function to create a new manuscript, then open it and check its contents. Keep the backups on your computer until you have confirmed the restoration. An old internal-filesystem backup cannot be written directly to Alpha 2's new partitions.
 
-## 6. Existing exact compatible 4 MiB layout
+## 6. Existing compatible 4 MiB layout: update only the App
 
-This route **does not erase internal flash** and writes only the App to the confirmed currently selected slot. First make the backups in section 2 and install/retain the matching TF resources in section 3. Obtain the actual current partition and OTA bytes while the device is in download mode; package defaults cannot substitute for them:
+This section applies only to devices with a compatible layout containing two 4 MiB App partitions. It does not erase internal flash and writes only to the App partition currently in use.
+
+Complete the backups in section 2 and the TF resource preparation in section 3 first. With the device in download mode, read its actual partition table and boot records:
 
 ```sh
 python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset read-flash \
@@ -177,9 +263,19 @@ python3 Firmware/check_install.py --firmware Firmware \
   --otadata private-backup-alpha2/current-otadata.bin
 ```
 
-The checker must report `COMPATIBLE_FILES_ONLY` for the exact table above. It verifies OTA CRC/settled state and reports `app_offset`. It accepts the known unambiguous one-valid/one-erased record pattern; other populated/ambiguous/pending/rollback states are refused. Stop if refused, rather than editing the data to pass. Match the result to the actual boot selection.
+Do not substitute a partition file from the downloaded package for the file just read from the device.
 
-Set `APP_OFFSET` to that **checked** value. The example placeholder below must be replaced; the address is not universally `0x10000` or `0x410000`.
+When the check succeeds, the tool outputs:
+
+```text
+COMPATIBLE_FILES_ONLY
+```
+
+It also provides app_offset, the location where the App should be written this time. Confirm that it matches the boot partition the device actually uses before continuing.
+
+The checker currently accepts only one unambiguous combination of boot records: one valid record and one erased record. If it reports an incompatible layout or cannot determine the boot location, stop rather than guessing an address.
+
+Replace REPLACE_WITH_CHECKED_OFFSET below with the app_offset confirmed by the check. Do not simply copy 0x10000 or 0x410000 from someone else's device.
 
 ```sh
 APP_OFFSET=REPLACE_WITH_CHECKED_OFFSET
@@ -190,4 +286,52 @@ python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset verify-flash \
   "$APP_OFFSET" Firmware/Draftor_v0.1.0-alpha.2.app.bin
 ```
 
-Do not write bootloader, partitions, OTA data, NVS or the other App slot on this route. Then reset and perform the short save/reopen check in section 5. For rollback conditions, see [Rollback](ROLLBACK.md).
+This update route does not write the boot files, partition table, OTA data, NVS or the other App partition.
+
+After verification succeeds, start the device as described in section 5 and make a short save-and-reopen check. If you need to restore an older version, read the [rollback guide](ROLLBACK.md) first.
+
+## Appendix: files and partitions
+
+This section is a reference for checking files and partitions. For ordinary installation, follow the steps above; you do not need to adjust these values yourself.
+
+### Firmware files
+
+Release App label:
+
+```text
+DRAFTOR_ALPHA2_20261019_RELEASE
+```
+
+| File | Write address for a fresh installation | File size |
+| --- | --- | --- |
+| bootloader.bin | 0x0 | 19,968 bytes |
+| partitions.bin | 0x8000 | 3,072 bytes |
+| boot_app0.bin | 0xe000 | 8,192 bytes |
+| Draftor_v0.1.0-alpha.2.app.bin | 0x10000 | 2,429,104 bytes |
+
+### TF resources
+
+This version has 14 dictionary and index files totalling 132,153,747 bytes, plus a resource manifest, an installation completion marker and a 2,464,108-byte font file.
+
+Resource identifiers:
+
+```text
+bundle: 17304919664082782091
+format: 4
+```
+
+The installation checker checks whether the files are complete and their versions match. The firmware still authenticates the resource content it actually reads at runtime.
+
+### Internal flash partitions
+
+| Partition | Start address | Capacity |
+| --- | --- | --- |
+| NVS | 0x9000 | 0x5000 |
+| OTA data | 0xe000 | 0x2000 |
+| App0 | 0x10000 | 0x400000 |
+| App1 | 0x410000 | 0x400000 |
+| IME reserved area | 0x810000 | 0x200000 |
+| FFat internal filesystem | 0xa10000 | 0x5e0000 |
+| Coredump area | 0xff0000 | 0x10000 |
+
+The old layout had 2 MiB App partitions and FFat starting at 0x410000. The new layout enlarges the App partitions and moves FFat to 0xa10000. You therefore cannot preserve the old internal filesystem just by replacing the partition table, or write an old filesystem image directly to the new location.
