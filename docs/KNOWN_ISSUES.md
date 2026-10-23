@@ -22,9 +22,9 @@ Startup/build identity, connection, memory/health and error diagnostics remain o
 
 串口仍保留启动标识、连接、内存/运行状态及错误诊断，不是完全静默；没有新增持久输入日志。分享诊断前仍应检查内容。此前实测基线确实默认输出组成码，作为原证据单独保留，不拿它替代这份发行App。
 
-The quieter App is newly compiled and checked in software, without a new device session. Earlier performance/save/reopen results identify the unchanged business baseline, not a newly tested release binary.
+The exact observer-disabled release App has passed a brief device check covering startup, Chinese input, candidate selection, saving and truly reopening the same test manuscript after leaving it. Reopened text was checked visually by the author; this was not an exported-byte comparison. Earlier performance measurements still describe the measured business baseline; no new performance test was run.
 
-关闭观察的App是新编译的软件检查版本，尚未另做实机会话；前述速度与保存重开成绩说明继承的业务基线，不表示新二进制已实测。
+关闭输入观察的准确发行App已通过一次简短实机检查，覆盖启动、中文输入、选词、保存，以及离开后真正重开同一测试稿。重开文字由作者目视核对，本次没有进行正文导出字节比较。此前性能数据仍对应累计测量基线，本轮没有重新测试性能。
 
 ## Historical observations still open / 历史未彻底解释的现象
 

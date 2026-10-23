@@ -73,7 +73,7 @@ See [docs/INSTALL.md](docs/INSTALL.md) for installation instructions.
 
 Alpha 2 is still a test release. Local Wi-Fi document transfer remains experimental, and some usage scenarios have not been fully tested. This release does not include complete writing firmware for the Pico 2 W.
 
-The release firmware has not yet been independently tested on a device.
+The release firmware has passed a brief device check covering startup, Chinese input, candidate selection, saving and reopening a test manuscript.
 
 See [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) and [docs/RESOURCE_STATUS.md](docs/RESOURCE_STATUS.md) for other known issues, resource sources and licensing information.
 

@@ -20,6 +20,6 @@ The retained device report did not fully establish the before/after CURRENT iden
 
 既有实机报告未完整确认导入前后 CURRENT 身份、并发编辑下的精确快照边界、中断上传的回执恢复、每个输入法/布局组合、设备上的全部大小边界和非法上传、广泛客户端兼容性。Pi 辅助连接曾失败而手机可用，根因未定；QR1 软件报告未记录手机扫码实机结果。以上缺项继续记录，不自动转成本轮新增测试要求。
 
-The subsequent Alpha/cumulative performance comparison and FW1 writing session kept Wi-Fi off. They do not replace the earlier Wi-Fi evidence. The exact observer-disabled release App has not yet had its separate brief device check. See [Usage](USAGE.md) for current keys and [Known Issues](KNOWN_ISSUES.md) for other limitations.
+The subsequent Alpha/cumulative performance comparison and FW1 writing session kept Wi-Fi off. They do not replace the earlier Wi-Fi evidence. The exact observer-disabled release App has completed its separate brief startup, Chinese input, selection, save and reopen check with Wi-Fi kept off. See [Usage](USAGE.md) for current keys and [Known Issues](KNOWN_ISSUES.md) for other limitations.
 
-之后的 Alpha/累计性能对照与 FW1 写作保持 Wi-Fi 关闭，不代替此前无线证据。关闭输入观察的准确发行 App 尚待单独短检查。操作键位见[使用说明](USAGE.zh-CN.md)，其他限制见[已知问题](KNOWN_ISSUES.md)。
+之后的 Alpha/累计性能对照与 FW1 写作保持 Wi-Fi 关闭，不代替此前无线证据。关闭输入观察的准确发行 App 已完成启动、中文输入、选词、保存和重开的单独短检查，全程保持 Wi-Fi 关闭。操作键位见[使用说明](USAGE.zh-CN.md)，其他限制见[已知问题](KNOWN_ISSUES.md)。

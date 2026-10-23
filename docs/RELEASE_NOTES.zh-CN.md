@@ -71,6 +71,6 @@ GitHub自动生成的Source code压缩包，不等于完整安装包。
 
 Alpha 2 仍然是测试版本。本地Wi-Fi文稿传输仍属于实验功能，部分使用情境尚未充分测试。本版暂不提供Pico 2 W的完整写作固件。
 
-发行固件尚未经过独立实机验证。
+发行固件已通过一次简短实机检查，覆盖启动、中文输入、选词、保存和重新打开测试文稿。
 
 其他已知问题、资源来源及许可信息，见 [docs/KNOWN_ISSUES.md](KNOWN_ISSUES.md) 和 [docs/RESOURCE_STATUS.md](RESOURCE_STATUS.md)。

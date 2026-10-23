@@ -5,7 +5,7 @@
     "name": "Draftor_v0.1.0-alpha.2.app.bin",
     "origin": "local release derivative; input-code/timing observer disabled by author request",
     "exact_identity_location": "Firmware/RELEASE_PAIR.json and distribution PAIRING_MANIFEST.json",
-    "device_tested": false,
+    "device_tested": true,
     "bytes": 2429104,
     "sha256": "a5817ed615a3b5cda25649b1579bdbdae2042bfb88f1943a984d9476b1435963",
     "source_commit": "1e75507b556e7790f8e5057de8c2dcd7c90087ed"
@@ -136,9 +136,24 @@
     "reason": "Explicit author decision 2026-10-19: remove serial composition/input timing feature for release; preserve business implementation."
   },
   "documentation_revision": {
-    "date": "2026-10-22",
+    "date": "2026-10-23",
     "firmware_rebuilt": false,
     "resources_regenerated": false,
     "source_commit_location": "distribution PAIRING_MANIFEST.json; distinct from app.source_commit"
+  },
+  "validation": {
+    "brief_release_device_check": "PASS_LIMITED_RELEASE_SHORT_CHECK",
+    "brief_check_date": "2026-10-23",
+    "brief_check_scope": [
+      "startup",
+      "Chinese input",
+      "candidate selection",
+      "save",
+      "leave into blank draft and truly reopen the same test manuscript"
+    ],
+    "body_comparison": "author visual check after true reopen; no byte export comparison",
+    "wifi_retested": false,
+    "performance_retested": false,
+    "external_source_review": "materials delivered; reviewer conclusion pending"
   }
 }
