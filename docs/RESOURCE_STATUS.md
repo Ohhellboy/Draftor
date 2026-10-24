@@ -2,7 +2,7 @@
 
 **Version / 适用版本：Draftor Alpha 2 · v0.1.0-alpha.2**
 
-[Project / 项目主页](../README.md) · [Build / 源码构建](BUILD.md) · [License Inventory / 许可证清单](LICENSE_INVENTORY.md) · [Firmware Distribution / 固件分发](FIRMWARE_DISTRIBUTION.md)
+[Project](../README.en.md) / [项目主页](../README.md) · [Build / 源码构建](BUILD.md) · [License Inventory / 许可证清单](LICENSE_INVENTORY.md) · [Firmware Distribution / 固件分发](FIRMWARE_DISTRIBUTION.md)
 
 Draftor includes Chinese dictionaries, character indexes, fonts and other resources developed or adapted from multiple sources. Different parts of these resources may be covered by different licenses.
 

@@ -2,7 +2,7 @@
 
 **Version / 适用版本：Draftor Alpha 2 · v0.1.0-alpha.2**
 
-[Project / 项目主页](../README.md) · [LICENSE](../LICENSE) · [NOTICE](../NOTICE) · [Resource Status / 资源许可情况](RESOURCE_STATUS.md) · [Third-Party Notices / 第三方声明](../THIRD_PARTY.md)
+[Project](../README.en.md) / [项目主页](../README.md) · [LICENSE](../LICENSE) · [NOTICE](../NOTICE) · [Resource Status / 资源许可情况](RESOURCE_STATUS.md) · [Third-Party Notices / 第三方声明](../THIRD_PARTY.md)
 
 Draftor contains original source code, third-party libraries, Chinese dictionaries, fonts and other resources. They do not all use the same license.
 

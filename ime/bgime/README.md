@@ -1,65 +1,65 @@
-# bgIME
+# bgIME 大鹅输入法
 
-**Big Goose Input Method Engine · 大鹅输入法**
+**Big Goose Input Method Engine**
 
-**English** · [简体中文](README.zh-CN.md) · [Draftor](../../README.md)
+**简体中文** | [English](README.en.md) · [Draftor 草稿机](../../README.md)
 
-bgIME (Big Goose Input Method Engine) is a Chinese input engine designed for resource-constrained embedded devices.
+bgIME（大鹅中文输入法引擎，Big Goose Input Method Engine）是一套为资源有限的嵌入式设备开发的中文输入引擎。
 
-It supports Full Pinyin, Xiaohe Shuangpin, and Wubi 86. Each input scheme has its own encoding rules, while sharing lexical resources, candidate lookup, and text submission through a common engine. Dictionaries can be stored on a TF card and read on demand, enabling Chinese input on microcontrollers with limited memory.
+它支持全拼、小鹤双拼和五笔86。不同输入方案使用各自的编码规则，同时共用词条资源、候选查询和文本提交机制。词库可以存放在TF卡中，按需读取，从而在内存有限的单片机上实现中文输入。
 
-bgIME currently powers [Draftor](../../README.md), an open-source writing device. Its Core can be built independently, and the repository includes command-line examples for developers interested in integrating the engine into other projects.
+目前，bgIME 已应用于开源写作设备 [Draftor（草稿机）](../../README.md)。引擎核心可以独立编译，仓库中也提供了命令行示例，供其他项目参考和集成。
 
-## Why “Big Goose”?
+## 为什么叫“大鹅”？
 
-The name “Big Goose” comes from the many ways of writing the Chinese character 鹅 (“goose”). The six characters 鹅, 鵝, 鵞, 䳗, 䳘 and 𨿍 (我 on the left, 隹 on the right) each have their own Unicode code point. The [*Dictionary of Chinese Character Variants*](https://dict.variants.moe.edu.tw/dictView.jsp?ID=52649) records 11 variant forms of 鵝.
+「大鹅」或 Big Goose 得名于汉字「鹅」的多种写法。在 Unicode 中，「鹅」「鵝」「鵞」「䳗」「䳘」和「𨿍」（左我右隹）分别拥有独立的码位。而据[《异体字字典》](https://dict.variants.moe.edu.tw/dictView.jsp?ID=52649)记载，「鵝」还有11种异体字形。
 
-bgIME has no ambition to include them all, but the diversity of writing represented by 鹅 inspired the engine's name. (For the record, this has absolutely nothing to do with the engine designer's experiences of being attacked by domestic geese and swans.)
+bgIME 没有将它们全部收录的技术野心，但是「鹅」字所代表的文字多样性，成为大鹅输入法引擎的命名来源。（声明：这与引擎设计者本身遭受家鹅、天鹅攻击的经历没有任何关系。）
 
-## bgIME improvements in Draftor Alpha 2
+## Draftor Alpha 2 中的 bgIME 改进
 
-[Draftor Alpha 2](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2) is now available. This update improves bgIME's candidate lookup and text retrieval.
+[Draftor Alpha 2](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2) 已经发布。这次更新进一步优化了 bgIME 的候选查询和文字读取效率。
 
-### Reducing data reads and repeated work
+### 减少数据读取和重复工作
 
-Microcontrollers have limited memory. To conserve RAM, bgIME stores dictionary data and indexes on a TF card and reads them as needed.
+单片机本身内存有限。为了节约内存资源，bgIME 将词库及索引存放在TF卡中，需要时再读取。
 
-Chinese input broadly involves three steps: the user enters a code, the engine finds candidates, and their text is retrieved.
+一次中文输入大致经过三个步骤：用户输入编码、引擎查找候选、读取对应文字。
 
-Alpha 2 improves three parts of this process:
+Alpha 2 主要改进了三个环节：
 
-1. **Block-based lookup:** Full Pinyin and Xiaohe Shuangpin use block-organized code indexes. The engine reads relevant blocks as needed and reuses valid data already in memory, reducing storage access during candidate lookup.
+1. **分块查询：** 全拼和小鹤双拼使用分块组织的编码索引。输入法可以按需查找相关数据块，并复用已经读取的有效数据，减少查询候选时的存储访问。
 
-2. **Text-location handoff:** Shared lexical records contain the location of their default output text. Once this information has been read and verified, it can be passed directly to the text reader, reducing repeated lookups and reads.
+2. **取字衔接：** 共享词条记录中保存了默认输出文字的位置信息。读取并验证这些信息后，可以直接交给取字模块，减少重复定位与读取。
 
-3. **Co-located short-text reads (format4):** For eligible short texts, the default output text and its shared lexical record are read from the same data block, reducing additional accesses. Other outputs continue through the existing general text-reading path.
+3. **短文字同块读取（format4）：** 对符合条件的短文字，将默认输出文字与相关共享词条记录放在同一数据块中读取，减少额外访问。其他输出仍通过原有的完整读取路径处理。
 
-These changes shorten the process from entering a code to retrieving candidate text.
+这些改进缩短了从输入编码到取得候选文字的处理过程。
 
-In Draftor, bgIME, the editor, and the display driver work together to complete the input process. Alpha 2 also uses differential display updates to reduce repeated transfers of unchanged screen regions.
+在 Draftor 中，bgIME 与编辑器、屏幕驱动共同完成输入流程。Alpha 2 也采用差量显示，减少对未变化区域的重复传输。
 
-### Measured response times
+### 实际速度
 
-Alpha 1 and Alpha 2 were compared on the same ESP32-S3 prototype, with the following results:
+在同一台 ESP32-S3 原型机上，对 Alpha 1 和 Alpha 2 进行对照测试，结果如下：
 
-| Input | Alpha 1 | Alpha 2 |
+| 输入操作 | Alpha 1 | Alpha 2 |
 |---|---:|---:|
-| First Xiaohe Shuangpin `wo`, complete candidates | 317.3 ms | **114.6 ms** |
-| First Full Pinyin `shi`, complete candidates | 333.7 ms | **122.8 ms** |
+| 小鹤双拼首次输入 `wo`，完整候选出现 | 317.3 ms | **114.6 ms** |
+| 全拼首次输入 `shi`，完整候选出现 | 333.7 ms | **122.8 ms** |
 
-Timing begins when the device receives the **keyboard event** and ends when the software completes the **display transfer** for the complete-candidate image. It includes lookup, text retrieval, and display.
+计时从设备收到**按键事件**开始，到软件完成完整候选画面的**显示传输**为止，包含查询、取字和显示三个环节。
 
-Other results, including response times during natural writing, are available in the [performance report](../../docs/PERFORMANCE.md).
+其他测试结果，包括自然写作中的响应时间，见[性能报告](../../docs/PERFORMANCE.md)。
 
-## Quick start
+## 快速开始
 
-The bgIME source lives in the Draftor repository. Start with the command-line examples to explore candidate lookup and text submission, then integrate the engine into your own application as needed.
+bgIME 的代码位于 Draftor 仓库中。可以先运行命令行示例，了解候选查询和文本提交的过程，再根据需要将引擎接入自己的程序。
 
-The following commands require CMake 3.20 or later and a C++17 compiler. The existing Host examples use POSIX file APIs and have been run on macOS.
+以下命令使用 CMake 3.20 或更新版本，以及支持 C++17 的编译器。现有 Host 示例使用 POSIX 文件接口，已有 macOS 环境下的运行记录。
 
-### Run the Core example
+### 运行 Core 示例
 
-From the repository root:
+在仓库根目录执行：
 
 ```sh
 cmake -S ime/bgime/examples/host_minimal \
@@ -73,20 +73,20 @@ cmake --build build/host_minimal \
   ./build/host_minimal/fixture
 ```
 
-The example automatically generates a small test dictionary, then calls Core to look up candidates, select text, and submit the result.
+这个示例会自动生成一套小型测试词库，然后调用 Core 查询候选、选择文字并提交结果。
 
-Its Full Pinyin code `yuanxingji` and Xiaohe Shuangpin code `yrxkji` both resolve to 「原型机」, demonstrating how different input schemes can share the same lexical identity.
+示例中，全拼编码 `yuanxingji` 和小鹤双拼编码 `yrxkji` 都对应「原型机」，用于展示不同输入方案如何共享同一个词条身份。
 
-For keystroke handling, editing, and composition, see the other examples:
+如果希望进一步了解逐键输入、编辑和组合提交，可以查看另外两个示例：
 
-- [Full Pinyin and Xiaohe composition example](examples/host_composition/README.md): uses Core and Extension to demonstrate keystroke input, code editing, candidate selection, and composition submission.
-- [Wubi 86 example](examples/host_wubi86/README.md): uses the Wubi decoder and Core to demonstrate keystroke input, candidate pagination, and text submission.
+- [全拼与小鹤双拼组合输入示例](examples/host_composition/README.md)：使用 Core 和 Extension，演示逐键输入、修改编码、选择候选及组合提交。
+- [五笔86示例](examples/host_wubi86/README.md)：使用五笔解码器与 Core，演示逐键输入、候选翻页和文字提交。
 
-Each example uses its own small test dictionary. They provide a starting point for learning the interfaces and integration patterns; production applications need matching input resources.
+三个示例使用各自的小型测试词库。它们适合学习接口和集成方法；实际应用则需要提供匹配的正式输入资源。
 
-### Build Core independently
+### 单独编译 Core
 
-To build only the bgIME Core static library, run the following commands from the repository root:
+如果只需要 bgIME Core 静态库，可以在仓库根目录执行：
 
 ```sh
 cmake -S integration/product/dependencies/core \
@@ -99,75 +99,75 @@ cmake -S integration/product/dependencies/core \
 cmake --build build/bgime-core --target hanime_core
 ```
 
-This builds the `hanime_core` library target. Within the same CMake build, it can be referenced as `HanIME::Core`.
+生成的库目标为 `hanime_core`。在同一个 CMake 构建工程中，可以通过 `HanIME::Core` 引用它。
 
-Core provides interfaces for lexical resource management, lookup, candidates, ranking, and text submission. The host application supplies storage access, input-event scheduling, and a destination for committed text.
+Core 提供词条资源管理、查询、候选、排序及提交接口。实际接入时，宿主程序负责提供存储访问、输入事件调度和接收文字的接口。
 
-See the [Core public headers](../../integration/product/dependencies/core/include/hanime/) for the API entry points.
+详细接口可从 [Core 公开头文件](../../integration/product/dependencies/core/include/hanime/)开始了解。
 
-## Source layout
+## 源码结构
 
-bgIME separates shared input-method capabilities from scheme-specific input processing.
+bgIME 将共享输入能力与不同输入方案分开组织。
 
-| Component | Source | Responsibility |
+| 模块 | 源码 | 主要职责 |
 |---|---|---|
-| Core | [dependencies/core](../../integration/product/dependencies/core/) | Shared lexical identities, resource access and validation, candidate lookup, ranking, and text submission |
-| Extension | [dependencies/extension](../../integration/product/dependencies/extension/) | Full Pinyin and Xiaohe Shuangpin input rules, segmentation, and composition |
-| Wubi | [dependencies/wubi](../../integration/product/dependencies/wubi/) | Wubi 86 decoding and query adaptation |
-| Host / Platform | [Core interfaces](../../integration/product/dependencies/core/include/hanime/) · [Platform layer](../../integration/product/platform/) | Connecting resource I/O, input events, and text output to a device |
-| Draftor | [Product integration](../../integration/product/) | Bluetooth keyboard input, editor, horizontal and vertical layout, and document management |
+| Core | [dependencies/core](../../integration/product/dependencies/core/) | 共享词条身份、资源读取与校验、候选查询、排序及文本提交 |
+| Extension | [dependencies/extension](../../integration/product/dependencies/extension/) | 全拼、小鹤双拼的输入规则、切分与组合处理 |
+| Wubi | [dependencies/wubi](../../integration/product/dependencies/wubi/) | 五笔86解码与查询适配 |
+| Host / Platform | [Core 接口](../../integration/product/dependencies/core/include/hanime/) · [平台层](../../integration/product/platform/) | 将资源读写、输入事件和文本输出连接到实际设备 |
+| Draftor | [产品集成](../../integration/product/) | 蓝牙键盘、编辑器、横竖排显示与文稿管理 |
 
-Full Pinyin, Xiaohe Shuangpin, and Wubi 86 can share Core's lexical resources while retaining their own input rules. Wubi uses its own decoder rather than Full Pinyin segmentation.
+全拼、小鹤双拼和五笔86可以共用 Core 的词条资源，但各自保留输入规则。五笔使用自己的解码方式，不经过全拼的切分过程。
 
-In Draftor, bgIME handles Chinese input, while the product combines it with keyboard input, editing, screen rendering, and local document transfer.
+在草稿机中，bgIME 负责中文输入，Draftor 则将它与键盘、编辑器、屏幕显示及本地文稿传输组合起来。
 
-See [Source Integration](../../docs/SOURCE_INTEGRATION.md) for a more detailed source map.
+更详细的代码入口见[源码整合说明](../../docs/SOURCE_INTEGRATION.md)。
 
-## Versions and resources
+## 版本与配套资源
 
-### Current source versions
+### 当前源码版本
 
-| Component | Version |
+| 组件 | 版本 |
 |---|---|
 | [Draftor](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2) | `v0.1.0-alpha.2` |
 | bgIME Core | `0.13.1-rc.1` |
-| Core public API | `0.13.0` |
-| Core CMake library version | `0.13.1` |
+| Core 公开 API | `0.13.0` |
+| Core CMake 库版本 | `0.13.1` |
 | Extension | `0.8.4-rc.1` |
-| Extension CMake project version | `0.8.4` |
+| Extension CMake 工程版本 | `0.8.4` |
 
-The Alpha 2 lookup and text-reading implementation described here corresponds to the source at the Draftor `v0.1.0-alpha.2` tag.
+本页所述的 Alpha 2 查询与取字实现，以 Draftor `v0.1.0-alpha.2` 对应的源码为准。
 
-Core source directories and CMake targets continue to use the `HanIME` name.
+Core 的源码目录与 CMake 目标仍使用 `HanIME` 命名。
 
-### Dictionaries and indexes
+### 词库和索引
 
-Draftor Alpha 2 uses the **format4** resource set, stored at:
+Draftor Alpha 2 使用 **format4** 配套资源，资源目录为：
 
 ```text
 HANIME/IME/B_SHORT_TEXT_20261018
 ```
 
-The set includes shared lexical data and scheme indexes for Full Pinyin, Xiaohe Shuangpin, and Wubi 86.
+当前资源包括共享词条文件，以及全拼、小鹤双拼和五笔86各自的方案索引。
 
-Use the complete resource set that matches the firmware when installing and running it. Older documentation refers to the earlier B2 resource set, `LEXICON_R3_B2_20261006`; Alpha 2 uses the format4 resources above.
+安装和运行时，请使用与固件配套的完整资源集。旧版资料中的 `LEXICON_R3_B2_20261006` 属于较早的 B2 资源集，Alpha 2 使用上面的 format4 资源。
 
-See the [resource manifest](../../release/alpha2/RESOURCE_MANIFEST.json) for the file set and version information, and the [build guide](../../docs/BUILD.md) for full firmware build instructions.
+准确的资源文件和版本关系见[资源清单](../../release/alpha2/RESOURCE_MANIFEST.json)，完整固件的构建方式见[构建指南](../../docs/BUILD.md)。
 
-Core can be compiled independently without downloading the complete production dictionary. A running input method needs resources compatible with its chosen schemes.
+独立编译 Core 时不需要下载整套生产词库。实际运行输入法时，需要为所选输入方案提供匹配的资源。
 
-## Licensing and development status
+## 许可与开发状态
 
-Project-owned bgIME source is released under **Apache License 2.0**. See [LICENSE](../../LICENSE) and [NOTICE](../../NOTICE). Fonts, dictionaries, and other third-party materials retain their respective licensing and attribution requirements.
+bgIME 自有源码采用 **Apache License 2.0**，见 [LICENSE](../../LICENSE) 和 [NOTICE](../../NOTICE)。字体、词库及其他第三方材料适用各自的许可证和署名要求。
 
-Resource provenance and related licensing matters are documented in [Third-Party Notices](../../THIRD_PARTY.md), the [License Inventory](../../docs/LICENSE_INVENTORY.md), and [Resources & Licensing Status](../../docs/RESOURCE_STATUS.md).
+资源来源及相关许可事项可查阅[第三方声明](../../THIRD_PARTY.md)、[许可证清单](../../docs/LICENSE_INVENTORY.md)和[资源与许可说明](../../docs/RESOURCE_STATUS.md)。
 
-A Chinese invention patent application has been filed concerning the shared stable lexical identity technology.
+共享稳定词条身份相关技术已提交中国发明专利申请。
 
-Some features are still in development:
+目前还有一些功能处于开发阶段：
 
-- Core provides user-state and learning interfaces; user-frequency learning is still under development.
-- Input schemes are integrated through the existing module interfaces. A general plugin ABI is not currently provided.
-- The existing Host file adapters use POSIX APIs. Other platforms require corresponding platform adapters.
+- Core 已有用户状态和学习接口，用户词频学习功能仍在开发中。
+- 输入方案目前通过现有模块接口集成，通用插件 ABI 尚未提供。
+- 现有 Host 文件适配器使用 POSIX API，接入其他平台需要实现相应的平台适配。
 
-bgIME is a collaboration between me, Xiaojun and ChatGPT. Work on the engine continues, and suggestions are welcome—please leave a comment.
+大鹅输入法引擎的合作者包括本人，Xiaojun，以及ChatGPT，引擎持续维护中，诸君若有建议，欢迎留言。

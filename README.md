@@ -1,216 +1,158 @@
-# Draftor Alpha 2: Faster Chinese Input and Wi-Fi Document Transfer
+# Draftor 草稿机
 
-**English** | [简体中文](README.zh-CN.md)
+**简体中文** | [English](README.en.md)
 
-[Release notes](docs/RELEASE_NOTES.md) · [Installation guide](docs/INSTALL.md)
+草稿机是一台基于单片机的开源便携式中文写作设备，使用蓝牙键盘输入，支持离线写作和本地文稿保存。
 
-The main update in Alpha 2 is a noticeable improvement in Chinese input speed.
+它希望提供一种无打搅的写作方式：无需联网，没有 AI 写作功能，保留基本编辑和文稿传输功能。
 
-Candidates appear sooner after you type Pinyin, and selected words reach the document faster. These changes improve individual input responses and reduce some of the waiting when paging through candidates or typing continuously.
+## 最新更新：Alpha 2
 
-Alpha 2 also adds **local Wi-Fi document transfer**. You can connect to Draftor with your phone's browser to import and export documents. The phone connects directly to the ESP32-S3's Wi-Fi module, without relying on a nearby Wi-Fi network or any cloud text service.
+Alpha 2 明显提升了中文输入的响应速度，缩短了候选出现、候选翻页和选词后正文显示的等待。
 
-## What changed
+本版还加入了本地 Wi-Fi 文稿传输。手机可以直接连接草稿机，通过浏览器导入、导出文稿，不需要场地的 Wi-Fi 网络或云端服务。
 
-This round of performance work has four main parts:
+[下载 Alpha 2](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2) · [完整更新说明](docs/RELEASE_NOTES.zh-CN.md) · [性能结果](docs/PERFORMANCE.md) · [安装指南](docs/INSTALL.zh-CN.md) · [操作手册](docs/USAGE.zh-CN.md)
 
-1. **Block-based lookup:** reorganizes the input method's code index to reduce the data read while finding candidates.
-2. **Less repeated lookup:** text locations that have already been found and verified can be passed directly to the text reader.
-3. **Short text in the same block:** eligible complete short texts are read together with their shared entries, reducing additional reads and verification.
-4. **Differential display updates:** the screen updates only the parts that have changed where possible, instead of sending the entire frame every time.
+![运行中文输入的草稿机原型](draftor-prototype.jpg)
 
-Together with other small adjustments, these changes reduce the wait between pressing a key and seeing the result.
+## 主要功能与硬件
 
-This version continues to support Full Pinyin, Xiaohe Shuangpin, Wubi 86 and English input, with both horizontal and vertical writing.
+| 功能 | 支持内容 |
+|---|---|
+| 中文输入 | 全拼、小鹤双拼、五笔86 |
+| 英文输入 | 英文直接输入 |
+| 文字显示 | 简体字、繁体字和异体字，使用配套字库 |
+| 排版 | 横排和竖排 |
+| 文稿管理 | 本地保存、文件列表、中文文件名 |
+| 文稿传输 | USB 和本地 Wi-Fi 导入、导出 |
 
-## Input speed improvements
+当前完整写作固件适用于 **ESP32-S3 N16R8（Thick）**，使用蓝牙键盘，以及 [Osptek（鱼鹰）ST7306 黑白红反射式 TFT 显示屏](display/st7306/)。
 
-Here are several corresponding results from the Alpha 1 and cumulative Alpha 2 measurement builds, tested on the same ESP32-S3 prototype.
+仓库同时提供 **Raspberry Pi Pico 2 W** 的独立 ST7306 屏幕示例。当前公开的完整写作固件以 ESP32-S3 版本为准。
 
-| Action | Alpha 1 | Alpha 2 |
-| --- | --- | --- |
-| First Xiaohe `wo`: complete candidates | 317.3 ms | **114.6 ms** |
-| First Full Pinyin `shi`: complete candidates | 333.7 ms | **122.8 ms** |
-| First Xiaohe `wo`: typed-code feedback | 55.3 ms | **9.6 ms** |
-| Xiaohe phrase selected with Space: document display | 72.1 ms | **36.4 ms** |
+接线和硬件要求见[硬件说明](docs/HARDWARE.md)。
 
-The first two complete-candidate waits were reduced by about 64% and 63%.
+## 开始使用
 
-Timing starts when the ESP32-S3 receives the relevant keyboard event and ends when the software finishes sending the corresponding typed-code, complete-candidate or document image to the display.
+### 安装固件
 
-We also used the cumulative Alpha 2 build for a natural writing test of about 1,400 characters. Among valid samples, the median complete-candidate wait was **84.4 ms**, typed-code feedback took **17.8 ms**, and document display after selection took **46.5 ms**.
+从 [Alpha 2 发行页](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2)下载同一版本的 **Firmware** 和 **Resources**，按[安装指南](docs/INSTALL.zh-CN.md)准备固件、词库和字体。
 
-See [docs/PERFORMANCE.md](docs/PERFORMANCE.md) for the full results and measurement method.
+Alpha 1 用户建议先将文稿备份到电脑，再按全新安装流程安装 Alpha 2。重新安装会清除内部 Flash 数据，但不需要格式化 TF 卡。
 
-## Which files to download
+### 写作和传输
 
-To install on an ESP32-S3 N16R8 (Thick), download **Firmware** and **Resources** from the same version.
+[操作手册](docs/USAGE.zh-CN.md)介绍常用按键、中文输入、文稿改名，以及 USB 和本地 Wi-Fi 文稿传输。
 
-Follow the [installation guide](docs/INSTALL.md) included in this version’s Firmware package.
+Alpha 2 仍是测试版本，本地 Wi-Fi 文稿传输属于实验功能。重要文稿请定期导出备份，具体限制见[已知问题](docs/KNOWN_ISSUES.md)。
 
-If you want to build the firmware yourself, also download **Source** and **BuildInputs**, and follow [docs/BUILD.md](docs/BUILD.md).
+### 自行编译
 
-| File | Purpose |
-| --- | --- |
-| `Firmware.zip` | Firmware, boot files and partition files |
-| `Resources.zip` | Matching dictionaries, indexes and font |
-| `Source.zip` | Draftor, bgIME and related project-owned source |
-| `BuildInputs.zip` | Generated files and dependency materials needed for the fixed build |
+下载同一版本的 **Source** 和 **BuildInputs**，按[构建指南](docs/BUILD.md)准备工具链并编译。运行设备时还需要配套的 Resources。
 
-GitHub's automatically generated Source code archives are not complete installation packages.
+GitHub 自动生成的“Source code”压缩包是仓库源码快照，安装设备请使用发行页提供的配套文件。
 
-## Upgrading from an earlier version
+## 中文输入引擎：bgIME 大鹅输入法
 
-**A direct upgrade from Alpha 1 to Alpha 2 is not recommended.**
+草稿机的中文输入由 **bgIME（大鹅中文输入法引擎，Big Goose Input Method Engine）** 提供。
 
-The new version changes the firmware partition layout. We recommend exporting your manuscripts and backing them up to a computer, then following the fresh-install procedure to erase the old system from the ESP32-S3's internal flash and install Alpha 2.
+bgIME 为内存有限的嵌入式设备设计，支持全拼、小鹤双拼和五笔86。不同输入方案使用各自的编码规则，同时共享词条资源、候选查询和文本提交机制。
 
-**Reinstallation erases the existing data in internal flash, but does not require formatting the TF card.** Install the new dictionaries that match the Alpha 2 firmware.
+引擎核心可以独立编译，仓库中提供了命令行示例，供其他项目参考和集成。草稿机则将它与蓝牙键盘、编辑器、屏幕显示和文稿传输组合起来。
 
-See [docs/INSTALL.md](docs/INSTALL.md) for installation instructions.
-
-## Things to keep in mind
-
-Alpha 2 is still a test release. Local Wi-Fi document transfer remains experimental, and some usage scenarios have not been fully tested. This release does not include complete writing firmware for the Pico 2 W.
-
-The release firmware has passed a brief device check covering startup, Chinese input, candidate selection, saving and reopening a test manuscript.
-
-See [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) and [docs/RESOURCE_STATUS.md](docs/RESOURCE_STATUS.md) for other known issues, resource sources and licensing information.
-
-<!-- ALPHA_NAV_END -->
-
-**A distraction-free local pocket text recording device**
-
-![Draftor prototype running Chinese input](draftor-prototype.jpg)
+[了解 bgIME、运行示例与集成方法](ime/bgime/README.md)
 
 ---
 
-## Current Status
+## 为什么需要无打搅记录设备？
 
-### MCU Support
+很多人（包括我自己）容易分心。
 
-- ESP32-S3 N16R8
-- Raspberry Pi Pico 2 W
+分心的个体原因挺复杂的，不是简单的「你这个人就是不行」可以概括。有些人长期陷于焦虑、抑郁或者注意力缺失的困境；有些人则时不时遭受夏日小情绪的困扰。
 
-The complete Alpha firmware currently targets ESP32-S3 N16R8 (Thick). Raspberry Pi Pico 2 W (Thin) has standalone ST7306 display demos, but no complete Alpha writing firmware in this release.
+更糟糕的是，很多东西让人分心。微信、WhatsApp、邮件、社交媒体、购物网站，以及该死的钉钉和抖音。
 
-### Display Support
+写作是一种自愈的方法，它帮助人审视自己的行为，整理自己的想法。这个过程必须由自己完成。阅读、学习、工作、创作、闲聊，都无法完全替代写作。
 
-- [Osptek ST7306 black-white-red reflective TFT display](display/st7306/)
+写作还是一种通过触觉反馈学习和思考的方法。
 
-### Input Support
+我们不得不接受百万年生物演化的限制。有很多人无法脱离触觉完成深度认知过程，即便他们没意识到这一点。甚至抄写更符合一些人（包括我）的记忆习惯。
 
-- Quanpin (Full Pinyin)
-- Shuangpin (Double Pinyin)
-- Wubi (Five-Stroke)
-- English direct input
+摩擦不一定是坏事。
 
----
+我非常享受 HB 铅笔在纸面摩擦的反馈。它常常让我不由自主多记几笔（正宗废话，手工制造）。
 
-## WHAT IS DRAFTOR?
+很多人依然喜欢自己写作。
 
-Draftor is a distraction-free local text input and recording device — a “typewriter” built around an MCU (Microcontroller Unit) and used with a Bluetooth keyboard.
+当今的 AI 确实可以完美模拟出具体的风格，但那不是个性的表达。写作经验可以被数据化，但很难脱离现实经验被个性化。
 
-By “distraction-free”, I mean offline, no AI, and limited editing features.
-
-It provides offline text storage and transfer without relying on cloud text services.
+如果你是文本工作者，譬如文学创作者和人类学学者，可能更容易体会到这一点。
 
 ---
 
-## WHAT DOES DRAFTOR SUPPORT?
+## 为什么选择草稿机？
 
-Draftor currently supports English direct input and three Chinese input methods: Quanpin (Full Pinyin), Shuangpin (Double Pinyin), and Wubi (Five-Stroke).
+### 因为它有中文输入
 
-It supports Simplified Chinese, Traditional Chinese, and variant Chinese characters, with corresponding font resources.
+WriterDeck（书写板？我不知道该怎么翻译了）是拉丁语系市场相对固定的离线便携文本记录产品品类，带液晶屏的打字机也快有半个世纪的历史。
 
-It is compatible with standard English-layout keyboards for macOS and Windows.
+但是大多数 WriterDeck 和热敏打字机不兼容中文。
 
-It currently supports both the Raspberry Pi Pico 2 W and the ESP32-S3 N16R8. The former is the Thin version, while the latter is the Thick version. The Thin version is a simpler and more focused typing and recording platform. The Thick version provides more functions and therefore comes with more distractions.
+那些知名的记录设备不是按照中文输入设计的，譬如 AlphaSmart、Freewrite、兄弟 EP-22 和佳能 TypeStar 5。而像夏普、卡西欧在 1980s 前后推出的中文处理器，它们的中文输入方式已经不符合今天的中文输入习惯。
 
-Draftor currently supports the Osptek ST7306 black-white-red reflective TFT display. Its display driver has been adjusted from the official driver to make it more suitable for displaying text.
+有的设备只支持单个汉字的输入方式，这几乎已经被淘汰了。
 
----
+### 因为它为长文本输入设计
 
-## WHY DO WE NEED A DISTRACTION-FREE TEXT RECORDING DEVICE?
+中文掌上电脑（譬如曾经的商务通）是个人数据终端，而非长文本写作设备。
 
-Many people, including me, are easily distracted.
+当下流行的 Kindle、掌阅之类的电纸书也是为了阅读而非写作设计的。
 
-The personal reasons for distraction are complex and cannot simply be reduced to “you are a useless guy.” Someone might be troubled by anxiety, PTSD, depression, or ADHD; someone else might simply be affected by an occasional low mood that occurs in summer.
+有些设备的文本输入交互设计得相当诡异，有些则受限于低刷新率的屏幕，达不到中文候选词的高速要求。
 
-More importantly, there are too many things that distract us: WhatsApp, WeChat, email, social media, shopping websites, and god damn TikTok.
+摩擦不总是坏事，但也不一定是好事。
 
-Writing can be a form of self-healing. It helps us rethink our behaviour and clear our minds. This is a process we have to do ourselves. Reading, studying, working, creating, and speaking cannot completely replace writing.
+### 老设备有其他成本
 
-Writing is also a way of learning and thinking through haptic feedback.
+老笔记本电脑、老平板、老手机、老中文处理机在中文输入和编辑上，都很好，但前提是你得接受它们的重量、续航和其他限制。
 
-We have to accept the limits imposed by millions of years of biological evolution. For many people, deep thinking is difficult to separate from tactile experience, even if they may not realize it. Even copying things out by hand better matches some people’s memory habits, including mine.
+我喜欢 Nokia 6822 的折叠键盘，但它屏幕太小，没有可用的 Wi-Fi 功能和蓝牙文件传输功能。
 
-Friction is not always a bad thing.
+### 功能即干扰
 
-I really enjoy the friction of an HB pencil on paper when I write in my notebook. It often makes me write a little more — authentic nonsense, handmade.
+上述提到的很多设备，基于 Linux、OS X、Windows、iOS、BBOS、Symbian OS 或者其他操作系统研发。
 
-Many people still prefer to do their own writing.
+它们功能繁复，自带游戏。
 
-AI can indeed simulate a specific writing style extremely well, but that is not the same as personal expression. Writing experience can be digitized, but it is difficult to make it personal without lived experience in the real world.
+成为潜在的干扰源。
 
-If you work with text — for example, as a novelist or an anthropologist — it may be easier to appreciate this.
+对一个切换按钮都能玩 5 分钟的人来说，这些功能足以杀死写作。
 
----
+### 成本高昂
 
-## WHY CHOOSE DRAFTOR?
+这里说的成本，包括了改造和适应旧设备的时间成本。
 
-### Because it supports Chinese input
+某些经典型号可能价格昂贵，它们按收藏品销售，而不是以老工具定价。
 
-WriterDeck is already a relatively established category of portable, distraction-free text recording devices in markets dominated by Latin-alphabet languages. Electronic typewriters with displays have existed for nearly half a century.
+### 比手写快
 
-However, most WriterDecks and thermal typewriters do not support Chinese input.
+我自制 A5 大小的笔记本，并用铅笔记录。
 
-Devices such as the AlphaSmart, Freewrite, Brother EP-22, and Canon TypeStar 5 were not designed around Chinese input. Sharp, Casio, and other manufacturers did produce word processors capable of handling Chinese, but their Chinese input methods no longer match contemporary input habits.
+但是手写除了费手，在速度上也确实是个问题。
 
-Some require character-by-character input, which is very different from how people normally use modern Chinese input methods.
-
-### Because it is designed for long-form text
-
-Chinese PDAs were personal digital terminals, not dedicated long-form writing devices.
-
-Popular e-readers such as Kindle and iReader are designed primarily for reading, not writing.
-
-Some of these devices have awkward input interfaces, while others cannot provide the fast candidate response that Chinese input requires.
-
-Friction is not always a bad thing, but it is not necessarily a good thing either.
-
-### Old equipment comes with other costs
-
-Old laptops, tablets, mobile phones, and Chinese word processors can be very good for text input and editing, provided that you can accept their limitations: weight, battery life, file transfer, and other practical restrictions.
-
-I like the fold-out keyboard on the Nokia 6822, for example, but its screen is too small and, for my purposes, it lacks usable Wi-Fi, Bluetooth file transfer, and a practical USB interface.
-
-### Functions are distractions
-
-Many of the devices mentioned above run Linux, OS X, Windows, iOS, BBOS, Symbian OS, or other operating systems.
-
-They have many functions. Some can even run video games.
-
-Those functions are potential sources of distraction.
-
-For someone who can spend five minutes playing with a toggle switch, those functions are enough to kill writing.
-
-### Cost matters too
-
-Here, by “cost”, I also mean the time and effort required to modify and adapt equipment.
-
-Some classic devices are now expensive collectibles rather than practical tools.
-
-### Faster than handwriting
-
-I make my own A5 notebooks and take notes in pencil.
-
-But writing by hand is hard on the hands, and speed is also a real problem.
-
-Friction might be a good thing, but tenosynovitis is not.
+摩擦可能是好事，但腱鞘炎从来都不是。
 
 ---
 
-In short, if you need a distraction-free long-text recording device with Chinese input methods, do not want to spend too much time adapting old equipment, and want something faster than handwriting, Draftor may be a good choice.
+总之，如果你需要一台无打搅便携中文输入设备，并且不想在旧器材上花费太多时间，还希望比手写更快，草稿机可能会是一个好选择。
 
-**Source code and documentation will be added here progressively as the project develops.**
+**欢迎收藏。草稿机项目的开发、源代码和文档将在此逐步更新。**
+
+## 开发与许可
+
+Draftor 自有源码采用 [Apache License 2.0](LICENSE)。独立 ST7306 显示模块保留其 MIT 许可证，字体、词库及其他第三方材料适用各自的许可与署名要求。
+
+[构建指南](docs/BUILD.md) · [bgIME 输入引擎](ime/bgime/README.md) · [ST7306 显示模块](display/st7306/) · [第三方声明](THIRD_PARTY.md) · [资源与许可说明](docs/RESOURCE_STATUS.md)
+
+使用问题和建议，欢迎通过 [GitHub Issues](https://github.com/Ohhellboy/Draftor/issues)反馈。

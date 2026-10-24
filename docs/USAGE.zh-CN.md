@@ -134,4 +134,4 @@ Alpha 2 仍是测试版本，重要文稿请定期导出并另存备份。其他
 
 ---
 
-[项目首页](../README.zh-CN.md) · [发行说明](RELEASE_NOTES.zh-CN.md) · [安装指南](INSTALL.zh-CN.md) · [硬件接线](HARDWARE.md)
+[项目首页](../README.md) · [发行说明](RELEASE_NOTES.zh-CN.md) · [安装指南](INSTALL.zh-CN.md) · [硬件接线](HARDWARE.md)

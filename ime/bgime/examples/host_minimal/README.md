@@ -76,4 +76,4 @@ final UTF-8 document="原型机原型机" sink_calls=2
 demo checks: OK
 ```
 
-See the [bgIME module entry](../../README.md) for the broader module boundaries and resource licensing notes.
+See the [bgIME module entry](../../README.en.md) for the broader module boundaries and resource licensing notes.

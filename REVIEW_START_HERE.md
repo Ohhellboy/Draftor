@@ -4,11 +4,11 @@
 
 ## 查看文档
 
-打开[项目首页](README.zh-CN.md)，或直接选择下面的语言页面：
+打开[项目首页](README.md)，或直接选择下面的语言页面：
 
 | 文档 | 简体中文 | English |
 | --- | --- | --- |
-| 项目首页 | [中文](README.zh-CN.md) | [English](README.md) |
+| 项目首页 | [中文](README.md) | [English](README.en.md) |
 | 发行说明 | [中文](docs/RELEASE_NOTES.zh-CN.md) | [English](docs/RELEASE_NOTES.md) |
 | 安装指南 | [中文](docs/INSTALL.zh-CN.md) | [English](docs/INSTALL.md) |
 | 操作手册 | [中文](docs/USAGE.zh-CN.md) | [English](docs/USAGE.md) |

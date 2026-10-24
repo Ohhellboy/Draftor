@@ -134,4 +134,4 @@ Alpha 2 is still a test release. Regularly export important manuscripts and keep
 
 ---
 
-[Project home](../README.md) · [Release notes](RELEASE_NOTES.md) · [Installation](INSTALL.md) · [Hardware wiring](HARDWARE.md)
+[Project home](../README.en.md) · [Release notes](RELEASE_NOTES.md) · [Installation](INSTALL.md) · [Hardware wiring](HARDWARE.md)
