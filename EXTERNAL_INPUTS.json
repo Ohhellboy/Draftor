@@ -43,5 +43,17 @@
     "path": "vendor/libarduino_tinyusb.a",
     "bytes": 649338,
     "reason": "exact inherited T03 MSC-only component; fixed sources and original licensing in Source/vendor"
+  },
+  {
+    "path": "integration/product/src/ui16_font_data.cpp",
+    "bytes": 1934637,
+    "sha256": "1818e749ab9f9b0948b244f3e7e7bc903135569ea52d77453fedd47cd1809d3d",
+    "reason": "LXGW WenKai UI16 generated bitmap; OFL-1.1, see font provenance"
+  },
+  {
+    "path": "TestBuilds/menu-font/menu_font_data.hpp",
+    "bytes": 3433922,
+    "sha256": "8965a434ceed5cb6f1a97e397659789cb1e2ed4745de9d3e10a47ee803b624d5",
+    "reason": "Exact MiSans menu glyph input; separate redistribution review required"
   }
 ]

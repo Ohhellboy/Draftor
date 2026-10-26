@@ -1,14 +1,13 @@
 {
-  "version": "v0.1.0-alpha.2",
-  "firmware_label": "DRAFTOR_ALPHA2_20261019_RELEASE",
+  "version": "v0.1.0-alpha.2.1",
+  "firmware_label": "DRAFTOR_ALPHA_2_1_20261026_RELEASE",
   "app": {
-    "name": "Draftor_v0.1.0-alpha.2.app.bin",
-    "origin": "local release derivative; input-code/timing observer disabled by author request",
-    "exact_identity_location": "Firmware/RELEASE_PAIR.json and distribution PAIRING_MANIFEST.json",
-    "device_tested": true,
-    "bytes": 2429104,
-    "sha256": "a5817ed615a3b5cda25649b1579bdbdae2042bfb88f1943a984d9476b1435963",
-    "source_commit": "1e75507b556e7790f8e5057de8c2dcd7c90087ed"
+    "name": "Draftor_v0.1.0-alpha.2.1.app.bin",
+    "bytes": 3893280,
+    "sha256": "cd0bc68dc1cb5ccd2c2f39dff9db5e7180328c11c5c75b7f887b1bbdcd5d1b68",
+    "device_tested": false,
+    "source_commit_location": "distribution PAIRING_MANIFEST.json and Source ZIP embedded git commit",
+    "origin": "Fresh S3 build of the accepted HUD REV2 implementation with Alpha 2.1 release identity"
   },
   "resources": {
     "shared_bundle_id": 17304919664082782091,
@@ -103,7 +102,8 @@
         "name": "wubi_release_v1.hpp",
         "sha256": "c8b98b40da4a9cbd0b5b95346685a1eb4c220853556f475428d08f4f1a6a82e1"
       }
-    ]
+    ],
+    "relationship_to_alpha2": "Identical runtime payload and pins; new built-in UI glyphs belong to App/BuildInputs, not TF"
   },
   "partition": {
     "flash_bytes": 16777216,
@@ -119,14 +119,7 @@
     "host": "0.8.4-rc.1",
     "combined_pin_sha256": "2b85265d958d6e47439a6fc75c4aff994fb8c615df72e9cb1205539a8f6de0a9"
   },
-  "publication": "local author review; not published",
-  "measured_reference": {
-    "label": "DRAFTOR_CUMULATIVE_ROUND1_20261019_MEASURE",
-    "name": "Draftor_v0.1.0-alpha.2.app.bin",
-    "bytes": 2441680,
-    "sha256": "f9b0b4670316480004048d96020a2d8c8f0b0ac0639aa68ff227de8cad27eb26",
-    "origin": "exact unchanged cumulative image used in Round 2 and FW1"
-  },
+  "publication": "local author review; not uploaded",
   "observation": {
     "auth": 0,
     "cp": 0,
@@ -135,25 +128,16 @@
     "telemetry_capture": 1,
     "reason": "Explicit author decision 2026-10-19: remove serial composition/input timing feature for release; preserve business implementation."
   },
-  "documentation_revision": {
-    "date": "2026-10-23",
-    "firmware_rebuilt": false,
-    "resources_regenerated": false,
-    "source_commit_location": "distribution PAIRING_MANIFEST.json; distinct from app.source_commit"
+  "inherited_device_evidence": {
+    "label": "DRAFTOR_EDITOR_HUD_CN_R1_REV2_20261026_TEST_ONLY",
+    "app_bytes": 3893296,
+    "app_sha256": "25953c4fcddbc204b4bf7c97673e83e5015538a2b679a2fa5f365eeebeb1f63f",
+    "scope": "Author accepted H1-H4: horizontal/vertical status display, input/save and F2/Find return; no new release image device test"
   },
   "validation": {
-    "brief_release_device_check": "PASS_LIMITED_RELEASE_SHORT_CHECK",
-    "brief_check_date": "2026-10-23",
-    "brief_check_scope": [
-      "startup",
-      "Chinese input",
-      "candidate selection",
-      "save",
-      "leave into blank draft and truly reopen the same test manuscript"
-    ],
-    "body_comparison": "author visual check after true reopen; no byte export comparison",
-    "wifi_retested": false,
-    "performance_retested": false,
-    "external_source_review": "materials delivered; reviewer conclusion pending"
-  }
+    "new_release_app_device_tested": false,
+    "software": "Fresh S3 build, bounded Host checks, linked provider and resource comparison",
+    "device_access_this_preparation": false
+  },
+  "generated_input_distribution": "MiSans generated menu table kept in local BuildInputs; public distribution basis remains to be resolved, see docs/FONT_DISTRIBUTION.md"
 }

@@ -6,13 +6,13 @@ Draftor is an open-source, portable Chinese writing device built around a microc
 
 It aims to provide a distraction-free writing experience: no internet connection is needed, there are no AI writing features, and the device keeps to basic editing and document transfer.
 
-## Latest update: Alpha 2
+## Latest update: Alpha 2.1
 
-Alpha 2 makes Chinese input more responsive, reducing the wait for candidates, candidate-page changes, and selected text appearing in the document.
+Alpha 2.1 adds a Find interface with Chinese input. Search for Chinese or English text, move through matches in either direction, and use Find in both horizontal and vertical writing.
 
-It also adds local Wi-Fi document transfer. A phone can connect directly to Draftor and use a browser to import and export documents, without a nearby Wi-Fi network or cloud service.
+Alongside Find, the file list, rename screen, help and transfer pages now use Chinese prompts. The editor has also been tidied up: the filename stays at the top, while input mode, save status and Bluetooth connection status share one bottom line. Horizontal writing gains a little more space for the text.
 
-[Download Alpha 2](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2) · [Release notes](docs/RELEASE_NOTES.md) · [Performance results](docs/PERFORMANCE.md) · [Installation guide](docs/INSTALL.md) · [User guide](docs/USAGE.md)
+[Download Alpha 2.1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1) · [Release notes](docs/RELEASE_NOTES.md) · [Alpha 2 performance results](docs/PERFORMANCE.md) · [Installation guide](docs/INSTALL.md) · [User guide](docs/USAGE.md)
 
 ![Draftor prototype running Chinese input](draftor-prototype.jpg)
 
@@ -24,7 +24,8 @@ It also adds local Wi-Fi document transfer. A phone can connect directly to Draf
 | English input | Direct English input |
 | Character display | Simplified, Traditional, and variant Chinese characters using the supplied font resources |
 | Writing layout | Horizontal and vertical |
-| Document management | Local saving, file list, and Chinese filenames |
+| Document management | Local saving, Chinese file menus, renaming, trash and help |
+| Find in a manuscript | Chinese and English queries, forward/backward search and wraparound in both layouts |
 | Document transfer | Import and export over USB and local Wi-Fi |
 
 The complete writing firmware currently targets the **ESP32-S3 N16R8 (Thick)**, with a Bluetooth keyboard and an [Osptek ST7306 black-white-red reflective TFT display](display/st7306/).
@@ -37,15 +38,15 @@ See [Hardware](docs/HARDWARE.md) for wiring and hardware requirements.
 
 ### Install the firmware
 
-Download **Firmware** and **Resources** from the same [Alpha 2 release](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2), then follow the [installation guide](docs/INSTALL.md) to prepare the firmware, dictionaries, and font.
+Download **Firmware** and **Resources** from the same [Alpha 2.1 release](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1), then follow the [installation guide](docs/INSTALL.md) to prepare the firmware, dictionaries, and font.
 
-For Alpha 1 users, the recommended route is to back up manuscripts to a computer and perform a fresh installation of Alpha 2. Reinstallation erases internal flash data, but does not require formatting the TF card.
+Alpha 2 users can update only the App after checking partition compatibility, keeping their existing TF resources. Alpha 1, old 2 MiB slots and new boards use the separate fresh-install procedure. Back up manuscripts before either route; only a fresh installation erases internal flash, and neither route requires formatting the TF card.
 
 ### Write and transfer documents
 
-The [user guide](docs/USAGE.md) covers keyboard shortcuts, Chinese input, renaming documents, and transferring documents over USB and local Wi-Fi.
+The [user guide](docs/USAGE.md) covers keyboard shortcuts, Chinese input, Find, renaming documents, and transferring documents over USB and local Wi-Fi.
 
-Alpha 2 is a test release, and local Wi-Fi document transfer remains experimental. Export and back up important writing regularly. See [Known Issues](docs/KNOWN_ISSUES.md) for details.
+Alpha 2.1 is a test release, and local Wi-Fi document transfer remains experimental. Export and back up important writing regularly. See [Known Issues](docs/KNOWN_ISSUES.md) for details.
 
 ### Build from source
 

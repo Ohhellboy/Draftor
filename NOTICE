@@ -6,3 +6,5 @@ See THIRD_PARTY.md and the notices distributed with each component.
 The previously published standalone display/st7306 module remains under its
 MIT License (display/st7306/LICENSE.md), with its original third-party notices.
 The root Apache-2.0 license does not replace those module-specific terms.
+
+Alpha 2.1 font attribution: Draftor uses MiSans by Xiaomi for menu text and LXGW WenKai for the editor and Find. Font assets retain their own licenses. See docs/FONT_DISTRIBUTION.md and the original notices in LICENSES and BuildInputs.

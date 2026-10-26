@@ -129,7 +129,7 @@ See [Source Integration](../../docs/SOURCE_INTEGRATION.md) for a more detailed s
 
 | Component | Version |
 |---|---|
-| [Draftor](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2) | `v0.1.0-alpha.2` |
+| [Draftor](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1) | `v0.1.0-alpha.2.1` |
 | bgIME Core | `0.13.1-rc.1` |
 | Core public API | `0.13.0` |
 | Core CMake library version | `0.13.1` |
@@ -142,7 +142,7 @@ Core source directories and CMake targets continue to use the `HanIME` name.
 
 ### Dictionaries and indexes
 
-Draftor Alpha 2 uses the **format4** resource set, stored at:
+Draftor Alpha 2 and Alpha 2.1 use the same **format4** resource set, stored at:
 
 ```text
 HANIME/IME/B_SHORT_TEXT_20261018

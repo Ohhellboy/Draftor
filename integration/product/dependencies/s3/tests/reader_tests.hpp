@@ -13,7 +13,7 @@ void query(Fixture& f,std::string_view text){CHECK(f.app.find.setQuery(text)!=hf
 void findBehaviour(){
  Fixture f;f.start();CHECK(f.app.commitText("One one ONE\n中文 one £",f.app.editStamp()));f.key(74,1);f.save();
  const auto body=f.app.document.text();const auto revision=f.app.document.textRevision();
- f.key(9,8);CHECK(f.app.findOpen());CHECK(f.app.layout.heightPx()==s3app::display::bodyHeight);
+ f.key(9,8);CHECK(f.app.findOpen());CHECK(f.app.layout.heightPx()==170);
  CHECK(std::string(s3app::display::findStatus(f.app.find.view()))=="Empty query");
  query(f,"one");CHECK(f.app.find.view().match.begin==0);
  f.key(40);readersDrain(f);CHECK(f.app.find.view().match.begin==4);
@@ -27,7 +27,7 @@ void findBehaviour(){
  query(f,"中文");CHECK(f.app.find.view().match.begin==12&&f.app.find.view().match.end==18);
  auto before=f.app.find.view().query;CHECK(before=="中文");
  f.key(41);CHECK(!f.app.findOpen()&&!f.app.findDocument.matchHighlight().visible&&f.app.document.cursorByte()==18);
- CHECK(f.app.layout.heightPx()==306);f.key(9,1);CHECK(f.app.find.view().query=="中文");
+ CHECK(f.app.layout.heightPx()==306);f.key(9,1);CHECK(f.app.find.view().query.empty());
  CHECK(f.app.find.setQuery("\x80")==hf::QueryEditResult::InvalidUtf8);
  CHECK(f.app.find.setQuery(std::string(257,'a'))==hf::QueryEditResult::CapacityExceeded);
  query(f,"one");f.key(41);

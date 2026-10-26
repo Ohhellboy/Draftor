@@ -91,7 +91,8 @@ class PresentationController final : public editor::presentation::PresentationPo
     if(!horizontalActive()&&!custom_vertical_){
       if(!same(vertical_anchor_context_,now))vertical_anchor_context_.valid=false;
       const auto g=imeGeometry();
-      const auto regions=draftor::vertical::reservedAbRegions(g);
+      auto regions=draftor::vertical::reservedAbRegions(g);
+      if(find_open_)regions.body={124,22,168,356};
       if(regions.status!=draftor::vertical::AbStatus::Ready)return false;
       const auto before=vertical_.region();
       const bool width_changed=before.x!=regions.body.x||before.width!=regions.body.width;

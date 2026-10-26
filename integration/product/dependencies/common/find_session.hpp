@@ -45,10 +45,11 @@ class FindSession {
   QueryEditResult insertQueryUtf8(std::string_view utf8) noexcept;
   QueryEditResult eraseQueryBackward() noexcept;
   QueryEditResult eraseQueryForward() noexcept;
-  bool moveQueryCursorLeft() noexcept;
-  bool moveQueryCursorRight() noexcept;
-  void moveQueryCursorHome() noexcept { query_cursor_ = 0U; }
-  void moveQueryCursorEnd() noexcept { query_cursor_ = query_size_; }
+  bool moveQueryCursorLeft(bool extend=false) noexcept;
+  bool moveQueryCursorRight(bool extend=false) noexcept;
+  void selectQuery() noexcept { if(open_){query_anchor_=0;query_cursor_=query_size_;++selection_version_;} }
+  void moveQueryCursorHome(bool extend=false) noexcept { moveQueryCursor(0,extend); }
+  void moveQueryCursorEnd(bool extend=false) noexcept { moveQueryCursor(query_size_,extend); }
   void setCaseSensitive(bool enabled) noexcept;
   void toggleCaseSensitive() noexcept { setCaseSensitive(!case_sensitive_); }
 
@@ -56,6 +57,8 @@ class FindSession {
   void start(Direction direction) noexcept;
   StepResult step(DocumentPort& port, std::size_t work_budget = 0U) noexcept;
 
+  bool hasWork() const noexcept { return task_.active || count_.active; }
+  void clearWrapNotice() noexcept { wrapped_ = false; }
   ViewModel view() const noexcept;
   MemoryBudget memoryBudget(std::size_t ime_staging_bytes = 0U) const noexcept;
   std::uint32_t sessionId() const noexcept { return session_id_; }
@@ -92,6 +95,8 @@ class FindSession {
   bool bindingCurrent(const DocumentPort& port) const noexcept;
   void invalidateQueryResult(Status new_status) noexcept;
   void queryChanged() noexcept;
+  bool moveQueryCursor(std::size_t to,bool extend) noexcept;
+  void eraseQuerySelection() noexcept;
   bool initializeSegment(std::string_view text) noexcept;
   bool advanceCandidate(std::string_view text) noexcept;
   bool advanceOrWrap(std::string_view text) noexcept;
@@ -107,9 +112,15 @@ class FindSession {
   std::size_t last_match_begin_ = 0;
   MatchRange match_{};
   ScanTask task_{};
+  struct CountTask { std::size_t position=0, compare=0, total=0, index=0; bool active=false; } count_{};
+  StepResult countStep(DocumentPort&, std::size_t) noexcept;
+  std::size_t current_index_=0,total_matches_=0;
+  static_assert(kHardMaximumQueryBytes<=UINT16_MAX);
+  std::uint16_t query_anchor_=0;
+  bool count_complete_=false,capacity_exceeded_=false;
   Status status_ = Status::Closed;
   Direction direction_ = Direction::Forward;
-  std::uint32_t query_version_ = 1;
+  std::uint32_t query_version_ = 1, selection_version_ = 1;
   std::uint32_t session_id_ = 0;
   std::uint32_t highlight_version_ = 0;
   std::size_t last_step_work_ = 0;

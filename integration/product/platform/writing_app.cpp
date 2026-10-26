@@ -299,7 +299,7 @@ bool App::layoutKey(const s3hid::Event& e)noexcept{
  if(!e.down){layout_key_held_=false;return true;}
  if(layout_key_held_)return true;
  layout_key_held_=true;
- if(ready_&&!transfer_active_&&!e.mods){presentation_.cancelNavigation();presentation_.toggle();dirtyDisplay=true;BT_OBSERVE(mode(*this,e));BT_MEASURE(f4());}
+ if(ready_&&!transfer_active_&&!e.mods){closeMenuHelp();presentation_.cancelNavigation();presentation_.toggle();dirtyDisplay=true;BT_OBSERVE(mode(*this,e));BT_MEASURE(f4());}
  return true;
 }
 void App::key(const s3hid::Event& e,bool chinese_punctuation){
@@ -321,6 +321,7 @@ void App::key(const s3hid::Event& e,bool chinese_punctuation){
   else if(u==40) { issue(Command::Confirm,e.ms); }
   return;
  }
+ if(menuHelpKey(e))return;
  if((primary&&!shift&&u==22)||u==63){issue(Command::Save,e.ms);return;} // Ctrl/Cmd+S, F6
  if((primary&&!shift&&u==18)||u==59){if(filesOpen()&&u==59&&manager.state().view!=ds::FileManagerView::TrashedReturn){manager.cancel();++focusEpoch_;dirtyDisplay=true;}else issue(Command::Files,e.ms);return;}
  if(u==64){issue(Command::RestoreManual,e.ms);return;}
@@ -415,6 +416,41 @@ void App::key(const s3hid::Event& e,bool chinese_punctuation){
  default:break;
  }
 }
+bool App::menuHelpOpen()const noexcept {
+ const auto& s=manager.state();
+ return menuHelp_&&menuHelpFocus_==focusEpoch_&&!transfer_active_&&!renaming_&&!commandBarrier()&&
+  s.pending==ds::PendingAction::None&&s.view==menuHelpView_&&s.page.offset==menuHelpOffset_&&
+  s.selected==menuHelpSelected_&&(s.page.items.empty()?menuHelpId_==ds::DocumentId{}:
+   s.selected<s.page.items.size()&&s.page.items[s.selected].id==menuHelpId_);
+}
+void App::closeMenuHelp()noexcept {
+ if(menuHelpOpen()){menuHelp_=false;++focusEpoch_;dirtyDisplay=true;}
+ else menuHelp_=false;
+}
+bool App::menuHelpKey(const s3hid::Event& e)noexcept {
+ const auto& s=manager.state();
+ const bool stable=(s.view==ds::FileManagerView::Normal||s.view==ds::FileManagerView::Trash)&&
+  !transfer_active_&&!commandBarrier()&&!renaming_&&!statsOpen_&&!findOpen()&&
+  s.pending==ds::PendingAction::None;
+ if(!stable)return false;
+ const bool primary=bool(e.mods&0x11)!=bool(e.mods&0x88);
+ const bool open=(e.usage==58&&!e.mods)||(e.usage==56&&primary&&!(e.mods&0x66));
+ if(menuHelpOpen()){
+  if(open)return true;
+  if(e.usage==41){closeMenuHelp();return true;}
+  if((e.usage==79||e.usage==80)&&!e.mods){
+   const auto page=e.usage==79?1:0;
+   if(menuHelpPage_!=page){menuHelpPage_=uint8_t(page);dirtyDisplay=true;}
+   return true;
+  }
+  // Pass the original event exactly once to its existing App command owner.
+  closeMenuHelp();return false;
+ }
+ if(!open)return false;
+ menuHelp_=true;menuHelpPage_=0;menuHelpView_=s.view;menuHelpOffset_=s.page.offset;
+ menuHelpSelected_=s.selected;menuHelpId_=s.selected<s.page.items.size()?s.page.items[s.selected].id:ds::DocumentId{};
+ menuHelpFocus_=++focusEpoch_;dirtyDisplay=true;return true;
+}
 void App::progress(const char* text){
  notice=text;dirtyDisplay=true;
  if(progressHook_){progressDrawing_=true;progressHook_(progressContext_);progressDrawing_=false;}
@@ -444,8 +480,9 @@ void App::renameKey(const s3hid::Event& e){
  }
  const bool ctrl=(e.mods&0x11)!=0,gui=(e.mods&0x88)!=0;
  if(e.usage==4&&(ctrl!=gui)&&!(e.mods&0x66)){if(nameInput_.selectAll())dirtyDisplay=true;return;}
- if(e.usage==80||e.usage==79||e.usage==42||e.usage==76){
-  bool changed=e.usage==80?nameInput_.left():e.usage==79?nameInput_.right():e.usage==42?nameInput_.backspace():nameInput_.deleteForward();
+ if(e.usage==80||e.usage==79||e.usage==74||e.usage==77||e.usage==42||e.usage==76){
+  const bool extend=(e.mods&0x22)!=0;
+  bool changed=e.usage==80?nameInput_.left(extend):e.usage==79?nameInput_.right(extend):e.usage==74?nameInput_.home(extend):e.usage==77?nameInput_.end(extend):e.usage==42?nameInput_.backspace():nameInput_.deleteForward();
   if(changed)dirtyDisplay=true;
   return;
  }

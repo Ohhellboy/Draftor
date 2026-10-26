@@ -1,14 +1,14 @@
-# Building Alpha 2 / Alpha 2 源码构建
+# Building Alpha 2.1 / Alpha 2.1 源码构建
 
-The packaged release App is a new build from the tested cumulative business source, with only the input observer configuration and build label changed by author request. It does not claim byte identity or device measurements from the observed baseline.
+Build the Chinese Find, menu and editor interface with the fixed inputs below. Product release names follow [VERSIONING.md](../VERSIONING.md); bgIME keeps its own versions.
 
-发行 App 按作者决定关闭输入观察并使用新标识，业务源码继承实测累计版。新构建不冒称与观察基线逐字节相同或已实测。
+使用以下固定输入编译中文查找、菜单和编辑器界面。整机版本遵循 [VERSIONING.md](../VERSIONING.md)，bgIME 独立维护版本号。
 
 ## Inputs / 输入
 
-Unzip this version's Source and BuildInputs. `Draftor/` contains Git-tracked project source; `BuildInputs/inputs/` supplies only the nine entries in `EXTERNAL_INPUTS.json`. The remainder of BuildInputs holds original licenses, corresponding third-party sources, font/dictionary provenance and the explicit optional format3 input to the current resource generator. It is not an installed SDK or cache. Runtime resource generation is unnecessary for compiling this firmware.
+Unzip this version's Source and BuildInputs. `Draftor/` contains Git-tracked project source; `BuildInputs/inputs/` supplies only the eleven entries in `EXTERNAL_INPUTS.json`. Two added inputs are the WenKai UI16 bitmap and exact MiSans 14/16px menu tables. Check [Font Distribution](FONT_DISTRIBUTION.md) before redistributing generated tables. The remainder of BuildInputs holds original licenses, corresponding third-party sources, font/dictionary provenance and the explicit optional format3 input to the current resource generator. It is not an installed SDK or cache. Runtime resource generation is unnecessary for compiling this firmware.
 
-解压同版 Source 与 BuildInputs。`Draftor/` 是拟提交的源码；`BuildInputs/inputs/` 对应清单中的9项配套输入。其余内容为原许可、第三方对应源码、字体词库来源及可选资源生成所需的准确前代输入，不是整套已安装 SDK 或缓存。编译不需要重新生成词库。
+解压同版 Source 与 BuildInputs。`Draftor/` 是拟提交的源码；`BuildInputs/inputs/` 对应清单中的11项配套输入。新增两项为文楷 UI16 位图和 MiSans 14/16px 菜单表；再分发前请阅读[字体分发说明](FONT_DISTRIBUTION.md)。其余内容为原许可、第三方对应源码、字体词库来源及可选资源生成所需的准确前代输入，不是整套已安装 SDK 或缓存。编译不需要重新生成词库。
 
 Install **Python 3, Arduino CLI 1.4.1, Arduino-ESP32 3.3.11 and esp-x32 2601 (GCC 14.2.0)**. The SDK `versions.txt` must match `vendor/versions.txt` (ESP-IDF v5.5.5 b774170ff46; Arduino 0d7a8614b; TinyUSB 53f8c53c2). `DRAFTOR_SDK_SOURCE` points to the Arduino **data directory containing `packages/`**, not its parent. The build makes an owned USB overlay; installed tools/libraries are read-only inputs. CMake 3.20+ and a C++17 compiler are needed only for optional Host checks.
 
@@ -53,7 +53,7 @@ Use a fresh extracted directory. Outputs are in `TestBuilds/s3/DISPLAY_TX_PROTO/
 
 The board uses the exact custom dual-4 MiB partition CSV in `integration/product/partitions/B.csv`. Core CMake version is 0.13.1, Core release identifier 0.13.1-rc.1, API 0.13.0 and Host 0.8.4-rc.1; these are independent of the Draftor release number.
 
-分区取准确双4 MiB CSV；Core、API、Host版本与整机 Alpha 2 版本号分别保留。
+分区取准确双4 MiB CSV；Core、API、Host版本与整机 Alpha 2.1 版本号分别保留。
 
 ## Source map and optional checks / 源码与可选检查
 
@@ -71,3 +71,9 @@ python3 -B tools/generate_format4.py   --input-format3 ../BuildInputs/resource-g
 The resource tool inherits the full identity/default/general-output comparison and proof generation, with explicit input/output paths. It produces only the selected format4 release; it does not rerun tree or layout comparisons. Original dictionary/font reconstruction limits remain in [Resource Status](RESOURCE_STATUS.md). Historical CMake replay suites require their own legacy fixtures and are not substituted for this packaged build or advertised as all passing.
 
 资源工具继承生成时的全量身份、默认/通用文字比较及证明生成，只生成选定的 format4，不重跑历史选型。原始词库/字体重建的既有限制见[资源说明](RESOURCE_STATUS.md)。历史回放测试需要各自旧资料，不冒称已在本包全部通过。
+
+## String implementation at link time / 字符串链接
+
+The build extracts `string-inst.o` from the pinned compiler’s `esp32s3/no-rtti/libstdc++.a` and places it immediately after the Arduino core archive. The standard SDK archives and the later libstdc++ link remain in place. The build records the archive/member identity in `MATTER_TEMPLATE_PROVIDER.json`; no prebuilt object is shipped in Source. Runtime licensing is listed in [Third-Party Notices](../THIRD_PARTY.md).
+
+构建从固定工具链的上述库中提取字符串实现，放在 Arduino core 库之后。SDK 库和后续 libstdc++ 链接仍保留，提取对象的身份写入构建回执；Source 不附带预编译对象。运行库许可见[第三方声明](../THIRD_PARTY.md)。

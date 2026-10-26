@@ -6,6 +6,7 @@
 #include "document_stats_adapter.hpp"
 #include "presentation_controller.hpp"
 #include "font_port.hpp"
+#include "menu_viewport.hpp"
 #include "hid_keyboard.hpp"
 #include "hanime_document_editor_port.hpp"
 #include "src/hanime_document/entropy_id_source.hpp"
@@ -67,8 +68,8 @@ class App {
  bool findOpen()const noexcept{return find.view().open;}
  bool statsOpen()const noexcept{return statsOpen_;}
  // A future UTF-8 producer must retain this exact query/focus identity.
- struct QueryStamp {uint64_t focus;uint32_t session,revision;size_t cursor;};
- QueryStamp queryStamp()const noexcept{auto v=find.view();return {focusToken(),find.sessionId(),v.query_version,v.query_cursor};}
+ struct QueryStamp {uint64_t focus;uint32_t session,revision;size_t cursor;bool selected=false;uint32_t selection=0;};
+ QueryStamp queryStamp()const noexcept{auto v=find.view();return {focusToken(),find.sessionId(),v.query_version,v.query_cursor,v.query_selected,v.selection_version};}
  bool commitQuery(std::string_view text,QueryStamp expected);
  struct ScanMetrics {
   uint32_t find_completed=0,find_cancelled=0,stats_completed=0,stats_cancelled=0;
@@ -79,13 +80,15 @@ class App {
  bool renameOpen()const noexcept{return renaming_;}
  ds::DocumentId renameId()const noexcept{return renameId_;}
  bool imeTextTargetAvailable()const noexcept {
-  return ready_&&!transfer_active_&&!commandBarrier()&&!findOpen()&&!statsOpen()&&
+  return ready_&&!transfer_active_&&!commandBarrier()&&!statsOpen()&&
     (renameOpen()||(session.hasCurrent()&&!filesOpen()));
  }
  // Rename is the same horizontal modal in either body layout.
  bool horizontalImeSurface()const noexcept{return horizontalActive()||renameOpen();}
  const char* renameText()const noexcept{return nameInput_.text();}
  bool renameSelected()const noexcept{return nameInput_.selected();}
+ size_t renameSelectionBegin()const noexcept{return nameInput_.selectionBegin();}
+ size_t renameSelectionEnd()const noexcept{return nameInput_.selectionEnd();}
  size_t renameCursor()const noexcept{return nameInput_.cursor();}
  uint32_t renameRevision()const noexcept{return nameInput_.revision();}
  struct NameStamp {uint64_t focus;uint32_t revision;size_t cursor;bool selected=false;};
@@ -93,6 +96,10 @@ class App {
  bool commitName(std::string_view text,NameStamp expected);
  bool commitName(std::string_view text,uint64_t focus){auto stamp=nameStamp();stamp.focus=focus;return commitName(text,stamp);}
  bool filesOpen()const{return manager.state().view!=ds::FileManagerView::Closed;}
+ // F2/trash-only presentation overlay. It owns no document/transaction state.
+ mutable MenuViewport menuViewport;
+ bool menuHelpOpen()const noexcept;
+ unsigned menuHelpPage()const noexcept{return menuHelpPage_;}
  // Matches the public core TextCommitSink::commit(string_view) semantics.
  // Integration will bind/validate a focus token before calling; no IME runtime here.
  bool commitText(std::string_view text,EditStamp expected);
@@ -161,6 +168,14 @@ class App {
  ds::DocumentId renameId_{};
  uint64_t renameSession_=0;
  bool renaming_=false;
+ bool menuHelp_=false;
+ uint8_t menuHelpPage_=0;
+ uint64_t menuHelpFocus_=0;
+ size_t menuHelpOffset_=0,menuHelpSelected_=0;
+ ds::DocumentId menuHelpId_{};
+ ds::FileManagerView menuHelpView_=ds::FileManagerView::Closed;
+ void closeMenuHelp()noexcept;
+ bool menuHelpKey(const s3hid::Event&)noexcept;
  uint8_t restoredPrefix_=0;
  void syncReaders();
  void observeStats();
@@ -168,7 +183,9 @@ class App {
  bool findKey(const s3hid::Event&);
  void serviceReaders();
  bool statsOpen_=false;
- uint32_t findTextRevision_=0;
+ uint32_t findTextRevision_=0,findDue_=0,findWrapUntil_=0;
+ bool findScheduled_=false;
+ void scheduleFind();
  void mutation(const editor::body_edit::Outcome&,uint32_t,bool preserve_preferred=false);
  void issue(Command,uint32_t,bool resumed=false);
  void cancelFileRequest()noexcept;

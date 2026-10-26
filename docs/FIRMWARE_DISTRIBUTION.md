@@ -1,19 +1,17 @@
-# Firmware distribution / 固件分发
+# Alpha 2.1 firmware and packages / 固件与配套包
 
-The release App is `DRAFTOR_ALPHA2_20261019_RELEASE`, **2,429,104 bytes**. It was built from the tested cumulative business implementation with input-code/timing observation disabled at the author's request. Ordinary startup, health and error diagnostics remain. This documentation update reuses that exact App and all matching boot/partition files; it does not rebuild firmware or dictionaries.
+The App identifies itself as `DRAFTOR_ALPHA_2_1_20261026_RELEASE` and contains **3,893,280 bytes**, leaving **301,024 bytes** in a 4 MiB slot. It is a fresh S3 build. Its exact hash and runtime pairing are in [RELEASE_PAIR.json](../RELEASE_PAIR.json); the source commit and four archive hashes are recorded in the distribution PAIRING_MANIFEST.json.
 
-发行 App 为 `DRAFTOR_ALPHA2_20261019_RELEASE`，**2,429,104 字节**。它由实测累计业务实现关闭输入组成码/计时观察后构建；普通启动、运行状态及错误诊断保留。本次文档整理原样复用此 App 和全部配套启动/分区文件，不重编固件、不重建词库。
+本版App使用上述发行身份，大小为**3,893,280字节**，4 MiB槽余**301,024字节**。这是一次真实S3构建，准确哈希、资源配对和源码提交分别记录于配套清单。
 
-The firmware's source snapshot is `1e75507b556e7790f8e5057de8c2dcd7c90087ed`; the full compilation began at `6b2492f56e9953f4a24085356bd53f7c2a6add6c`, before the existing post-build checks and packaging documentation were finalized. The new Source archive adds the 2026-10-23 documentation revision. Its commit is recorded separately from the firmware source in the distribution `PAIRING_MANIFEST.json`.
+Firmware contains the App, same-build bootloader and partition table, the pinned SDK OTA initializer and offline installation tools. It contains no device-specific flash, NVS or boot-state backup. Use the [installation guide](INSTALL.md) to distinguish App updates from fresh installation.
 
-固件源码快照为上述 `1e75507…`，完整编译始于 `6b2492f…`，其后完成原有构建后检查及封包文档。本次 Source 增加 2026-10-23 文档修订，发行清单分别记录新 Source 提交与固件构建来源，不把文档提交冒充新构建。
+Firmware附带同次构建的启动与分区文件、固定SDK的初始化文件和离线安装工具，不包含设备Flash、NVS或启动记录备份。App更新和全新安装分别按安装指南执行。
 
-The Firmware archive contains the App, its same-build bootloader/partition table, the fixed SDK OTA initializer, the existing offline installation checker and TF staging helper. It contains no private flash image or NVS dump. The exact release App has passed software checks and a brief device check covering startup, Chinese input, candidate selection, saving and truly reopening a test manuscript. The original measured baseline remains separately identified in `RELEASE_PAIR.json` and [Performance](PERFORMANCE.md).
+Runtime resource files are unchanged from Alpha 2. Source includes the current code and documents; BuildInputs adds the retained Find and menu glyph inputs. Existing corresponding-source and dictionary licensing questions remain disclosed in [Resource Status](RESOURCE_STATUS.md). MiSans generated-component distribution is addressed separately in [Font Distribution](FONT_DISTRIBUTION.md).
 
-Firmware 包含 App、同次构建启动文件/分区、固定 SDK 的 OTA 初始化文件及既有离线安装检查器和 TF 安装工具，不含私人 Flash/NVS。准确发行 App 已通过软件检查及启动、中文输入、选词、保存和真正重开测试稿的简短实机检查。原测量基线在清单和性能附页中单独标识。
+运行资源与Alpha 2相同。Source包含当前代码和文档，BuildInputs增加Find与菜单生成输入；既有来源问题和MiSans生成组件的分发依据分别见上述说明。
 
-BuildInputs and Resources archives are reused unchanged. Their embedded guide copies are dated 2026-10-19; use the updated [Installation guide](INSTALL.md) in Firmware or Source for current instructions. Payload pairing is unchanged. The four actual versioned filenames and archive checksums are in the distribution manifest and `SHA256SUMS.txt`.
+The accepted predecessor has a finite device record for status display, input/save and F2/Find return. This newly built release App has software evidence only; its own device check is pending. Earlier performance measurements retain their original Alpha 2 labels.
 
-BuildInputs 与 Resources 压缩包原样复用；其中附带说明仍为 2026-10-19 快照。当前安装步骤以新版 Firmware 或 Source 内的[安装指南](INSTALL.md)为准，资源配对不变。四包准确名称和分发校验值见配套清单与 `SHA256SUMS.txt`。
-
-Source and BuildInputs provide owned source and corresponding third-party materials under their respective terms; [existing resource and license disclosures](RESOURCE_STATUS.md) continue to apply.
+已接受的前版有状态栏、输入保存和F2／Find往返的有限实机记录。本次新构建尚未上机，不能借用前版记录称为已测；历史性能数据仍属于Alpha 2。

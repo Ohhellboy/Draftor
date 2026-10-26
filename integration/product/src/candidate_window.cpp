@@ -1,6 +1,7 @@
 #include "cp_observe.hpp"
 #include "behavior_bench.hpp"
 #include "candidate_window.hpp"
+#include "ui16_font.hpp"
 #include "behavior_observer.hpp"
 #include "utf8.hpp"
 #include "ui_text.hpp"
@@ -38,6 +39,12 @@ const VisibleItem* CandidateWindow::focusedCurrent()const{
  if(!current(item)||item.begin!=page.begin||item.end!=page.end)return nullptr;
  return &item;
 }
+bool CandidateWindow::focusedNeedsWholeText()const{
+ const auto* item=focusedCurrent();if(!find_profile_||!item)return false;
+ const s3app::ui16::Font face;unsigned pixels=0;const std::string_view text(item->text.data(),item->bytes);
+ for(size_t at=0;at<text.size();at=editor::nextUtf8Boundary(text,at))pixels+=face.glyph(s3app::display::scalar(text,at)).advance;
+ return pixels>(vertical_?196U:272U);
+}
 void CandidateWindow::cancel(){
  CPATTR(cpattr::cancel());
  if(layout_serial_<UINT32_MAX)++layout_serial_;
@@ -52,16 +59,18 @@ void CandidateWindow::cancel(){
  BT_OBSERVE(selectionResult(c_,5));
 }
 uint16_t CandidateWindow::width(std::string_view text)const{
- size_t pixels=22;for(size_t at=0;at<text.size();at=editor::nextUtf8Boundary(text,at))pixels+=font_.glyph(s3app::display::scalar(text,at)).advance;
- return uint16_t(std::min(pixels,size_t(284)));
+ const s3app::ui16::Font ui;const auto& face=find_profile_?static_cast<const s3host::FontPort&>(ui):font_;
+ size_t pixels=find_profile_?24:22;for(size_t at=0;at<text.size();at=editor::nextUtf8Boundary(text,at))pixels+=face.glyph(s3app::display::scalar(text,at)).advance;
+ return uint16_t(std::min(pixels,size_t(find_profile_?296:284)));
 }
 
 uint16_t CandidateWindow::extent(const VisibleItem& item)const{
  if(!vertical_)return item.width;
- unsigned height=14+vertical_gap;
+ const s3app::ui16::Font ui;
+ unsigned height=find_profile_?20:14+vertical_gap;
  const std::string_view text(item.text.data(),item.bytes);
- for(size_t at=0;at<text.size();at=editor::nextUtf8Boundary(text,at))height+=s3app::display::scalar(text,at)<128?14:28;
- return uint16_t(std::min(height,vertical_height+vertical_gap));
+ for(size_t at=0;at<text.size();at=editor::nextUtf8Boundary(text,at))height+=find_profile_?ui.glyph(s3app::display::scalar(text,at)).advance:s3app::display::scalar(text,at)<128?14:28;
+ return uint16_t(std::min(height,find_profile_?216:vertical_height+vertical_gap));
 }
 const VisibleItem* CandidateWindow::cachedItem(size_t ordinal)const{
  for(const auto* v:{&view_,&frame_,&previous_})for(size_t r=0;r<v->count;++r)
@@ -71,7 +80,11 @@ const VisibleItem* CandidateWindow::cachedItem(size_t ordinal)const{
  for(size_t i=0;i<prefetched_.count;++i)if(prefetched_.items[i].ordinal==ordinal&&current(prefetched_.items[i])&&prefetched_.items[i].begin==c_.page().begin&&prefetched_.items[i].end==c_.page().end)return &prefetched_.items[i];
  return nullptr;
 }
-bool CandidateWindow::setVerticalPacking(bool vertical){
+bool CandidateWindow::setPacking(bool vertical,bool find){
+ if(find_profile_!=find){
+  if(working()||choosing_||pending_.valid)return false;
+  cancel();retirePresentedChoices();find_profile_=find; // A different target cannot retain candidate authority.
+ }
  if(vertical){vertical_seen_=true;if(view_.expanded)stage_expanded_=true;}
  if(vertical_==vertical)return !repacking_;
  if(task_==Task::Query&&!choosing_&&!view_.count&&!building_.count&&!row_.count){vertical_=vertical;return true;}
@@ -305,11 +318,12 @@ bool CandidateWindow::finishRow(){
 }
 void CandidateWindow::appendText(){
  if(!reading_ready_){
-  const auto text=c_.last_text();if(text.size()>64){fail(WindowState::Error);return;}
+  const auto text=c_.last_text();if(text.size()>64){fail(find_profile_?WindowState::OutputError:WindowState::Error);return;}
+  if(find_profile_&&!s3app::ui16::canRender(text)){fail(WindowState::OutputError);return;}
   std::copy(text.begin(),text.end(),reading_.text.begin());reading_.bytes=uint16_t(text.size());reading_.width=width(text);reading_ready_=true;++costs_.materialized_items;
  }
  // The one overflow item is retained, so the next row never rereads its text.
- if(row_.count&&(row_.count==6||row_.width+extent(reading_)>(vertical_?vertical_height+vertical_gap:284)))if(finishRow())return;
+ if(row_.count&&(row_.count==6||row_.width+extent(reading_)>(vertical_?(find_profile_?216:vertical_height+vertical_gap):(find_profile_?296:284))))if(finishRow())return;
  row_.items[row_.count++]=reading_;row_.width+=extent(reading_);++ordinal_;slot_=reading_.slot+1;
  if(repacking_){seek_page_=reading_.page;seek_slot_=reading_.slot+1;}
  reading_ready_=false;
@@ -352,7 +366,7 @@ const CandidateView* CandidateWindow::presented(uint32_t gen)const{
  if(gen&&gen==previous_.generation)return &previous_;
  return nullptr;
 }
-uint32_t CandidateWindow::framePresented(){if(frame_.generation!=view_.generation){previous_=frame_;frame_=view_;}return frame_.generation;}
+uint32_t CandidateWindow::framePresented(){if(frame_.generation!=view_.generation||frame_.count!=view_.count){previous_=frame_;frame_=view_;}return frame_.generation;}
 ChoiceResult CandidateWindow::choose(size_t column,uint32_t gen,uint32_t action){
  if(choosing_){++metrics.blocked;return ChoiceResult::Busy;}
  if(!gen){++metrics.blocked;return working()?ChoiceResult::Waiting:ChoiceResult::NoCandidate;}

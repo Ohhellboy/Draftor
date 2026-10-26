@@ -1,15 +1,25 @@
 # Known issues, limits and privacy / 已知问题、限制与隐私
 
-Alpha 2 is usable for writing and experimentation, with a finite paired comparison and one natural writing/save/reopen check. Keep independent exports of important manuscripts. Current limitations, historical observations and untested conditions are separated below.
+Alpha 2.1 adds Chinese Find and Chinese interface labels. Keep independent exports of important manuscripts. The limits below apply to the current product; historical measurements retain their original version names.
 
-Alpha 2 已有有限对照及一次自然写作、保存重开核验。重要文稿仍请独立导出备份；以下区分当前限制、历史现象与未覆盖条件。
+Alpha 2.1 支持中文查找和中文界面提示。使用时仍请独立导出重要文稿。以下说明当前限制；历史测量保留原版本归属。
+
+## Large libraries / 大文库
+
+The catalog keeps up to 128 complete metadata entries in RAM. Normal manuscripts and trash both contribute to that catalog size. Beyond the cache boundary, opening the list, paging, restoring or renaming can require repeated scans and become noticeably slow. 128 is a cache boundary, not a manuscript limit; large-library performance remains open.
+
+目录在 RAM 中缓存最多128项完整元数据，正常文稿和回收站共同参与这个规模。超过缓存容量后，打开列表、分页、恢复或改名可能反复扫描目录，因此会明显变慢。128是缓存边界，不是文稿硬上限；大文库性能仍待改进。
+
+Export finished writing regularly. Moving it to the trash does not reduce the combined count. There is currently no public bulk-archive or permanent-delete workflow; do not delete internal records or edit META/CURRENT by hand to make the library smaller.
+
+建议定期导出已完成的文稿。移入回收站不能减少总数；当前也没有面向用户的批量归档或永久删除流程。不要为了缩小文库而手工删除内部记录、修改 META 或 CURRENT。
 
 ## Current limits / 当前限制
 
 - **2 MiB slots cannot accept this App.** Alpha 1 users should back up manuscripts and necessary data, erase internal flash, and follow the [fresh-install procedure](INSTALL.md). The TF card does not need formatting. / 旧2 MiB槽装不下本版；Alpha 1 用户请先备份，清除内部 Flash 后全新安装，不格式化 TF 卡。
 - Resources must be the exact format4 set; format2 files/Ready markers do not make a mixed directory compatible. / 不混用旧新资源或伪造 Ready。
 - Some activation/warm-query costs and synchronous full-screen blocking remain; see [Performance](PERFORMANCE.md). / 激活、热查询子段及同步整屏仍有代价。
-- No learned frequency/personal dictionary, abbreviated or mixed Pinyin, Chinese Find entry, complete UI localization, selectable new fonts or complete Pico writing firmware is added. / 未新增学习、简拼混拼、中文查找、完整汉化、字体切换或 Pico 整机固件。
+- User-frequency learning, personal dictionaries, abbreviated/mixed Pinyin, selectable fonts and complete Pico writing firmware remain unavailable. Chinese Find and the current Chinese menus are described in the user guide. / 用户词频学习、个人词库、简拼混拼、字体切换和 Pico 整机固件仍未提供；中文查找及现有中文菜单见使用手册。
 - Experimental F10 local Wi-Fi transfer and QR pages exist in the fixed image; Wi-Fi starts off, Esc returns to writing without turning it off, and F10 then O turns it off. The performance and FW1 evidence covers Wi-Fi off. / F10实验热点/二维码已在固件；Esc不关热点，F10后O关闭，本轮性能证据覆盖关闭状态。
 
 ## Serial diagnostics / 串口诊断
@@ -21,10 +31,6 @@ The author requested removing serial composition-code and input-timing observati
 Startup/build identity, connection, memory/health and error diagnostics remain on the serial port; it is not a silent port. No persistent input-log writer is introduced. Review diagnostic output before sharing it. The earlier measured baseline did emit composition codes automatically and remains privately retained as comparison evidence; its image is not substituted for this release App.
 
 串口仍保留启动标识、连接、内存/运行状态及错误诊断，不是完全静默；没有新增持久输入日志。分享诊断前仍应检查内容。此前实测基线确实默认输出组成码，作为原证据单独保留，不拿它替代这份发行App。
-
-The exact observer-disabled release App has passed a brief device check covering startup, Chinese input, candidate selection, saving and truly reopening the same test manuscript after leaving it. Reopened text was checked visually by the author; this was not an exported-byte comparison. Earlier performance measurements still describe the measured business baseline; no new performance test was run.
-
-关闭输入观察的准确发行App已通过一次简短实机检查，覆盖启动、中文输入、选词、保存，以及离开后真正重开同一测试稿。重开文字由作者目视核对，本次没有进行正文导出字节比较。此前性能数据仍对应累计测量基线，本轮没有重新测试性能。
 
 ## Historical observations still open / 历史未彻底解释的现象
 

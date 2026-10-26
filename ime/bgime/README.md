@@ -129,7 +129,7 @@ bgIME 将共享输入能力与不同输入方案分开组织。
 
 | 组件 | 版本 |
 |---|---|
-| [Draftor](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2) | `v0.1.0-alpha.2` |
+| [Draftor](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1) | `v0.1.0-alpha.2.1` |
 | bgIME Core | `0.13.1-rc.1` |
 | Core 公开 API | `0.13.0` |
 | Core CMake 库版本 | `0.13.1` |
@@ -142,7 +142,7 @@ Core 的源码目录与 CMake 目标仍使用 `HanIME` 命名。
 
 ### 词库和索引
 
-Draftor Alpha 2 使用 **format4** 配套资源，资源目录为：
+Draftor Alpha 2 和 Alpha 2.1 使用同一套 **format4** 配套资源，资源目录为：
 
 ```text
 HANIME/IME/B_SHORT_TEXT_20261018

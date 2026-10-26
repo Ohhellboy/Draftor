@@ -52,8 +52,9 @@ class Repeat {
  void clear()noexcept{repeater_.cancel();usage_=mods_=0;}
  void actionResult(bool changed)noexcept{repeater_.noteActionResult(changed,!changed);}
  void context(uint64_t session,bool body_focused)noexcept{if(session!=session_||!body_focused)clear();session_=session;focused_=body_focused;}
+ void queryAxis(bool enabled,bool vertical)noexcept{if(query_!=enabled||query_vertical_!=vertical)clear();query_=enabled;query_vertical_=vertical;}
  void event(const Event& e)noexcept;
  bool poll(uint32_t now,uint32_t epoch,Event& out)noexcept;
- private:hanime::body_extension::BodyKeyRepeater repeater_;uint64_t session_=0;uint32_t epoch_=0;uint8_t usage_=0,mods_=0;bool focused_=true;
+ private:hanime::body_extension::BodyKeyRepeater repeater_;uint64_t session_=0;uint32_t epoch_=0;uint8_t usage_=0,mods_=0;bool focused_=true,query_=false,query_vertical_=false;
 };
 }

@@ -49,6 +49,7 @@
 #include "vertical_view.hpp"
 #include "product_input.hpp"
 #include "metadata_font.hpp"
+#include "menu_font.hpp"
 #ifndef DRAFTOR_USB_ENABLED
 #define DRAFTOR_USB_ENABLED 1
 #endif
@@ -58,10 +59,12 @@
 #include "wifi_platform_s3.hpp"
 #include "platform_memory.hpp"
 #include "wifi_display.hpp"
+#include "usb_display.hpp"
 #endif
 
 #include "presentation_frame.hpp"
 #include "vertical_hud.hpp"
+#include "editor_hud.hpp"
 #include <ffconf.h>
 #include <esp_idf_version.h>
 #include <cstdarg>
@@ -102,6 +105,8 @@ hanime::documents::ArduinoSdStoragePort storage(filesystem);
 ime_device::ChineseFont font;
 ime_device::Resources* imeResources=nullptr;
 s3host::BuiltinSmallFont smallFont;
+s3app::MenuFont14 menuFont14;
+s3app::MenuFont16 menuFont16;
 s3app::App* app=nullptr;
 ime_device::DeviceIme* ime=nullptr;
 uint32_t lastSaveTurn=0;
@@ -328,6 +333,24 @@ void label(const char* text,int x,int y,Color color=black,int maxX=294){
   if(x+width>maxX)break;glyph(cp,x,y,color,2);x+=width;
  }
 }
+void menuFill(int x,int y,int w,int h,bool ink){lcd.fillRect(x,y,w,h,ink?black:white);}
+void menuText(const s3host::FontPort& face,std::string_view text,int x,int y,bool inverse){
+ for(size_t at=0;at<text.size();at=editor::nextUtf8Boundary(text,at)){
+  const auto g=face.glyph(s3app::display::scalar(text,at));if(x+g.advance>294)break;
+  for(unsigned row=0;row<g.height;++row)for(unsigned col=0;col<g.width;++col){
+   const int px=x+g.bearing+int(col),py=y+int(row);
+   if(px>=0&&px<300&&py>=0&&py<400&&(g.bits[row*g.stride+col/8]&(0x80>>(col%8))))
+    lcd.pixel(px,py,inverse?white:black);
+  }
+  x+=g.advance;
+ }
+}
+void menuAux(std::string_view text,int x,int y,bool inverse){menuText(menuFont14,text,x,y,inverse);}
+void menuContent(std::string_view text,int x,int y,bool inverse){menuText(menuFont16,text,x,y,inverse);}
+// Keep bounded name-layout scratch off the body/IME draw stack branch.
+__attribute__((noinline)) bool drawDocumentMenu(int renameBottom){
+ return s3app::display::documentMenu(*app,menuFont16,menuFill,menuAux,menuContent,renameBottom);
+}
 void memory(const char* stage){
  if(!diagnostics)return;
  if(diagnostics->memory_stage)++diagnostics->superseded;
@@ -416,16 +439,13 @@ __attribute__((noinline)) void drawHorizontalBody(){
 void draw(){
 #if DRAFTOR_USB_ENABLED
  if(wifiRuntime&&wifiRuntime->transfer.panel()){
-  s3app::paintWifiPanel(wifiRuntime->transfer,
-   [](int x,int y,int w,int h,bool ink){lcd.fillRect(x,y,w,h,ink?black:white);},
-   [](const char* text,int x,int y){label(text,x,y);});
+  s3app::paintWifiPanel(wifiRuntime->transfer,menuFont16,menuFill,menuAux,menuContent);
   if(!displaySchedule.presentCompared(lcd.framebuffer(),lcd.BufferSize,millis(),[](const uint8_t* previous,size_t size){return lcd.update(previous,size);}))return;
   inputRoute.framePresented(app->focusToken());keyboard::publishFrame(inputRoute.epoch(),0);
   lastDraw=millis();displaySchedule.completed(lastDraw);app->dirtyDisplay=false;return;
  }
  if(usbActive()){
-  lcd.fill(white);label(usbRuntime->transfer.title(),8,10);
-  char text[128];for(unsigned i=0;i<8;++i){usbRuntime->transfer.line(i,text,sizeof(text));label(text,8,44+int(i)*38);}
+  s3app::paintUsbPanel(usbRuntime->transfer,menuFont16,menuFill,menuAux,menuContent);
   if(!displaySchedule.presentCompared(lcd.framebuffer(),lcd.BufferSize,millis(),[](const uint8_t* previous,size_t size){return lcd.update(previous,size);}))return;
   // A modal frame advances only the input route, never publishes body/IME pixels.
   inputRoute.framePresented(app->focusToken());keyboard::publishFrame(inputRoute.epoch(),0);
@@ -442,56 +462,40 @@ void draw(){
  const bool vertical=app&&!app->horizontalImeSurface();
  if(app&&!ime_device::prepareImePresentation(ime,*app,true))return;
  s3app::VerticalPaintResult verticalFrame;
+ s3app::find_ui::Receipt findFrame;
  const bool imeVisible=ime_device::candidateSurfaceVisible(ime,app);
+ const bool menuPage=app&&!fatal&&(s3app::display::menuSurface(*app)||app->progressDrawing()||app->commandBarrier());
  const int compositionY=ime&&ime->expanded()?210:278;
- if(app&&!vertical)app->layout.setHeightPx(imeVisible?compositionY-34:306);
+ if(app&&!vertical)app->layout.setHeightPx(s3app::editor_geometry::bodyHeight(app->findOpen(),imeVisible,compositionY));
  s3app::MetadataFont metadataFont(font);
- // File names share one measured face on the file page and both body titles.
- const auto metadataLabel=[&](const char* t,int x,int y,bool inverted=false){
-  const std::string_view name(t);
-  for(size_t at=0;at<name.size();at=editor::nextUtf8Boundary(name,at)){
-   const auto g=metadataFont.glyph(s3app::display::scalar(name,at));if(x+g.advance>294)break;
-   for(unsigned row=0;row<g.height;++row)for(unsigned col=0;col<g.width;++col)
-    if(g.bits[row*g.stride+col/8]&(0x80>>(col%8)))lcd.pixel(x+g.bearing+col,y+row,inverted?white:black);
-   x+=g.advance;
-  }
- };
- char modeLine[64];ime_device::modeCaption(modeLine,sizeof(modeLine),ime&&ime->chinese(),imeResources?imeResources->rules():hanime_extension::SchemeRules::R1Xiaohe,app&&app->sharedState().document.dirty());
- if(vertical){const auto top=s3app::verticalTop(modeLine,app->currentName,metadataFont);metadataLabel(top.text,292-int(top.width),4);}
- else label(modeLine,8,5);
+ const bool editorPage=app&&!fatal&&!menuPage&&!app->statsOpen();
  auto ble=keyboard::status();
  if(fatal){label(fatal,8,50);label("Save 115200 log",8,80);if(tfMountFailed){label("Temporary recovery:",8,110);label("Power OFF board AND TF, then ON",8,140);}else label("See log before retry",8,110);}
  else if(app){
-  if(app->progressDrawing()||app->commandBarrier()){label(app->notice,8,70);}
-  else if(s3app::display::documentMenu(*app,metadataFont,metadataLabel,
-    [](int x,int y,int w,int h){lcd.fillRect(x,y,w,h,black);})){
+  if(app->progressDrawing()||app->commandBarrier()){
+   s3app::display::secondary::header("正在处理",menuFill,menuAux);
+   s3app::display::secondary::wrapped(s3app::display::menuProgress(app->notice),menuFont14,8,70,284,24,330,menuAux);
+  }else if(drawDocumentMenu(imeVisible?compositionY-12:328)){
   }else if(app->statsOpen()){
-   s3app::display::statistics(app->statsReport(),[](const char* t,int x,int y){label(t,x,y);});
+   s3app::display::statistics(app->statsReport(),menuFont16,menuFill,menuAux,menuContent);
   }else{
-   if(!vertical)metadataLabel(app->currentName.c_str(),8,20);
+   s3app::editor_hud::title(app->currentName,vertical,metadataFont,[](int x,int y){lcd.pixel(x,y,black);});
    if(vertical){
     const s3app::VerticalPaintPort port{
      [](void*,draftor::vertical::Rect r,s3app::VerticalColor c){lcd.fillRect(r.x,r.y,r.width,r.height,c==s3app::VerticalColor::White?white:c==s3app::VerticalColor::Red?Color::Red:black);},
      [](void*,uint16_t x,uint16_t y,s3app::VerticalColor c){lcd.pixel(x,y,c==s3app::VerticalColor::White?white:c==s3app::VerticalColor::Red?Color::Red:black);},nullptr,nullptr};
-    verticalFrame=s3app::paintVerticalView(*app,app->verticalPresentation(),ime,font,millis(),port);
+    verticalFrame=s3app::paintVerticalView(*app,app->verticalPresentation(),app->findOpen()?nullptr:ime,font,millis(),port);
     if(verticalFrame.status!=draftor::vertical::Status::Ready){app->candidateVisual.complete(false);return;}
    }else{
    drawHorizontalBody();
    }
-   if(app->findOpen())s3app::display::findBar(app->find.view(),smallFont,
-    [](const char* t,int x,int y){label(t,x,y);},
-    [](uint32_t cp,int x,int y){glyph(cp,x,y,black,2);},
-    [](int x,int y,int h){lcd.fillRect(x,y,1,h,black);});
-   if(!imeVisible&&!vertical){
-   const int statusY=app->findOpen()?348:344;
-   label(app->sharedState().document.dirty()?"UNSAVED":"SAVED",8,statusY);
-   char text[64];snprintf(text,sizeof(text),"%u B  cursor %u",unsigned(app->sharedState().document.text().size()),unsigned(app->sharedState().document.cursorByte()));label(text,82,statusY);
+   if(app->findOpen())findFrame=s3app::find_ui::paint(*app,ime,{
+    [](void*,int x,int y,bool ink){lcd.pixel(x,y,ink?black:white);},nullptr});
   }
-  }
-  const bool showingLoad=loadingStatus.shown().stage!=ime_device::LoadStage::Ready&&loadingStatus.shown().stage!=ime_device::LoadStage::Idle;
-  if(!vertical)label(showingLoad?loadingStatus.shown().text:imeVisible&&(!app->renameOpen()||ime->active())?ime->notice():app->notice,8,364);
  }
- if(imeVisible&&!vertical){
+ if(menuPage&&!app->renameOpen()&&!app->commandBarrier()&&!app->progressDrawing())
+  s3app::display::menuFeedback(*app,menuFill,menuAux);
+ if(imeVisible&&!vertical&&!app->findOpen()){
   lcd.fillRect(0,compositionY-4,300,1,black);
   auto textAt=[&](std::string_view text,int x,int y,Color color,int limit){
    for(size_t at=0;at<text.size();at=editor::nextUtf8Boundary(text,at)){
@@ -535,7 +539,18 @@ void draw(){
    if(ime->boundaryEdge()==ime_device::BoundaryEdge::RawLeft||ime->boundaryEdge()==ime_device::BoundaryEdge::RawRight){rect.y=compositionY+s3app::ImeCompositionFontMetrics::horizontal_ink_y;rect.height=s3app::ImeCompositionFontMetrics::horizontal_ink_height;}
    lcd.fillRect(rect.x,rect.y,rect.width,rect.height,Color::Red);}
  }
- if(vertical){
+ if(app&&app->findOpen()){
+  if(ble.phase==keyboard::Phase::Pairing&&ble.passkey<1000000){
+   char pin[64];std::snprintf(pin,sizeof(pin),"Type %06lu then Enter",(unsigned long)ble.passkey);
+   lcd.fillRect(0,380,300,20,white);label(pin,8,383);findFrame.candidates=false;
+  }
+ }else if(editorPage){
+  const auto status=s3app::editor_hud::state(*app,ime,
+   imeResources?imeResources->rules():hanime_extension::SchemeRules::R1Xiaohe,ble,loadingStatus.shown());
+  s3app::editor_hud::footer(status,metadataFont,
+   [](int x,int y,int w,int h){lcd.fillRect(x,y,w,h,white);},
+   [](int x,int y){lcd.pixel(x,y,black);});
+ }else if(vertical&&!menuPage){
   char status[96];
   const bool loading=loadingStatus.shown().stage!=ime_device::LoadStage::Ready&&loadingStatus.shown().stage!=ime_device::LoadStage::Idle;
   if(ble.phase==keyboard::Phase::Pairing&&ble.passkey<1000000)std::snprintf(status,sizeof(status),"Pair: type %06lu + Enter",(unsigned long)ble.passkey);
@@ -550,7 +565,7 @@ void draw(){
  else if(ble.phase==keyboard::Phase::Ready&&imeVisible&&loadingStatus.shown().stage!=ime_device::LoadStage::Ready){
   char rawStatus[64];std::snprintf(rawStatus,sizeof(rawStatus),"Raw buffered: %u | %s",unsigned(ime->raw().size()),ime->raw().empty()?ime->notice():"not in body");label(rawStatus,8,383);
  }else if(ble.phase==keyboard::Phase::Ready&&imeVisible){char caption[64];ime->editCaption(caption,sizeof(caption));label(caption,8,383);}
- else label(keyboard::phaseName(ble.phase),8,383);
+ else if(!menuPage)label(keyboard::phaseName(ble.phase),8,383);
  const auto transfers=displaySchedule.sent;
  const auto transfer_started_us=ime_device::clockUs();
  if(app){BT_OBSERVE(displayBegin(*app,ime,imeVisible&&ime->candidateAvailable()));}
@@ -559,7 +574,7 @@ void draw(){
  const auto lcd_completed_us=ime_device::clockUs();
  CPATTR(cp_draw.stop(lcd_completed_us);cpattr::presented(transfer_started_us,lcd_completed_us,displaySchedule.sent!=transfers));
  const auto previousImeFrame=ime&&ime->window()?ime->window()->onScreenGeneration():0;
- const auto publication=app?ime_device::publishActivePresentation(*app,ime,presentation,verticalFrame.ime):ime_device::PresentationPublication{};
+ const auto publication=app?ime_device::publishActivePresentation(*app,ime,presentation,verticalFrame.ime,findFrame):ime_device::PresentationPublication{};
  if(app&&!publication.accepted){app->candidateVisual.complete(false);return;}
  if(app)app->candidateVisual.complete(true);
  if(app)app->fileFramePresented(lcd_completed_us,app->progressDrawing()||app->commandBarrier());
@@ -971,7 +986,7 @@ void deviceLoop(){
  if(app&&!fatal&&app->ready()){
   try{
    presentContext(); // publish reconnect/focus boundary before accepting queued keys
-   auto repeatContext=[&](){repeat.context(app->focusToken(),!usbActive()&&!wifiBlocked()&&(!ime||!ime->chinese()||!ime->active())&&(app->renameOpen()||(app->session.hasCurrent()&&!app->filesOpen()&&!app->findOpen()&&!app->statsOpen()))&&!app->commandBarrier()&&app->manager.state().pending==hanime::documents::PendingAction::None);};
+   auto repeatContext=[&](){repeat.queryAxis(app->findOpen(),!app->horizontalActive());repeat.context(app->focusToken(),!usbActive()&&!wifiBlocked()&&(!ime||!ime->chinese()||!ime->active())&&(app->renameOpen()||(app->session.hasCurrent()&&!app->filesOpen()&&!app->statsOpen()))&&!app->commandBarrier()&&app->manager.state().pending==hanime::documents::PendingAction::None);};
    repeatContext();s3hid::Event e;unsigned processed=0;const auto keyBatchStart=micros();
    while(!app->commandBarrier()&&processed<64&&(!processed||micros()-keyBatchStart<2000)&&keyboard::pop(e)){
     ++processed;
@@ -987,11 +1002,9 @@ void deviceLoop(){
     }
 #endif
     if(!inputRoute.accept(e,millis())){
-     // A same-BLE-epoch Enter release may have arrived during the old frame.
-     // Retire its held state without granting it authority in the new UI.
-     // DeviceIme keeps its timestamp watermark; older releases cannot unlatch
-     // a newer press. Stale key-downs and all other route rejection stay intact.
-     if(!e.down&&e.usage==40)productInput.ime(*app,ime,e);
+     // Retire only same-epoch Enter/F2 releases across the completed frame;
+     // the rejected event still cannot act on this UI or reach app->key().
+     productInput.releaseAfterRouteDrop(*app,ime,e);
      ime_device::traceUi(ime_device::UiTraceKind::RouteDrop,ime?ime->composition():nullptr,ime?ime->window():nullptr,&e,nullptr,uint8_t(e.down));continue;
     }
 #if DRAFTOR_USB_ENABLED
@@ -1030,7 +1043,7 @@ void deviceLoop(){
    ble=keyboard::status();observeEpoch(ble.epoch);
    if(!usbActive()&&!wifiBlocked()&&!app->commandBarrier()&&!keyboard::pending()&&ble.phase==keyboard::Phase::Ready&&repeat.poll(millis(),ble.epoch,e)){
     uint32_t currentEpoch=0;const bool admitted=keyboard::admit(e,currentEpoch);observeEpoch(currentEpoch);
-    if(admitted){auto before=app->editStamp();auto nameBefore=app->renameRevision();app->key(e);auto after=app->editStamp();repeat.actionResult(app->bodyNavigationPending()||nameBefore!=app->renameRevision()||before.revision!=after.revision||before.selection!=after.selection);}
+    if(admitted){auto before=app->editStamp();auto nameBefore=app->renameRevision();auto queryBefore=app->queryStamp();app->key(e);auto after=app->editStamp();repeat.actionResult(queryBefore.revision!=app->queryStamp().revision||queryBefore.cursor!=app->queryStamp().cursor||queryBefore.selected!=app->queryStamp().selected||app->bodyNavigationPending()||nameBefore!=app->renameRevision()||before.revision!=after.revision||before.selection!=after.selection);}
    }
    if(tfProbe&&ime&&ime->chinese())tfProbe->cancel();
    const bool saving=app->persistence.backgroundSaveActive();ime_device::ioProfile.save_active=saving;

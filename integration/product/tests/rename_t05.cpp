@@ -1,11 +1,9 @@
 #include <filesystem>
 #include <string>
-static const std::filesystem::path t05_root=std::filesystem::path(__FILE__).parent_path().parent_path().parent_path();
-static const std::string t05_resources=(t05_root/"resources/staged").string();
-#undef RESOURCE_ROOT
-#undef INDEX_ROOT
-#define RESOURCE_ROOT t05_resources.c_str()
-#define INDEX_ROOT t05_resources.c_str()
+// Honor the same explicit Alpha 2 resources as the joint product Host build.
+#if !defined(RESOURCE_ROOT) || !defined(INDEX_ROOT)
+#error "Explicit Host resource and index roots are required"
+#endif
 #define main t05_unused_query_rows_main
 #include "query_rows.cpp"
 #undef main
@@ -13,6 +11,7 @@ static const std::string t05_resources=(t05_root/"resources/staged").string();
 #include "presentation_frame.hpp"
 #include "docmanager_display.hpp"
 #include "metadata_font.hpp"
+#include "support/r2_raster.hpp"
 #include <map>
 #include <fstream>
 #include "support/rename_usb_platform.hpp"
@@ -145,10 +144,36 @@ void targetFences(){for(bool vertical:{false,true}){
  r.tap(41);r.tap(41);EditorSink body(r.app);CHECK(body.bind(4,4));r.tap(59);r.tap(21);CHECK(!body.commit("leak"));r.tap(41);before.check(r);
  std::cout<<"PASS temporary target focus/revision/selection/body isolation H/V="<<vertical<<'\n';
 }}
+void partialSelection(){
+ s3app::NameInput input;CHECK(input.assign("A中😀Z"));input.left();input.left(true);input.left(true);
+ CHECK(input.selectionBegin()==1&&input.selectionEnd()==8);CHECK(input.insert("文")&&std::string_view(input.text())=="A文Z");
+ input.home();input.right(true);input.right(true);input.left(true);input.left(true);CHECK(!input.selected()&&input.cursor()==0);
+ input.end(true);CHECK(input.backspace()&&input.size()==0);
+ CHECK(input.assign(std::string(96,'x')));input.left(true);const auto revision=input.revision();
+ CHECK(!input.insert("中")&&input.revision()==revision&&input.selected());input.left(true);input.left(true);CHECK(input.insert("中")&&input.size()==96);
+ for(bool vertical:{false,true}){
+  RenameRig r;seed(r);r.rename(vertical);const Protected before(r);CHECK(r.app.commitName("A清风Z",r.app.nameStamp()));
+  r.tap(80);r.tap(80,2);r.tap(80,32);CHECK(r.app.renameSelectionBegin()==1&&r.app.renameSelectionEnd()==7);
+  r2preview::Raster canvas;CHECK(s3app::display::documentMenu(r.app,canvas.contentFont,canvas.rect(),canvas.aux(),canvas.content()));
+  CHECK(canvas.pixels[68*300+8]==255); // Unselected first Latin character background stays white.
+  if(!vertical)canvas.save("fix1-rename-partial-selection");
+  EditorSink stale(r.app);CHECK(stale.bind(1,1));r.tap(79,2);r.tap(80,2);CHECK(!stale.commit("漏"));
+  r.tap(57);r.settle();r.text("ui");r.settle();r.tap(44);r.settle();if(r.ime.active()){r.tap(40);r.settle();}
+  CHECK(std::string_view(r.app.renameText())=="A是Z");r.tap(57);r.tap(80,2);r.tap(42);CHECK(std::string_view(r.app.renameText())=="AZ");
+  r.tap(74);r.tap(77,2);r.text("new");CHECK(std::string_view(r.app.renameText())=="new");before.check(r);
+  r.tap(4,1);std::string longName;for(unsigned i=0;i<32;++i)longName+="中";
+  CHECK(r.app.commitName(longName,r.app.nameStamp()));r.tap(74);for(unsigned i=0;i<5;++i)r.tap(79);for(unsigned i=0;i<25;++i)r.tap(79,2);
+  CHECK(r.app.renameSelectionBegin()==15&&r.app.renameSelectionEnd()==90);
+  r2preview::Raster wrapped;CHECK(s3app::display::documentMenu(r.app,wrapped.contentFont,wrapped.rect(),wrapped.aux(),wrapped.content()));
+  CHECK(wrapped.pixels[68*300+8]==255&&wrapped.pixels[96*300+8]==0);
+  if(!vertical)wrapped.save("fix1-rename-wrapped-selection");
+  r.tap(41);before.check(r);std::cout<<"PASS rename partial UTF8 selection/HID Shift/Chinese replacement/stale target/cancel/wrapped 96-byte name layout="<<vertical<<'\n';
+ }
+}
 int main(int argc,char**argv){try{
- fs::create_directories(t05_root/"TestBuilds");auto scratch=(t05_root/"TestBuilds/rename-runtime-XXXXXX").string();CHECK(mkdtemp(scratch.data()));fs::current_path(scratch);
+ auto scratch=(fs::current_path()/"rename-runtime-XXXXXX").string();CHECK(mkdtemp(scratch.data()));fs::current_path(scratch);
  const std::string mode=argc>1?argv[1]:"suite";
- if(mode=="suite"){alphabet();chinese();cancel();validation();imeCapacity();otherDocument();targetFences();std::cout<<"PASS T05 scoped rename suite\n";return 0;}
+ if(mode=="suite"){partialSelection();alphabet();chinese();cancel();validation();imeCapacity();otherDocument();targetFences();std::cout<<"PASS T05 scoped rename suite\n";return 0;}
  for(bool vertical:{false,true}){
   RenameRig r;r.rename(vertical);
   if(mode=="iu"||mode=="all"){

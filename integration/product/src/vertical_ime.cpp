@@ -15,9 +15,9 @@ const char* verticalStatus(const DeviceIme& ime) noexcept {
 
 bool prepareImePresentation(DeviceIme* ime,s3app::App& app,bool incremental) noexcept {
   app.chinesePresentationContext(candidateSurfaceVisible(ime,&app));
-  if(ime&&ime->window()&&!ime->window()->setVerticalPacking(!app.horizontalImeSurface()))return false;
+  if(ime&&ime->window()&&!ime->window()->setPacking(!app.horizontalImeSurface(),app.findOpen()))return false;
   app.candidateColumns(ime&&ime->window()?ime->window()->occupiedColumns():1);
-  if(app.horizontalActive())app.layout.setHeightPx(candidateSurfaceVisible(ime,&app)?(ime&&ime->expanded()?210:278)-34:306);
+  if(app.horizontalActive())app.layout.setHeightPx(app.findOpen()?170:candidateSurfaceVisible(ime,&app)?(ime&&ime->expanded()?210:278)-34:306);
   const bool ready=app.preparePresentation(incremental);
   if(ready)s3app::prepareCandidateVisual(app,ime);else app.candidateVisual.reset();
   return ready;
@@ -113,7 +113,7 @@ VerticalImeFrame verticalIme(DeviceIme* ime,const s3app::App& app,std::uint32_t 
 }
 std::uint32_t publishVerticalFrame(DeviceIme* ime,const s3app::App& app,
     const VerticalImeFrame& frame) noexcept {
-  if(!candidateSurfaceVisible(ime,&app)||app.commandBarrier()||
+  if(app.findOpen()||!candidateSurfaceVisible(ime,&app)||app.commandBarrier()||
       frame.layout.status!=v::AbStatus::Ready||!ime->window()||!ime->composition())return 0;
   const auto snapshot=ime->composition()->snapshot();
   if(snapshot.input_id!=frame.input||snapshot.revision!=frame.revision||
@@ -159,7 +159,7 @@ VerticalDispatch dispatchVerticalNumber(DeviceIme& ime,const s3app::App& app,
   if(event.usage<30||event.usage>35||event.mods)return VerticalDispatch::RejectedTarget;
   if(!event.down){(void)ime.event(event);return VerticalDispatch::Delivered;}
   if(target.role!=v::AbRole::CurrentCandidate||target.number!=unsigned(event.usage-29)||
-      !target.frame.candidate_frame||!candidateSurfaceVisible(&ime,&app)||app.commandBarrier())
+      !target.frame.candidate_frame||app.findOpen()||!candidateSurfaceVisible(&ime,&app)||app.commandBarrier())
     return VerticalDispatch::RejectedTarget;
   if(!ime.window()||!ime.composition())return VerticalDispatch::ExpiredFrame;
   const auto snapshot=ime.composition()->snapshot();const auto& view=*ime.view();

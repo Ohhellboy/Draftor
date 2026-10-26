@@ -6,13 +6,13 @@
 
 它希望提供一种无打搅的写作方式：无需联网，没有 AI 写作功能，保留基本编辑和文稿传输功能。
 
-## 最新更新：Alpha 2
+## 最新更新：Alpha 2.1
 
-Alpha 2 明显提升了中文输入的响应速度，缩短了候选出现、候选翻页和选词后正文显示的等待。
+Alpha 2.1 加入了支持中文输入的查找界面。写作时可以查找中文字词或英文，向前、向后查看匹配结果；查找界面也会跟随横排和竖排。
 
-本版还加入了本地 Wi-Fi 文稿传输。手机可以直接连接草稿机，通过浏览器导入、导出文稿，不需要场地的 Wi-Fi 网络或云端服务。
+配合这次查找更新，文稿列表、重命名、帮助和传输页面改用了中文提示。编辑器也整理了顶部和底部：顶部保留文件名，底部显示输入方式、保存状态和蓝牙连接状态，横排正文多了一些显示空间。
 
-[下载 Alpha 2](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2) · [完整更新说明](docs/RELEASE_NOTES.zh-CN.md) · [性能结果](docs/PERFORMANCE.md) · [安装指南](docs/INSTALL.zh-CN.md) · [操作手册](docs/USAGE.zh-CN.md)
+[下载 Alpha 2.1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1) · [完整更新说明](docs/RELEASE_NOTES.zh-CN.md) · [Alpha 2 性能结果](docs/PERFORMANCE.md) · [安装指南](docs/INSTALL.zh-CN.md) · [操作手册](docs/USAGE.zh-CN.md)
 
 ![运行中文输入的草稿机原型](draftor-prototype.jpg)
 
@@ -24,7 +24,8 @@ Alpha 2 明显提升了中文输入的响应速度，缩短了候选出现、候
 | 英文输入 | 英文直接输入 |
 | 文字显示 | 简体字、繁体字和异体字，使用配套字库 |
 | 排版 | 横排和竖排 |
-| 文稿管理 | 本地保存、文件列表、中文文件名 |
+| 文稿管理 | 本地保存、中文文件列表、重命名、回收站和帮助 |
+| 文内查找 | 中文及英文查询、前后查找与回绕，适配横排和竖排 |
 | 文稿传输 | USB 和本地 Wi-Fi 导入、导出 |
 
 当前完整写作固件适用于 **ESP32-S3 N16R8（Thick）**，使用蓝牙键盘，以及 [Osptek（鱼鹰）ST7306 黑白红反射式 TFT 显示屏](display/st7306/)。
@@ -37,15 +38,15 @@ Alpha 2 明显提升了中文输入的响应速度，缩短了候选出现、候
 
 ### 安装固件
 
-从 [Alpha 2 发行页](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2)下载同一版本的 **Firmware** 和 **Resources**，按[安装指南](docs/INSTALL.zh-CN.md)准备固件、词库和字体。
+从 [Alpha 2.1 发行页](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1)下载同一版本的 **Firmware** 和 **Resources**，按[安装指南](docs/INSTALL.zh-CN.md)准备固件、词库和字体。
 
-Alpha 1 用户建议先将文稿备份到电脑，再按全新安装流程安装 Alpha 2。重新安装会清除内部 Flash 数据，但不需要格式化 TF 卡。
+Alpha 2 用户确认分区兼容后，可以只更新 App，继续使用原配套 TF 资源。Alpha 1、旧 2 MiB 槽和首次安装则需要按指南走全新安装流程。两种路径都应先备份文稿；只有全新安装需要清除内部 Flash，不需要格式化 TF 卡。
 
 ### 写作和传输
 
-[操作手册](docs/USAGE.zh-CN.md)介绍常用按键、中文输入、文稿改名，以及 USB 和本地 Wi-Fi 文稿传输。
+[操作手册](docs/USAGE.zh-CN.md)介绍常用按键、中文输入、查找、文稿改名，以及 USB 和本地 Wi-Fi 文稿传输。
 
-Alpha 2 仍是测试版本，本地 Wi-Fi 文稿传输属于实验功能。重要文稿请定期导出备份，具体限制见[已知问题](docs/KNOWN_ISSUES.md)。
+Alpha 2.1 仍是测试版本，本地 Wi-Fi 文稿传输属于实验功能。重要文稿请定期导出备份，具体限制见[已知问题](docs/KNOWN_ISSUES.md)。
 
 ### 自行编译
 

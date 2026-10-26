@@ -14,6 +14,10 @@ class FontPort {
  virtual GlyphView glyph(uint32_t cp)const noexcept=0;
  virtual uint16_t lineHeight()const noexcept=0;
  virtual uint16_t defaultAdvance()const noexcept=0;
+ // The raw advance has exactly glyph().advance semantics, including zero.
+ // The default may look up a glyph and has the same borrowed-bitmap lifetime;
+ // immutable atlas adapters can override it without materializing a bitmap.
+ virtual uint16_t glyphAdvance(uint32_t cp)const noexcept{return glyph(cp).advance;}
  static uint16_t advance(const void* font,uint32_t cp) noexcept {
   auto& f=*static_cast<const FontPort*>(font);auto g=f.glyph(cp);return g.advance?g.advance:f.defaultAdvance();
  }

@@ -1,4 +1,4 @@
-# Alpha 2 Installation Guide
+# Alpha 2.1 Installation Guide
 
 **English** | [简体中文](INSTALL.zh-CN.md)
 
@@ -16,21 +16,23 @@ Follow the steps in order. Continue only after each step succeeds. If an error o
 | A new development board being installed for the first time | Prepare the TF resources, then follow the fresh-install procedure in this guide. |
 | A compatible layout with two 4 MiB App partitions | Complete the preparations in sections 2 and 3, then update the App using section 6. Do not run the erase command in section 4. |
 
-The Alpha 2 App is 2,429,104 bytes, which exceeds the capacity of the old 2 MiB App partitions. Devices using the old layout therefore need a fresh installation.
+The Alpha 2.1 App is 3,893,280 bytes, which exceeds the capacity of the old 2 MiB App partitions. Devices using the old layout therefore need a fresh installation.
 
 A fresh installation erases the old firmware, settings, Bluetooth pairing information and other data in the ESP32-S3's internal flash. Make your backups first.
 
-This operation does not format the TF card, and installing Alpha 2 does not require formatting it. However, you should still back up the manuscripts on the TF card to a computer rather than keeping only the copy on the card.
+This operation does not format the TF card, and installing Alpha 2.1 does not require formatting it. However, you should still back up the manuscripts on the TF card to a computer rather than keeping only the copy on the card.
+
+Alpha 2 and Alpha 2.1 use compatible partitions and the same format4 runtime resources. Read the actual partition and boot records, then use section 6 to update the active App; do not run section 4’s erase command. Matching Alpha 2 dictionaries and the body font can stay on the TF card. The new menu and Find glyphs are built into the App.
 
 ## 2. Prepare files, tools and backups
 
 ### Download the files
 
-Download these two attachments from the same version on the Alpha 2 release page, and extract them into the same folder:
+Download these two attachments from the same version on the Alpha 2.1 release page, and extract them into the same folder:
 
 ```text
-Draftor_v0.1.0-alpha.2_Firmware.zip  → Firmware/
-Draftor_v0.1.0-alpha.2_Resources.zip → Resources/
+Draftor_v0.1.0-alpha.2.1_Firmware.zip  → Firmware/
+Draftor_v0.1.0-alpha.2.1_Resources.zip → Resources/
 ```
 
 These two packages are all you need for ordinary installation. Source and BuildInputs are for compiling the firmware yourself; you do not need to download them just to install it.
@@ -43,7 +45,7 @@ If your device runs an older version, back it up while it still works normally. 
 
 Save the manuscripts you want to keep, export each one to your computer, and open the exported files to check that the text is complete. Exporting only the current manuscript does not back up the others.
 
-Finish entering any text you want to keep, save it and wait for Saved on the screen. Exit USB transfer mode and turn off Wi-Fi if it is on. Close any serial monitor on your computer that is using the board's port, then power off the device before removing the TF card.
+Finish entering any text you want to keep, save it and wait for “已保存” (Saved on older firmware) on the screen. Exit USB transfer mode and turn off Wi-Fi if it is on. Close any serial monitor on your computer that is using the board's port, then power off the device before removing the TF card.
 
 Back up the manuscripts and other files on the TF card to your computer, keeping the original directory structure. Also keep the old firmware and its matching resources. Do not replace the entire contents of the TF card with the downloaded Resources folder.
 
@@ -79,11 +81,11 @@ For a device that already contains data, complete this step before erasing if yo
 Use a new backup directory; do not overwrite an older backup:
 
 ```sh
-mkdir private-backup-alpha2
+mkdir private-backup-alpha2-1
 python3 -m esptool --chip esp32s3 --port "$PORT" --baud 460800 --after no-reset read-flash \
-  0x0 0x1000000 private-backup-alpha2/full-flash-before-alpha2.bin
+  0x0 0x1000000 private-backup-alpha2-1/full-flash-before-alpha2.bin
 python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset verify-flash \
-  0x0 private-backup-alpha2/full-flash-before-alpha2.bin
+  0x0 private-backup-alpha2-1/full-flash-before-alpha2.bin
 ```
 
 The resulting file should be 16,777,216 bytes, and the verification command must succeed. Save another copy in your backup location, keep it private and do not upload it to a public repository.
@@ -187,7 +189,7 @@ After the checks complete, safely eject the TF card on your computer, then put i
 
 No part of this process requires formatting the TF card.
 
-## 4. Install Alpha 2 fresh
+## 4. Install Alpha 2.1 fresh
 
 This section is for new development boards and for Alpha 1 devices whose backups are complete and which are ready for a fresh installation.
 
@@ -217,7 +219,7 @@ python3 -m esptool --chip esp32s3 --port "$PORT" --baud 460800 --after no-reset 
   0x0 Firmware/bootloader.bin \
   0x8000 Firmware/partitions.bin \
   0xe000 Firmware/boot_app0.bin \
-  0x10000 Firmware/Draftor_v0.1.0-alpha.2.app.bin
+  0x10000 Firmware/Draftor_v0.1.0-alpha.2.1.app.bin
 ```
 
 In these commands, keep means retaining the flash parameters already in the images. You do not need to specify them separately.
@@ -229,7 +231,7 @@ python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset verify-flash \
   0x0 Firmware/bootloader.bin \
   0x8000 Firmware/partitions.bin \
   0xe000 Firmware/boot_app0.bin \
-  0x10000 Firmware/Draftor_v0.1.0-alpha.2.app.bin
+  0x10000 Firmware/Draftor_v0.1.0-alpha.2.1.app.bin
 ```
 
 Start the device only after all four files verify successfully.
@@ -238,13 +240,13 @@ Start the device only after all four files verify successfully.
 
 Make sure the matching TF card is inserted, release the BOOT button and reset the board to start it.
 
-Wait for Ready on the screen, then connect the Bluetooth keyboard. Erasing internal flash also removes the old pairing information, so you may need to pair the keyboard again.
+Wait for the writing screen, then connect the Bluetooth keyboard; the bottom line shows “已连接” when it is ready for input. Erasing internal flash also removes the old pairing information, so you may need to pair the keyboard again.
 
 First create a disposable test manuscript, type a short passage in Chinese, select words and save it. Leave that manuscript, reopen it from the file list and check that the text is still correct. See the [usage guide](USAGE.md) for the keys.
 
 If storage mounting, PSRAM, dictionary checks or saving report an error, stop the relevant operation and keep your backups. Do not repeatedly overwrite a manuscript that has a problem.
 
-To restore an old manuscript, use the existing import function to create a new manuscript, then open it and check its contents. Keep the backups on your computer until you have confirmed the restoration. An old internal-filesystem backup cannot be written directly to Alpha 2's new partitions.
+To restore an old manuscript, use the existing import function to create a new manuscript, then open it and check its contents. Keep the backups on your computer until you have confirmed the restoration. An old internal-filesystem backup cannot be written directly to Alpha 2.1's new partitions.
 
 ## 6. Existing compatible 4 MiB layout: update only the App
 
@@ -254,13 +256,13 @@ Complete the backups in section 2 and the TF resource preparation in section 3 f
 
 ```sh
 python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset read-flash \
-  0x8000 0x1000 private-backup-alpha2/current-partition.bin
+  0x8000 0x1000 private-backup-alpha2-1/current-partition.bin
 python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset read-flash \
-  0xe000 0x2000 private-backup-alpha2/current-otadata.bin
+  0xe000 0x2000 private-backup-alpha2-1/current-otadata.bin
 python3 Firmware/check_install.py --firmware Firmware \
   --resources Resources/HANIME/IME/B_SHORT_TEXT_20261018 --mode update \
-  --partition private-backup-alpha2/current-partition.bin \
-  --otadata private-backup-alpha2/current-otadata.bin
+  --partition private-backup-alpha2-1/current-partition.bin \
+  --otadata private-backup-alpha2-1/current-otadata.bin
 ```
 
 Do not substitute a partition file from the downloaded package for the file just read from the device.
@@ -281,9 +283,9 @@ Replace REPLACE_WITH_CHECKED_OFFSET below with the app_offset confirmed by the c
 APP_OFFSET=REPLACE_WITH_CHECKED_OFFSET
 python3 -m esptool --chip esp32s3 --port "$PORT" --baud 460800 --after no-reset write-flash \
   --flash-mode keep --flash-freq keep --flash-size keep \
-  "$APP_OFFSET" Firmware/Draftor_v0.1.0-alpha.2.app.bin
+  "$APP_OFFSET" Firmware/Draftor_v0.1.0-alpha.2.1.app.bin
 python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset verify-flash \
-  "$APP_OFFSET" Firmware/Draftor_v0.1.0-alpha.2.app.bin
+  "$APP_OFFSET" Firmware/Draftor_v0.1.0-alpha.2.1.app.bin
 ```
 
 This update route does not write the boot files, partition table, OTA data, NVS or the other App partition.
@@ -307,7 +309,7 @@ DRAFTOR_ALPHA2_20261019_RELEASE
 | bootloader.bin | 0x0 | 19,968 bytes |
 | partitions.bin | 0x8000 | 3,072 bytes |
 | boot_app0.bin | 0xe000 | 8,192 bytes |
-| Draftor_v0.1.0-alpha.2.app.bin | 0x10000 | 2,429,104 bytes |
+| Draftor_v0.1.0-alpha.2.1.app.bin | 0x10000 | 3,893,280 bytes |
 
 ### TF resources
 

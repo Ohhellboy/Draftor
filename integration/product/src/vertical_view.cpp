@@ -24,6 +24,7 @@ VerticalPaintResult paintVerticalView(const App& app,VerticalPresentation& verti
   const auto geometry=app.imeGeometry();
   result.ime.layout=v::reservedAbRegions(geometry);
   if(result.ime.layout.status!=v::AbStatus::Ready){result.status=v::Status::InvalidGeometry;return result;}
+  if(app.findOpen())result.ime.layout.body={124,22,168,356};
   result.status=vertical.setRegion(result.ime.layout.body);
   if(result.status!=v::Status::Ready)return result;
   // Counts delimit valid entries. No per-frame allocation, clearing or body copy.
@@ -56,6 +57,7 @@ VerticalPaintResult paintVerticalView(const App& app,VerticalPresentation& verti
   const auto body=vertical.paint(raster);result.status=body.status;result.glyphs=body.glyphs;
   if(result.status!=v::Status::Ready)return result;
   if(!app.findOpen())port.rect(port.context,vertical.viewport().caretRect(vertical.caret().caret),VerticalColor::Black);
+  if(app.findOpen())return result; // The Find rail owns all composition pixels.
   raster.clip=v::editor_area;context.raster=raster;
   const v::AbPort ab{
     [](void* opaque,const v::AbRun& run){

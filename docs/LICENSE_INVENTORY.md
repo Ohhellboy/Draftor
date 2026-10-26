@@ -160,3 +160,13 @@ For component-level details, refer to the original license texts and the accompa
 The already-integrated Wi-Fi QR feature uses Nayuki's QR-Code-generator C implementation at commit `3c6d0b3cefb4e049dc337e82237c9644399716a8` under MIT. Source, original license and source identity are in `integration/qr/vendor/nayuki/`. The wrapper is Draftor-owned. No new dictionary or font licensing grant is claimed. Existing D01/D04/D08 provenance and redistribution questions remain disclosed; preparing this release does not resolve them.
 
 既有二维码功能使用上述 MIT 实现，原源码、许可证与来源一并保留；封装为项目自有代码。本次不新增词库/字体许可主张，原D01/D04/D08未决事项继续披露，不因封包变为已解决。
+
+## Alpha 2.1 fonts and C++ runtime / Alpha 2.1 字体与 C++ 运行库
+
+The editor and Find use LXGW WenKai (OFL-1.1); menus use MiSans under Xiaomi’s own license. The new UI16 data and menu tables retain their separate terms. See [font sources and distribution status](FONT_DISTRIBUTION.md).
+
+编辑器和查找采用文楷，菜单采用MiSans。新增字形数据分别适用原许可，具体来源与分发状态见上述链接。
+
+The link adjustment extracts `string-inst.o` from the pinned GCC 14.2.0 libstdc++ archive. GCC runtime material remains covered by its original GPL terms and GCC Runtime Library Exception 3.1, rather than Apache-2.0. BuildInputs retains `COPYING.RUNTIME`, `COPYING3` and `COPYING3.LIB` under `release-materials/sdk-notices/toolchain/gcc/`. The object is extracted during the build, not checked into Source.
+
+字符串实现取自固定GCC 14.2.0运行库；其原GPL及运行库例外条款继续适用。BuildInputs保留上述许可文本，构建时提取对象，Source不附预编译对象。

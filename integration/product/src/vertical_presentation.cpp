@@ -52,7 +52,7 @@ v::Status VerticalPresentation::setRegion(v::Rect region,bool focus_at_left,std:
   auto next=config_;next.body=region;next.focus_at_left=focus_at_left;
   if(!v::validGeometry(next))return v::Status::InvalidGeometry;
   full_height_=region.height;
-  if(find_open_)next.body.height=std::min<std::uint16_t>(next.body.height,display::bodyHeight);
+  // Find reserves its side rail in PresentationController; body height stays 356.
   if(next.body.x!=config_.body.x||next.body.y!=config_.body.y||next.body.width!=config_.body.width||
       next.body.height!=config_.body.height||next.focus_at_left!=config_.focus_at_left){
     cancelNavigation();config_=next;++geometry_revision_;requested_=false;preferred_valid_=false;

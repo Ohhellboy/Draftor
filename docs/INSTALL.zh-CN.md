@@ -1,4 +1,4 @@
-# Alpha 2 安装指南
+# Alpha 2.1 安装指南
 
 [English](INSTALL.md) | **简体中文**
 
@@ -16,21 +16,23 @@
 | 首次安装的新开发板 | 准备TF资源后，按照本指南全新安装。 |
 | 已经使用与本版兼容的双4 MiB分区 | 完成第2、3节的准备后，使用第6节更新App。不要执行第4节的清除命令。 |
 
-Alpha 2的App为2,429,104字节，已经超过旧版2 MiB应用分区的容量，因此旧版设备需要重新安装。
+Alpha 2.1的App为3,893,280字节，已经超过旧版2 MiB应用分区的容量，因此旧版设备需要重新安装。
 
 全新安装会清除ESP32-S3内部Flash中的旧固件、设置、蓝牙配对信息及其他内部数据。请先做好备份。
 
-这项操作不会格式化TF卡，安装Alpha 2也不需要格式化TF卡。不过，TF卡中的文稿仍应另外备份到电脑，不能只保留卡上的一份。
+这项操作不会格式化TF卡，安装Alpha 2.1也不需要格式化TF卡。不过，TF卡中的文稿仍应另外备份到电脑，不能只保留卡上的一份。
+
+Alpha 2 升级到 Alpha 2.1 时，分区和 format4 运行资源保持兼容。先读取实际分区及启动记录，再按第6节更新当前 App；不要执行第4节的擦除命令。已安装且身份匹配的 Alpha 2 词库和正文字体可以继续使用，新增菜单与查找字形已内置于 App。
 
 ## 2. 准备文件、工具和备份
 
 ### 下载文件
 
-从Alpha 2发行页下载同一版本的两个附件，并解压到同一个文件夹：
+从Alpha 2.1发行页下载同一版本的两个附件，并解压到同一个文件夹：
 
 ```text
-Draftor_v0.1.0-alpha.2_Firmware.zip  → Firmware/
-Draftor_v0.1.0-alpha.2_Resources.zip → Resources/
+Draftor_v0.1.0-alpha.2.1_Firmware.zip  → Firmware/
+Draftor_v0.1.0-alpha.2.1_Resources.zip → Resources/
 ```
 
 普通安装只需要这两包。Source和BuildInputs供自行编译使用，不必为了安装而下载。
@@ -43,7 +45,7 @@ Draftor_v0.1.0-alpha.2_Resources.zip → Resources/
 
 先保存需要保留的文稿，逐一导出到电脑，并打开导出的文件，确认文字完整。只导出当前稿件，不等于已经备份其他稿件。
 
-把还要保留的输入完成并保存，等屏幕显示Saved。退出USB传输模式；如果开启了Wi-Fi，也将它关闭。关闭电脑上占用开发板串口的监视窗口，然后关机取出TF卡。
+把还要保留的输入完成并保存，等屏幕显示“已保存”（旧版显示 Saved）。退出USB传输模式；如果开启了Wi-Fi，也将它关闭。关闭电脑上占用开发板串口的监视窗口，然后关机取出TF卡。
 
 将TF卡中的文稿和其他文件备份到电脑，保留原来的目录结构，同时保留旧固件和配套资源。不要用下载得到的Resources文件夹替换整张TF卡的内容。
 
@@ -79,11 +81,11 @@ python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset get-security-i
 使用一个新的备份目录，不要覆盖旧备份：
 
 ```sh
-mkdir private-backup-alpha2
+mkdir private-backup-alpha2-1
 python3 -m esptool --chip esp32s3 --port "$PORT" --baud 460800 --after no-reset read-flash \
-  0x0 0x1000000 private-backup-alpha2/full-flash-before-alpha2.bin
+  0x0 0x1000000 private-backup-alpha2-1/full-flash-before-alpha2.bin
 python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset verify-flash \
-  0x0 private-backup-alpha2/full-flash-before-alpha2.bin
+  0x0 private-backup-alpha2-1/full-flash-before-alpha2.bin
 ```
 
 生成的文件应为 16,777,216字节，验证命令也必须成功。把它另存到你的备份位置，私下保管，不要上传到公开仓库。
@@ -187,7 +189,7 @@ HANIME/IME/R1_API080/
 
 整个过程不需要格式化TF卡。
 
-## 4. 全新安装Alpha 2
+## 4. 全新安装Alpha 2.1
 
 这一节适用于新开发板，以及已经完成备份、准备重新安装的Alpha 1设备。
 
@@ -217,7 +219,7 @@ python3 -m esptool --chip esp32s3 --port "$PORT" --baud 460800 --after no-reset 
   0x0 Firmware/bootloader.bin \
   0x8000 Firmware/partitions.bin \
   0xe000 Firmware/boot_app0.bin \
-  0x10000 Firmware/Draftor_v0.1.0-alpha.2.app.bin
+  0x10000 Firmware/Draftor_v0.1.0-alpha.2.1.app.bin
 ```
 
 这些命令中的keep表示保留镜像中原有的Flash参数，不需要另行填写。
@@ -229,7 +231,7 @@ python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset verify-flash \
   0x0 Firmware/bootloader.bin \
   0x8000 Firmware/partitions.bin \
   0xe000 Firmware/boot_app0.bin \
-  0x10000 Firmware/Draftor_v0.1.0-alpha.2.app.bin
+  0x10000 Firmware/Draftor_v0.1.0-alpha.2.1.app.bin
 ```
 
 四个文件都验证成功后，再启动设备。
@@ -238,13 +240,13 @@ python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset verify-flash \
 
 确认配套TF卡已经插好，松开BOOT按键，复位启动开发板。
 
-等待设备显示Ready，然后连接蓝牙键盘。清除内部Flash后，原来的配对信息也会消失，可能需要重新配对。
+等待设备进入写作画面，再连接蓝牙键盘；连接就绪时底栏显示“已连接”。清除内部Flash后，原来的配对信息也会消失，可能需要重新配对。
 
 先新建一篇不重要的测试稿，输入一小段中文，选词并保存。离开这篇稿件，再从文件列表中重新打开，确认文字仍然正确。具体键位见[操作手册](USAGE.zh-CN.md)。
 
 如果出现存储挂载、PSRAM、词库检查或保存错误，请停止相关操作，保留备份，不要反复覆盖有问题的稿件。
 
-需要恢复旧文稿时，通过已有的导入功能建立新稿，并打开检查内容。确认恢复无误之前，继续保留电脑上的备份。旧版内部文件系统的备份不能直接写入Alpha 2的新分区。
+需要恢复旧文稿时，通过已有的导入功能建立新稿，并打开检查内容。确认恢复无误之前，继续保留电脑上的备份。旧版内部文件系统的备份不能直接写入Alpha 2.1的新分区。
 
 ## 6. 已有兼容4 MiB分区：只更新App
 
@@ -254,13 +256,13 @@ python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset verify-flash \
 
 ```sh
 python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset read-flash \
-  0x8000 0x1000 private-backup-alpha2/current-partition.bin
+  0x8000 0x1000 private-backup-alpha2-1/current-partition.bin
 python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset read-flash \
-  0xe000 0x2000 private-backup-alpha2/current-otadata.bin
+  0xe000 0x2000 private-backup-alpha2-1/current-otadata.bin
 python3 Firmware/check_install.py --firmware Firmware \
   --resources Resources/HANIME/IME/B_SHORT_TEXT_20261018 --mode update \
-  --partition private-backup-alpha2/current-partition.bin \
-  --otadata private-backup-alpha2/current-otadata.bin
+  --partition private-backup-alpha2-1/current-partition.bin \
+  --otadata private-backup-alpha2-1/current-otadata.bin
 ```
 
 不要用下载包中的分区文件替代刚从设备读取的文件。
@@ -281,9 +283,9 @@ COMPATIBLE_FILES_ONLY
 APP_OFFSET=REPLACE_WITH_CHECKED_OFFSET
 python3 -m esptool --chip esp32s3 --port "$PORT" --baud 460800 --after no-reset write-flash \
   --flash-mode keep --flash-freq keep --flash-size keep \
-  "$APP_OFFSET" Firmware/Draftor_v0.1.0-alpha.2.app.bin
+  "$APP_OFFSET" Firmware/Draftor_v0.1.0-alpha.2.1.app.bin
 python3 -m esptool --chip esp32s3 --port "$PORT" --after no-reset verify-flash \
-  "$APP_OFFSET" Firmware/Draftor_v0.1.0-alpha.2.app.bin
+  "$APP_OFFSET" Firmware/Draftor_v0.1.0-alpha.2.1.app.bin
 ```
 
 这条更新路线不写入启动文件、分区表、OTA数据、NVS或另一个App分区。
@@ -307,7 +309,7 @@ DRAFTOR_ALPHA2_20261019_RELEASE
 | bootloader.bin | 0x0 | 19,968字节 |
 | partitions.bin | 0x8000 | 3,072字节 |
 | boot_app0.bin | 0xe000 | 8,192字节 |
-| Draftor_v0.1.0-alpha.2.app.bin | 0x10000 | 2,429,104字节 |
+| Draftor_v0.1.0-alpha.2.1.app.bin | 0x10000 | 3,893,280字节 |
 
 ### TF资源
 

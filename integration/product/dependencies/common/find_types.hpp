@@ -60,6 +60,12 @@ struct ViewModel {
   bool case_sensitive = false;
   bool wrapped = false;
   bool open = false;
+  std::size_t current_index = 0, total_matches = 0;
+  uint32_t selection_version = 0;
+  bool count_complete = false, query_selected = false, capacity_exceeded = false;
+  std::uint16_t query_anchor = 0;
+  std::size_t selectionBegin() const noexcept { return query_anchor<query_cursor?query_anchor:query_cursor; }
+  std::size_t selectionEnd() const noexcept { return query_anchor>query_cursor?query_anchor:query_cursor; }
 };
 
 struct MemoryBudget {

@@ -59,17 +59,19 @@ DispatchResult FindController::dispatch(
       (void)session_.eraseQueryForward();
       return DispatchResult::Handled;
     case Command::QueryMoveLeft:
-      (void)session_.moveQueryCursorLeft();
+      (void)session_.moveQueryCursorLeft(routed.extend_selection);
       return DispatchResult::Handled;
     case Command::QueryMoveRight:
-      (void)session_.moveQueryCursorRight();
+      (void)session_.moveQueryCursorRight(routed.extend_selection);
       return DispatchResult::Handled;
     case Command::QueryMoveHome:
-      session_.moveQueryCursorHome();
+      session_.moveQueryCursorHome(routed.extend_selection);
       return DispatchResult::Handled;
     case Command::QueryMoveEnd:
-      session_.moveQueryCursorEnd();
+      session_.moveQueryCursorEnd(routed.extend_selection);
       return DispatchResult::Handled;
+    case Command::QuerySelectAll:
+      session_.selectQuery();return DispatchResult::Handled;
     case Command::QueryInsertAscii: {
       const char byte[1] = {routed.ascii};
       (void)session_.insertQueryUtf8({byte, 1U});

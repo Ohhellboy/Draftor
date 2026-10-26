@@ -18,9 +18,9 @@ This document explains what is known about their origins, which materials are pr
 
 ## 1. Current resource set / 当前资源
 
-Alpha 2 uses format4 `B_SHORT_TEXT_20261018`, bundle `17304919664082782091`: 14 runtime files, 132,153,747 bytes, plus unchanged `matched28.hbf1` (2,464,108 bytes). It inherits the lexical identities and text content of the earlier B2 resource set; physical query, record and proof layout changed. The exact inventory/pins are [here](../release/alpha2/RESOURCE_MANIFEST.json).
+Alpha 2.1 retains Alpha 2's format4 `B_SHORT_TEXT_20261018`, bundle `17304919664082782091`: 14 runtime files, 132,153,747 bytes, plus unchanged `matched28.hbf1` (2,464,108 bytes). Alpha 2 inherited the lexical identities and text content of the earlier B2 resource set while changing its physical query, record and proof layout. The exact inventory/pins are [here](../release/alpha2/RESOURCE_MANIFEST.json).
 
-本版使用 format4，共14个运行文件及原字体；继承原词条身份与文字，仅物理查询、记录及证明布局改变。原 B2 的242,793个继承身份、186个新增身份及4,157个接受映射目标属于既有来源记录，不是本轮新增词条。
+本版沿用 Alpha 2 的 format4 资源，共14个运行文件及原字体。Alpha 2 保留了原词条身份与文字，改变了物理查询、记录及证明布局；本次资源文件没有变化。原 B2 的242,793个继承身份、186个新增身份及4,157个接受映射目标属于既有来源记录，不是本轮新增词条。
 
 Original materials and disclosures below are retained from Alpha 1. BuildInputs carries the corresponding fonts, dictionaries, source contributions and SDK/library materials needed to explain or redistribute the actual inputs. Current file mapping is in `RELEASE_PAIR.json`; old lists retained in provenance materials describe their original versions, not the new format4 byte layout.
 
@@ -309,3 +309,13 @@ For the detailed file inventory and licensing references, see:
 完整文件清单及许可资料见：
 
 [Resource Files / 资源文件清单](RESOURCE_FILES.json) · [License Inventory / 许可证清单](LICENSE_INVENTORY.md) · [Third-Party Notices / 第三方声明](../THIRD_PARTY.md) · [Firmware Distribution / 固件分发](FIRMWARE_DISTRIBUTION.md)
+
+## Alpha 2.1 fonts and C++ runtime / Alpha 2.1 字体与 C++ 运行库
+
+The editor and Find use LXGW WenKai (OFL-1.1); menus use MiSans under Xiaomi’s own license. The new UI16 data and menu tables retain their separate terms. See [font sources and distribution status](FONT_DISTRIBUTION.md).
+
+编辑器和查找采用文楷，菜单采用MiSans。新增字形数据分别适用原许可，具体来源与分发状态见上述链接。
+
+The link adjustment extracts `string-inst.o` from the pinned GCC 14.2.0 libstdc++ archive. GCC runtime material remains covered by its original GPL terms and GCC Runtime Library Exception 3.1, rather than Apache-2.0. BuildInputs retains `COPYING.RUNTIME`, `COPYING3` and `COPYING3.LIB` under `release-materials/sdk-notices/toolchain/gcc/`. The object is extracted during the build, not checked into Source.
+
+字符串实现取自固定GCC 14.2.0运行库；其原GPL及运行库例外条款继续适用。BuildInputs保留上述许可文本，构建时提取对象，Source不附预编译对象。

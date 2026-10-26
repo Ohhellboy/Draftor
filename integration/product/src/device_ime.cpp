@@ -619,7 +619,7 @@ bool DeviceIme::selectionCommitCurrent() const {
     if (!composition_->input_is_current(selection_commit_.stamp)) return false;
     const auto& original = selection_commit_.target;
     const auto& bound = sink_.target();
-    return original.rename == bound.rename && original.document == bound.document && original.session == bound.session &&
+    return original.kind == bound.kind && original.query_session == bound.query_session && original.document == bound.document && original.session == bound.session &&
            original.stamp.focus == bound.stamp.focus && original.stamp.revision == bound.stamp.revision &&
            original.stamp.selection == bound.stamp.selection && original.cursor == bound.cursor &&
            original.selected == bound.selected && original.begin == bound.begin && original.end == bound.end;
@@ -757,6 +757,12 @@ bool DeviceIme::dispatch(const s3hid::Event& e,bool successor){
     ((e.ime_context&&!earlyContext(e))||int32_t(e.ms-raw_event_ms_)<0)){
   noteIntent(QueryContextChanged,e,current_action_);mark("Cancel input/query expired");return true;
  }
+ if(!successor&&app_.findOpen()&&active()&&
+    ((e.usage==0x29&&!e.mods)||(e.usage==9&&(e.mods==1||e.mods==16||e.mods==8||e.mods==128)))){
+  if((e.ime_context&&!earlyContext(e))||int32_t(e.ms-raw_event_ms_)<0){mark("Cancel input/query expired");return true;}
+  if((preparing_||receipt_.status==CS::RetryableNoEffect)&&!cancelAttempt(e.ime_attempt))return true;
+  interrupt();return true;
+ }
  if(!successor&&e.usage==0x29&&!e.mods&&app_.renameOpen()){
   // A current Esc cancels the entire temporary target, not the body Esc ladder.
   // Retire owned queries/selections/submissions before App cancels the modal.
@@ -818,7 +824,7 @@ bool DeviceIme::dispatch(const s3hid::Event& e,bool successor){
  // A key may arrive after F4 but before its first framebuffer. Queue its
  // spatial intent behind regrouping, rather than applying V motion to H rows.
  if(!raw_edit_&&window_&&((e.usage>=79&&e.usage<=82)||e.usage==45||e.usage==46))
-  window_->setVerticalPacking(!app_.horizontalImeSurface());
+  window_->setPacking(!app_.horizontalImeSurface(),app_.findOpen());
  if(spatial_action_!=ImeAction::Native){
   if(raw_edit_){
    if(spatial_action_==ImeAction::RawPrevious)moveBoundary(cursor_,hanime_extension::NavigationDirection::Left);
@@ -888,7 +894,7 @@ void DeviceIme::service(bool allow_prefetch){
    auto window=std::make_unique<CandidateWindow>(*composition,font_);
    auto submission=std::make_unique<hanime_extension::Submission>(*composition,resources_.shared,sink_,commit_config,member_backend_);
    if(!submission->valid())throw std::bad_alloc();
-   window->setVerticalPacking(!app_.horizontalImeSurface());
+   window->setPacking(!app_.horizontalImeSurface(),app_.findOpen());
    composition_=std::move(composition);navigator_=std::move(navigator);window_=std::move(window);submission_=std::move(submission);
    if(waiting_size_){auto s=composition_->edit_raw(0,0,{waiting_raw_.data(),waiting_size_});if(s==S::Ready){waiting_size_=0;navigationReady();window_->query(0,current_action_);}else mark(hanime_extension::name(s));}
    if(flow_.stage==FlowStage::Query){
@@ -927,7 +933,7 @@ void DeviceIme::service(bool allow_prefetch){
    if(receipt_.status==CS::Accepted){
     app_.endCompositionPresentation();if(window_)window_->endSession();
     accepted_action_=confirm_action_;accepted_target_=sink_.target();
-    accepted_body_revision_=accepted_target_.rename?app_.renameRevision():app_.document.revision(); // A later edit can supersede the pending LCD frame.
+    accepted_body_revision_=accepted_target_.kind==TextTarget::Find?app_.find.view().query_version:accepted_target_.kind==TextTarget::Rename?app_.renameRevision():app_.document.revision(); // A later edit can supersede the pending LCD frame.
     traceUi(UiTraceKind::BodyAccepted,composition_.get(),window_.get(),nullptr,nullptr,uint8_t(receipt_.status),accepted_action_,sink_.acceptedUs());
     BT_OBSERVE(ended(confirm_action_,1));
     has_target_=false;raw_edit_=false;initial_=true;window_->cancel();flowAccepted();
@@ -935,7 +941,7 @@ void DeviceIme::service(bool allow_prefetch){
    mark(resultName(receipt_.status));
   }return;
  }
- if(flow_.stage==FlowStage::Idle&&!preparing_)window_->setVerticalPacking(!app_.horizontalImeSurface());
+ if(flow_.stage==FlowStage::Idle&&!preparing_)window_->setPacking(!app_.horizontalImeSurface(),app_.findOpen());
  window_->service(allow_prefetch&&!raw_edit_);
  serviceAuto();
  if(reselection_.pending&&!window_->busy()){

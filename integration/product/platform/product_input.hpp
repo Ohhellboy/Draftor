@@ -27,6 +27,13 @@ class ProductInput {
   }
   return ime->event(e,action);
  }
+ // Called only after BLE admission and a UI-route rejection. Enter and F2
+ // can change focus before their queued physical release is drained. Retire
+ // that release in the existing owner; never give a stale down UI authority.
+ // The existing epoch and DeviceIme timestamp guards protect a newer press.
+ void releaseAfterRouteDrop(App& app,ime_device::DeviceIme* ime,const s3hid::Event& e){
+  if(e.epoch==epoch_&&!e.down&&(e.usage==40||e.usage==59))this->ime(app,ime,e);
+ }
  private:
  static unsigned index(std::uint8_t u)noexcept{return u>=79&&u<=82?u-79:u==45?4:u==46?5:6;}
  struct Held{Action action=Action::Native;bool down=false;};

@@ -119,7 +119,8 @@ bool FindSession::open(DocumentPort& port,
   if (session_id_ == 0U) ++session_id_;
   query_cursor_ = query_size_;
   match_ = {};
-  task_ = {};
+  task_ = {}; count_ = {}; count_complete_=false; current_index_=total_matches_=0;
+  query_anchor_=uint16_t(query_cursor_);capacity_exceeded_=false;
   wrapped_ = false;
   last_match_exists_ = false;
   open_ = true;
@@ -132,7 +133,7 @@ bool FindSession::open(DocumentPort& port,
 bool FindSession::close(DocumentPort& port,
                         const bool find_composition_active) noexcept {
   if (!open_ || find_composition_active) return false;
-  task_ = {};
+  task_ = {}; count_ = {};
   port.clearMatchHighlight();
   ++highlight_version_;
   bool placed = false;
@@ -147,7 +148,7 @@ bool FindSession::close(DocumentPort& port,
 }
 
 void FindSession::cancel() noexcept {
-  task_ = {};
+  task_ = {}; count_ = {}; count_complete_=false; current_index_=total_matches_=0;
   match_ = {};
   wrapped_ = false;
   if (open_port_ != nullptr) open_port_->clearMatchHighlight();
@@ -156,7 +157,7 @@ void FindSession::cancel() noexcept {
 }
 
 void FindSession::documentSwitched(DocumentPort& port) noexcept {
-  task_ = {};
+  task_ = {}; count_ = {}; count_complete_=false; current_index_=total_matches_=0;
   match_ = {};
   last_match_exists_ = false;
   wrapped_ = false;
@@ -173,7 +174,7 @@ void FindSession::documentSwitched(DocumentPort& port) noexcept {
 }
 
 void FindSession::invalidateQueryResult(const Status new_status) noexcept {
-  task_ = {};
+  task_ = {}; count_ = {}; count_complete_=false; current_index_=total_matches_=0;
   match_ = {};
   wrapped_ = false;
   if (open_port_ != nullptr) open_port_->clearMatchHighlight();
@@ -184,12 +185,13 @@ void FindSession::invalidateQueryResult(const Status new_status) noexcept {
 void FindSession::queryChanged() noexcept {
   ++query_version_;
   if (query_version_ == 0U) ++query_version_;
-  invalidateQueryResult(Status::Editing);
+  query_anchor_=uint16_t(query_cursor_);capacity_exceeded_=false;
+  invalidateQueryResult(query_size_?Status::Editing:Status::EmptyQuery);
 }
 
 bool FindSession::canInsertQuery(const std::string_view utf8) const noexcept {
   return open_ && !utf8.empty() && validUtf8(utf8) &&
-         query_size_ + utf8.size() <= config_.query_capacity_bytes &&
+         (query_size_-(view().selectionEnd()-view().selectionBegin())) + utf8.size() <= config_.query_capacity_bytes &&
          isBoundary({query_.data(), query_size_}, query_cursor_);
 }
 
@@ -197,7 +199,7 @@ QueryEditResult FindSession::setQuery(const std::string_view utf8) noexcept {
   if (!open_) return QueryEditResult::NotOpen;
   if (!validUtf8(utf8)) return QueryEditResult::InvalidUtf8;
   if (utf8.size() > config_.query_capacity_bytes) {
-    invalidateQueryResult(Status::QueryTooLong);
+    capacity_exceeded_=true; // Atomic refusal: query, highlight and counts remain valid.
     return QueryEditResult::CapacityExceeded;
   }
   if (utf8.size() == query_size_ &&
@@ -216,10 +218,11 @@ QueryEditResult FindSession::insertQueryUtf8(
   if (!open_) return QueryEditResult::NotOpen;
   if (utf8.empty()) return QueryEditResult::NoChange;
   if (!validUtf8(utf8)) return QueryEditResult::InvalidUtf8;
-  if (query_size_ + utf8.size() > config_.query_capacity_bytes) {
-    invalidateQueryResult(Status::QueryTooLong);
+  if ((query_size_-(view().selectionEnd()-view().selectionBegin())) + utf8.size() > config_.query_capacity_bytes) {
+    capacity_exceeded_=true; // Atomic refusal: query, highlight and counts remain valid.
     return QueryEditResult::CapacityExceeded;
   }
+  if(query_anchor_!=query_cursor_)eraseQuerySelection();
   std::memmove(query_.data() + query_cursor_ + utf8.size(),
                query_.data() + query_cursor_, query_size_ - query_cursor_);
   std::memcpy(query_.data() + query_cursor_, utf8.data(), utf8.size());
@@ -231,6 +234,7 @@ QueryEditResult FindSession::insertQueryUtf8(
 
 QueryEditResult FindSession::eraseQueryBackward() noexcept {
   if (!open_) return QueryEditResult::NotOpen;
+  if(query_anchor_!=query_cursor_){eraseQuerySelection();queryChanged();return QueryEditResult::Applied;}
   if (query_cursor_ == 0U) return QueryEditResult::NoChange;
   const std::string_view query(query_.data(), query_size_);
   const std::size_t begin = previousBoundary(query, query_cursor_);
@@ -244,6 +248,7 @@ QueryEditResult FindSession::eraseQueryBackward() noexcept {
 
 QueryEditResult FindSession::eraseQueryForward() noexcept {
   if (!open_) return QueryEditResult::NotOpen;
+  if(query_anchor_!=query_cursor_){eraseQuerySelection();queryChanged();return QueryEditResult::Applied;}
   if (query_cursor_ >= query_size_) return QueryEditResult::NoChange;
   const std::string_view query(query_.data(), query_size_);
   const std::size_t end = nextBoundary(query, query_cursor_);
@@ -254,16 +259,29 @@ QueryEditResult FindSession::eraseQueryForward() noexcept {
   return QueryEditResult::Applied;
 }
 
-bool FindSession::moveQueryCursorLeft() noexcept {
-  if (!open_ || query_cursor_ == 0U) return false;
-  query_cursor_ = previousBoundary({query_.data(), query_size_}, query_cursor_);
-  return true;
+void FindSession::eraseQuerySelection() noexcept {
+  const auto q=view();const auto begin=q.selectionBegin(),end=q.selectionEnd();
+  std::memmove(query_.data()+begin,query_.data()+end,query_size_-end);
+  query_size_-=end-begin;query_cursor_=query_anchor_=begin;
 }
 
-bool FindSession::moveQueryCursorRight() noexcept {
-  if (!open_ || query_cursor_ >= query_size_) return false;
-  query_cursor_ = nextBoundary({query_.data(), query_size_}, query_cursor_);
-  return true;
+bool FindSession::moveQueryCursor(std::size_t to,bool extend) noexcept {
+  if(!open_)return false;
+  const auto anchor=extend?query_anchor_:uint16_t(to);
+  if(to==query_cursor_&&anchor==query_anchor_)return false;
+  query_cursor_=to;query_anchor_=anchor;++selection_version_;return true;
+}
+
+bool FindSession::moveQueryCursorLeft(bool extend) noexcept {
+  const auto q=view();
+  return moveQueryCursor(!extend&&q.query_selected?q.selectionBegin():
+    query_cursor_?previousBoundary(q.query,query_cursor_):0,extend);
+}
+
+bool FindSession::moveQueryCursorRight(bool extend) noexcept {
+  const auto q=view();
+  return moveQueryCursor(!extend&&q.query_selected?q.selectionEnd():
+    query_cursor_<query_size_?nextBoundary(q.query,query_cursor_):query_size_,extend);
 }
 
 void FindSession::setCaseSensitive(const bool enabled) noexcept {
@@ -274,7 +292,7 @@ void FindSession::setCaseSensitive(const bool enabled) noexcept {
 
 void FindSession::start(const Direction direction) noexcept {
   if (!open_) return;
-  task_ = {};
+  task_ = {}; count_ = {}; capacity_exceeded_=false;
   if (open_port_ != nullptr) open_port_->clearMatchHighlight();
   direction_ = direction;
   wrapped_ = false;
@@ -285,6 +303,7 @@ void FindSession::start(const Direction direction) noexcept {
 
   const bool continuing = match_.valid &&
       match_.query_version == query_version_;
+  if(!continuing)count_complete_=false;
   const std::string_view source_query(query_.data(), query_size_);
   (void)source_query;
   const std::size_t text_size = 0U;  // Bound when the first step sees the port.
@@ -362,7 +381,7 @@ bool FindSession::advanceOrWrap(const std::string_view text) noexcept {
 }
 
 void FindSession::finishNotFound(DocumentPort& port) noexcept {
-  task_ = {};
+  task_ = {}; count_ = {}; count_complete_=true; current_index_=total_matches_=0;
   match_ = {};
   port.clearMatchHighlight();
   status_ = Status::NotFound;
@@ -372,8 +391,8 @@ void FindSession::finishNotFound(DocumentPort& port) noexcept {
 StepResult FindSession::step(DocumentPort& port,
                              std::size_t work_budget) noexcept {
   last_step_work_ = 0U;
-  if (!task_.active) return StepResult::Idle;
   if (work_budget == 0U) work_budget = config_.default_step_work;
+  if (!task_.active) return count_.active?countStep(port,work_budget):StepResult::Idle;
   if (!bindingCurrent(port) || task_.stamp != port.sourceStamp() ||
       task_.session_id != session_id_ ||
       task_.query_version != query_version_) {
@@ -439,6 +458,11 @@ StepResult FindSession::step(DocumentPort& port,
           maximum_step_work_ = std::max(maximum_step_work_, last_step_work_);
           return StepResult::AdapterFailure;
         }
+        // A full count is reusable for navigation within this exact query.
+        if(count_complete_&&total_matches_&&current_index_){
+          current_index_=direction_==Direction::Forward?(current_index_%total_matches_)+1:
+            (current_index_==1?total_matches_:current_index_-1);
+        }else{count_={};count_.active=true;count_complete_=false;current_index_=total_matches_=0;}
         ++highlight_version_;
         maximum_step_work_ = std::max(maximum_step_work_, last_step_work_);
         return StepResult::Found;
@@ -477,10 +501,30 @@ StepResult FindSession::step(DocumentPort& port,
   return StepResult::MoreWork;
 }
 
+StepResult FindSession::countStep(DocumentPort& port,std::size_t budget) noexcept {
+  if(!bindingCurrent(port)){cancel();return StepResult::Stale;}
+  const auto text=port.text();
+  while(count_.position<text.size()&&last_step_work_<budget){
+    const auto at=count_.position+count_.compare;
+    ++last_step_work_;
+    const bool equal=at<text.size()&&folded(static_cast<unsigned char>(text[at]),case_sensitive_)==
+      folded(static_cast<unsigned char>(query_[count_.compare]),case_sensitive_);
+    if(equal&&++count_.compare<query_size_)continue;
+    if(equal&&isBoundary(text,count_.position+query_size_)){
+      ++count_.total;if(match_.valid&&count_.position==match_.begin)count_.index=count_.total;
+    }
+    count_.compare=0;count_.position=nextBoundary(text,count_.position);
+  }
+  maximum_step_work_=std::max(maximum_step_work_,last_step_work_);
+  if(count_.position<text.size())return StepResult::MoreWork;
+  total_matches_=count_.total;current_index_=count_.index;count_complete_=true;count_={};
+  return StepResult::Idle;
+}
+
 ViewModel FindSession::view() const noexcept {
   return {status_, direction_, {query_.data(), query_size_}, query_cursor_,
           match_, query_version_, highlight_version_, case_sensitive_, wrapped_,
-          open_};
+          open_, current_index_, total_matches_, selection_version_, count_complete_, query_anchor_!=query_cursor_, capacity_exceeded_, query_anchor_};
 }
 
 MemoryBudget FindSession::memoryBudget(

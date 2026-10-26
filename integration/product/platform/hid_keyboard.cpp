@@ -61,6 +61,11 @@ static hanime::body_extension::RepeatKey arrow(uint8_t u)noexcept{
 void Repeat::event(const Event&e)noexcept{
  mods_=e.mods;if(e.usage>=224){if(mods_&0xdd)repeater_.cancel();return;}
  auto key=arrow(e.usage);
+ if(query_&&e.usage>=79&&e.usage<=82){
+  using K=hanime::body_extension::RepeatKey;
+  key=query_vertical_?(e.usage==82?K::Left:e.usage==81?K::Right:K::None):
+    (e.usage==80?K::Left:e.usage==79?K::Right:K::None);
+ }
  if(!e.down){repeater_.keyUp(key);return;}
  if(!focused_||(mods_&0xdd)){repeater_.cancel();return;}
  if(key!=hanime::body_extension::RepeatKey::None){

@@ -40,6 +40,14 @@ class UsbTransfer final {
  usb::ImportResult imported()const noexcept{return receipt_;}
  std::uint32_t serial()const noexcept{return serial_;}
  usb::Status status()const noexcept{return status_;}
+ // Read-only presentation seam; no transfer state or event semantics change.
+ const char* displayMessage()const noexcept{return message_;}
+ bool importing()const noexcept{return import_mode_;}
+ bool exportPublished()const noexcept{return export_.phase()==usb::ExportPhase::Published;}
+ bool candidatesReady()const noexcept{return enumerated_;}
+ std::size_t candidateCount()const noexcept{return candidates_.size();}
+ std::size_t selectedCandidate()const noexcept{return selected_;}
+ const char* candidateName(std::size_t i)const noexcept{return i<candidates_.size()?candidates_[i].name.data():"";}
  private:
  enum class AfterClose : std::uint8_t { StayOnCurrent, OpenImported };
  void beginClose(AfterClose)noexcept;

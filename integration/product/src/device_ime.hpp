@@ -152,9 +152,13 @@ class DeviceIme {
  uint32_t actionId()const{return current_action_;}
  uint32_t acceptedAction()const{return accepted_action_;}
  uint64_t acceptedUs()const{return sink_.acceptedUs();}
- bool acceptedDocumentCurrent()const{return !accepted_target_.rename&&accepted_action_&&app_.session.hasCurrent()&&accepted_target_.document==app_.session.currentId()&&accepted_target_.session==app_.session.sessionSerial()&&accepted_target_.stamp.focus==app_.editStamp().focus&&accepted_body_revision_==app_.document.revision();}
+ bool acceptedDocumentCurrent()const{return accepted_target_.kind==TextTarget::Body&&accepted_action_&&app_.session.hasCurrent()&&accepted_target_.document==app_.session.currentId()&&accepted_target_.session==app_.session.sessionSerial()&&accepted_target_.stamp.focus==app_.editStamp().focus&&accepted_body_revision_==app_.document.revision();}
  bool acceptedTargetCurrent()const {
-  if(!accepted_target_.rename)return acceptedDocumentCurrent();
+  if(accepted_target_.kind==TextTarget::Body)return acceptedDocumentCurrent();
+  if(accepted_target_.kind==TextTarget::Find)return accepted_action_&&app_.findOpen()&&
+    accepted_target_.document==app_.session.currentId()&&accepted_target_.session==app_.session.sessionSerial()&&
+    accepted_target_.stamp.focus==app_.focusToken()&&accepted_target_.query_session==app_.find.sessionId()&&
+    accepted_body_revision_==app_.find.view().query_version;
   return accepted_action_&&app_.renameOpen()&&accepted_target_.document==app_.renameId()&&
     accepted_target_.session==app_.session.sessionSerial()&&accepted_target_.stamp.focus==app_.focusToken()&&
     accepted_body_revision_==app_.renameRevision();
@@ -180,6 +184,7 @@ class DeviceIme {
  }
  bool rawEditing()const{return raw_edit_;}size_t rawCursor()const{return cursor_;}
  bool expanded()const{return window_&&window_->view().expanded;}
+ bool inputUnavailable()const{return initialization_failed_||resources_.state()==ResourceState::Error;}
  const char* notice()const{return notice_;}
  BoundaryEdge boundaryEdge()const{return boundary_edge_;}
  bool candidateAvailable()const;

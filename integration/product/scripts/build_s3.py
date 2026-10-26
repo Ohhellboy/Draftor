@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the fixed Alpha 2 assembly; no device or network operation."""
+"""Build the fixed Alpha 2.1 assembly; no device or network operation."""
 from pathlib import Path
 import os,sys,subprocess,shutil,json,time,hashlib,shlex
 if not __debug__:raise SystemExit('Run without Python -O: validation is required')
@@ -41,6 +41,15 @@ else:raise SystemExit('Missing packaged product dependencies')
 for d in [p/'platform',p/'src',common]:
  for f in d.iterdir():
   if f.is_file() and f.suffix in ['.cpp','.h','.hpp'] and (usb_enabled or not f.name.startswith(('usb_','wifi_'))):shutil.copy2(f,stage/f.name)
+# Alpha 2.1 includes the accepted menu and Chinese Find assembly.
+# Exact generated glyphs are installed through EXTERNAL_INPUTS.json.
+ui_r2_test=True
+joint_test=True
+assert (p/'src/find_display.cpp').is_file()
+assert (p/'platform/menu_font.cpp').is_file()
+menu_font=R/'TestBuilds/menu-font/menu_font_data.hpp'
+assert menu_font.is_file(), 'Install matching Alpha 2.1 BuildInputs first'
+shutil.copy2(menu_font,stage/menu_font.name)
 (stage/'HanIME_S3_IME.ino').write_text('#include "device_main.hpp"\nvoid setup(){deviceSetup();}\nvoid loop(){deviceLoop();}\n')
 # Preserve the measured product assembly.
 for name in ('candidate_window.cpp','device_ime.cpp','device_main.cpp','candidate_build.hpp','cp_observe.hpp'):
@@ -146,7 +155,8 @@ helper_flags='-B'+str(helper_root/'libexec/gcc/xtensa-esp-elf/14.2.0')+'/ -B'+st
 flags=helper_flags+' -DHANIME_BUILD_HOST_ADAPTERS=0 -DHANIME_BUILD_TOOLS=0 -DHANIME_BUILD_FIXTURES=0 -DHANIME_BUILD_TESTS=0 -DHANIME_OUTPUT_PROFILE='+str(profile)+' -DHANIME_TF_RUNTIME_HZ='+str(tf_hz)+' -std=gnu++17 -fexceptions -Werror -fstack-usage -DHANIME_SAVE_SUBSTAGE_DIAGNOSTIC='+str(save_diagnostic)+' -DHANIME_BASE_ORDER_LOCATE_ENTRIES=8'
 flags+=' -DDRAFTOR_PERFORMANCE_COMMON=1 -DDRAFTOR_TEXT_RESIDENT=0 -DDRAFTOR_BLOCK_BACKEND=1 -DHANIME_TEXT_CHAIN=1 -DHANIME_STRUCTURAL_HOST_OBSERVE=0 -DDRAFTOR_INPUT_PRESENT_COORD=0 -DDRAFTOR_COORD_OBSERVE=0 -DDRAFTOR_SHARED_TEXT_VARIANT='+str(variant)
 pin_sha=hashlib.sha256(pin.read_bytes()+block_pin.read_bytes()+wubi_pin.read_bytes()).hexdigest()
-label='DRAFTOR_ALPHA2_20261019_RELEASE'
+label='DRAFTOR_ALPHA_2_1_20261026_RELEASE'
+
 (stage/'block_build_metadata.hpp').write_text('#pragma once\n#define DRAFTOR_B_FIRMWARE_LABEL "'+label+'"\n#define DRAFTOR_B_PIN_SHA "'+pin_sha+'"\n#define DRAFTOR_LAYOUT_ARM "'+a.arm+'"\n#define DRAFTOR_LAYOUT_RESOURCE_ROOT "'+resource_root+'"\n')
 flags+=' -DDRAFTOR_DISPLAY_TRANSACTION='+str(display_tx)+' -DDRAFTOR_DISPLAY_TX_OBSERVE=0'
 flags+=' -DDRAFTOR_CP_OBSERVE='+str(int(observe))
@@ -161,9 +171,33 @@ evidence.mkdir(parents=True,exist_ok=True)
 command=[str(cli),'compile','--jobs','2','--fqbn',fqbn,'--warnings','all','--build-property','compiler.c.extra_flags='+helper_flags+' '+mapping,'--build-property','compiler.cpp.extra_flags='+flags,'--build-property','compiler.cpp.flags=-MMD -c "@{compiler.sdk.path}/flags/cpp_flags" {compiler.warning_flags} {compiler.optimization_flags} {compiler.common_werror_flags} -std=gnu++17','--build-property','compiler.c.elf.extra_flags='+helper_flags+' -Wl,--wrap=_Znwj,--wrap=_Znaj,--wrap=_ZnwjRKSt9nothrow_t,--wrap=_ZnajRKSt9nothrow_t','--library',str(lib),*usb_library,'--library',str(sd),'--library',str(base/'libraries/BLE'),'--build-path',str(build),'--output-dir',str(dist),str(stage)]
 command[2:2]=['--build-property','upload.maximum_size=4194304']
 command[2:2]=['--build-property','compiler.path='+str(data/'data/packages/esp32/tools/esp-x32/2601/bin')+'/']
+# Matter LinkChain R1 C2: resolve only the proven string template provider early.
+# Keep SDK C++ guards, all SDK archives, and the normal late libstdc++ pass.
+provider_root=data/'data/packages/esp32/tools/esp-x32/2601'
+provider_archive=provider_root/'xtensa-esp-elf/lib/esp32s3/no-rtti/libstdc++.a'
+provider_object=base/'link_support/string-inst.o'
+provider_object.parent.mkdir(parents=True,exist_ok=True)
+provider_bytes=subprocess.check_output([str(provider_root/'bin/xtensa-esp-elf-ar'),
+                                       'p',str(provider_archive),'string-inst.o'])
+assert provider_bytes[:4]==b'\x7fELF', 'Missing pinned string template archive member'
+provider_object.write_bytes(provider_bytes)
+platform=data/'data/packages/esp32/hardware/esp32/3.3.11/platform.txt'
+recipe=next(line.split('=',1)[1] for line in platform.read_text().splitlines()
+            if line.startswith('recipe.c.combine.pattern='))
+provider_anchor='"{archive_file_path}" {build.extra_libs}'
+assert recipe.count(provider_anchor)==1, 'Unexpected pinned link recipe'
+recipe=recipe.replace(provider_anchor, '"{archive_file_path}" "'+str(provider_object)+'" {build.extra_libs}', 1)
+command[2:2]=['--build-property','recipe.c.combine.pattern='+recipe]
+(evidence/'MATTER_TEMPLATE_PROVIDER.json').write_text(json.dumps({
+    'archive':str(provider_archive),'member':'string-inst.o','object':str(provider_object),
+    'archive_sha256':hashlib.sha256(provider_archive.read_bytes()).hexdigest(),
+    'member_sha256':hashlib.sha256(provider_bytes).hexdigest(),
+    'member_bytes':len(provider_bytes),'sdk_content_modified':False},indent=2)+'\n')
 (evidence/'effective_build.py').write_bytes(Path(__file__).read_bytes())
 (evidence/'BUILD_METADATA.hpp').write_bytes((stage/'block_build_metadata.hpp').read_bytes())
 (evidence/'s3_command.json').write_text(json.dumps({'command':command,'fqbn':fqbn,'firmware_label':label,'combined_pin_sha256':pin_sha,'product_source':str(p),'sdk_source':os.environ.get('DRAFTOR_SDK_SOURCE'),'pin_sources':[str(pin),str(block_pin),str(wubi_pin)]},indent=2)+'\n')
+if ui_r2_test:
+ (evidence/'UI_R2_LOCAL_FONT_INPUT.json').write_text(json.dumps({'status':'LOCAL_RELEASE_REVIEW_NOT_UPLOADED','path':str(menu_font),'bytes':menu_font.stat().st_size,'sha256':hashlib.sha256(menu_font.read_bytes()).hexdigest(),'source_commit':'ce0f26f1f173857796c9c8501edee3a782c4e366','device_tested':False},indent=2)+'\n')
 started_ns=time.time_ns()
 with (evidence/'s3_build.log').open('w') as log:
  result=subprocess.run(command,env=env,stdout=log,stderr=subprocess.STDOUT)

@@ -8,6 +8,9 @@ namespace hf=hanime::find;
 namespace fi=hanime::find::input;
 namespace ts=hanime::text_stats;
 
+void App::scheduleFind(){
+ findScheduled_=findOpen()&&!find.view().query.empty();findDue_=now_+80;dirtyDisplay=true;
+}
 void App::observeStats() {
  const auto before=stats.report();
  ts::observe_document(stats,document,session.sessionSerial());
@@ -29,12 +32,14 @@ void App::syncReaders() {
   // Mutations include undo/redo and future externally submitted body edits.
   if(find.view().status==hf::Status::Searching)++scans.find_cancelled;
   find.documentSwitched(findDocument); // rebase at current caret; no old offsets survive
+  scheduleFind();
   dirtyDisplay=true;
  }
  findTextRevision_=document.textRevision();
  if(session.hasCurrent())observeStats();else stats.reset();
 }
 void App::closeReaders() noexcept {
+ findScheduled_=false;
  if(find.view().status==hf::Status::Searching)++scans.find_cancelled;
  const auto cursor=document.cursorByte();
  findController.closeForExternalFocus(false);
@@ -49,13 +54,13 @@ bool App::commitQuery(std::string_view text,QueryStamp stamp) {
  syncReaders();
  if(!ready_||!findOpen()||statsOpen_||filesOpen()||commandBarrier()||
     stamp.focus!=focusToken()||stamp.session!=find.sessionId()||
-    stamp.revision!=find.view().query_version||stamp.cursor!=find.view().query_cursor)return false;
+    stamp.revision!=find.view().query_version||stamp.cursor!=find.view().query_cursor||stamp.selected!=find.view().query_selected||stamp.selection!=find.view().selection_version)return false;
  const bool scanning=find.view().status==hf::Status::Searching;
  auto result=find.insertQueryUtf8(text);
  if(result!=hf::QueryEditResult::NoChange)dirtyDisplay=true;
  if(result==hf::QueryEditResult::Applied){
   if(scanning)++scans.find_cancelled;
-  dirtyDisplay=true;
+  scheduleFind();
   return true;
  }
  return result==hf::QueryEditResult::NoChange;
@@ -86,6 +91,11 @@ bool App::findKey(const s3hid::Event& e) {
  case 77:kind=fi::KeyKind::End;break;
  default:break;
  }
+ if(findOpen()&&!horizontalActive()){
+  if(kind==fi::KeyKind::Up)kind=fi::KeyKind::Left;
+  else if(kind==fi::KeyKind::Down)kind=fi::KeyKind::Right;
+  else if(kind==fi::KeyKind::Left||kind==fi::KeyKind::Right)return true;
+ }
  if(findOpen()&&cp>127&&!ctrl&&!gui&&(!alt||((e.mods&0xdd)==0x40&&e.usage==8))){
   char bytes[3];size_t n;
   if(cp<2048){bytes[0]=0xc0|(cp>>6);bytes[1]=0x80|(cp&63);n=2;}
@@ -98,7 +108,10 @@ bool App::findKey(const s3hid::Event& e) {
  const auto before=find.view();const auto cursor=document.cursorByte();
  auto result=findController.dispatch(findController.stamp(kind,cp<128?char(cp):0,mods),false,true);
  if(result==fi::DispatchResult::PassToExistingImeOrBody)return findOpen();
+ if(!before.open&&findOpen()){(void)find.setQuery({});find.moveQueryCursorHome();}
  const auto after=find.view();
+ if(before.query_version!=after.query_version)scheduleFind();
+ if(kind==fi::KeyKind::Enter||!after.open)findScheduled_=false;
  if(before.open!=after.open){
   presentation_.findSurface(after.open);
   ++focusEpoch_;editor_.discardPreparedTextInput();
@@ -109,8 +122,9 @@ bool App::findKey(const s3hid::Event& e) {
  return true;
 }
 void App::serviceReaders() {
- const auto before=find.view();
- if(before.status==hf::Status::Searching){
+ if(findScheduled_&&int32_t(now_-findDue_)>=0){findScheduled_=false;find.start(hf::Direction::Forward);}
+ if(find.view().match.valid&&find.view().wrapped&&int32_t(now_-findWrapUntil_)>=0){find.clearWrapNotice();dirtyDisplay=true;}
+ if(find.hasWork()){
   const auto started=s3profile::clockUs();
   auto result=find.step(findDocument,256);
   const auto elapsed=s3profile::clockUs()-started;
@@ -118,8 +132,9 @@ void App::serviceReaders() {
   scans.max_find_step_us=std::max(scans.max_find_step_us,elapsed);
   scans.max_find_work=std::max(scans.max_find_work,find.lastStepWork());
   if(result!=hf::StepResult::MoreWork){
-   if(result==hf::StepResult::Stale)++scans.find_cancelled;else ++scans.find_completed;
-   if(result==hf::StepResult::Found)session.onPositionChanged(now_);
+   if(result==hf::StepResult::Stale)++scans.find_cancelled;
+   else if(result!=hf::StepResult::Idle)++scans.find_completed;
+   if(result==hf::StepResult::Found){session.onPositionChanged(now_);findWrapUntil_=now_+1200;}
    dirtyDisplay=true;
   }
  }

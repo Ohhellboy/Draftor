@@ -98,18 +98,24 @@ RoutedCommand ProductFindInputRouter::route(
       exact(event.modifiers, Modifier::None)) {
     return {Command::QueryDeleteForward, 0};
   }
-  if (event.kind == KeyKind::Left && exact(event.modifiers, Modifier::None)) {
-    return {Command::QueryMoveLeft, 0};
+  if (event.kind == KeyKind::Left &&
+      (exact(event.modifiers, Modifier::None)||exact(event.modifiers, Modifier::Shift))) {
+    return {Command::QueryMoveLeft, 0,exact(event.modifiers, Modifier::Shift)};
   }
-  if (event.kind == KeyKind::Right && exact(event.modifiers, Modifier::None)) {
-    return {Command::QueryMoveRight, 0};
+  if (event.kind == KeyKind::Right &&
+      (exact(event.modifiers, Modifier::None)||exact(event.modifiers, Modifier::Shift))) {
+    return {Command::QueryMoveRight, 0,exact(event.modifiers, Modifier::Shift)};
   }
-  if (event.kind == KeyKind::Home && exact(event.modifiers, Modifier::None)) {
-    return {Command::QueryMoveHome, 0};
+  if (event.kind == KeyKind::Home &&
+      (exact(event.modifiers, Modifier::None)||exact(event.modifiers, Modifier::Shift))) {
+    return {Command::QueryMoveHome, 0,exact(event.modifiers, Modifier::Shift)};
   }
-  if (event.kind == KeyKind::End && exact(event.modifiers, Modifier::None)) {
-    return {Command::QueryMoveEnd, 0};
+  if (event.kind == KeyKind::End &&
+      (exact(event.modifiers, Modifier::None)||exact(event.modifiers, Modifier::Shift))) {
+    return {Command::QueryMoveEnd, 0,exact(event.modifiers, Modifier::Shift)};
   }
+  if(event.kind==KeyKind::Character&&lowerAscii(event.ascii)=='a'&&
+     (exact(event.modifiers,Modifier::Ctrl)||exact(event.modifiers,Modifier::Gui)))return {Command::QuerySelectAll,0};
   // Ctrl+I is the default demo/product semantic entry for the v0.1 option.
   if (event.kind == KeyKind::Character && lowerAscii(event.ascii) == 'i' &&
       exact(event.modifiers, Modifier::Ctrl)) {
@@ -145,6 +151,7 @@ CommitResult FindQueryCommitTarget::prepare(
   expected_session_id_ = session_.sessionId();
   expected_query_version_ = view.query_version;
   expected_query_cursor_ = view.query_cursor;
+  expected_selected_ = view.query_selected; expected_selection_=view.selection_version;
   prepared_ = true;
   return CommitResult::Prepared;
 }
@@ -155,7 +162,7 @@ CommitResult FindQueryCommitTarget::commit(
   const ViewModel view = session_.view();
   if (!view.open || session_.sessionId() != expected_session_id_ ||
       view.query_version != expected_query_version_ ||
-      view.query_cursor != expected_query_cursor_ ||
+      view.query_cursor != expected_query_cursor_ || view.query_selected != expected_selected_ || view.selection_version != expected_selection_ ||
       committed_utf8.size() != staged_size_ ||
       (staged_size_ != 0U &&
        std::memcmp(staging_.data(), committed_utf8.data(), staged_size_) != 0)) {

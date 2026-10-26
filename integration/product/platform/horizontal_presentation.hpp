@@ -3,6 +3,7 @@
 #include "visual_cursor_navigator.hpp"
 #include "font_port.hpp"
 #include "reader_display.hpp"
+#include "editor_geometry.hpp"
 
 namespace s3app {
 // The only active presentation in Phase 2A. It can read, but cannot write, the
@@ -11,11 +12,11 @@ class HorizontalPresentation final {
  public:
   HorizontalPresentation(const editor::Document& document,
                          const s3host::FontPort& font) noexcept
-      : layout({284,306,font.lineHeight(),font.defaultAdvance(),
+      : layout({284,editor_geometry::horizontalBodyHeight,font.lineHeight(),font.defaultAdvance(),
                 font.defaultAdvance(),0,&s3host::FontPort::advance,&font}),
         navigator(document,layout),position(document,navigator) {}
   void setFindOpen(bool open) noexcept {
-    const auto height=open?display::bodyHeight:306;
+    const auto height=open?editor_geometry::findBodyHeight:editor_geometry::horizontalBodyHeight;
     if(layout.heightPx()!=height){layout.setHeightPx(height);navigator.rebindViewportGeometry(!open);}
   }
   hanime::renderer::LayoutEngine layout;

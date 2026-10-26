@@ -4,12 +4,14 @@
 #include "body_caret.hpp"
 #include "selection_highlight.hpp"
 #include "find_highlight.hpp"
+#include "editor_geometry.hpp"
 
 namespace s3app {
 // The target body painter, shared with the existing Host framebuffer port.
-// Keep the donor placements, clipping, highlights and caret geometry intact.
+// Preserve relative glyph/highlight/caret placements; share the editor origin.
 template<class Rect,class Glyph>
 void paintHorizontalBody(App& app,const s3host::FontPort& font,Rect fill,Glyph glyph){
+   const int top=editor_geometry::bodyTop(app.findOpen());
    auto v=app.navigator.sync();auto anchor=app.navigator.firstVisibleAnchor();auto selection=app.sharedState().editor.selection();
    hanime::renderer::Placement placements[80];
    for(unsigned row=0;row<app.layout.visibleTextLineCount()&&anchor.valid;++row){
@@ -19,13 +21,13 @@ void paintHorizontalBody(App& app,const s3host::FontPort& font,Rect fill,Glyph g
 
     editor::body_edit::HighlightRect rectangles[80];
     auto highlights=editor::body_edit::selectionHighlightRects(selection,placements,r.placements_written,app.layout.lineHeightPx(),rectangles,80);
-    for(size_t i=0;i<highlights.rectangles_written;++i){auto rect=rectangles[i];fill(8+rect.x,34+rect.y,rect.width,rect.height,true);}
+    for(size_t i=0;i<highlights.rectangles_written;++i){auto rect=rectangles[i];fill(8+rect.x,top+rect.y,rect.width,rect.height,true);}
     const auto match=app.findDocument.matchHighlight();
     hanime::find::display::HighlightRect matchRects[80];
     auto matches=hanime::find::display::matchHighlightRects(match,placements,r.placements_written,app.layout.lineHeightPx(),matchRects,80);
-    for(size_t i=0;i<matches.rectangles_written;++i){auto rect=matchRects[i];fill(8+rect.x,34+rect.y,rect.width,rect.height,true);}
+    for(size_t i=0;i<matches.rectangles_written;++i){auto rect=matchRects[i];fill(8+rect.x,top+rect.y,rect.width,rect.height,true);}
     size_t pair_tail=r.placements_written;
-    for(size_t i=0;i<r.placements_written;++i){auto p=placements[i];int x=p.x+8,y=p.y+34;bool selected=selection.has_selection&&p.byte_offset>=selection.begin&&p.byte_offset<selection.end;
+    for(size_t i=0;i<r.placements_written;++i){auto p=placements[i];int x=p.x+8,y=p.y+top;bool selected=selection.has_selection&&p.byte_offset>=selection.begin&&p.byte_offset<selection.end;
      const bool tail=i==pair_tail;bool head=false;
      // Paint-only correction for two normal 28px cells on this visual row.
      // A longer run is consumed in disjoint pairs; no joining across a wrap,
@@ -45,7 +47,7 @@ void paintHorizontalBody(App& app,const s3host::FontPort& font,Rect fill,Glyph g
     if(r.document_end)break;anchor=r.next;
    }
    if(!app.findOpen()&&v.visual_line>=v.first_visible_line&&v.visual_line<v.first_visible_line+app.layout.visibleTextLineCount())
-    fill(8+v.cursor_x,34+(v.visual_line-v.first_visible_line)*app.layout.lineHeightPx(),draftor::BODY_CARET_STROKE_PX,font.glyph('A').height,true);
+    fill(8+v.cursor_x,top+(v.visual_line-v.first_visible_line)*app.layout.lineHeightPx(),draftor::BODY_CARET_STROKE_PX,font.glyph('A').height,true);
 
 }
 }

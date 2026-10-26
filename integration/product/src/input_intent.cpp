@@ -41,6 +41,9 @@ bool DeviceIme::enqueue(const s3hid::Event& e){
 }
 bool DeviceIme::selectIntent(const s3hid::Event& e,bool successor){
  if(!successor&&int32_t(e.ms-raw_event_ms_)<0){noteIntent(BeforeRawEdit,e,current_action_);mark("Choice predates raw edit");return true;}
+ if(app_.findOpen()&&raw_edit_&&window_&&window_->focusedNeedsWholeText()){
+  noteIntent(NoCandidate,e,current_action_);mark("Long candidate: load range to inspect");return true;
+ }
  if(raw_edit_&&e.usage==0x28){noteIntent(UnassignedRawEnter,e,current_action_);mark("Raw Enter not assigned");return true;}
  if((!composition_||!window_)&&!successor&&!earlyContext(e)){noteIntent(DefaultContextExpired,e,current_action_);return true;}
  if(!composition_||!window_){
@@ -134,7 +137,7 @@ void DeviceIme::flowAccepted(){
  if(!acceptedTargetCurrent()){stopFlow(ExpiredTarget);return;}
  EditorSink guard(app_);if(!guard.bind(0,0)){stopFlow(ExpiredTarget);return;}
  flow_.target=guard.target();flow_.stamp=composition_->raw_input().stamp;flow_.query=window_->querySerial();flow_.layout=window_->layoutSerial();
- if(!accepted_target_.rename)traceText(flow_.action,4,app_.document.text());
+ if(accepted_target_.kind==TextTarget::Body)traceText(flow_.action,4,app_.document.text());
  flow_.body_successor=true;
  noteIntent(Completed,flow_.event,flow_.action,flow_.parent);flow_.stage=FlowStage::Idle;
 }

@@ -2,11 +2,12 @@
 #include "writing_app.hpp"
 #include "hanime/core.hpp"
 namespace ime_device {
+enum class TextTarget : uint8_t { Body, Rename, Find };
 struct Target {
  s3app::ds::DocumentId document;
  uint64_t session=0,input=0,revision=0;
  s3app::EditStamp stamp;
- size_t cursor=0,begin=0,end=0;bool selected=false,rename=false;
+ size_t cursor=0,begin=0,end=0;bool selected=false;TextTarget kind=TextTarget::Body;uint32_t query_session=0;
 };
 class EditorSink final:public hanime::TextCommitSink {
  s3app::App& app_;Target target_{};bool armed_=false;

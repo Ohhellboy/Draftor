@@ -69,7 +69,7 @@ R1_RULES = {
  'compositionRow':(r':void draftor::vertical::compositionRow\(',256),
  'selectedRuns':(r':void ime_device::selectedRuns\(',224),
  'selectedViewport':(r'::SelectedViewport::update\(.*\)$',128),
- 'setPacking':(r'::CandidateWindow::setVerticalPacking\(',80),
+ 'setPacking':(r'::CandidateWindow::set(?:VerticalPacking|Packing)\(',80),
  'cachedItem':(r'::CandidateWindow::cachedItem\(',160),
  'beginText':(r'::CandidateWindow::beginText\(',640),
  'candidateRequest':(r'::CandidateWindow::request\(',96),

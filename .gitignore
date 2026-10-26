@@ -11,3 +11,19 @@
 *.pem
 *.key
 # Installed BuildInputs remain companion assets, tracked by explicit per-file manifests.
+
+# Companion inputs: install from the matching BuildInputs archive.
+/integration/product/platform/composition_font_data.hpp
+/integration/product/platform/latin_font.hpp
+/integration/product/assets/u28fcd.hbf1
+/integration/product/assets/matched28.hbf1
+/integration/product/assets/rare_codepoints.json
+/integration/product/src/wubi_auto_safe_v1.hpp
+/integration/product/src/ui14_font_data.cpp
+/vendor/CMakeLists.upstream.txt
+/vendor/libarduino_tinyusb.a
+/integration/product/src/ui16_font_data.cpp
+/TestBuilds/menu-font/menu_font_data.hpp
+
+/integration/product/assets/find_ui16/LXGWWenKai-Regular.ttf
+/integration/product/dependencies/s3/link_support/

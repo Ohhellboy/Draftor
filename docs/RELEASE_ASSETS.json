@@ -1,10 +1,10 @@
 {
-  "version": "v0.1.0-alpha.2",
+  "version": "v0.1.0-alpha.2.1",
   "assets": [
-    "Draftor_v0.1.0-alpha.2_Source.zip",
-    "Draftor_v0.1.0-alpha.2_Resources.zip",
-    "Draftor_v0.1.0-alpha.2_BuildInputs.zip",
-    "Draftor_v0.1.0-alpha.2_Firmware.zip"
+    "Draftor_v0.1.0-alpha.2.1_Firmware.zip",
+    "Draftor_v0.1.0-alpha.2.1_Resources.zip",
+    "Draftor_v0.1.0-alpha.2.1_Source.zip",
+    "Draftor_v0.1.0-alpha.2.1_BuildInputs.zip"
   ],
-  "status": "local review, not uploaded"
+  "status": "local review; see distribution manifest and font distribution conditions"
 }

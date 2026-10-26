@@ -6,7 +6,7 @@ work,p=map(Path,sys.argv[1:]);r=p.parents[1]
 required=['dependencies/core/include/hanime/core.hpp','dependencies/extension/include/hanime_extension/extension.hpp','dependencies/common/document.hpp','dependencies/s3/libraries/BLE/src/BLEDevice.h','dependencies/release_resources/release_pin.hpp']
 for rel in required:assert (p/rel).is_file(),rel
 pin=p/'dependencies/release_resources/release_pin.hpp'
-assert pin.read_bytes()==(r/'release/integration_headers/release_pin.hpp').read_bytes()
+assert pin.read_bytes()==(r/'release/alpha2/pins/release_pin.hpp').read_bytes()
 if (r/'BUILD_PARENT.json').is_file():
  parent=Path(json.loads((r/'BUILD_PARENT.json').read_text())['parent'])/'integration/product'
  count=0

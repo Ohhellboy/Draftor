@@ -4,6 +4,7 @@
 #include "font_port.hpp"
 #include "ui_text.hpp"
 #include "utf8.hpp"
+#include "secondary_menu.hpp"
 #include <algorithm>
 #include <cstdio>
 
@@ -75,5 +76,33 @@ void statistics(const hanime::text_stats::Report& report,Text text) {
  const char* labels[]={"Characters (with spaces)","Characters (no spaces)","English / Latin words","Han characters","Number tokens","Mixed words","UTF-8 bytes"};
  const uint64_t values[]={c.characters,c.characters_no_space,c.latin_words,c.han_characters,c.number_tokens,c.mixed_words(),report.total_bytes};
  for(unsigned i=0;i<7;++i){char line[80];std::snprintf(line,sizeof(line),"%s: %llu",labels[i],static_cast<unsigned long long>(values[i]));text(line,8,126+29*i);}
+}
+// R2 product menu: independent horizontal 14/16 px rendering. The overload
+// above remains for the existing reader regression fixtures; Find is unchanged.
+template<class Fill,class Aux,class Content>
+void statistics(const hanime::text_stats::Report& report,const s3host::FontPort& contentFont,
+                Fill fill,Aux aux,Content content){
+ using S=hanime::text_stats::State;
+ secondary::header("文档统计",fill,aux);
+ if(!report.complete()){
+  const char* state=report.state==S::Counting?"正在统计当前正文…":
+                    report.state==S::InvalidUtf8?"正文含无效 UTF-8":
+                    report.state==S::InvalidSource?"正文来源发生变化":"等待当前文档…";
+  aux(state,8,76,false);
+  char line[80];std::snprintf(line,sizeof(line),"已扫描 %u / %u 字节",unsigned(report.scanned_bytes),unsigned(report.total_bytes));
+  aux(line,8,104,false);
+ }else{
+  aux("当前正文，包含未保存修改",8,36,false);
+  const auto& c=report.counts;
+  const char* labels[]={"字符数（含空白）","字符数（不含空白）","英文/拉丁词数","中文字数","数字项数","混合词数","UTF-8 字节数"};
+  const uint64_t values[]={c.characters,c.characters_no_space,c.latin_words,c.han_characters,c.number_tokens,c.mixed_words(),report.total_bytes};
+  for(unsigned i=0;i<7;++i){
+   const int y=76+28*int(i);char number[32];
+   std::snprintf(number,sizeof(number),"%llu",static_cast<unsigned long long>(values[i]));
+   aux(labels[i],8,y+2,false);content(number,292-measure(number,contentFont),y,false);
+  }
+ }
+ // Secondary-menu help is not routed globally. Show the existing real action.
+ aux("F3 / Esc：返回写作",8,372,false);
 }
 }

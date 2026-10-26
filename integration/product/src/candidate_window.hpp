@@ -33,6 +33,7 @@ class CandidateWindow {
  size_t page_=0,slot_=0,scan_row_=0,want_row_=0,want_col_=0;
  bool expanded_=false,exact_=false,choosing_=false;
  std::uint8_t occupied_columns_=1; // last complete, current V window; never building_.count
+ bool find_profile_=false;
  bool vertical_=false,vertical_seen_=false,stage_expanded_=false,repacking_=false,locating_=false;
  size_t ordinal_=0,focus_ordinal_=0;
  static constexpr unsigned vertical_height=356,vertical_gap=2;
@@ -80,12 +81,15 @@ class CandidateWindow {
  void cancel();void service(bool allow_prefetch=false);
  // Spatial regrouping over the existing query and bounded materialized text.
  // It does not call query_next/choose_prefix or alter candidate identity.
- bool setVerticalPacking(bool);
+ bool setPacking(bool vertical,bool find);
+ bool setVerticalPacking(bool vertical){return setPacking(vertical,find_profile_);}
+ bool findProfile()const{return find_profile_;}
  bool verticalPacking()const{return vertical_;}
  bool packingPending()const{return repacking_;}
  std::uint32_t candidateStage()const{return stage_serial_;}
  void beginCandidateStage(){occupied_columns_=1;stage_expanded_=expanded_=false;if(stage_serial_<UINT32_MAX)++stage_serial_;}
  const VisibleItem* focusedCurrent()const;
+ bool focusedNeedsWholeText()const;
  void endSession(){beginCandidateStage();vertical_seen_=false;}
  void setPrefetch(bool enabled){prefetch_enabled_=enabled;}
  bool prefetchPending()const{return background_;}
@@ -116,6 +120,8 @@ class CandidateWindow {
  const CandidateView& view()const{return view_;}
  const CandidateView* presented(uint32_t)const;
  uint32_t framePresented();
+ // A painted nonselectable surface acknowledges pixels without inventing choices.
+ bool frameHidden(uint32_t generation){if(view_.generation!=generation)return false;retirePresentedChoices();frame_.generation=generation;return true;}
  uint32_t onScreenGeneration()const{return frame_.generation;}
  bool busy()const{return working()&&(!background_||pending_.valid);}
  WindowState state()const{return state_;}

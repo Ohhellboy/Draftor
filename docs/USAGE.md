@@ -1,4 +1,4 @@
-# Draftor Alpha 2 User Guide
+# Draftor Alpha 2.1 User Guide
 
 **English** | [简体中文](USAGE.zh-CN.md)
 
@@ -10,6 +10,7 @@ This guide covers the ESP32-S3 N16R8 (Thick) version of Draftor: entering text, 
 |---|---|---|
 | Switch between English and Chinese input | `Caps Lock` | Switch between direct English input and Chinese input. |
 | Save the current manuscript | `Ctrl+S`, `Cmd+S` or `F6` | Wait for saving to finish after pressing the key. |
+| Open/close Find | `Ctrl+F` or `Cmd+F` | Finish body composition first, then enter Chinese or English in the query field. |
 | Open the file list | `F2` | Browse manuscripts and select one to open or rename. |
 | Switch between horizontal and vertical layout | `F4` | Change the direction in which text is arranged. |
 | Rename a manuscript | `F2` → select a manuscript → `R` | Select a manuscript in the file list, then press `R`. |
@@ -55,6 +56,20 @@ Draftor supports Chinese filenames. Renaming does not change the manuscript body
 **Selecting Chinese text and confirming the rename are two separate steps.** Pressing `Esc` before the final confirmation discards the rename, including any unfinished Chinese input, and keeps the original filename.
 
 In the rename field, letters enter the filename instead of triggering the file list’s letter shortcuts. To open the manuscript after renaming it, return to the file list and select it.
+
+### Status display and Chinese Find
+
+Both writing layouts show only the manuscript name at the top. At the bottom, `En／双／全／五` mean English, Xiaohe Shuangpin, Full Pinyin and Wubi. Save and Bluetooth status appear on the right.
+
+Save labels are “未保存” (unsaved), “等待保存” (waiting to save), “保存中…” (saving) and “已保存” (saved). Storage or save errors replace the normal message; resolve them before treating the text as saved. Bluetooth shows “未连接” (not ready), “配对中” (pairing) or “已连接” (connected and ready for input). This version has no separate Bluetooth-off switch. If pairing needs a code, the bottom line temporarily shows six digits; type them on the keyboard and press Enter.
+
+Finish or cancel body composition, then press `Ctrl+F` or `Cmd+F`. Type in the query field; selecting Chinese candidates writes only to that field. Once composition is complete, `Enter` finds the next match and `Shift+Enter` the previous one, wrapping at document boundaries. Use `Ctrl+I` to toggle English case sensitivity.
+
+The query cursor follows the text direction: left/right in horizontal layout and up/down in vertical layout. Hold Shift while moving to select part of the query. `Ctrl+A` selects the whole query; typing replaces the selection, and Backspace or Delete removes it. During composition, use the input method’s own navigation and candidate controls.
+
+To leave Find, first use `Esc` to cancel unfinished composition, then `Esc` again to return to the manuscript. Without active composition, one press is enough. `Ctrl+F` or `Cmd+F` in the query field also closes Find. Find locates text; it does not provide manuscript replacement.
+
+File menus use Chinese prompts for long names, trash and other actions. Open their help page for the full shortcut list. The rename field supports Shift selection, replacement and deletion; Enter confirms the name and Esc cancels it.
 
 ## 3. Importing and exporting manuscripts over USB
 
@@ -130,7 +145,7 @@ Note the message on screen and what you were doing before the error; take a phot
 
 To report a problem, use [GitHub Issues](https://github.com/Ohhellboy/Draftor/issues) and describe your board model, firmware version, the steps you took and what happened. **You do not need to upload private manuscripts, complete input logs or Flash backups.** Before sharing screenshots or diagnostic information, check whether they contain private text or device information.
 
-Alpha 2 is still a test release. Regularly export important manuscripts and keep a separate backup. See [Known Issues](KNOWN_ISSUES.md) for other limitations and privacy information.
+Alpha 2.1 is still a test release. Regularly export important manuscripts and keep a separate backup. See [Known Issues](KNOWN_ISSUES.md) for other limitations and privacy information.
 
 ---
 

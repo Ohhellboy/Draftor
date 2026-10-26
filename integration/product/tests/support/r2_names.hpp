@@ -1,0 +1,37 @@
+// Accepted Closeout fixture names, copied unchanged. Product assigns real IDs.
+// documents.json SHA256 3be762411c245d35dd4c6a8d7cf413882767e31d412ad4c96e6fb1f525ee42c5
+#pragma once
+static constexpr const char* R2Names[]={
+"文章",
+"文章（1）",
+"文章（2）",
+"文章（恢复）",
+"文章（恢复）（1）",
+"阅读笔记.txt",
+"关于城市公共空间与日常写作的田野调查记录（1）",
+"Draftor项目研究方法与实验结果汇总修订版2026",
+"城市公共空间与居民日常生活研究甲组访谈记录修订版",
+"城市公共空间与居民日常生活研究乙组访谈记录修订版",
+"关于城市公共空间与日常写作的田野调查记录（恢复）（1）",
+"Research_Methodology_2026_Chapter_Three_Final_Revision",
+"昨日随笔",
+"周末读书笔记",
+"城市调查提纲",
+"Chapter_02_Notes",
+"临时记录.txt",
+"周一写作记录",
+"项目备忘录",
+"资料目录",
+"待整理条目",
+"第二页随笔（1）",
+"第二页研究笔记",
+"第二页文献摘要",
+"第二页工作日志",
+"第二页访谈提纲",
+"第二页会议记录",
+"第二页写作计划",
+"第二页导言草稿",
+"第二页章节备份",
+"第二页附录说明",
+"第二页末项"
+};

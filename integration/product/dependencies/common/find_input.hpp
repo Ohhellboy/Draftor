@@ -72,6 +72,7 @@ enum class Command : std::uint8_t {
   QueryMoveHome,
   QueryMoveEnd,
   QueryInsertAscii,
+  QuerySelectAll,
   ToggleCaseSensitivity,
   MoveDocumentStart,
   MoveDocumentEnd,
@@ -80,6 +81,7 @@ enum class Command : std::uint8_t {
 struct RoutedCommand {
   Command command = Command::PassToExistingInput;
   char ascii = 0;
+  bool extend_selection = false;
 };
 
 class ProductFindInputRouter {
@@ -123,6 +125,8 @@ class FindQueryCommitTarget final {
   std::uint32_t expected_session_id_ = 0;
   std::uint32_t expected_query_version_ = 0;
   std::size_t expected_query_cursor_ = 0;
+  uint32_t expected_selection_ = 0;
+  bool expected_selected_ = false;
   bool prepared_ = false;
 };
 

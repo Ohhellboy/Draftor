@@ -114,9 +114,9 @@ void barrier(){
 }
 void hidden(){
  PublicationRig r;const auto f=r.empty();r.app.key({1,++r.now,9,1,true});
- CHECK(!candidateSurfaceVisible(&r.ime,&r.app));r.reject(f);
+ CHECK(r.app.findOpen()&&candidateSurfaceVisible(&r.ime,&r.app));r.reject(f); // Find requires its own paint receipt.
  CHECK(publishVerticalFrame(nullptr,r.app,f)==0);
- std::cout<<"PASS hidden_surface_and_null_ime rejected\n";
+ std::cout<<"PASS legacy_body_receipt_cannot_publish_Find_and_null_ime_rejected\n";
 }
 int main(int argc,char** argv){try{
  const std::pair<const char*,void(*)()> tests[]={{"empty",emptyStorm},{"unauthorized",nonemptyUnauthorized},{"selectable",selectable},{"stale",stale},{"mismatch",mismatches},{"race",generationAfterPaint},{"layout",invalidLayout},{"barrier",barrier},{"hidden",hidden}};
