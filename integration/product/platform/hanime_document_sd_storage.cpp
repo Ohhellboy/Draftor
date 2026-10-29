@@ -132,10 +132,10 @@ ReadResult ArduinoSdStoragePort::readImpl(const std::string_view path,
   const draftor::memory::String owned_path(path);
   s3fs::File file = save_diag::measured(save_diag::Op::ReadOpen, 0, [&] { return sd_->openFile(owned_path.c_str(), s3fs::Read); }, [](const auto& r) { return static_cast<bool>(r) ? 1 : 0; });
   if (!file) {
-    const bool exists = save_diag::measured(save_diag::Op::Exists, 0, [&] { return sd_->exists(owned_path.c_str()); }, [](const auto&) { return -1; });
+    const int error = file.openError();
     const Status current = sessionStatus(before.mount_epoch);
     if (current != Status::Ok) return {current, {}};
-    return {exists ? Status::IoError : Status::NotFound, {}};
+    return {error == ENOENT ? Status::NotFound : Status::IoError, {}};
   }
   if (save_diag::measured(save_diag::Op::IsDirectory, 0, [&] { return file.isDirectory(); }, [](const auto&) { return -1; })) {
     save_diag::measuredVoid(save_diag::Op::ReadClose, [&] { file.close(); });
@@ -144,6 +144,7 @@ ReadResult ArduinoSdStoragePort::readImpl(const std::string_view path,
   }
 
   const std::size_t file_size = static_cast<std::size_t>(save_diag::measured(save_diag::Op::Size, 0, [&] { return file.size(); }, [](const auto&) { return -1; }));
+  if(file_size==std::size_t(-1)){file.close();return {Status::IoError,{}};}
   if (!prefix_only && file_size > max_bytes) {
     save_diag::measuredVoid(save_diag::Op::ReadClose, [&] { file.close(); });
     const Status current = sessionStatus(before.mount_epoch);
@@ -165,7 +166,7 @@ ReadResult ArduinoSdStoragePort::readImpl(const std::string_view path,
     }
     at += static_cast<std::size_t>(got);
   }
-  save_diag::measuredVoid(save_diag::Op::ReadClose, [&] { file.close(); });
+  if(!save_diag::measured(save_diag::Op::ReadClose,0,[&]{return file.close();},[](bool ok){return ok?1:0;}))status=Status::IoError;
 
   const Status current = sessionStatus(before.mount_epoch);
   if (current != Status::Ok) return {current, {}};
@@ -312,10 +313,10 @@ Status ArduinoSdStoragePort::verifyParts(
   const draftor::memory::String owned_path(path);
   s3fs::File file = save_diag::measured(save_diag::Op::VerifyOpen, 0, [&] { return sd_->openFile(owned_path.c_str(), s3fs::Read); }, [](const auto& r) { return static_cast<bool>(r) ? 1 : 0; });
   if (!file) {
-    const bool exists = save_diag::measured(save_diag::Op::Exists, 0, [&] { return sd_->exists(owned_path.c_str()); }, [](const auto&) { return -1; });
+    const int error = file.openError();
     const Status current = sessionStatus(before.mount_epoch);
     if (current != Status::Ok) return current;
-    return exists ? Status::IoError : Status::NotFound;
+    return error == ENOENT ? Status::NotFound : Status::IoError;
   }
   if (save_diag::measured(save_diag::Op::IsDirectory, 0, [&] { return file.isDirectory(); }, [](const auto&) { return -1; })) {
     save_diag::measuredVoid(save_diag::Op::VerifyClose, [&] { file.close(); });
@@ -360,7 +361,7 @@ Status ArduinoSdStoragePort::verifyParts(
     const int got = save_diag::measured(save_diag::Op::Eof, 1, [&] { return file.read(&extra, 1U); }, [](int n) { return n == 0 ? 1 : 0; });
     if (got != 0) status = Status::IoError;
   }
-  save_diag::measuredVoid(save_diag::Op::VerifyClose, [&] { file.close(); });
+  if(!save_diag::measured(save_diag::Op::VerifyClose,0,[&]{return file.close();},[](bool ok){return ok?1:0;}))status=Status::IoError;
 
   const Status current = sessionStatus(before.mount_epoch);
   return current == Status::Ok ? status : current;
@@ -375,9 +376,10 @@ Status ArduinoSdStoragePort::remove(const std::string_view path) {
   const MediumSession before = mediumSession();
   if (!before.available) return Status::MediaUnavailable;
   const draftor::memory::String owned_path(path);
-  if (!save_diag::measured(save_diag::Op::Exists, 0, [&] { return sd_->exists(owned_path.c_str()); }, [](const auto&) { return -1; })) {
-    const Status current = sessionStatus(before.mount_epoch);
-    return current == Status::Ok ? Status::NotFound : current;
+  const auto kind=save_diag::measured(save_diag::Op::Exists,0,[&]{return sd_->kind(owned_path.c_str());},[](const auto&){return -1;});
+  if(kind==s3fs::PathKind::Missing||kind==s3fs::PathKind::Error){
+    const Status current=sessionStatus(before.mount_epoch);
+    return current==Status::Ok?(kind==s3fs::PathKind::Missing?Status::NotFound:Status::IoError):current;
   }
   const bool removed = save_diag::measured(save_diag::Op::Remove, 0, [&] { return sd_->remove(owned_path.c_str()); }, [](const auto& r) { return static_cast<bool>(r) ? 1 : 0; });
   const Status current = sessionStatus(before.mount_epoch);
@@ -562,15 +564,16 @@ SdPathStat ArduinoSdStoragePort::stat(const std::string_view path) {
   }
   s3fs::File file = save_diag::measured(save_diag::Op::Open, 0, [&] { return sd_->open(owned_path.c_str(), s3fs::Read); }, [](const auto& r) { return static_cast<bool>(r) ? 1 : 0; });
   if (!file) {
-    const bool exists = save_diag::measured(save_diag::Op::Exists, 0, [&] { return sd_->exists(owned_path.c_str()); }, [](const auto&) { return -1; });
+    const int error = file.openError();
     const Status current = sessionStatus(before.mount_epoch);
     if (current != Status::Ok) return {current, 0U, false};
-    return {exists ? Status::IoError : Status::NotFound, 0U, false};
+    return {error == ENOENT ? Status::NotFound : Status::IoError, 0U, false};
   }
   const bool is_directory = save_diag::measured(save_diag::Op::IsDirectory, 0, [&] { return file.isDirectory(); }, [](const auto&) { return -1; });
   const std::size_t size = is_directory
       ? 0U : static_cast<std::size_t>(save_diag::measured(save_diag::Op::Size, 0, [&] { return file.size(); }, [](const auto&) { return -1; }));
-  save_diag::measuredVoid(save_diag::Op::Close, [&] { file.close(); });
+  const bool closed=save_diag::measured(save_diag::Op::Close,0,[&]{return file.close();},[](bool ok){return ok?1:0;});
+  if(size==std::size_t(-1)||!closed)return {Status::IoError,0U,false};
   const Status current = sessionStatus(before.mount_epoch);
   return current == Status::Ok
       ? SdPathStat{Status::Ok, size, is_directory}
@@ -587,14 +590,16 @@ Status ArduinoSdStoragePort::rename(const std::string_view from,
   if (!before.available) return Status::MediaUnavailable;
   const draftor::memory::String owned_from(from);
   const draftor::memory::String owned_to(to);
-  if (!save_diag::measured(save_diag::Op::Exists, 0, [&] { return sd_->exists(owned_from.c_str()); }, [](const auto&) { return -1; })) {
-    const Status current = sessionStatus(before.mount_epoch);
-    return current == Status::Ok ? Status::NotFound : current;
+  const auto sourceKind=save_diag::measured(save_diag::Op::Exists,0,[&]{return sd_->kind(owned_from.c_str());},[](const auto&){return -1;});
+  if(sourceKind==s3fs::PathKind::Missing||sourceKind==s3fs::PathKind::Error){
+    const Status current=sessionStatus(before.mount_epoch);
+    return current==Status::Ok?(sourceKind==s3fs::PathKind::Missing?Status::NotFound:Status::IoError):current;
   }
-  if (owned_from == owned_to) return Status::Ok;
-  if (save_diag::measured(save_diag::Op::Exists, 0, [&] { return sd_->exists(owned_to.c_str()); }, [](const auto&) { return -1; })) {
-    const Status current = sessionStatus(before.mount_epoch);
-    return current == Status::Ok ? Status::Conflict : current;
+  if(owned_from==owned_to)return sessionStatus(before.mount_epoch);
+  const auto targetKind=save_diag::measured(save_diag::Op::Exists,0,[&]{return sd_->kind(owned_to.c_str());},[](const auto&){return -1;});
+  if(targetKind!=s3fs::PathKind::Missing){
+    const Status current=sessionStatus(before.mount_epoch);
+    return current==Status::Ok?(targetKind==s3fs::PathKind::Error?Status::IoError:Status::Conflict):current;
   }
   Status status = mkdirsImpl(parentPath(to), before.mount_epoch);
   if (status != Status::Ok) return status;
@@ -683,9 +688,10 @@ ListResult ArduinoSdStoragePort::list(const std::string_view prefix,
   const MediumSession before = mediumSession();
   if (!before.available) return {Status::MediaUnavailable, {}, false};
 
-  if (!save_diag::measured(save_diag::Op::Exists, 0, [&] { return sd_->exists(draftor::memory::String(kRoot).c_str()); }, [](const auto&) { return -1; })) {
-    const Status current = sessionStatus(before.mount_epoch);
-    return {current == Status::Ok ? Status::Ok : current, {}, false};
+  const auto rootKind=save_diag::measured(save_diag::Op::Exists,0,[&]{return sd_->kind(draftor::memory::String(kRoot).c_str());},[](const auto&){return -1;});
+  if(rootKind==s3fs::PathKind::Missing||rootKind==s3fs::PathKind::Error){
+    const Status current=sessionStatus(before.mount_epoch);
+    return {current==Status::Ok?(rootKind==s3fs::PathKind::Missing?Status::Ok:Status::IoError):current,{},false};
   }
 
   const std::size_t limit = std::min(max_paths, kMaxDeviceListPaths);

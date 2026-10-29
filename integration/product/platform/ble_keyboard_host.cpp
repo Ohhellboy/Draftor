@@ -1,5 +1,6 @@
 #include "behavior_observer.hpp"
 #include "ble_keyboard_host.hpp"
+#include "hanime_hid_probe.hpp"
 #include <Arduino.h>
 #include <BLEDevice.h>
 #include <BLEClient.h>
@@ -18,6 +19,10 @@
 #include "ble_reconnect_policy.hpp"
 #include <host/ble_store.h>
 #include <host/ble_hs_pvcy.h>
+#if DRAFTOR_WS_HOGP_INPUTS
+// Same pinned IDF export used by the inherited characteristic/descriptor reads.
+extern "C" int ble_hs_is_parent_task(void);
+#endif
 namespace keyboard {
 namespace {
 constexpr size_t Capacity=512;
@@ -71,28 +76,36 @@ void invalidate(){
 }
 void notify(BLERemoteCharacteristic* c,uint8_t* data,size_t size,bool){
  if(!accepting.load())return;
+ hidprobe::rxPoint(hidprobe::StateLockWait);
  portENTER_CRITICAL(&stateMux);
+ hidprobe::rxPoint(hidprobe::StateLockHeld);
  if(!accepting.load()){portEXIT_CRITICAL(&stateMux);return;}
  unsigned slot=0;while(slot<subscriptionCount&&subscriptions[slot].characteristic!=c)++slot;
  if(slot==subscriptionCount){portEXIT_CRITICAL(&stateMux);return;}
  s3hid::State state;
  if(!s3hid::Map::decode(subscriptions[slot].report,data,size,state)){
+  hidprobe::inc(hidprobe::Bad);hidprobe::rxPoint(hidprobe::DecodeFailed);
   ++bad;++epoch;s3hid::State unknown;unknown.set(4);tracker.update(slot,unknown,epoch.load(),millis(),[](s3hid::Event){});requireRelease=true;phase=Phase::AwaitRelease;portEXIT_CRITICAL(&stateMux);return;
  }
+ hidprobe::inc(hidprobe::Decoded);
  if(requireRelease){
+  hidprobe::inc(hidprobe::AwaitDrop);hidprobe::rxPoint(hidprobe::AwaitRelease);
   tracker.update(slot,state,epoch.load(),millis(),[](s3hid::Event){});
   if(!tracker.allReleased()){portEXIT_CRITICAL(&stateMux);return;}
   tracker.clear();requireRelease=false;phase=Phase::Ready;
  }
+ hidprobe::rxPoint(hidprobe::Dispatch);
  bool over=false;
  s3hid::dispatchReport(tracker,slot,state,epoch.load(),millis(),ingress,[&](s3hid::Event e){
   e.event_id=++nextEventId;e.received_us=uint64_t(esp_timer_get_time());
   if(over)return;
-  if(xQueueSend(queue,&e,0)!=pdTRUE){++overflow;over=true;return;}
+  if(xQueueSend(queue,&e,0)!=pdTRUE){hidprobe::inc(hidprobe::QueueOverflow);++overflow;over=true;return;}
+  hidprobe::inc(hidprobe::Enqueued);
   ++received;auto count=uxQueueMessagesWaiting(queue);if(count>peak)peak=count;
  });
  if(over){++epoch;requireRelease=!tracker.allReleased();if(requireRelease)phase=Phase::AwaitRelease;else tracker.clear();}
  portEXIT_CRITICAL(&stateMux);
+ hidprobe::rxPoint(hidprobe::NotifyDone);
 }
 class ClientCallbacks:public BLEClientCallbacks{
  void onConnect(BLEClient*)override{phase=Phase::Pairing;}
@@ -108,19 +121,119 @@ class SecurityCallbacks:public BLESecurityCallbacks{
   BT_PRINTF("[BLE_AUTH] encrypted=%u authenticated=%u bonded=%u\n",result?result->sec_state.encrypted:0,result?result->sec_state.authenticated:0,result?result->sec_state.bonded:0);
  }
 } securityCallbacks;
+// DRAFTOR_HOGP_INPUTS_BEGIN
+#ifndef DRAFTOR_WS_HOGP_INPUTS
+#define DRAFTOR_WS_HOGP_INPUTS 0
+#endif
+#if DRAFTOR_WS_HOGP_INPUTS
+// Keyboard slots retain the original 8-slot tracker. All Input Reports have
+// separate bounded worker-owned subscription records; no callback borrows them.
+constexpr unsigned InputSubscriptionCapacity=16;
+struct InputSubscription {BLERemoteCharacteristic* characteristic=nullptr;BLERemoteDescriptor* cccd=nullptr;uint8_t id=0;bool keyboard=false;};
+InputSubscription inputSubscriptions[InputSubscriptionCapacity];unsigned inputSubscriptionCount=0;
+void clearInputSubscriptions(){for(auto& s:inputSubscriptions)s={};inputSubscriptionCount=0;}
+void notifyOtherInput(BLERemoteCharacteristic*,uint8_t*,size_t,bool){
+ // BLEClient already captured a bounded raw prefix. No GATT, tracker, queue,
+ // epoch, command, allocation or host-task wait is allowed on this path.
+ hidprobe::inc(hidprobe::OtherInput);
+}
+bool inputSetupFailure(hidprobe::SetupStatus status,uint16_t handle=0){hidprobe::setupDone(status,handle,epoch.load());return false;}
+void inputReceipt(const InputSubscription& s,hidprobe::InputStatus status,size_t n=0,uint16_t value=0){
+ hidprobe::inputSubscription(s.characteristic->getHandle(),s.cccd->getHandle(),s.id,s.keyboard,status,n,value);
+}
+bool configureInputs(BLEClient* client,bool boot){
+ for(unsigned i=0;i<inputSubscriptionCount;++i){
+  const auto& s=inputSubscriptions[i];
+  if(!client->isConnected()){inputReceipt(s,hidprobe::InputDisconnected);return inputSetupFailure(hidprobe::SetupDisconnected,s.characteristic->getHandle());}
+  // The pinned NimBLE registerForNotify() discards this boolean. subscribe()
+  // reports the CCCD write result and writes 0x0001 once, with response.
+  if(!s.characteristic->subscribe(true,s.keyboard?notify:notifyOtherInput,true)){
+   inputReceipt(s,hidprobe::InputWriteFailed);return inputSetupFailure(hidprobe::SetupWriteFailed,s.characteristic->getHandle());
+  }
+  inputReceipt(s,hidprobe::InputEnabled);
+ }
+ // One readback per CCCD, on this worker after all subscriptions, before input
+ // admission. A write ACK alone is not reported as verified configuration.
+ for(unsigned i=0;i<inputSubscriptionCount;++i){
+  const auto& s=inputSubscriptions[i];
+  if(!client->isConnected()){inputReceipt(s,hidprobe::InputDisconnected);return inputSetupFailure(hidprobe::SetupDisconnected,s.characteristic->getHandle());}
+  const String value=s.cccd->readValue();
+  if(!client->isConnected()){inputReceipt(s,hidprobe::InputDisconnected);return inputSetupFailure(hidprobe::SetupDisconnected,s.characteristic->getHandle());}
+  if(value.length()!=2){inputReceipt(s,hidprobe::InputReadFailed,value.length());return inputSetupFailure(hidprobe::SetupReadFailed,s.characteristic->getHandle());}
+  const uint16_t flags=uint8_t(value[0])|(uint16_t(uint8_t(value[1]))<<8);
+  if(flags!=1){inputReceipt(s,hidprobe::InputMismatch,2,flags);return inputSetupFailure(hidprobe::SetupMismatch,s.characteristic->getHandle());}
+  inputReceipt(s,hidprobe::InputVerified,2,flags);
+ }
+ hidprobe::setupDone(boot?hidprobe::SetupBoot:hidprobe::SetupReport,0,epoch.load());return true;
+}
+bool subscribeAllInputs(BLEClient* client){
+ // Never synchronously perform discovery/read/write on NimBLE's host task.
+ // An invalid caller must not reset an already admitted keyboard or mutate
+ // the worker-owned diagnostic metadata from the host task.
+ if(ble_hs_is_parent_task()||accepting.load())return false;
+ hidprobe::discovery();clearInputSubscriptions();subscriptionCount=0;
+ try{
+  if(!client->isConnected())return inputSetupFailure(hidprobe::SetupDisconnected);
+  auto service=client->getService(BLEUUID(uint16_t(0x1812)));if(!service)return inputSetupFailure(hidprobe::SetupNoService);
+  auto mapChar=service->getCharacteristic(BLEUUID(uint16_t(0x2a4b)));
+  auto protocol=service->getCharacteristic(BLEUUID(uint16_t(0x2a4e)));bool parsed=false;
+  if(mapChar){String bytes=mapChar->readValue();parsed=reportMap.parse((const uint8_t*)bytes.c_str(),bytes.length());hidprobe::map((const uint8_t*)bytes.c_str(),bytes.length(),parsed);}
+  if(parsed){
+   if(protocol&&!protocol->writeValue(uint8_t(1),false))return inputSetupFailure(hidprobe::SetupProtocolFailed);
+   auto characteristics=service->getCharacteristicsByHandle();
+   if(!characteristics)return inputSetupFailure(hidprobe::SetupNoService);
+   for(auto& pair:*characteristics){
+    auto c=pair.second;if(!c->getUUID().equals(BLEUUID(uint16_t(0x2a4d))))continue;
+    auto ref=c->getDescriptor(BLEUUID(uint16_t(0x2908)));if(!ref)return inputSetupFailure(hidprobe::SetupNoRef,c->getHandle());
+    String reference=ref->readValue();
+    if(reference.length()!=2||uint8_t(reference[1])<1||uint8_t(reference[1])>3)return inputSetupFailure(hidprobe::SetupBadRef,c->getHandle());
+    if(uint8_t(reference[1])!=1)continue; // Output/Feature: never subscribe or send a payload.
+    if(!c->canNotify())return inputSetupFailure(hidprobe::SetupNoNotify,c->getHandle());
+    if(inputSubscriptionCount==InputSubscriptionCapacity)return inputSetupFailure(hidprobe::SetupInputCapacity,c->getHandle());
+    auto report=reportMap.report(uint8_t(reference[0]));
+    if(report&&subscriptionCount==8)return inputSetupFailure(hidprobe::SetupKeyboardCapacity,c->getHandle());
+    auto cccd=c->getDescriptor(BLEUUID(uint16_t(0x2902)));if(!cccd)return inputSetupFailure(hidprobe::SetupNoCccd,c->getHandle());
+    hidprobe::reference(c->getHandle(),uint8_t(reference[0]),1,report?report->bits:0,report!=nullptr);
+    auto& s=inputSubscriptions[inputSubscriptionCount++];s={c,cccd,uint8_t(reference[0]),report!=nullptr};inputReceipt(s,hidprobe::InputFound);
+    if(report){auto& sub=subscriptions[subscriptionCount++];sub.characteristic=c;sub.report=*report;}
+   }
+   if(subscriptionCount)return configureInputs(client,false);
+  }
+  // Preserve the explicit Boot fallback when no keyboard Report is usable.
+  // No Report CCCD has been written yet. Replace stale discovery metadata.
+  clearInputSubscriptions();subscriptionCount=0;hidprobe::discovery();
+  auto boot=service->getCharacteristic(BLEUUID(uint16_t(0x2a22)));
+  if(!boot||!protocol||!boot->canNotify())return inputSetupFailure(hidprobe::SetupNoBoot);
+  if(!protocol->writeValue(uint8_t(0),false))return inputSetupFailure(hidprobe::SetupProtocolFailed);
+  static const uint8_t bootMap[]={0x05,0x01,0x09,0x06,0xa1,0x01,0x05,0x07,0x19,0xe0,0x29,0xe7,0x75,0x01,0x95,0x08,0x81,0x02,0x75,0x08,0x95,0x01,0x81,0x01,0x19,0x00,0x29,0xff,0x75,0x08,0x95,0x06,0x81,0x00,0xc0};
+  if(!reportMap.parse(bootMap,sizeof(bootMap)))return inputSetupFailure(hidprobe::SetupNoBoot);
+  auto cccd=boot->getDescriptor(BLEUUID(uint16_t(0x2902)));if(!cccd)return inputSetupFailure(hidprobe::SetupNoCccd,boot->getHandle());
+  const auto report=reportMap.report(0);subscriptions[0]={boot,*report};subscriptionCount=1;
+  hidprobe::map(bootMap,sizeof(bootMap),true);hidprobe::reference(boot->getHandle(),0,1,report->bits,true);
+  inputSubscriptions[0]={boot,cccd,0,true};inputSubscriptionCount=1;inputReceipt(inputSubscriptions[0],hidprobe::InputFound);
+  return configureInputs(client,true);
+ }catch(const std::bad_alloc&){hidprobe::setupDone(hidprobe::SetupAllocationFailed,0,epoch.load());throw;} // original worker retires the client
+}
+#endif
+// DRAFTOR_HOGP_INPUTS_END
 bool subscribe(BLEClient* client){
+#if DRAFTOR_WS_HOGP_INPUTS
+ return subscribeAllInputs(client);
+#else
+ hidprobe::discovery();
  subscriptionCount=0;
  auto service=client->getService(BLEUUID(uint16_t(0x1812)));if(!service)return false;
  auto mapChar=service->getCharacteristic(BLEUUID(uint16_t(0x2a4b)));
  auto protocol=service->getCharacteristic(BLEUUID(uint16_t(0x2a4e)));
  bool parsed=false;
- if(mapChar){String bytes=mapChar->readValue();parsed=reportMap.parse((const uint8_t*)bytes.c_str(),bytes.length());BT_PRINTF("[HID_MAP] bytes=%u parsed=%u\n",bytes.length(),parsed);}
+ if(mapChar){String bytes=mapChar->readValue();parsed=reportMap.parse((const uint8_t*)bytes.c_str(),bytes.length());hidprobe::map((const uint8_t*)bytes.c_str(),bytes.length(),parsed);BT_PRINTF("[HID_MAP] bytes=%u parsed=%u\n",bytes.length(),parsed);}
  if(parsed){
   if(protocol&&!protocol->writeValue(uint8_t(1),false))return false;
   auto characteristics=service->getCharacteristicsByHandle(); // UUID map loses duplicate 2A4D reports.
   for(auto& pair:*characteristics){auto c=pair.second;if(!c->getUUID().equals(BLEUUID(uint16_t(0x2a4d)))||!c->canNotify())continue;
    auto ref=c->getDescriptor(BLEUUID(uint16_t(0x2908)));if(!ref)continue;
-   String reference=ref->readValue();if(reference.length()!=2||uint8_t(reference[1])!=1)continue;
+   String reference=ref->readValue();if(reference.length()==2){const auto known=reportMap.report(uint8_t(reference[0]));hidprobe::reference(pair.first,uint8_t(reference[0]),uint8_t(reference[1]),known?known->bits:0,known&&uint8_t(reference[1])==1);}
+   if(reference.length()!=2||uint8_t(reference[1])!=1)continue;
    auto report=reportMap.report(uint8_t(reference[0]));if(!report)continue;
    if(subscriptionCount==8)return false;
    auto cccd=c->getDescriptor(BLEUUID(uint16_t(0x2902)));if(!cccd)return false;
@@ -135,12 +248,14 @@ bool subscribe(BLEClient* client){
   if(!boot||!protocol||!boot->canNotify()||!protocol->writeValue(uint8_t(0),false))return false;
   static const uint8_t bootMap[]={0x05,0x01,0x09,0x06,0xa1,0x01,0x05,0x07,0x19,0xe0,0x29,0xe7,0x75,0x01,0x95,0x08,0x81,0x02,0x75,0x08,0x95,0x01,0x81,0x01,0x19,0x00,0x29,0xff,0x75,0x08,0x95,0x06,0x81,0x00,0xc0};
   if(!reportMap.parse(bootMap,sizeof(bootMap)))return false;
+  hidprobe::map(bootMap,sizeof(bootMap),true);hidprobe::reference(boot->getHandle(),0,1,reportMap.report(0)->bits,true);
   subscriptions[0]={boot,*reportMap.report(0)};subscriptionCount=1;
   auto cccd=boot->getDescriptor(BLEUUID(uint16_t(0x2902)));if(!cccd)return false;
   boot->registerForNotify(notify,true,false);uint8_t enabled[]={1,0};if(!cccd->writeValue(enabled,2,true))return false;
   BT_PRINTLN("[HID_INPUT] explicit Boot protocol fallback");
  }
  return true;
+#endif
 }
 std::atomic<bool> scanFound{false};
 ble_addr_t scanAddress{},knownAddress{};
@@ -188,6 +303,9 @@ bool releaseClient(BLEClient*& client){
    portENTER_CRITICAL(&stateMux);
    for(auto& sub:subscriptions){sub={};}
    subscriptionCount=0;
+#if DRAFTOR_WS_HOGP_INPUTS
+   clearInputSubscriptions();
+#endif
    portEXIT_CRITICAL(&stateMux);
    delete client;client=nullptr;releaseRequest.client=nullptr;
    releaseRequest.stage=ReleaseStage::Idle;
@@ -238,6 +356,7 @@ void task(void*){
  RetryPlan retry;
  if(saved.length()){BLEAddress old(saved);knownAddress.type=savedType&1;std::memcpy(knownAddress.val,old.getNative(),6);haveKnownAddress=true;storedPeerKey(knownAddress);}
  for(;;){
+  hidprobe::monitor(unsigned(phase.load()),epoch.load(),accepting.load());
   if(client){
    if(!releaseClient(client)){delay(250);continue;}
    delay(1500);
@@ -292,7 +411,7 @@ void task(void*){
      for(unsigned i=0;i<subscriptionCount;++i)tracker.update(i,initial[i],epoch.load(),millis(),[](s3hid::Event){});
      requireRelease=!tracker.allReleased();bool waiting=requireRelease;
      phase=waiting?Phase::AwaitRelease:Phase::Ready;accepting=true;
-     portEXIT_CRITICAL(&stateMux);passkey=1000000;
+     portEXIT_CRITICAL(&stateMux);hidprobe::bind(epoch.load());passkey=1000000;
      ble_gap_conn_desc identity{};
      if(ble_gap_conn_find(client->getConnId(),&identity)==0){address=BLEAddress(identity.peer_id_addr).toString();type=identity.peer_id_addr.type;}
      type&=1;saved=address;savedType=type;
@@ -307,6 +426,7 @@ void task(void*){
      else BT_PRINTF("[BLE_READY] keyboard_reports=%u\n",subscriptionCount);
      if(!waiting){++readyRounds;lifecycle("ready");}
      while(client->isConnected()){
+      hidprobe::monitor(unsigned(phase.load()),epoch.load(),accepting.load());
       if(waiting&&phase==Phase::Ready){BT_PRINTF("[BLE_READY] keyboard_reports=%u\n",subscriptionCount);waiting=false;++readyRounds;lifecycle("ready");}
       delay(50);
      }
@@ -320,7 +440,7 @@ void task(void*){
 static TaskHandle_t workerHandle=nullptr;
 uint32_t workerStackMinimumBytes(){return workerHandle?uint32_t(uxTaskGetStackHighWaterMark(workerHandle)):0;}
 bool begin(){queue=xQueueCreateStatic(Capacity,sizeof(s3hid::Event),queueBytes,&queueControl);return queue&&xTaskCreatePinnedToCore(task,"ble-keyboard",8192,nullptr,2,&workerHandle,0)==pdPASS;}
-bool pop(s3hid::Event& e){return queue&&xQueueReceive(queue,&e,0)==pdTRUE;}
+bool pop(s3hid::Event& e){const bool ok=queue&&xQueueReceive(queue,&e,0)==pdTRUE;if(ok)hidprobe::inc(hidprobe::Popped);return ok;}
 bool admit(const s3hid::Event& event,uint32_t& observedEpoch){
  portENTER_CRITICAL(&stateMux);
  observedEpoch=epoch.load();

@@ -1,3 +1,4 @@
+#include "hanime_hid_probe.hpp"
 #include "hanime_ble_ownership.hpp"
 /*
  * Copyright 2017-2026 Espressif Systems (Shanghai) PTE LTD
@@ -1090,6 +1091,7 @@ std::map<std::string, BLERemoteService *> *BLEClient::getServices() {
 }  // getServices
 
 int BLEClient::handleGAPEvent(struct ble_gap_event *event, void *arg) {
+  hidprobe::HostScope hostProbe(unsigned(event->type));
   BLEClient *client = (BLEClient *)arg;
   int rc = 0;
   BLETaskData *pTaskData = client->m_pTaskData.load();
@@ -1184,16 +1186,28 @@ int BLEClient::handleGAPEvent(struct ble_gap_event *event, void *arg) {
 
     case BLE_GAP_EVENT_NOTIFY_RX:
     {
+      hidprobe::notifyGate(event->notify_rx.conn_handle,client->m_conn_id.load(),client->m_isConnected.load(),event->notify_rx.attr_handle,
+                          uint32_t(client->m_isConnected.load())|(uint32_t(client->m_retiring.load())<<1)|(uint32_t(client->m_connectPending.load())<<2));
       if (client->m_conn_id != event->notify_rx.conn_handle) {
+        hidprobe::inc(hidprobe::ConnRejected);
         return 0;
       }
 
       // If a notification comes before this flag is set we might
       // access a vector while it is being cleared in connect()
       if (!client->m_isConnected) {
+        hidprobe::inc(hidprobe::ConnectedRejected);
         return 0;
       }
 
+      hidprobe::rxPoint(hidprobe::Gap,event->notify_rx.attr_handle);
+#if DRAFTOR_WS_HID_DIAG
+      const size_t probeTotal=OS_MBUF_PKTLEN(event->notify_rx.om);
+      const size_t probeCount=probeTotal<32?probeTotal:32;
+      uint8_t probePrefix[32]{};
+      const bool probeCopied=os_mbuf_copydata(event->notify_rx.om,0,probeCount,probePrefix)==0;
+      hidprobe::raw(event->notify_rx.attr_handle,probeCopied?probePrefix:nullptr,event->notify_rx.om->om_len,probeTotal,probeCopied?probeCount:0);
+#endif
       log_d("BLEClient", "Notify received for handle: %d", event->notify_rx.attr_handle);
 
       for (auto &myPair : client->m_servicesMap) {
@@ -1210,20 +1224,27 @@ int BLEClient::handleGAPEvent(struct ble_gap_event *event, void *arg) {
         if (characteristic != cMapByHandle.end()) {
           log_d("BLEClient", "Got Notification for characteristic %s (handle: %d)", characteristic->second->toString().c_str(), event->notify_rx.attr_handle);
 
+          hidprobe::rxPoint(hidprobe::CacheWait,event->notify_rx.attr_handle);
           characteristic->second->m_semaphoreReadCharEvt.take();
+          hidprobe::rxPoint(hidprobe::CacheAcquired,event->notify_rx.attr_handle);
           characteristic->second->m_value = String((char *)event->notify_rx.om->om_data, event->notify_rx.om->om_len);
+          hidprobe::rxPoint(hidprobe::CacheStored,event->notify_rx.attr_handle);
           characteristic->second->m_semaphoreReadCharEvt.give();
+          hidprobe::rxPoint(hidprobe::CacheDone,event->notify_rx.attr_handle);
 
           if (characteristic->second->m_notifyCallback != nullptr) {
             log_d("Invoking callback for notification on characteristic %s", characteristic->second->toString().c_str());
+            hidprobe::rxPoint(hidprobe::Callback,event->notify_rx.attr_handle);
             characteristic->second->m_notifyCallback(
               characteristic->second, event->notify_rx.om->om_data, event->notify_rx.om->om_len, !event->notify_rx.indication
             );
+            hidprobe::rxPoint(hidprobe::CallbackDone,event->notify_rx.attr_handle);
           }
           break;
         }
       }
 
+      hidprobe::rxPoint(hidprobe::GapDone,event->notify_rx.attr_handle);
       return 0;
     }  // BLE_GAP_EVENT_NOTIFY_RX
 

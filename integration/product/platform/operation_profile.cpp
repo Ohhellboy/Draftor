@@ -1,9 +1,13 @@
 #include "operation_profile.hpp"
+#include "runtime_findings_diag.hpp"
+#include "board_config.hpp"
 #include "behavior_observer.hpp"
 #include <cstdio>
 #ifdef ARDUINO
 #include <esp_timer.h>
+#if DRAFTOR_BOARD == ESP32S3_OSPTEK_ST7306
 #include <hanime_sd_trace.h>
+#endif
 #include <cstring>
 #include <Arduino.h>
 #define PROFILE_PRINTF BT_PRINTF
@@ -23,17 +27,19 @@ uint64_t clockUs() noexcept {
 #endif
 }
 void begin(const char* name) noexcept {
+ s3app::runtime_diag::operationBegin();
  record={};record.operation=name;record.started=clockUs();active=true;
-#ifdef ARDUINO
+#if defined(ARDUINO) && DRAFTOR_BOARD == ESP32S3_OSPTEK_ST7306
  hanime_sd_trace::stats={};hanime_sd_trace::enabled=true;
 #endif
 }
 Record finish() noexcept {
  record.total_us=clockUs()-record.started;active=false;
-#ifdef ARDUINO
+#if defined(ARDUINO) && DRAFTOR_BOARD == ESP32S3_OSPTEK_ST7306
  hanime_sd_trace::enabled=false;static_assert(sizeof(record.sd)==sizeof(hanime_sd_trace::stats));
  std::memcpy(static_cast<void*>(&record.sd), &hanime_sd_trace::stats, sizeof(record.sd));
 #endif
+ s3app::runtime_diag::operationEnd(record);
  return record;
 }
 Scope::Scope(Stage stage) noexcept :stage_(stage),enabled_(active),start_(enabled_?clockUs():0),covered_(record.covered_us){}
@@ -62,7 +68,7 @@ void print(const Record& r,const char* status,size_t bytes,size_t cursor){
  }
  PROFILE_PRINTF("[ACCESS_OTHER] op=%s us=%llu (adapter/allocation/bookkeeping;fsync_in_write_us)\n",r.operation,
   (unsigned long long)(r.us[Access]>access_calls?r.us[Access]-access_calls:0));
-#ifdef ARDUINO
+#if defined(ARDUINO) && DRAFTOR_BOARD == ESP32S3_OSPTEK_ST7306
  const char* sd_names[]={"disk_read","disk_write","status","sync","spi_acquire","busy_wait","token_wait","retry_delay"};
  for(unsigned i=0;i<hanime_sd_trace::PartCount;++i){
   if(i%4==0)PROFILE_PRINTF("[SD_CALLS] op=%s units=count/sum_us/max_us",r.operation);
@@ -75,6 +81,8 @@ void print(const Record& r,const char* status,size_t bytes,size_t cursor){
  PROFILE_PRINTF("[SD_COMMANDS] op=%s",r.operation);
  for(unsigned i=0;i<64;++i)if(sd.commands[i])PROFILE_PRINTF(" cmd%u=%u",i,unsigned(sd.commands[i]));
  PROFILE_PRINTF("\n");
+#elif defined(ARDUINO)
+ PROFILE_PRINTF("[SDMMC_DETAIL] op=%s low_level_counters=NOT_MEASURED vfs_counters=above\n",r.operation);
 #endif
  PROFILE_PRINTF("[PROFILE_LOG] op=%s log_us=%llu\n",r.operation,(unsigned long long)(clockUs()-log_started));
 }

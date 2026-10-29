@@ -23,10 +23,11 @@ cd Draftor
 python3 -B tools/install_external_inputs.py --from ../BuildInputs/inputs
 export DRAFTOR_SDK_SOURCE=/your/arduino/data
 export ARDUINO_CLI=/your/bin/arduino-cli
-python3 -B tools/build_candidate.py
+python3 -B tools/build_candidate.py --target ESP32S3_OSPTEK_ST7306
+python3 -B tools/build_candidate.py --target WAVESHARE_RLCD42
 ```
 
-Use a fresh extracted directory. Outputs are in `TestBuilds/s3/DISPLAY_TX_PROTO/dist/`; receipts are in `evidence/s3/`. No step connects to hardware or downloads a hidden input. The supplied TinyUSB archive is the exact fixed MSC-only component; its sources/overlay and upstream material remain in `vendor/` and BuildInputs. [External input details](EXTERNAL_BUILD_INPUTS.md).
+Use a fresh extracted directory. Outputs are in `TestBuilds/s3/<TARGET>/dist/`; receipts are in `evidence/s3/<TARGET>/`. No step connects to hardware or downloads a hidden input. The supplied TinyUSB archive is the exact fixed MSC-only component; its sources/overlay and upstream material remain in `vendor/` and BuildInputs. [External input details](EXTERNAL_BUILD_INPUTS.md).
 
 使用全新解包目录；输出与回执分别位于上述目录。构建不会连接设备或暗中下载输入。TinyUSB 使用准确的 MSC-only 配套组件，同时保留源码、覆盖材料及对应上游资料。
 
@@ -77,3 +78,25 @@ The resource tool inherits the full identity/default/general-output comparison a
 The build extracts `string-inst.o` from the pinned compiler’s `esp32s3/no-rtti/libstdc++.a` and places it immediately after the Arduino core archive. The standard SDK archives and the later libstdc++ link remain in place. The build records the archive/member identity in `MATTER_TEMPLATE_PROVIDER.json`; no prebuilt object is shipped in Source. Runtime licensing is listed in [Third-Party Notices](../THIRD_PARTY.md).
 
 构建从固定工具链的上述库中提取字符串实现，放在 Arduino core 库之后。SDK 库和后续 libstdc++ 链接仍保留，提取对象的身份写入构建回执；Source 不附带预编译对象。运行库许可见[第三方声明](../THIRD_PARTY.md)。
+
+## Waveshare A3 isolated software review
+
+The default target remains `ESP32S3_OSPTEK_ST7306`. The explicit `WAVESHARE_RLCD42` target selects ST7305 and one-bit native SDMMC; it does not link the product Arduino SD fork. Unknown target names and Pico are rejected. This candidate has not been flashed or qualified on hardware.
+
+The original logical document root is unchanged. Waveshare maps it to `/sd/WAVESHARE_RLCD42/HANIME_S3_TEST/v01`. Shared dictionaries and fonts still use `/sd/HANIME/IME/…`. An unknown existing Waveshare directory is refused; there is no original-directory fallback, migration or formatting. Pico is reserved only.
+
+Run finite checks against an **extracted release Resources folder**, never a mounted TF card during software review:
+
+```sh
+python3 -B tools/check_alpha2.py
+python3 -B tools/run_port_checks.py --resources ../Resources/HANIME/IME/B_SHORT_TEXT_20261018 --mode normal
+python3 -B tools/run_port_checks.py --resources ../Resources/HANIME/IME/B_SHORT_TEXT_20261018 --mode sanitize
+```
+
+The selected tests include the real product App/storage/USB owners, actual painters, the actual ST7305 driver with a wire decoder, and the production staged SDMMC mount implementation with mocked host/FAT effects and real heap allocation/free. Host files and sanitizer allocations are not hardware timing or heap measurements. The ten inherited storage/editor regression groups retain their original assertions; the separate full historical `port_risks` suite has an obsolete Find height=306 assertion against the unchanged Alpha 2.1 height=320. Current Chinese Find is checked separately. See the review package REPORT, COSTS and DEVICE_HANDOFF for evidence and the future one-pass device procedure.
+
+A2 retires the two A1 SDMMC review defects. `board_sdmmc.cpp` owns the mount stages directly using the pinned SDK APIs; it does not call the SDK convenience mount/unmount helpers or modify SDK files. Owner allocation is the final fallible step, and failures roll back FAT, VFS, diskio, host and card ownership. Cleanup failure retires the public handle and blocks further attempts until reset. There is no automatic format or runtime remount.
+
+The Host checks run 19 SDMMC cases separately, including final owner allocation failure, successful retry after complete rollback, failure during rollback, consumed VFS context after unregister error, repeated cleanup, startup retry termination, and conservative quarantine when FatFs/host refuses detachment. The common retry loop retains the original SD/SPI port's three-attempt behavior and has its own regression test. The fault allocator is forbidden in an Arduino build. These tests are finite software evidence, not a guarantee that every internal SDK allocation/assert or physical card failure is recoverable.
+
+A3 keeps the A2 SDMMC implementation unchanged. Namespace admission now returns Ready, Invalid or OutOfMemory and catches allocation failures including construction of the VFS root. Unknown or incomplete directories are never adopted. The Host runner adds a fail-at-each-allocation sweep for both new and valid-marker paths, including the exact WS startup gate, and existing marker I/O faults. The A3 delivery rebuilds WAVESHARE_RLCD42; it retains the exact A2 original-target binary and records why its runtime branch is unaffected.

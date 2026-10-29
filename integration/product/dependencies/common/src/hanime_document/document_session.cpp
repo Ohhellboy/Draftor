@@ -44,7 +44,9 @@ OperationResult DocumentSession::startupRestore() {
   if (meta.area != DocumentArea::Normal) return {Status::NoCurrentDocument, "current_target"};
   LoadResult body = persistence_.loadLatest(current.document_id); if (!success(body.status)) return {body.status, "body_load"};
   const Status position = persistence_.applyPosition(current.document_id, &body.snapshot);
-  (void)position;  // mismatched/missing position never hides a valid body
+  // Position is optional: an imported snapshot already owns a valid default
+  // cursor/viewport. Missing POSITION is not a failed body save. Other read,
+  // validation and degraded-record outcomes must remain visible.
   const std::uint64_t body_generation = body.snapshot.generation;
   const std::uint32_t body_crc32 = body.snapshot.text_crc32;
   const Status installed = editor_.install(&body.snapshot); if (installed != Status::Ok) return {Status::InstallFailed, "editor_install"};
@@ -53,8 +55,16 @@ OperationResult DocumentSession::startupRestore() {
   persistence_.bindCurrent(current_id_, session_serial_, body_generation,
                            body_crc32, editor_.bodyRevision(),
                            body.latest_body_generation, body.source);
-  return {position == Status::Ok || position == Status::OkDegraded ? Status::Ok : Status::OkDegraded,
-          position == Status::Ok || position == Status::OkDegraded ? "complete" : "position_fallback",
+  if (position != Status::Ok && position != Status::NotFound) {
+    return {Status::OkDegraded, position == Status::OkDegraded
+        ? "position_degraded" : "position_fallback", false, true};
+  }
+  if (body.status == Status::OkDegraded)
+    return {Status::OkDegraded, "body_recovered", false, true};
+  if (initialized == Status::OkDegraded || loaded == Status::OkDegraded ||
+      got == Status::OkDegraded)
+    return {Status::OkDegraded, "metadata_recovered", false, true};
+  return {Status::Ok, position == Status::NotFound ? "position_default" : "complete",
           false, true};
 }
 

@@ -1,0 +1,7 @@
+{
+  "url": "https://github.com/espressif/esp-idf/blob/b774170ff46/components/fatfs/vfs/vfs_fat_sdmmc.c",
+  "commit": "b774170ff46",
+  "upstream_sha256": "5668001c1e9b0a9908e9636b9c64b5de9953e8872f97334c19b68dc1a13b2a1b",
+  "implementation": "integration/product/platform/board_sdmmc.cpp",
+  "sdk_files_modified": false
+}

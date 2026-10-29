@@ -67,6 +67,10 @@ VerticalPaintResult paintVerticalView(const App& app,VerticalPresentation& verti
       if(c.status!=v::Status::Ready)return;
       c.accent=run.focused;
       const auto painted=v::paintAbRun(run,c.raster);c.status=painted.status;c.glyphs+=painted.glyphs;
+      // Focus used to rely on red. Keep glyphs and numbering unchanged; a
+      // one-pixel rail inside the right edge of the run distinguishes focus.
+      if(c.port.monochrome&&run.focused&&run.box.width&&run.box.height)
+        c.port.rect(c.port.context,{std::uint16_t(run.box.x+run.box.width-1),run.box.y,1,run.box.height},VerticalColor::Black);
     },
     [](void* opaque,v::Rect box,bool red){const auto& c=*static_cast<Context*>(opaque);c.port.rect(c.port.context,box,red?VerticalColor::Red:VerticalColor::Black);},
     &context};

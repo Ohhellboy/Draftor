@@ -10,7 +10,7 @@ struct MountAttempt {
   const char* reason="not_started";
   int fat_result=-1;
 };
-struct MountResult { bool mounted=false;unsigned attempts=0;uint32_t elapsed_ms=0,max_call_ms=0; };
+struct MountResult { bool mounted=false;unsigned attempts=0;uint32_t elapsed_ms=0,max_call_ms=0;bool cleanup_failed=false; };
 constexpr unsigned MaximumAttempts=3;
 constexpr uint32_t TotalBudgetMs=15000,AttemptBudgetMs=4000,RetryPauseMs=250;
 template<class Port> MountResult recoverMount(Port& port) {
@@ -18,7 +18,7 @@ template<class Port> MountResult recoverMount(Port& port) {
   const auto start=port.now();
   // No runtime remount: retaining a mounted port or a reader is a caller error.
   if(!port.unowned())return result;
-  port.park();
+  if(!port.park()){result.cleanup_failed=true;result.elapsed_ms=uint32_t(port.now()-start);return result;}
   while(result.attempts<MaximumAttempts) {
     const auto used=uint32_t(port.now()-start);
     if(used>=TotalBudgetMs)break;
@@ -29,9 +29,9 @@ template<class Port> MountResult recoverMount(Port& port) {
     result.max_call_ms=std::max(result.max_call_ms,uint32_t(port.now()-call));
     port.record(result.attempts,attempt);
     if(attempt.mounted) { result.mounted=true;break; }
-    // SD.begin cleans its failed disk registration. park() is idempotent and
-    // also ends this SPI host, then drives CS/MOSI high and SCK low.
-    port.park();
+    // The original SD/SPI port retains its cleanup and pin parking. SDMMC
+    // reports uncertain cleanup here; do not retry or replace its ownership.
+    if(!port.park()){result.cleanup_failed=true;break;}
     const auto elapsed=uint32_t(port.now()-start);
     if(result.attempts==MaximumAttempts||elapsed>=TotalBudgetMs)break;
     port.pause(std::min(RetryPauseMs,TotalBudgetMs-elapsed));

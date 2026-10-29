@@ -1,6 +1,7 @@
 #pragma once
 #ifdef ARDUINO_ARCH_ESP32
 #include "usb_transfer.hpp"
+#include "runtime_findings_diag.hpp"
 #include "tinyusb_msc.hpp"
 #include "fatfs_inbox.hpp"
 #include <esp_heap_caps.h>
@@ -13,6 +14,7 @@ class S3UsbPlatform final : public UsbPlatform {
  usb::InboxFilesystemPort& files()noexcept override{return fat_;}
  usb::Status prepare(std::uint32_t now)noexcept override{
   auto& endpoint=usb::s3::TinyUsbMsc::instance();
+  runtime_diag::endTransport();
   if(!endpoint.start("Draftor USB v1.2 build236"))return usb::Status::Io;
   return endpoint.prepareSession(now);
  }

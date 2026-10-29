@@ -45,7 +45,7 @@ target_include_directories(extension PUBLIC "${EXTENSION}/include")
 target_link_libraries(extension PUBLIC HanIME::Core)
 file(GLOB DOCS CONFIGURE_DEPENDS "${COMMON}/src/hanime_document/*.cpp")
 set(COMMON_FILES find_session find_input find_controller find_highlight find_view_model hanime_document_adapter text_stats document body_editor utf8 layout visual_cursor_navigator selection_highlight hanime_document_editor_port body_key_repeat input_router)
-set(PLATFORM_FILES stability_diagnostics core_memory operation_profile hanime_document_sd_storage s3_vfs hid_keyboard hid_product_key_adapter font_port menu_font writing_app writing_readers)
+set(PLATFORM_FILES runtime_findings_diag stability_diagnostics core_memory operation_profile hanime_document_sd_storage s3_vfs hid_keyboard hid_product_key_adapter font_port menu_font writing_app writing_readers)
 set(WRITING ${DOCS})
 foreach(n IN LISTS COMMON_FILES)
  list(APPEND WRITING "${COMMON}/${n}.cpp")
@@ -430,3 +430,30 @@ add_test(NAME memory_capture_parser COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CUR
 # T04: actual S3 admission body and PsramDisk with a controlled Host heap.
 add_test(NAME usb_inbox_admission COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/../tools/inbox_admission_test/run.py" --mode $<IF:$<BOOL:${SANITIZE}>,sanitize,normal>)
 set_tests_properties(usb_inbox_admission PROPERTIES TIMEOUT 60 RUN_SERIAL TRUE)
+
+# Waveshare port checks reuse actual product owners, not a second persistence model.
+add_executable(ws_namespace ../../tools/ws_checks/namespace_contract.cpp platform/board_namespace.cpp)
+target_include_directories(ws_namespace PRIVATE ../../tools/ws_checks)
+target_link_libraries(ws_namespace device_adapter)
+target_compile_definitions(ws_namespace PRIVATE RESOURCE_ROOT="${HANIME_RESOURCE_ROOT}")
+add_executable(ws_preview ../../tools/ws_checks/ui_preview.cpp)
+target_include_directories(ws_preview PRIVATE ../../tools/ws_checks)
+target_link_libraries(ws_preview device_adapter)
+target_compile_definitions(ws_preview PRIVATE DRAFTOR_BOARD=2 RESOURCE_ROOT="${HANIME_RESOURCE_ROOT}" INDEX_ROOT="${HANIME_INDEX_ROOT}")
+add_executable(ws_storage_regression ../../tools/ws_checks/storage_regression.cpp)
+target_link_libraries(ws_storage_regression device_adapter)
+target_include_directories(ws_storage_regression PRIVATE tests/support)
+
+# A3 runtime findings R1: exact product F9 block with heap outcome seam.
+foreach(r1_test usb_key menu)
+ add_executable(runtime_r1_${r1_test} ../../tools/runtime_r1/${r1_test}.cpp)
+ target_link_libraries(runtime_r1_${r1_test} PRIVATE device_adapter)
+endforeach()
+
+add_executable(runtime_r1_footer ../../tools/runtime_r1/footer_preview.cpp)
+target_link_libraries(runtime_r1_footer PRIVATE device_adapter adapter_fixture_publisher)
+target_compile_definitions(runtime_r1_footer PRIVATE DRAFTOR_BOARD=2 RESOURCE_ROOT="${HANIME_RESOURCE_ROOT}" INDEX_ROOT="${HANIME_INDEX_ROOT}")
+
+# R5 normal product entry, generated from the actual device block.
+add_executable(product_r5_usb_key ../../tools/product_r5/usb_key.cpp)
+target_link_libraries(product_r5_usb_key PRIVATE device_adapter)
