@@ -6,13 +6,11 @@
 
 它希望提供一种无打搅的写作方式：无需联网，没有 AI 写作功能，保留基本编辑和文稿传输功能。
 
-## 最新更新：Alpha 2.1
+## 最新更新：Alpha 2.2 · 微雪
 
-Alpha 2.1 加入了支持中文输入的查找界面。写作时可以查找中文字词或英文，向前、向后查看匹配结果；查找界面也会跟随横排和竖排。
+Alpha 2.2 整理已接受的微雪 ESP32-S3-RLCD-4.2 移植：ST7305、原生 SDMMC、独立文稿目录、HOGP 输入订阅和菜单底栏。正常新稿没有可选位置记录时恢复为成功；损坏、失配和读取错误仍报告异常。bgIME 与 format4 资源不变。
 
-配合这次查找更新，文稿列表、重命名、帮助和传输页面改用了中文提示。编辑器也整理了顶部和底部：顶部保留文件名，底部显示输入方式、保存状态和蓝牙连接状态，横排正文多了一些显示空间。
-
-[下载 Alpha 2.1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1) · [完整更新说明](docs/RELEASE_NOTES.zh-CN.md) · [Alpha 2 性能结果](docs/PERFORMANCE.md) · [安装指南](docs/INSTALL.zh-CN.md) · [操作手册](docs/USAGE.zh-CN.md)
+[当前验收范围与限制](docs/ALPHA2_2_VALIDATION.md) · [更新说明](docs/RELEASE_NOTES.zh-CN.md) · [安装指南](docs/INSTALL.zh-CN.md) · [操作手册](docs/USAGE.zh-CN.md) · [原机 Alpha 2.1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1)
 
 ![运行中文输入的草稿机原型](draftor-prototype.jpg)
 
@@ -28,7 +26,7 @@ Alpha 2.1 加入了支持中文输入的查找界面。写作时可以查找中�
 | 文内查找 | 中文及英文查询、前后查找与回绕，适配横排和竖排 |
 | 文稿传输 | USB 和本地 Wi-Fi 导入、导出 |
 
-当前完整写作固件适用于 **ESP32-S3 N16R8（Thick）**，使用蓝牙键盘，以及 [Osptek（鱼鹰）ST7306 黑白红反射式 TFT 显示屏](display/st7306/)。
+源码支持 **微雪 ESP32-S3-RLCD-4.2（ST7305 / SDMMC）** 与原 **ESP32-S3 N16R8 + Osptek ST7306**。必须选择准确板型包；验收范围见上表链接。原目标仍为默认构建，并继续使用既有 Alpha 2.1 实机发行。
 
 仓库同时提供 **Raspberry Pi Pico 2 W** 的独立 ST7306 屏幕示例。当前公开的完整写作固件以 ESP32-S3 版本为准。
 
@@ -38,19 +36,17 @@ Alpha 2.1 加入了支持中文输入的查找界面。写作时可以查找中�
 
 ### 安装固件
 
-从 [Alpha 2.1 发行页](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1)下载同一版本的 **Firmware** 和 **Resources**，按[安装指南](docs/INSTALL.zh-CN.md)准备固件、词库和字体。
-
-Alpha 2 用户确认分区兼容后，可以只更新 App，继续使用原配套 TF 资源。Alpha 1、旧 2 MiB 槽和首次安装则需要按指南走全新安装流程。两种路径都应先备份文稿；只有全新安装需要清除内部 Flash，不需要格式化 TF 卡。
+微雪使用明确通过本次验收的 Alpha 2.2 专用包，按[安装指南](docs/INSTALL.zh-CN.md)区分兼容 App-only 更新和明确清除内部 Flash 的首装。两者都不格式化 TF，不混刷板型；已有准确 Alpha 2.1 资源原样复用。
 
 ### 写作和传输
 
 [操作手册](docs/USAGE.zh-CN.md)介绍常用按键、中文输入、查找、文稿改名，以及 USB 和本地 Wi-Fi 文稿传输。
 
-Alpha 2.1 仍是测试版本，本地 Wi-Fi 文稿传输属于实验功能。重要文稿请定期导出备份，具体限制见[已知问题](docs/KNOWN_ISSUES.md)。
+Alpha 2.2 仍是测试版本，本地 Wi-Fi 文稿传输属于实验功能。重要文稿请定期导出备份，具体限制见[已知问题](docs/KNOWN_ISSUES.md)。
 
 ### 自行编译
 
-下载同一版本的 **Source** 和 **BuildInputs**，按[构建指南](docs/BUILD.md)准备工具链并编译。运行设备时还需要配套的 Resources。
+使用 Alpha 2.2 **Source** 与明确引用的 Alpha 2.1 **BuildInputs**，按[构建指南](docs/BUILD.md)准备工具链并编译。运行设备时还需要配套的 Resources。
 
 GitHub 自动生成的“Source code”压缩包是仓库源码快照，安装设备请使用发行页提供的配套文件。
 

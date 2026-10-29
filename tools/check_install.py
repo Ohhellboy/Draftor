@@ -36,14 +36,17 @@ def active_slot(path):
  entries=[]
  for at in (0,4096):
   entry=data[at:at+32]
-  if entry==b'\xff'*32:continue
+  # The pinned SDK boot_app0 initializer uses seq=0 followed by erased
+  # bytes for its unused second record. This exact sentinel is not an
+  # active OTA entry; other malformed/CRC-invalid records still fail.
+  if entry in (b'\xff'*32, b'\x00'*4+b'\xff'*28):continue
   seq=struct.unpack_from('<I',entry)[0];state,crc=struct.unpack_from('<II',entry,24)
   if not 0<seq<0xffffffff or crc!=zlib.crc32(entry[:4],0xffffffff) or state not in (2,0xffffffff):
    raise ValueError('Invalid, pending, rollback or unsupported OTA state')
   entries.append(seq)
- # The tested installation has one valid entry and one erased entry. Do not
+ # The tested installation has one valid entry and one unused entry. Do not
  # guess boot choice for other states, sequence wrap, or rollback transitions.
- if len(entries)!=1:raise ValueError('OTA selection is not the supported unambiguous one-valid/one-erased pattern')
+ if len(entries)!=1:raise ValueError('OTA selection is not the supported unambiguous one-valid/one-unused pattern')
  return (entries[0]-1)%2
 
 def resources(root,manifest):

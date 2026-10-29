@@ -1,0 +1,45 @@
+{
+  "version": "v0.1.0-alpha.2.2",
+  "board": "WAVESHARE_RLCD42",
+  "chip": "esp32s3",
+  "flash_bytes": 16777216,
+  "firmware_label": "DRAFTOR_ALPHA_2_2_WAVESHARE_RLCD42",
+  "production_commit": "b1df4a858de39fc651b850bc9341599dd8f96ab3",
+  "files": {
+    "app.bin": {
+      "offset": 65536,
+      "bytes": 3911888,
+      "sha256": "4bad10414fd688b1d938927665a2e999dd6ebd406d61afb8947aa4475c01eeb6"
+    },
+    "bootloader.bin": {
+      "offset": 0,
+      "bytes": 19968,
+      "sha256": "31b3c1be45dc5a76aa85c82540d6787b675e711eaf11021a5eea7e36f469c6de"
+    },
+    "partitions.bin": {
+      "offset": 32768,
+      "bytes": 3072,
+      "sha256": "a172a8ae4cd0db329d6de2635991e3f6e3feb374e0ee9dcab78d9d7b360df6c9"
+    },
+    "boot_app0.bin": {
+      "offset": 57344,
+      "bytes": 8192,
+      "sha256": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0"
+    }
+  },
+  "elf": {
+    "publicly_distributed": false,
+    "bytes": 41062084,
+    "sha256": "bdf8a78d5005c6b5e5ada821f48e93d89c40327582f6db36ec6859fa5bdcb61e"
+  },
+  "resources_reference": "release/alpha2.2/INPUT_REFERENCES.json",
+  "source": "https://github.com/Ohhellboy/Draftor",
+  "qualification": "SOFTWARE_PASS_DEVICE_PENDING",
+  "toolchain": {
+    "arduino_cli": "1.4.1",
+    "arduino_esp32": "3.3.11",
+    "esp_x32": "2601",
+    "gcc": "14.2.0",
+    "esptool": "5.3.1"
+  }
+}

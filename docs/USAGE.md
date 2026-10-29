@@ -1,8 +1,11 @@
-# Draftor Alpha 2.1 User Guide
+# Draftor Alpha 2.2 User Guide
 
 **English** | [简体中文](USAGE.zh-CN.md)
 
 This guide covers the ESP32-S3 N16R8 (Thick) version of Draftor: entering text, renaming manuscripts, and transferring manuscripts over USB or local Wi-Fi. If you have not installed the firmware yet, start with the [installation guide](INSTALL.md).
+
+
+This source also supports Waveshare ST7305 with an isolated manuscript root. On the tested keyboard bare F9 sends Consumer input, while Fn+F9 sends standard F9 and opens the USB menu. Do not infer firmware failure merely from Consumer F9 staying in the editor; ordinary keys must continue working. Fn-Lock is keyboard-specific. Ctrl+Shift+U is not a product command. Import uses a 512 KiB RAM Inbox, not TF passthrough. Local Wi-Fi/QR is inherited experimental functionality with limited Waveshare device evidence; see [validation](ALPHA2_2_VALIDATION.md).
 
 ## 1. Common keys
 
@@ -145,7 +148,7 @@ Note the message on screen and what you were doing before the error; take a phot
 
 To report a problem, use [GitHub Issues](https://github.com/Ohhellboy/Draftor/issues) and describe your board model, firmware version, the steps you took and what happened. **You do not need to upload private manuscripts, complete input logs or Flash backups.** Before sharing screenshots or diagnostic information, check whether they contain private text or device information.
 
-Alpha 2.1 is still a test release. Regularly export important manuscripts and keep a separate backup. See [Known Issues](KNOWN_ISSUES.md) for other limitations and privacy information.
+Alpha 2.2 is still a test release. Regularly export important manuscripts and keep a separate backup. See [Known Issues](KNOWN_ISSUES.md) for other limitations and privacy information.
 
 ---
 

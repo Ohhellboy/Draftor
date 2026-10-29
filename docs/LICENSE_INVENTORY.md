@@ -170,3 +170,7 @@ The editor and Find use LXGW WenKai (OFL-1.1); menus use MiSans under Xiaomi’s
 The link adjustment extracts `string-inst.o` from the pinned GCC 14.2.0 libstdc++ archive. GCC runtime material remains covered by its original GPL terms and GCC Runtime Library Exception 3.1, rather than Apache-2.0. BuildInputs retains `COPYING.RUNTIME`, `COPYING3` and `COPYING3.LIB` under `release-materials/sdk-notices/toolchain/gcc/`. The object is extracted during the build, not checked into Source.
 
 字符串实现取自固定GCC 14.2.0运行库；其原GPL及运行库例外条款继续适用。BuildInputs保留上述许可文本，构建时提取对象，Source不附预编译对象。
+
+## Alpha 2.2 board components
+
+The adapted Waveshare ST7305 mapping/initialization retains the fixed Apache-2.0 vendor source and modification notice under `vendor/waveshare-st7305/`. The staged SDMMC/FAT owner retains the fixed ESP-IDF Apache-2.0 reference and modification notice under `vendor/sdmmc-lifecycle/`. These notices accompany the new firmware package; no new rights to existing font/dictionary resources are asserted.

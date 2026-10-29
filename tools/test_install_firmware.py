@@ -52,6 +52,22 @@ class InstallerTests(unittest.TestCase):
     def no_write(self):self.assertFalse(any(x[0] in ('write-flash','erase-flash') for x in self.f.calls))
     def test_plan_is_readonly(self):
         self.assertEqual(self.run_install()['status'],'PLAN_READY');self.no_write()
+    def test_pinned_sdk_unused_record(self):
+        data=bytearray(ota());data[4096:4100]=b'\x00'*4
+        self.f.ota=bytes(data)
+        p=self.f.package/'boot_app0.bin';p.write_bytes(data)
+        m=self.f.package/'FIRMWARE_MANIFEST.json';j=json.loads(m.read_text())
+        j['files']['boot_app0.bin']['sha256']=hashlib.sha256(data).hexdigest();m.write_text(json.dumps(j))
+        self.assertEqual(self.run_install()['app_slot'],'app0');self.no_write()
+    def test_unused_record_with_extra_data_refused(self):
+        data=bytearray(ota());data[4096:4100]=b'\x00'*4;data[4101]=0
+        self.f.ota=bytes(data)
+        with self.assertRaisesRegex(ValueError,'OTA'):self.run_install(execute=True,backup_confirmed=True)
+        self.no_write()
+    def test_invalid_active_crc_refused(self):
+        data=bytearray(ota());data[28]^=1;self.f.ota=bytes(data)
+        with self.assertRaisesRegex(ValueError,'OTA'):self.run_install(execute=True,backup_confirmed=True)
+        self.no_write()
     def test_actual_app1_not_assumed_app0(self):
         self.f.ota=ota(2);r=self.run_install(execute=True,backup_confirmed=True)
         self.assertEqual(r['app_offset'],'0x410000');self.assertEqual(r['status'],'VERIFIED_BOOT_PENDING')

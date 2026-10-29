@@ -6,13 +6,11 @@ Draftor is an open-source, portable Chinese writing device built around a microc
 
 It aims to provide a distraction-free writing experience: no internet connection is needed, there are no AI writing features, and the device keeps to basic editing and document transfer.
 
-## Latest update: Alpha 2.1
+## Latest update: Alpha 2.2 — Waveshare
 
-Alpha 2.1 adds a Find interface with Chinese input. Search for Chinese or English text, move through matches in either direction, and use Find in both horizontal and vertical writing.
+Alpha 2.2 brings the accepted Waveshare ESP32-S3-RLCD-4.2 port into the product source: ST7305, native SDMMC, isolated manuscripts, HOGP input subscriptions and menu footer ownership. A new document with no optional position record now restores normally; corrupt, mismatched or unreadable records still report errors. bgIME and format4 resources are unchanged.
 
-Alongside Find, the file list, rename screen, help and transfer pages now use Chinese prompts. The editor has also been tidied up: the filename stays at the top, while input mode, save status and Bluetooth connection status share one bottom line. Horizontal writing gains a little more space for the text.
-
-[Download Alpha 2.1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1) · [Release notes](docs/RELEASE_NOTES.md) · [Alpha 2 performance results](docs/PERFORMANCE.md) · [Installation guide](docs/INSTALL.md) · [User guide](docs/USAGE.md)
+[Current qualification and limits](docs/ALPHA2_2_VALIDATION.md) · [Release notes](docs/RELEASE_NOTES.md) · [Installation](docs/INSTALL.md) · [Usage](docs/USAGE.md) · [Original-board Alpha 2.1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1)
 
 ![Draftor prototype running Chinese input](draftor-prototype.jpg)
 
@@ -28,7 +26,7 @@ Alongside Find, the file list, rename screen, help and transfer pages now use Ch
 | Find in a manuscript | Chinese and English queries, forward/backward search and wraparound in both layouts |
 | Document transfer | Import and export over USB and local Wi-Fi |
 
-The complete writing firmware currently targets the **ESP32-S3 N16R8 (Thick)**, with a Bluetooth keyboard and an [Osptek ST7306 black-white-red reflective TFT display](display/st7306/).
+Source supports **Waveshare ESP32-S3-RLCD-4.2** (ST7305/SDMMC) and the original **ESP32-S3 N16R8 + Osptek ST7306**. Select the exact board package; see the qualification table above. The original target remains the default build and keeps its Alpha 2.1 device release.
 
 The repository also provides standalone ST7306 display examples for the **Raspberry Pi Pico 2 W**. The current complete writing firmware is the ESP32-S3 version.
 
@@ -38,19 +36,17 @@ See [Hardware](docs/HARDWARE.md) for wiring and hardware requirements.
 
 ### Install the firmware
 
-Download **Firmware** and **Resources** from the same [Alpha 2.1 release](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1), then follow the [installation guide](docs/INSTALL.md) to prepare the firmware, dictionaries, and font.
-
-Alpha 2 users can update only the App after checking partition compatibility, keeping their existing TF resources. Alpha 1, old 2 MiB slots and new boards use the separate fresh-install procedure. Back up manuscripts before either route; only a fresh installation erases internal flash, and neither route requires formatting the TF card.
+Use the target-specific Waveshare Alpha 2.2 package only after its release qualification is recorded. Follow [Installation](docs/INSTALL.md): compatible updates write only the actual active App; fresh installation is a separate explicitly destructive internal-Flash mode. Never format TF or cross-flash boards. Existing exact Alpha 2.1 resources are reused unchanged.
 
 ### Write and transfer documents
 
 The [user guide](docs/USAGE.md) covers keyboard shortcuts, Chinese input, Find, renaming documents, and transferring documents over USB and local Wi-Fi.
 
-Alpha 2.1 is a test release, and local Wi-Fi document transfer remains experimental. Export and back up important writing regularly. See [Known Issues](docs/KNOWN_ISSUES.md) for details.
+Alpha 2.2 is a test release, and local Wi-Fi document transfer remains experimental. Export and back up important writing regularly. See [Known Issues](docs/KNOWN_ISSUES.md) for details.
 
 ### Build from source
 
-Download **Source** and **BuildInputs** from the same release and follow the [build guide](docs/BUILD.md) to prepare the toolchain and compile the firmware. Running the device also requires the matching Resources.
+Use Alpha 2.2 **Source** and the explicitly referenced Alpha 2.1 **BuildInputs** and follow the [build guide](docs/BUILD.md) to prepare the toolchain and compile the firmware. Running the device also requires the matching Resources.
 
 GitHub's automatically generated “Source code” archives are repository snapshots. To install the device, use the matching files supplied on the release page.
 

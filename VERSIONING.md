@@ -10,7 +10,7 @@ Draftor 使用 **Alpha X.Y** 表示产品测试版；bgIME 的版本号独立维
 
 判断 bgIME 是否更新，要核对 Core、Extension、Wubi 的实际实现、API 和配套资源绑定。构建日期、目录改名或产品包装变化不能代替这项判断。即使 API 未改，实现也可能有变化；遇到未解释的引擎差异，应先查清并由作者确认。词库或索引单独更新是否属于引擎换代，也由作者对该次更新作出决定。
 
-本次为 **Alpha 2.1**，tag 为 **`v0.1.0-alpha.2.1`**。中文 Find 调用既有输入接口、状态栏翻译、输入目标适配、字体和字符串链接调整均属于本次产品修订。Core `0.13.1-rc.1`、API `0.13.0`、Core CMake `0.13.1`、Extension `0.8.4-rc.1` / CMake `0.8.4` 继续保留；Wubi 以本次源码和原资源 pin 绑定，不另造版本号。
+本次为 **Alpha 2.2**，tag 为 **`v0.1.0-alpha.2.2`**。微雪板适配、HOGP/底栏修正及正常位置缺省恢复属于产品修订；bgIME Core/Extension/Wubi、format4 与资源 pins 未改。Core `0.13.1-rc.1`、API `0.13.0`、Core CMake `0.13.1`、Extension `0.8.4-rc.1` / CMake `0.8.4` 继续保留；Wubi 以本次源码和原资源 pin 绑定，不另造版本号。
 
 ## English
 
@@ -18,7 +18,7 @@ Draftor uses **Alpha X.Y** for product prereleases. Increase X only when the rel
 
 Compare the actual Core, Extension and Wubi implementation, API and resource bindings when making that decision. An unchanged API alone does not prove an unchanged engine. Dates, directory names and packaging do not constitute engine updates. The author decides how an independent dictionary or index update affects the series.
 
-This release is Alpha 2.1. bgIME maintains its own versions, listed above. Its existing implementation and resource bindings remain in use.
+This release is Alpha 2.2 (Waveshare). bgIME maintains its own versions, listed above. Its existing implementation and resource bindings remain in use.
 
 ## 名称与 tag / Names and tags
 

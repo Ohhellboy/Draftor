@@ -1,3 +1,29 @@
+# Hardware and target selection / 硬件与目标选择
+
+## Waveshare ESP32-S3-RLCD-4.2
+
+Use the exact `WAVESHARE_RLCD42` package, not an Osptek image. ROM chip identity alone cannot distinguish boards with different wiring; physically check the model printed on the board. / 必须确认实物板型；芯片 MAC 不能代替板型确认。
+
+| Function / 功能 | GPIO / configuration |
+|---|---|
+| ST7305 | SCK 11, MOSI 12, CS 40, DC 5, RESET 41; synchronous SPI 10 MHz |
+| Panel geometry | Native 300 × 400 monochrome; 4 × 2 packed pixels, 15,000 B framebuffer; no TE wait |
+| TF native SDMMC | CLK 38, CMD 21, D0 39; 1-bit, runtime 20 MHz |
+| Native USB | D− 19 / D+ 20; same connector used for ROM download and product MSC |
+| BOOT | GPIO0, hold only for download; normal startup must release it |
+| KEY | GPIO18; no new product action assigned |
+| PWR | Board power control, not a save-before-shutdown command |
+
+GPIO4 is battery ADC, 9/10/16 are associated with audio, 15 is RTC interrupt; the original SPI/park pins occur only inside the original-board branch. OPI PSRAM reserves 35/36/37. Do not repurpose strapping pins 0/3/45/46. The application does not add battery gauge, RTC, audio, sensors or low-power features.
+
+微雪分支不会执行原板的 GPIO4 RESET 或 GPIO15/16/17 TF 停泊。电池百分比、RTC、音频、传感器与低功耗均未开发。本轮范围为 USB 供电；有电池时拔 USB 不一定断电，PWR 不等于保存。停止输入并等待保存完成、退出传输后再断电。
+
+Waveshare documents live under `/sd/WAVESHARE_RLCD42/HANIME_S3_TEST/v01`; the original board continues using `/sd/HANIME_S3_TEST/v01`. Shared dictionary/font paths under `/sd/HANIME/IME/` are read-only. An unknown/incomplete existing Waveshare directory is refused; there is no fallback to original manuscripts and no automatic takeover, move, migration or format. A missing namespace is created by the firmware with its own marker. Pico is only reserved, not a port.
+
+See [support and board completeness](ALPHA2_2_VALIDATION.md), [installation](INSTALL.md) and [build target selection](BUILD.md).
+
+## Original Osptek board — retained documentation
+
 # Draftor Hardware & Wiring / 硬件与接线
 
 **Version / 适用版本：Draftor Alpha · v0.1.0-alpha.1**

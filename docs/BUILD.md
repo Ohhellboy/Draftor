@@ -1,4 +1,4 @@
-# Building Alpha 2.1 / Alpha 2.1 源码构建
+# Building Alpha 2.2 / Alpha 2.2 源码构建
 
 Build the Chinese Find, menu and editor interface with the fixed inputs below. Product release names follow [VERSIONING.md](../VERSIONING.md); bgIME keeps its own versions.
 
@@ -6,9 +6,9 @@ Build the Chinese Find, menu and editor interface with the fixed inputs below. P
 
 ## Inputs / 输入
 
-Unzip this version's Source and BuildInputs. `Draftor/` contains Git-tracked project source; `BuildInputs/inputs/` supplies only the eleven entries in `EXTERNAL_INPUTS.json`. Two added inputs are the WenKai UI16 bitmap and exact MiSans 14/16px menu tables. Check [Font Distribution](FONT_DISTRIBUTION.md) before redistributing generated tables. The remainder of BuildInputs holds original licenses, corresponding third-party sources, font/dictionary provenance and the explicit optional format3 input to the current resource generator. It is not an installed SDK or cache. Runtime resource generation is unnecessary for compiling this firmware.
+Unzip Alpha 2.2 Source and the unchanged Alpha 2.1 BuildInputs identified in [INPUT_REFERENCES](../release/alpha2.2/INPUT_REFERENCES.json). `Draftor/` contains Git-tracked project source; `BuildInputs/inputs/` supplies only the eleven entries in `EXTERNAL_INPUTS.json`. Two added inputs are the WenKai UI16 bitmap and exact MiSans 14/16px menu tables. Check [Font Distribution](FONT_DISTRIBUTION.md) before redistributing generated tables. The remainder of BuildInputs holds original licenses, corresponding third-party sources, font/dictionary provenance and the explicit optional format3 input to the current resource generator. It is not an installed SDK or cache. Runtime resource generation is unnecessary for compiling this firmware.
 
-解压同版 Source 与 BuildInputs。`Draftor/` 是拟提交的源码；`BuildInputs/inputs/` 对应清单中的11项配套输入。新增两项为文楷 UI16 位图和 MiSans 14/16px 菜单表；再分发前请阅读[字体分发说明](FONT_DISTRIBUTION.md)。其余内容为原许可、第三方对应源码、字体词库来源及可选资源生成所需的准确前代输入，不是整套已安装 SDK 或缓存。编译不需要重新生成词库。
+解压 Alpha 2.2 Source 与清单明确引用的原样 Alpha 2.1 BuildInputs。`Draftor/` 是拟提交的源码；`BuildInputs/inputs/` 对应清单中的11项配套输入。新增两项为文楷 UI16 位图和 MiSans 14/16px 菜单表；再分发前请阅读[字体分发说明](FONT_DISTRIBUTION.md)。其余内容为原许可、第三方对应源码、字体词库来源及可选资源生成所需的准确前代输入，不是整套已安装 SDK 或缓存。编译不需要重新生成词库。
 
 Install **Python 3, Arduino CLI 1.4.1, Arduino-ESP32 3.3.11 and esp-x32 2601 (GCC 14.2.0)**. The SDK `versions.txt` must match `vendor/versions.txt` (ESP-IDF v5.5.5 b774170ff46; Arduino 0d7a8614b; TinyUSB 53f8c53c2). `DRAFTOR_SDK_SOURCE` points to the Arduino **data directory containing `packages/`**, not its parent. The build makes an owned USB overlay; installed tools/libraries are read-only inputs. CMake 3.20+ and a C++17 compiler are needed only for optional Host checks.
 
@@ -54,7 +54,7 @@ Use a fresh extracted directory. Outputs are in `TestBuilds/s3/<TARGET>/dist/`; 
 
 The board uses the exact custom dual-4 MiB partition CSV in `integration/product/partitions/B.csv`. Core CMake version is 0.13.1, Core release identifier 0.13.1-rc.1, API 0.13.0 and Host 0.8.4-rc.1; these are independent of the Draftor release number.
 
-分区取准确双4 MiB CSV；Core、API、Host版本与整机 Alpha 2.1 版本号分别保留。
+分区取准确双4 MiB CSV；Core、API、Host版本与整机 Alpha 2.2 版本号分别保留。
 
 ## Source map and optional checks / 源码与可选检查
 
@@ -79,24 +79,17 @@ The build extracts `string-inst.o` from the pinned compiler’s `esp32s3/no-rtti
 
 构建从固定工具链的上述库中提取字符串实现，放在 Arduino core 库之后。SDK 库和后续 libstdc++ 链接仍保留，提取对象的身份写入构建回执；Source 不附带预编译对象。运行库许可见[第三方声明](../THIRD_PARTY.md)。
 
-## Waveshare A3 isolated software review
+## Alpha 2.2 target and validation
 
-The default target remains `ESP32S3_OSPTEK_ST7306`. The explicit `WAVESHARE_RLCD42` target selects ST7305 and one-bit native SDMMC; it does not link the product Arduino SD fork. Unknown target names and Pico are rejected. This candidate has not been flashed or qualified on hardware.
+Default remains `ESP32S3_OSPTEK_ST7306`; explicitly select `WAVESHARE_RLCD42` for ST7305 / 1-bit SDMMC. Unknown names and Pico are rejected. Both targets receive the small shared startup-position correction; original-board HOGP behavior is not expanded. Production labels are `DRAFTOR_ALPHA_2_2_<TARGET>`. Waveshare uses `WS_HOGP_INPUTS=1`, runtime/HID/causal diagnostics all 0; no temporary causal shortcut.
 
-The original logical document root is unchanged. Waveshare maps it to `/sd/WAVESHARE_RLCD42/HANIME_S3_TEST/v01`. Shared dictionaries and fonts still use `/sd/HANIME/IME/…`. An unknown existing Waveshare directory is refused; there is no original-directory fallback, migration or formatting. Pico is reserved only.
-
-Run finite checks against an **extracted release Resources folder**, never a mounted TF card during software review:
+Both complete target builds run actual dependency, pin, link and stack gates. [Current validation and costs](ALPHA2_2_VALIDATION.md) separates hardware observations from Host results. [A3](WAVESHARE_A3_HISTORY.md) is historical software-only evidence, not a current “not flashed” claim.
 
 ```sh
-python3 -B tools/check_alpha2.py
-python3 -B tools/run_port_checks.py --resources ../Resources/HANIME/IME/B_SHORT_TEXT_20261018 --mode normal
-python3 -B tools/run_port_checks.py --resources ../Resources/HANIME/IME/B_SHORT_TEXT_20261018 --mode sanitize
+# From the source root; Resources is an extracted local archive, not a mounted card:
+python3 -B tools/validate_alpha2_2.py --resources ../Resources/HANIME/IME/B_SHORT_TEXT_20261018
 ```
 
-The selected tests include the real product App/storage/USB owners, actual painters, the actual ST7305 driver with a wire decoder, and the production staged SDMMC mount implementation with mocked host/FAT effects and real heap allocation/free. Host files and sanitizer allocations are not hardware timing or heap measurements. The ten inherited storage/editor regression groups retain their original assertions; the separate full historical `port_risks` suite has an obsolete Find height=306 assertion against the unchanged Alpha 2.1 height=320. Current Chinese Find is checked separately. See the review package REPORT, COSTS and DEVICE_HANDOFF for evidence and the future one-pass device procedure.
+This bounded normal + ASan/UBSan runner covers startup storage, USB import/save/lifecycle, heap guard, product F9 route, footer ownership, display integration, HOGP diagnostics-off behavior and parameterized installer failures. Configuration and compile steps are not extra functional test cases. It does not rerun every historical CTest. Sized-delete overloads preserve allocation matching; sanitizer checks remain enabled.
 
-A2 retires the two A1 SDMMC review defects. `board_sdmmc.cpp` owns the mount stages directly using the pinned SDK APIs; it does not call the SDK convenience mount/unmount helpers or modify SDK files. Owner allocation is the final fallible step, and failures roll back FAT, VFS, diskio, host and card ownership. Cleanup failure retires the public handle and blocks further attempts until reset. There is no automatic format or runtime remount.
-
-The Host checks run 19 SDMMC cases separately, including final owner allocation failure, successful retry after complete rollback, failure during rollback, consumed VFS context after unregister error, repeated cleanup, startup retry termination, and conservative quarantine when FatFs/host refuses detachment. The common retry loop retains the original SD/SPI port's three-attempt behavior and has its own regression test. The fault allocator is forbidden in an Arduino build. These tests are finite software evidence, not a guarantee that every internal SDK allocation/assert or physical card failure is recoverable.
-
-A3 keeps the A2 SDMMC implementation unchanged. Namespace admission now returns Ready, Invalid or OutOfMemory and catches allocation failures including construction of the VFS root. Unknown or incomplete directories are never adopted. The Host runner adds a fail-at-each-allocation sweep for both new and valid-marker paths, including the exact WS startup gate, and existing marker I/O faults. The A3 delivery rebuilds WAVESHARE_RLCD42; it retains the exact A2 original-target binary and records why its runtime branch is unaffected.
+微雪文稿与共享资源路径见 [Hardware](HARDWARE.md)。A2 的 SDMMC 回滚/卸载隔离和 A3 的命名空间分配异常保护原样保留；本轮只继承相关有效证据，不声称重新穷举全部旧故障。最终生产源码提交与镜像绑定写入目标清单；后续纯文档提交不改变已测二进制。

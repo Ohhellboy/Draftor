@@ -1,7 +1,10 @@
 {
-  "version": "v0.1.0-alpha.2.1",
-  "status": "LOCAL_AUTHOR_REVIEW_ONLY",
-  "remote_actions_authorized": false,
+  "version": "v0.1.0-alpha.2.2",
+  "status": "SOFTWARE_PASS_DEVICE_PENDING",
+  "branch": "feature/waveshare-alpha2-2-20261029",
+  "remote_actions_authorized": true,
+  "firmware_publication_conditional_on_device_and_storage": true,
   "tag_created": false,
-  "published": false
+  "published": false,
+  "automatic_main_merge": false
 }

@@ -1,8 +1,18 @@
 # Known issues, limits and privacy / 已知问题、限制与隐私
 
-Alpha 2.1 adds Chinese Find and Chinese interface labels. Keep independent exports of important manuscripts. The limits below apply to the current product; historical measurements retain their original version names.
+Alpha 2.2 adds the Waveshare target while retaining Chinese Find and interface labels. Keep independent exports of important manuscripts. The limits below apply to the current product; historical measurements retain their original version names.
 
-Alpha 2.1 支持中文查找和中文界面提示。使用时仍请独立导出重要文稿。以下说明当前限制；历史测量保留原版本归属。
+Alpha 2.2 增加微雪目标并保留中文查找及界面。使用时仍请独立导出重要文稿。以下说明当前限制；历史测量保留原版本归属。
+
+## Waveshare Alpha 2.2 / 微雪当前范围
+
+The accepted R5 F-01 input-stall finding is closed only for the tested Waveshare board, Logitech keyboard and Fn configuration. No new keyboard-internal or air-interface evidence is claimed. HOGP all-Input subscriptions and CCCD readback stay enabled independently of diagnostics. Menu footer overlap is fixed; no quantified trash performance claim is made.
+
+R5 had one reboot “存储异常” observation without a captured status/stage. Host reproduction proves a narrower issue: a valid imported body/CURRENT with no optional position record returned `OK_DEGRADED / position_fallback`. Alpha 2.2 uses the snapshot's valid default cursor and returns `OK / position_default` only for `NOT_FOUND`. Corruption, mismatch, I/O, genuine body/metadata recovery and PARTIAL still warn. This is not proof of the historical event's exact cause. See [current hardware qualification](ALPHA2_2_VALIDATION.md) for the final unedited import/reboot/export outcome.
+
+历史警告的实际分支未知；本轮不把“提示消失”当作数据安全证明。正常位置缺省与真实损坏分开处理；真实警告仍须留证。原机也编译验证这项共享修改，但没有新原机实测或可刷发行资产。
+
+Waveshare qualification is USB-powered, on the same tested keyboard and Linux/Pi USB host. Battery/PWR shutdown semantics, long stress, other cards/keyboards/hosts, new-board fresh installation and Wi-Fi/QR exchange remain limited or untested. Wi-Fi/QR stays available as an inherited experiment; original-board evidence is not relabelled as Waveshare evidence. No automatic TF repair or namespace adoption is provided.
 
 ## Large libraries / 大文库
 
@@ -16,7 +26,7 @@ Export finished writing regularly. Moving it to the trash does not reduce the co
 
 ## Current limits / 当前限制
 
-- **2 MiB slots cannot accept this App.** Alpha 1 users should back up manuscripts and necessary data, erase internal flash, and follow the [fresh-install procedure](INSTALL.md). The TF card does not need formatting. / 旧2 MiB槽装不下本版；Alpha 1 用户请先备份，清除内部 Flash 后全新安装，不格式化 TF 卡。
+- **2 MiB slots cannot accept this App.** Alpha 1 users should back up manuscripts and necessary data, erase internal flash, and follow the original-board [fresh-install procedure](INSTALL_ALPHA2_1.md). The TF card does not need formatting. / 旧2 MiB槽装不下本版；Alpha 1 用户请先备份，清除内部 Flash 后全新安装，不格式化 TF 卡。
 - Resources must be the exact format4 set; format2 files/Ready markers do not make a mixed directory compatible. / 不混用旧新资源或伪造 Ready。
 - Some activation/warm-query costs and synchronous full-screen blocking remain; see [Performance](PERFORMANCE.md). / 激活、热查询子段及同步整屏仍有代价。
 - User-frequency learning, personal dictionaries, abbreviated/mixed Pinyin, selectable fonts and complete Pico writing firmware remain unavailable. Chinese Find and the current Chinese menus are described in the user guide. / 用户词频学习、个人词库、简拼混拼、字体切换和 Pico 整机固件仍未提供；中文查找及现有中文菜单见使用手册。
