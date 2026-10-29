@@ -1,6 +1,6 @@
 # Alpha 2.2 — evidence, decisions and limits / 验收与边界
 
-**Current status: SOFTWARE_PASS_DEVICE_PENDING.** The final Waveshare image is built; this page will record its finite device result before any flashable release. Production inputs are identical to the public sanitized source commit `b1df4a858de39fc651b850bc9341599dd8f96ab3`; only two Host fixture texts were sanitized after the build; later installer/document commits do not rebuild or substitute that image. The original board receives a full source build, not a new device-release claim.
+**Current status: FINITE_DEVICE_PASS_RELEASE_READY.** The final Waveshare image passed the authorized USB-powered device round on 2026-10-29; prerelease qualification is limited to the recorded scope. Production inputs are identical to the public sanitized source commit `b1df4a858de39fc651b850bc9341599dd8f96ab3`; only two Host fixture texts were sanitized after the build; later installer/document commits do not rebuild or substitute that image. The original board receives a full source build, not a new device-release claim.
 
 ## Actual corrections / 实际修正
 
@@ -32,12 +32,12 @@ Import's durable AUTO owns the text; CURRENT is committed when opening it. A POS
 |---|---|---|---|---|
 | Target/pins/parking | `board_config.hpp`, `board_display.hpp`, actual both-target compilation; old TF park/SPI GPIOs inside original-board branch | 检查后不改 | WS uses reset41, SPI11/12/40/5 and SDMMC38/21/39; old reset4/audio/RTC pins are not reached | No new HAL or pin change |
 | ST7305 update | Accepted wire-decoder/packing/window completion evidence; driver byte-identical to R5; current display integration Host test | 继承通过 | 300×400, 4×2/15,000 B, synchronous 10 MHz/dirty window semantics unchanged | No TE wait/DMA/thread/frequency claim |
-| Monochrome UI | Actual horizontal candidate underline/invalid marker, vertical monochrome port, inverted selection, menu footer ownership; inherited renderer previews | 继承通过 | Information is not conveyed by red alone; original color behavior retained | Finite horizontal/vertical Find visual confirmation pending; no UI redesign |
+| Monochrome UI | Actual horizontal candidate underline/invalid marker, vertical monochrome port, inverted selection, menu footer ownership; inherited renderer previews | 继承通过 | Information is not conveyed by red alone; original color behavior retained | Finite horizontal/vertical Find visual confirmation passed by user observation; no UI redesign |
 | SDMMC ownership | A2 rollback/final-owner-allocation/unmount-quarantine evidence; unchanged `board_sdmmc`; actual linked WS native path | 继承通过 | 1-bit20 MHz, single owner, bounded mount, retired handles/mount epoch; no runtime convenience remount | No speed/cache change; physical failure recovery not universally guaranteed |
 | Namespace/resources | A3 allocation-failure/valid-marker/new-space tests; code and resource pins unchanged | 继承通过 | Unknown/incomplete roots refused, no original-data fallback; shared resources read-only | No TF migration/reformat/resource rewrite |
-| Startup restore | Real App/import/session regression with valid body/CURRENT/CRC and directed fault cases above | 已修并验证 | Normal optional absence distinguished from actual degradation | Shared fix in both builds; final device chain pending |
+| Startup restore | Real App/import/session regression with valid body/CURRENT/CRC and directed fault cases above | 已修并验证 | Normal optional absence distinguished from actual degradation | Shared fix in both builds; final unedited device chain passed |
 | HOGP/F9 | R4/R5 accepted finite observations; diagnostics-off HOGP test and linked product closure gate | 继承通过 | All Input reports subscribed/read back, non-keyboard routing isolated; standard F9 and protections retained | F-01 closed only for accepted board/keyboard/Fn configuration; no new root-cause claim |
-| USB export/Inbox | R5 actual Linux/Pi transfers/eject; current transaction/first-init/guard/cleanup Host checks | 继承通过 | Snapshot is read-only; Inbox is RAM512 KiB; TF not exposed | Final binary unedited roundtrip and normal eject pending |
+| USB export/Inbox | R5 actual Linux/Pi transfers/eject; current transaction/first-init/guard/cleanup Host checks | 继承通过 | Snapshot is read-only; Inbox is RAM512 KiB; TF not exposed | Final binary unedited roundtrip and three normal ejects passed |
 | Menus/trash | Accepted R5 list/help/rename/trash footer and response observations; current actual painter tests | 继承通过 | Menu owns footer, no retained IME overlay | No quantified trash performance or large-library claim |
 | Power/keys/peripherals | Existing board mapping and reachable startup/parking; USB-powered scope | 检查后不改 | BOOT downloads, KEY18 unmapped, PWR not save; unused peripherals are not requirements | Battery/RTC/audio/sensors/low power 延后 |
 | SDK/build/resource costs | Both final builds pass actual deps/pins/link/stack; exact fixed SDK/overlay | 已修并验证 | No SDK, partition or engine upgrade; common-source change built twice | Original physical device untouched; no new original-board asset |
@@ -49,9 +49,9 @@ Import's durable AUTO owns the text; CURRENT is committed when opening it. A POS
 | Feature | Software/source | Waveshare device evidence |
 |---|---|---|
 | Xiaohe / Full Pinyin / Wubi86 / English | Same accepted engine, bindings and commit semantics | A3 finite four-scheme observation inherited; R5 English/Xiaohe observations; not exhaustive per-scheme certification on this new image |
-| Horizontal/vertical writing and Find | Same Alpha 2.1 editor/Find; WS monochrome renderer branches retained | A3 limited layout/Find observation inherited; this final-image finite visual check pending |
-| F9, menus, save, trash | Current bounded regressions; no causal shortcut or diagnostic dependency | R5 accepted keyboard/Fn/menus/footer observations; final-image smoke pending |
-| Real USB and reboot | Current import/save/error/restore tests | R5 normal eject/return passed; original preserved; old 88 B fixture became89 B by intentional edit, **not** an unedited roundtrip PASS; new round pending |
+| Horizontal/vertical writing and Find | Same Alpha 2.1 editor/Find; WS monochrome renderer branches retained | A3 limited layout/Find observation inherited; this final-image finite visual check passed by user observation |
+| F9, menus, save, trash | Current bounded regressions; no causal shortcut or diagnostic dependency | R5 accepted keyboard/Fn/menus/footer observations; final-image smoke passed by user observation |
+| Real USB and reboot | Current import/save/error/restore tests | R5 normal eject/return passed; original preserved; old 88 B fixture became89 B by intentional edit, **not** an unedited roundtrip PASS; new final-image 88 B unedited roundtrip passed |
 | Local Wi-Fi / QR | Inherited experimental code, unchanged | No new Waveshare exchange; original-board evidence is not relabelled |
 | Battery, other keyboards/cards/hosts, endurance, fresh empty board | No new implementation or universal claim | Not qualified in this round |
 
@@ -73,4 +73,14 @@ Waveshare versus accepted R5: App +48 B, static DRAM +1 B. OPI PSRAM capacity is
 
 ## Device result / 实机结果
 
-Pending the single authorized final-image round. No new binary has device PASS yet. The public source/docs PR can proceed; flashable prerelease remains held until identity, update verification, unedited save/reboot/export comparison and product smoke are recorded. Main is not automatically merged. Private evidence includes real identity/manuscripts and is intentionally excluded from this repository.
+The same accepted Waveshare, existing Logitech keyboard/Fn configuration and Linux/Pi host were used, under USB power. Existing verified backups were reused. The ROM no-stub path independently verified the exact R5 App, actual layout and selected app0 before writing only the new App at0x10000; independent post-write verification passed. No whole-chip erase, partition/NVS/pairing change or TF resource write occurred.
+
+- User confirmed ordinary input, bare F9 followed by ordinary keys, standard Fn+F9 menu/return, horizontal/vertical Find and monochrome focus were normal. No F9 investigation or special HID capture was reopened.
+- Actual RAM Inbox was524,288 B/RW. The host copied the untouched88 B synthetic fixture, read it back identically and performed normal SCSI eject.
+- User imported/opened it, explicitly saved, performed **one** planned power cycle, and directly exported before editing. Final confirmation explicitly covered no typed characters and no reboot “存储异常”. Export was2,117,120 B/RO; DOCUMENT.TXT was88 B and `cmp` returned0 against the original fixture.
+- The original manuscript export was82 B and `cmp` returned0 against its retained pre-round baseline (user confirmed no intervening use). The host performed three normal SCSI ejects total, all successful. The final LUN has zero media capacity and no mount; user confirmed return to the original editor, saved/connected, without current warning. Test documents and the same final App remain installed.
+- Photos were not received. Screen results are user observations; exact runtime storage status/stage was **not captured**. No extra card scan, backup, whole-card hash, second recovery restart or diagnostic firmware was used.
+
+**Storage release decision:** the reproducible missing-optional-position false warning has a bounded correction and fault counterexamples; the final image's unedited save/reboot/export path and original protection now pass. No current body corruption or unresolved save failure was found in this finite scope. This supports prerelease, without claiming the historical R5 event's exact cause or universal media reliability. F-01 remains closed only within the already accepted board/keyboard/Fn scope; no regression was observed.
+
+Public source is on the task branch, not merged into main. A GitHub-connector PR attempt returned403 `Resource not accessible by integration`; it did not create a PR. Tag/Release availability is authoritative on the [release page](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.2). Private evidence includes real identity/manuscripts and is excluded from this repository.

@@ -10,7 +10,7 @@ It aims to provide a distraction-free writing experience: no internet connection
 
 Alpha 2.2 brings the accepted Waveshare ESP32-S3-RLCD-4.2 port into the product source: ST7305, native SDMMC, isolated manuscripts, HOGP input subscriptions and menu footer ownership. A new document with no optional position record now restores normally; corrupt, mismatched or unreadable records still report errors. bgIME and format4 resources are unchanged.
 
-[Current qualification and limits](docs/ALPHA2_2_VALIDATION.md) · [Release notes](docs/RELEASE_NOTES.md) · [Installation](docs/INSTALL.md) · [Usage](docs/USAGE.md) · [Original-board Alpha 2.1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1)
+[Alpha 2.2 prerelease](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.2) · [Current qualification and limits](docs/ALPHA2_2_VALIDATION.md) · [Release notes](docs/RELEASE_NOTES.md) · [Installation](docs/INSTALL.md) · [Usage](docs/USAGE.md) · [Original-board Alpha 2.1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1)
 
 ![Draftor prototype running Chinese input](draftor-prototype.jpg)
 

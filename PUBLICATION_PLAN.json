@@ -1,10 +1,10 @@
 {
   "version": "v0.1.0-alpha.2.2",
-  "status": "SOFTWARE_PASS_DEVICE_PENDING",
+  "status": "FINITE_DEVICE_PASS_RELEASE_READY",
   "branch": "feature/waveshare-alpha2-2-20261029",
   "remote_actions_authorized": true,
-  "firmware_publication_conditional_on_device_and_storage": true,
-  "tag_created": false,
-  "published": false,
-  "automatic_main_merge": false
+  "release_state_reference": "https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.2",
+  "PR_status": "connector 403; no PR created",
+  "automatic_main_merge": false,
+  "old_releases_overwritten": false
 }

@@ -10,7 +10,7 @@
 
 Alpha 2.2 整理已接受的微雪 ESP32-S3-RLCD-4.2 移植：ST7305、原生 SDMMC、独立文稿目录、HOGP 输入订阅和菜单底栏。正常新稿没有可选位置记录时恢复为成功；损坏、失配和读取错误仍报告异常。bgIME 与 format4 资源不变。
 
-[当前验收范围与限制](docs/ALPHA2_2_VALIDATION.md) · [更新说明](docs/RELEASE_NOTES.zh-CN.md) · [安装指南](docs/INSTALL.zh-CN.md) · [操作手册](docs/USAGE.zh-CN.md) · [原机 Alpha 2.1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1)
+[Alpha 2.2 预发布](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.2) · [当前验收范围与限制](docs/ALPHA2_2_VALIDATION.md) · [更新说明](docs/RELEASE_NOTES.zh-CN.md) · [安装指南](docs/INSTALL.zh-CN.md) · [操作手册](docs/USAGE.zh-CN.md) · [原机 Alpha 2.1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1)
 
 ![运行中文输入的草稿机原型](draftor-prototype.jpg)
 

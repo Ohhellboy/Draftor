@@ -12,3 +12,5 @@ bgIME Core/Extension/Wubi、候选提交语义、format4/pins、ST7305 时序和
 见[安装](INSTALL.zh-CN.md)、[构建](BUILD.md)、[目标清单](../release/alpha2.2/WAVESHARE_RLCD42.json)和[原样资源引用](../release/alpha2.2/INPUT_REFERENCES.json)。USB 的 `Draftor USB v1.2 build236` 是旧描述字符串，不是 App 版本证据。
 
 存储结论、实机范围、成本和未测项见[验收说明](ALPHA2_2_VALIDATION.md)。Wi-Fi/QR 继承为实验功能，微雪实测有限；电池、所有键盘/主机、新空板等不作通过宣称。公开资产不含真实正文、MAC、配对、Flash 备份、ELF、SDK 或原始设备日志。第三方许可独立保留，见[资源说明](RESOURCE_STATUS.md)。
+
+Finite final-image result / 最终镜像有限结果：88 B 未编辑导入→正常保存→一次重启→真实导出逐字节相同；82 B 原稿保护通过，3 次正常 SCSI eject，普通键/两种 F9/菜单/横竖 Find 正常，本轮无存储警告。USB 供电、同一 Logitech/Fn 配置、Linux/Pi 主机；照片未收到，存储实际 status/stage 未采集。完整边界见验收说明。

@@ -34,12 +34,24 @@
   },
   "resources_reference": "release/alpha2.2/INPUT_REFERENCES.json",
   "source": "https://github.com/Ohhellboy/Draftor",
-  "qualification": "SOFTWARE_PASS_DEVICE_PENDING",
+  "qualification": "FINITE_DEVICE_PASS_USB_POWERED_SAME_LOGITECH_PI",
   "toolchain": {
     "arduino_cli": "1.4.1",
     "arduino_esp32": "3.3.11",
     "esp_x32": "2601",
     "gcc": "14.2.0",
     "esptool": "5.3.1"
+  },
+  "device_results": {
+    "unedited_import_save_one_restart_export_bytes": 88,
+    "byte_compare": "PASS",
+    "original_preservation": "PASS",
+    "normal_SCSI_ejects": 3,
+    "F9_input_menu_find": "PASS_USER_OBSERVATIONS",
+    "storage_warning_this_round": "NONE_REPORTED_USER_CONFIRMED",
+    "storage_runtime_status_stage": "NOT_CAPTURED",
+    "photos": "NOT_RECEIVED",
+    "fresh_empty_board": "NOT_TESTED",
+    "original_board_device": "NOT_OPERATED"
   }
 }
