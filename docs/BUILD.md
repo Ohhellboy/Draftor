@@ -10,9 +10,9 @@ Unzip Alpha 2.2 Source and the unchanged Alpha 2.1 BuildInputs identified in [IN
 
 解压 Alpha 2.2 Source 与清单明确引用的原样 Alpha 2.1 BuildInputs。`Draftor/` 是拟提交的源码；`BuildInputs/inputs/` 对应清单中的11项配套输入。新增两项为文楷 UI16 位图和 MiSans 14/16px 菜单表；再分发前请阅读[字体分发说明](FONT_DISTRIBUTION.md)。其余内容为原许可、第三方对应源码、字体词库来源及可选资源生成所需的准确前代输入，不是整套已安装 SDK 或缓存。编译不需要重新生成词库。
 
-Install **Python 3, Arduino CLI 1.4.1, Arduino-ESP32 3.3.11 and esp-x32 2601 (GCC 14.2.0)**. The SDK `versions.txt` must match `vendor/versions.txt` (ESP-IDF v5.5.5 b774170ff46; Arduino 0d7a8614b; TinyUSB 53f8c53c2). `DRAFTOR_SDK_SOURCE` points to the Arduino **data directory containing `packages/`**, not its parent. The build makes an owned USB overlay; installed tools/libraries are read-only inputs. CMake 3.20+ and a C++17 compiler are needed only for optional Host checks.
+Install **Python 3.11+, Arduino CLI 1.4.1, Arduino-ESP32 3.3.11 and esp-x32 2601 (GCC 14.2.0)**. The SDK `versions.txt` must match `vendor/versions.txt` (ESP-IDF v5.5.5 b774170ff46; Arduino 0d7a8614b; TinyUSB 53f8c53c2). `DRAFTOR_SDK_SOURCE` points to the Arduino **data directory containing `packages/`**, not its parent. The build makes an owned USB overlay; installed tools/libraries are read-only inputs. CMake 3.20+ and Clang with C++17/ASan/UBSan support (`clang++` on PATH) are needed for the optional focused Host runner.
 
-工具链固定为上述版本。`DRAFTOR_SDK_SOURCE` 指向包含 `packages/` 的 Arduino **data目录**。构建创建自身 USB 覆盖层，不修改原安装；可选 Host 检查另需 CMake 3.20+及 C++17 编译器。
+工具链固定为上述版本。`DRAFTOR_SDK_SOURCE` 指向包含 `packages/` 的 Arduino **data目录**。构建创建自身 USB 覆盖层，不修改原安装；可选 Host 检查另需 CMake 3.20+及支持 C++17/ASan/UBSan 的 Clang（PATH 中提供 clang++）。
 
 An installed SDK may use symlinks for its versioned components. The build receipt records the resolved hardware, compiler and S3 library roots selected through `DRAFTOR_SDK_SOURCE`; dependency checks allow only these declared SDK components and this source tree.
 

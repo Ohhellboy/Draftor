@@ -57,7 +57,7 @@ Import's durable AUTO owns the text; CURRENT is committed when opening it. A POS
 
 ## Executed software checks and resource costs
 
-`tools/validate_alpha2_2.py`: normal and ASan/UBSan for startup restore, real USB document transaction/product flow/Inbox cleanup, first initialization and guard failure, product F9 route, actual menu painter, display integration and diagnostics-off HOGP. The installer has 15 controlled cases after adding exact SDK unused-OTA acceptance and malformed/CRC counterexamples. Configuration/build steps are not additional functional tests. No complete historical CTest rerun is claimed.
+`tools/validate_alpha2_2.py`: normal and ASan/UBSan for startup restore, real USB document transaction/product flow/Inbox cleanup, first initialization and guard failure, product F9 route, actual menu painter, display integration and diagnostics-off HOGP. The installer has 15 controlled cases after adding exact SDK unused-OTA acceptance and malformed/CRC counterexamples. The three remaining affected historical allocation fixtures (subscription, fairness and diagnostic contract) also passed normal and ASan/UBSan with sized deallocation enabled, as Host-only maintenance; no device diagnostics were enabled. Configuration/build steps are not additional functional tests. No complete historical CTest rerun is claimed.
 
 Both complete builds use Arduino CLI1.4.1, Arduino-ESP32 3.3.11, esp-x322601/GCC14.2.0, ESP-IDF v5.5.5 and the fixed TinyUSB overlay. Current actual build warning is the inherited unused `behavior_service_start` variable with observation disabled; it is not hidden and did not require changing firmware.
 

@@ -8,7 +8,7 @@ This guide is for **Waveshare ESP32-S3-RLCD-4.2**, 16 MiB Flash / 8 MiB OPI PSRA
 
 Use `Draftor_v0.1.0-alpha.2.2_WAVESHARE_RLCD42_Firmware.zip` only when published. Its `Firmware/` contains `app.bin`, `bootloader.bin`, `partitions.bin`, `boot_app0.bin`, `FIRMWARE_MANIFEST.json`, `install_firmware.py` and `check_install.py`. The [target manifest](../release/alpha2.2/WAVESHARE_RLCD42.json) is authoritative; the old original-board digest is historical only. ELF and private device logs are not release assets.
 
-Install Python 3 and esptool **5.3.1** in a virtual environment. Use that environment's `python` below. Identify your intended serial port explicitly; never select an arbitrary first port. The ROM route uses `--no-stub --before no-reset --after no-reset` because USB-Serial/JTAG stub reads were unreliable in this setup.
+Install Python 3.11+ and esptool **5.3.1** in a virtual environment. Use that environment's `python` below. Identify your intended serial port explicitly; never select an arbitrary first port. The ROM route uses `--no-stub --before no-reset --after no-reset` because USB-Serial/JTAG stub reads were unreliable in this setup.
 
 Save documents and safely eject/exit any transfer. Disconnect power completely, remove the TF card, hold BOOT while attaching USB, then release BOOT after about two seconds. Disconnect other boards. Battery-equipped boards may remain powered after USB removal. Read the ROM MAC with the explicit port and record it privately:
 

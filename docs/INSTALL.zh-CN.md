@@ -4,7 +4,7 @@
 
 仅适用 **Waveshare ESP32-S3-RLCD-4.2 / 16 MiB Flash / 8 MiB OPI PSRAM**。先看[当前验收范围](ALPHA2_2_VALIDATION.md)。原 Osptek 板继续使用[Alpha 2.1 安装指南](INSTALL_ALPHA2_1.zh-CN.md)与既有发行；不能混刷，Pico 没有完整写作固件。
 
-发行包名明确包含 `WAVESHARE_RLCD42`。以包内 `FIRMWARE_MANIFEST.json` 和仓库[目标清单](../release/alpha2.2/WAVESHARE_RLCD42.json)为准，不能使用旧原机 App 摘要。Python 虚拟环境安装 esptool **5.3.1**；使用 `--no-stub --before no-reset --after no-reset` ROM 路径。
+发行包名明确包含 `WAVESHARE_RLCD42`。以包内 `FIRMWARE_MANIFEST.json` 和仓库[目标清单](../release/alpha2.2/WAVESHARE_RLCD42.json)为准，不能使用旧原机 App 摘要。Python 3.11+ 虚拟环境安装 esptool **5.3.1**；使用 `--no-stub --before no-reset --after no-reset` ROM 路径。
 
 1. 保存文稿，正常弹出并结束传输，完全断电取出 TF，断开其他板。按住 BOOT 接 USB，两秒后松开。带电池时拔 USB 不一定断电。
 2. 明确实物板型与串口，按英文页的 `read-mac` 命令读取本板 MAC；`PORT` 与 `MAC` 必须由现场确定，不能猜第一个端口。MAC 只确认芯片身份，不证明接线。
