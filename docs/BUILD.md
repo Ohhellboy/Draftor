@@ -1,4 +1,4 @@
-# Building Alpha 2.1 / Alpha 2.1 源码构建
+# Building Alpha 2.2 / Alpha 2.2 源码构建
 
 Build the Chinese Find, menu and editor interface with the fixed inputs below. Product release names follow [VERSIONING.md](../VERSIONING.md); bgIME keeps its own versions.
 
@@ -6,13 +6,13 @@ Build the Chinese Find, menu and editor interface with the fixed inputs below. P
 
 ## Inputs / 输入
 
-Unzip this version's Source and BuildInputs. `Draftor/` contains Git-tracked project source; `BuildInputs/inputs/` supplies only the eleven entries in `EXTERNAL_INPUTS.json`. Two added inputs are the WenKai UI16 bitmap and exact MiSans 14/16px menu tables. Check [Font Distribution](FONT_DISTRIBUTION.md) before redistributing generated tables. The remainder of BuildInputs holds original licenses, corresponding third-party sources, font/dictionary provenance and the explicit optional format3 input to the current resource generator. It is not an installed SDK or cache. Runtime resource generation is unnecessary for compiling this firmware.
+Unzip Alpha 2.2 Source and the unchanged Alpha 2.1 BuildInputs identified in [INPUT_REFERENCES](../release/alpha2.2/INPUT_REFERENCES.json). `Draftor/` contains Git-tracked project source; `BuildInputs/inputs/` supplies only the eleven entries in `EXTERNAL_INPUTS.json`. Two added inputs are the WenKai UI16 bitmap and exact MiSans 14/16px menu tables. Check [Font Distribution](FONT_DISTRIBUTION.md) before redistributing generated tables. The remainder of BuildInputs holds original licenses, corresponding third-party sources, font/dictionary provenance and the explicit optional format3 input to the current resource generator. It is not an installed SDK or cache. Runtime resource generation is unnecessary for compiling this firmware.
 
-解压同版 Source 与 BuildInputs。`Draftor/` 是拟提交的源码；`BuildInputs/inputs/` 对应清单中的11项配套输入。新增两项为文楷 UI16 位图和 MiSans 14/16px 菜单表；再分发前请阅读[字体分发说明](FONT_DISTRIBUTION.md)。其余内容为原许可、第三方对应源码、字体词库来源及可选资源生成所需的准确前代输入，不是整套已安装 SDK 或缓存。编译不需要重新生成词库。
+解压 Alpha 2.2 Source 与清单明确引用的原样 Alpha 2.1 BuildInputs。`Draftor/` 是拟提交的源码；`BuildInputs/inputs/` 对应清单中的11项配套输入。新增两项为文楷 UI16 位图和 MiSans 14/16px 菜单表；再分发前请阅读[字体分发说明](FONT_DISTRIBUTION.md)。其余内容为原许可、第三方对应源码、字体词库来源及可选资源生成所需的准确前代输入，不是整套已安装 SDK 或缓存。编译不需要重新生成词库。
 
-Install **Python 3, Arduino CLI 1.4.1, Arduino-ESP32 3.3.11 and esp-x32 2601 (GCC 14.2.0)**. The SDK `versions.txt` must match `vendor/versions.txt` (ESP-IDF v5.5.5 b774170ff46; Arduino 0d7a8614b; TinyUSB 53f8c53c2). `DRAFTOR_SDK_SOURCE` points to the Arduino **data directory containing `packages/`**, not its parent. The build makes an owned USB overlay; installed tools/libraries are read-only inputs. CMake 3.20+ and a C++17 compiler are needed only for optional Host checks.
+Install **Python 3.11+, Arduino CLI 1.4.1, Arduino-ESP32 3.3.11 and esp-x32 2601 (GCC 14.2.0)**. The SDK `versions.txt` must match `vendor/versions.txt` (ESP-IDF v5.5.5 b774170ff46; Arduino 0d7a8614b; TinyUSB 53f8c53c2). `DRAFTOR_SDK_SOURCE` points to the Arduino **data directory containing `packages/`**, not its parent. The build makes an owned USB overlay; installed tools/libraries are read-only inputs. CMake 3.20+ and Clang with C++17/ASan/UBSan support (`clang++` on PATH) are needed for the optional focused Host runner.
 
-工具链固定为上述版本。`DRAFTOR_SDK_SOURCE` 指向包含 `packages/` 的 Arduino **data目录**。构建创建自身 USB 覆盖层，不修改原安装；可选 Host 检查另需 CMake 3.20+及 C++17 编译器。
+工具链固定为上述版本。`DRAFTOR_SDK_SOURCE` 指向包含 `packages/` 的 Arduino **data目录**。构建创建自身 USB 覆盖层，不修改原安装；可选 Host 检查另需 CMake 3.20+及支持 C++17/ASan/UBSan 的 Clang（PATH 中提供 clang++）。
 
 An installed SDK may use symlinks for its versioned components. The build receipt records the resolved hardware, compiler and S3 library roots selected through `DRAFTOR_SDK_SOURCE`; dependency checks allow only these declared SDK components and this source tree.
 
@@ -23,10 +23,11 @@ cd Draftor
 python3 -B tools/install_external_inputs.py --from ../BuildInputs/inputs
 export DRAFTOR_SDK_SOURCE=/your/arduino/data
 export ARDUINO_CLI=/your/bin/arduino-cli
-python3 -B tools/build_candidate.py
+python3 -B tools/build_candidate.py --target ESP32S3_OSPTEK_ST7306
+python3 -B tools/build_candidate.py --target WAVESHARE_RLCD42
 ```
 
-Use a fresh extracted directory. Outputs are in `TestBuilds/s3/DISPLAY_TX_PROTO/dist/`; receipts are in `evidence/s3/`. No step connects to hardware or downloads a hidden input. The supplied TinyUSB archive is the exact fixed MSC-only component; its sources/overlay and upstream material remain in `vendor/` and BuildInputs. [External input details](EXTERNAL_BUILD_INPUTS.md).
+Use a fresh extracted directory. Outputs are in `TestBuilds/s3/<TARGET>/dist/`; receipts are in `evidence/s3/<TARGET>/`. No step connects to hardware or downloads a hidden input. The supplied TinyUSB archive is the exact fixed MSC-only component; its sources/overlay and upstream material remain in `vendor/` and BuildInputs. [External input details](EXTERNAL_BUILD_INPUTS.md).
 
 使用全新解包目录；输出与回执分别位于上述目录。构建不会连接设备或暗中下载输入。TinyUSB 使用准确的 MSC-only 配套组件，同时保留源码、覆盖材料及对应上游资料。
 
@@ -53,7 +54,7 @@ Use a fresh extracted directory. Outputs are in `TestBuilds/s3/DISPLAY_TX_PROTO/
 
 The board uses the exact custom dual-4 MiB partition CSV in `integration/product/partitions/B.csv`. Core CMake version is 0.13.1, Core release identifier 0.13.1-rc.1, API 0.13.0 and Host 0.8.4-rc.1; these are independent of the Draftor release number.
 
-分区取准确双4 MiB CSV；Core、API、Host版本与整机 Alpha 2.1 版本号分别保留。
+分区取准确双4 MiB CSV；Core、API、Host版本与整机 Alpha 2.2 版本号分别保留。
 
 ## Source map and optional checks / 源码与可选检查
 
@@ -77,3 +78,18 @@ The resource tool inherits the full identity/default/general-output comparison a
 The build extracts `string-inst.o` from the pinned compiler’s `esp32s3/no-rtti/libstdc++.a` and places it immediately after the Arduino core archive. The standard SDK archives and the later libstdc++ link remain in place. The build records the archive/member identity in `MATTER_TEMPLATE_PROVIDER.json`; no prebuilt object is shipped in Source. Runtime licensing is listed in [Third-Party Notices](../THIRD_PARTY.md).
 
 构建从固定工具链的上述库中提取字符串实现，放在 Arduino core 库之后。SDK 库和后续 libstdc++ 链接仍保留，提取对象的身份写入构建回执；Source 不附带预编译对象。运行库许可见[第三方声明](../THIRD_PARTY.md)。
+
+## Alpha 2.2 target and validation
+
+Default remains `ESP32S3_OSPTEK_ST7306`; explicitly select `WAVESHARE_RLCD42` for ST7305 / 1-bit SDMMC. Unknown names and Pico are rejected. Both targets receive the small shared startup-position correction; original-board HOGP behavior is not expanded. Production labels are `DRAFTOR_ALPHA_2_2_<TARGET>`. Waveshare uses `WS_HOGP_INPUTS=1`, runtime/HID/causal diagnostics all 0; no temporary causal shortcut.
+
+Both complete target builds run actual dependency, pin, link and stack gates. [Current validation and costs](ALPHA2_2_VALIDATION.md) separates hardware observations from Host results. [A3](WAVESHARE_A3_HISTORY.md) is historical software-only evidence, not a current “not flashed” claim.
+
+```sh
+# From the source root; Resources is an extracted local archive, not a mounted card:
+python3 -B tools/validate_alpha2_2.py --resources ../Resources/HANIME/IME/B_SHORT_TEXT_20261018
+```
+
+This bounded normal + ASan/UBSan runner covers startup storage, USB import/save/lifecycle, heap guard, product F9 route, footer ownership, display integration, HOGP diagnostics-off behavior and parameterized installer failures. Configuration and compile steps are not extra functional test cases. It does not rerun every historical CTest. Sized-delete overloads preserve allocation matching; sanitizer checks remain enabled.
+
+微雪文稿与共享资源路径见 [Hardware](HARDWARE.md)。A2 的 SDMMC 回滚/卸载隔离和 A3 的命名空间分配异常保护原样保留；本轮只继承相关有效证据，不声称重新穷举全部旧故障。最终生产源码提交与镜像绑定写入目标清单；后续纯文档提交不改变已测二进制。

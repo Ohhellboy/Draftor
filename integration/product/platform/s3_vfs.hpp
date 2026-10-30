@@ -37,12 +37,15 @@ class File {
  bool nextEntry(DirectoryEntry&);
  bool error()const;
 };
-// The only device pathname translation. SD.begin mounts the same FAT volume at /sd.
+// The only mutable pathname translation. The board mount owner registers /sd.
 // POSIX fsync exposes errors that Arduino File::flush() discards.
 class Fs {
  std::string root_;
+ bool documents_only_=false;
+ bool resolve(const char*,std::string&)const;
+ static File rejected();
  public:
- explicit Fs(std::string root):root_(std::move(root)){}
+ explicit Fs(std::string root,bool documentsOnly=false):root_(std::move(root)),documents_only_(documentsOnly){}
  File open(const char* path,const char* mode=Read)const;
  // Use known type at storage call sites to avoid preflight stat/path traversal.
  File openFile(const char* path,const char* mode=Read)const;

@@ -6,13 +6,13 @@
 
 它希望提供一种无打搅的写作方式：无需联网，没有 AI 写作功能，保留基本编辑和文稿传输功能。
 
-## 最新更新：Alpha 2.1
+## 最新更新：Alpha 2.2 · 微雪一体板
 
-Alpha 2.1 加入了支持中文输入的查找界面。写作时可以查找中文字词或英文，向前、向后查看匹配结果；查找界面也会跟随横排和竖排。
+Alpha 2.2 为草稿机增加了 **微雪 ESP32-S3-RLCD-4.2** 的支持。主控、4.2 英寸黑白反射屏和 TF 卡槽集成在一块板上，搭建时少了不少接线工作。连接蓝牙键盘、准备好配套 TF 卡，就可以继续使用草稿机进行离线中文写作。
 
-配合这次查找更新，文稿列表、重命名、帮助和传输页面改用了中文提示。编辑器也整理了顶部和底部：顶部保留文件名，底部显示输入方式、保存状态和蓝牙连接状态，横排正文多了一些显示空间。
+全拼、小鹤双拼、五笔 86、横竖排、中文查找和文稿管理等功能继续保留。这次还改善了多功能蓝牙键盘的兼容性，整理了黑白屏下的候选焦点和中文菜单提示，并修正了一种文稿重新打开时的存储提示误报。
 
-[下载 Alpha 2.1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1) · [完整更新说明](docs/RELEASE_NOTES.zh-CN.md) · [Alpha 2 性能结果](docs/PERFORMANCE.md) · [安装指南](docs/INSTALL.zh-CN.md) · [操作手册](docs/USAGE.zh-CN.md)
+[下载 Alpha 2.2](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.2) · [完整更新说明](docs/RELEASE_NOTES.zh-CN.md) · [安装指南](docs/INSTALL.zh-CN.md) · [操作手册](docs/USAGE.zh-CN.md) · [原机 Alpha 2.1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1)
 
 ![运行中文输入的草稿机原型](draftor-prototype.jpg)
 
@@ -22,37 +22,43 @@ Alpha 2.1 加入了支持中文输入的查找界面。写作时可以查找中�
 |---|---|
 | 中文输入 | 全拼、小鹤双拼、五笔86 |
 | 英文输入 | 英文直接输入 |
-| 文字显示 | 简体字、繁体字和异体字，使用配套字库 |
+| 文字显示 | 使用配套字库显示简体、繁体与异体汉字 |
 | 排版 | 横排和竖排 |
 | 文稿管理 | 本地保存、中文文件列表、重命名、回收站和帮助 |
 | 文内查找 | 中文及英文查询、前后查找与回绕，适配横排和竖排 |
-| 文稿传输 | USB 和本地 Wi-Fi 导入、导出 |
+| 文稿传输 | USB 导入导出；实验性本地 Wi-Fi 传输 |
 
-当前完整写作固件适用于 **ESP32-S3 N16R8（Thick）**，使用蓝牙键盘，以及 [Osptek（鱼鹰）ST7306 黑白红反射式 TFT 显示屏](display/st7306/)。
+目前的 ESP32-S3 完整写作固件有两套硬件配置：
 
-仓库同时提供 **Raspberry Pi Pico 2 W** 的独立 ST7306 屏幕示例。当前公开的完整写作固件以 ESP32-S3 版本为准。
+**微雪 ESP32-S3-RLCD-4.2：** 使用板载 ST7305 黑白反射屏和 TF 卡槽，对应 Alpha 2.2 固件。
 
-接线和硬件要求见[硬件说明](docs/HARDWARE.md)。
+**原 ESP32-S3 N16R8＋Osptek ST7306：** 使用独立的黑白红反射屏和 TF 模块，继续使用 Alpha 2.1 固件。
+
+仓库也提供 Raspberry Pi Pico 2 W 的独立 ST7306 显示示例。接线、设备要求及硬件差异见[硬件说明](docs/HARDWARE.md)。
 
 ## 开始使用
 
 ### 安装固件
 
-从 [Alpha 2.1 发行页](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1)下载同一版本的 **Firmware** 和 **Resources**，按[安装指南](docs/INSTALL.zh-CN.md)准备固件、词库和字体。
+根据使用的硬件下载对应的固件包：
 
-Alpha 2 用户确认分区兼容后，可以只更新 App，继续使用原配套 TF 资源。Alpha 1、旧 2 MiB 槽和首次安装则需要按指南走全新安装流程。两种路径都应先备份文稿；只有全新安装需要清除内部 Flash，不需要格式化 TF 卡。
+微雪一体板使用 [Alpha 2.2 Firmware](https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.2/Draftor_v0.1.0-alpha.2.2_WAVESHARE_RLCD42_Firmware.zip)，原 ST7306 原型机继续使用 [Alpha 2.1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1)。
+
+微雪版本继续使用 Alpha 2.1 的[词库、索引与字体资源](https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.1/Draftor_v0.1.0-alpha.2.1_Resources.zip)。如果 TF 卡已经准备好这些资源，可以直接复用。
+
+安装指南区分首次安装和已有兼容分区的固件更新。首次安装会清除设备内部 Flash，请提前备份需要保留的内容；无需格式化 TF 卡。
 
 ### 写作和传输
 
-[操作手册](docs/USAGE.zh-CN.md)介绍常用按键、中文输入、查找、文稿改名，以及 USB 和本地 Wi-Fi 文稿传输。
+[操作手册](docs/USAGE.zh-CN.md)介绍中文输入、横竖排、查找、文稿管理，以及 USB 和本地 Wi-Fi 文稿传输。
 
-Alpha 2.1 仍是测试版本，本地 Wi-Fi 文稿传输属于实验功能。重要文稿请定期导出备份，具体限制见[已知问题](docs/KNOWN_ISSUES.md)。
+Alpha 2.2 仍是测试版本，本地 Wi-Fi 传输属于实验功能。重要文稿请定期导出备份，其他使用限制见[已知问题](docs/KNOWN_ISSUES.md)。
 
 ### 自行编译
 
-下载同一版本的 **Source** 和 **BuildInputs**，按[构建指南](docs/BUILD.md)准备工具链并编译。运行设备时还需要配套的 Resources。
+使用 Alpha 2.2 的 **Source** 和配套的 Alpha 2.1 **BuildInputs**，按照[构建指南](docs/BUILD.md)准备工具链并选择对应硬件目标。运行时仍需要配套的 TF 资源。
 
-GitHub 自动生成的“Source code”压缩包是仓库源码快照，安装设备请使用发行页提供的配套文件。
+GitHub 自动生成的 Source code 压缩包是仓库快照。安装设备请使用发行页提供的固件及配套文件。
 
 ## 中文输入引擎：bgIME 大鹅输入法
 

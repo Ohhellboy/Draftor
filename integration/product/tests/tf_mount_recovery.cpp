@@ -7,7 +7,7 @@ struct Port {
  uint32_t time=0,call_ms=4000;unsigned succeeds_at=0,calls=0,parks=0,records=0;bool owned=false,parked=false;
  std::array<uint32_t,3> budgets{};
  uint32_t now()const{return time;} bool unowned()const{return !owned;}
- void park(){++parks;parked=true;} void pause(uint32_t n){time+=n;}
+ bool park(){++parks;parked=true;return true;} void pause(uint32_t n){time+=n;}
  s3tf::MountAttempt mount(uint32_t budget){CHECK(parked);parked=false;budgets.at(calls)=budget;++calls;time+=call_ms;return {call_ms,calls==succeeds_at,call_ms>=budget,"fault",3};}
  void record(unsigned n,const s3tf::MountAttempt&){CHECK(n==++records);}
 };

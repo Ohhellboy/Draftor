@@ -1,8 +1,11 @@
-# 草稿机 Alpha 2.1 操作手册
+# 草稿机 Alpha 2.2 操作手册
 
 [English](USAGE.md) | **简体中文**
 
 本手册适用于 ESP32-S3 N16R8（Thick）版本的草稿机，介绍文字输入、文稿改名，以及 USB 和本地 Wi-Fi 文稿传输。尚未安装固件的用户，请先阅读[安装指南](INSTALL.zh-CN.md)。
+
+
+微雪 ST7305 使用独立文稿目录。测试键盘裸 F9 是 Consumer 输入，Fn+F9 才发标准 F9 打开 USB 菜单；裸 F9 留在编辑器是正常表现，但后续普通按键必须响应。Fn-Lock 依键盘配置，不自动修改。Ctrl+Shift+U 不是产品命令。导入为 512 KiB RAM Inbox，不是 TF 直通。Wi-Fi/QR 为继承的实验功能，微雪实测范围有限，见[验收说明](ALPHA2_2_VALIDATION.md)。
 
 ## 1. 常用按键
 
@@ -145,7 +148,7 @@ USB 和 Wi-Fi 文稿传输不能同时使用。需要改用 USB 时，先关闭 
 
 需要反馈问题时，可以到 [GitHub Issues](https://github.com/Ohhellboy/Draftor/issues) 说明开发板型号、固件版本、操作步骤和实际现象。**不需要上传私人文稿、完整输入日志或 Flash 备份。** 提供截图或诊断信息前，请先检查其中是否含有私人文字或设备信息。
 
-Alpha 2.1 仍是测试版本，重要文稿请定期导出并另存备份。其他限制和隐私说明见[已知问题](KNOWN_ISSUES.md)。
+Alpha 2.2 仍是测试版本，重要文稿请定期导出并另存备份。其他限制和隐私说明见[已知问题](KNOWN_ISSUES.md)。
 
 ---
 

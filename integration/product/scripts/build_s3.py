@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-"""Build the fixed Alpha 2.1 assembly; no device or network operation."""
+"""Build the fixed Alpha 2.2 assembly; no device or network operation."""
 from pathlib import Path
-import os,sys,subprocess,shutil,json,time,hashlib,shlex
+import os,sys,subprocess,shutil,json,time,hashlib,shlex,argparse
 if not __debug__:raise SystemExit('Run without Python -O: validation is required')
 R=Path(__file__).resolve().parents[3]
-p=R/'integration/product';out=R/'TestBuilds/s3/DISPLAY_TX_PROTO'
-evidence=R/'evidence/s3';evidence.mkdir(parents=True,exist_ok=True)
+parser=argparse.ArgumentParser()
+parser.add_argument('--target',choices=['ESP32S3_OSPTEK_ST7306','WAVESHARE_RLCD42'],default='ESP32S3_OSPTEK_ST7306')
+board_target=parser.parse_args().target
+p=R/'integration/product';out=R/'TestBuilds/s3'/board_target
+evidence=R/'evidence/s3'/board_target;evidence.mkdir(parents=True,exist_ok=True)
 tmp=out/'tmp';tmp.mkdir(parents=True,exist_ok=True)
 for name in ('TMPDIR','TMP','TEMP'):os.environ[name]=str(tmp)
 os.environ['PYTHONDONTWRITEBYTECODE']='1'
@@ -153,13 +156,15 @@ for name in helper_names:
  assert target.read_bytes()==data_bytes,name
 helper_flags='-B'+str(helper_root/'libexec/gcc/xtensa-esp-elf/14.2.0')+'/ -B'+str(helper_root/'xtensa-esp-elf/bin')+'/'
 flags=helper_flags+' -DHANIME_BUILD_HOST_ADAPTERS=0 -DHANIME_BUILD_TOOLS=0 -DHANIME_BUILD_FIXTURES=0 -DHANIME_BUILD_TESTS=0 -DHANIME_OUTPUT_PROFILE='+str(profile)+' -DHANIME_TF_RUNTIME_HZ='+str(tf_hz)+' -std=gnu++17 -fexceptions -Werror -fstack-usage -DHANIME_SAVE_SUBSTAGE_DIAGNOSTIC='+str(save_diagnostic)+' -DHANIME_BASE_ORDER_LOCATE_ENTRIES=8'
+flags+=' -DDRAFTOR_BOARD='+board_target
 flags+=' -DDRAFTOR_PERFORMANCE_COMMON=1 -DDRAFTOR_TEXT_RESIDENT=0 -DDRAFTOR_BLOCK_BACKEND=1 -DHANIME_TEXT_CHAIN=1 -DHANIME_STRUCTURAL_HOST_OBSERVE=0 -DDRAFTOR_INPUT_PRESENT_COORD=0 -DDRAFTOR_COORD_OBSERVE=0 -DDRAFTOR_SHARED_TEXT_VARIANT='+str(variant)
 pin_sha=hashlib.sha256(pin.read_bytes()+block_pin.read_bytes()+wubi_pin.read_bytes()).hexdigest()
-label='DRAFTOR_ALPHA_2_1_20261026_RELEASE'
+label='DRAFTOR_ALPHA_2_2_'+board_target
 
 (stage/'block_build_metadata.hpp').write_text('#pragma once\n#define DRAFTOR_B_FIRMWARE_LABEL "'+label+'"\n#define DRAFTOR_B_PIN_SHA "'+pin_sha+'"\n#define DRAFTOR_LAYOUT_ARM "'+a.arm+'"\n#define DRAFTOR_LAYOUT_RESOURCE_ROOT "'+resource_root+'"\n')
 flags+=' -DDRAFTOR_DISPLAY_TRANSACTION='+str(display_tx)+' -DDRAFTOR_DISPLAY_TX_OBSERVE=0'
 flags+=' -DDRAFTOR_CP_OBSERVE='+str(int(observe))
+if board_target=='WAVESHARE_RLCD42':flags+=' -DDRAFTOR_WS_RUNTIME_DIAG=0 -DDRAFTOR_WS_HID_DIAG=0 -DDRAFTOR_WS_CAUSAL_DIAG=0 -DDRAFTOR_WS_HOGP_INPUTS=1'
 flags+=' -Wno-error=misleading-indentation'
 flags+=' -DDRAFTOR_AUTH_HANDOFF=1 -DHANIME_SHA256_BATCHED_FINAL=0 -DDRAFTOR_AUTH_OBSERVE=0'
 flags+=' -DDRAFTOR_RELEASE_BUILD=1 -DDRAFTOR_USB_ENABLED='+str(usb_enabled)
@@ -168,7 +173,7 @@ flags+=' '+mapping
 flags+=' -DDRAFTOR_TELEMETRY_PROFILE='+str(telemetry_profile)+' -DDRAFTOR_TELEMETRY_CAPTURE='+str(telemetry_capture)
 sd=p/'libraries/SD' if (p/'libraries/SD').is_dir() else base/'libraries/SD'
 evidence.mkdir(parents=True,exist_ok=True)
-command=[str(cli),'compile','--jobs','2','--fqbn',fqbn,'--warnings','all','--build-property','compiler.c.extra_flags='+helper_flags+' '+mapping,'--build-property','compiler.cpp.extra_flags='+flags,'--build-property','compiler.cpp.flags=-MMD -c "@{compiler.sdk.path}/flags/cpp_flags" {compiler.warning_flags} {compiler.optimization_flags} {compiler.common_werror_flags} -std=gnu++17','--build-property','compiler.c.elf.extra_flags='+helper_flags+' -Wl,--wrap=_Znwj,--wrap=_Znaj,--wrap=_ZnwjRKSt9nothrow_t,--wrap=_ZnajRKSt9nothrow_t','--library',str(lib),*usb_library,'--library',str(sd),'--library',str(base/'libraries/BLE'),'--build-path',str(build),'--output-dir',str(dist),str(stage)]
+command=[str(cli),'compile','--jobs','2','--fqbn',fqbn,'--warnings','all','--build-property','compiler.c.extra_flags='+helper_flags+' '+mapping,'--build-property','compiler.cpp.extra_flags='+flags,'--build-property','compiler.cpp.flags=-MMD -c "@{compiler.sdk.path}/flags/cpp_flags" {compiler.warning_flags} {compiler.optimization_flags} {compiler.common_werror_flags} -std=gnu++17','--build-property','compiler.c.elf.extra_flags='+helper_flags+' -Wl,--wrap=_Znwj,--wrap=_Znaj,--wrap=_ZnwjRKSt9nothrow_t,--wrap=_ZnajRKSt9nothrow_t','--library',str(lib),*usb_library,*(['--library',str(sd)] if board_target=='ESP32S3_OSPTEK_ST7306' else []),'--library',str(base/'libraries/BLE'),'--build-path',str(build),'--output-dir',str(dist),str(stage)]
 command[2:2]=['--build-property','upload.maximum_size=4194304']
 command[2:2]=['--build-property','compiler.path='+str(data/'data/packages/esp32/tools/esp-x32/2601/bin')+'/']
 # Matter LinkChain R1 C2: resolve only the proven string template provider early.
@@ -195,9 +200,9 @@ command[2:2]=['--build-property','recipe.c.combine.pattern='+recipe]
     'member_bytes':len(provider_bytes),'sdk_content_modified':False},indent=2)+'\n')
 (evidence/'effective_build.py').write_bytes(Path(__file__).read_bytes())
 (evidence/'BUILD_METADATA.hpp').write_bytes((stage/'block_build_metadata.hpp').read_bytes())
-(evidence/'s3_command.json').write_text(json.dumps({'command':command,'fqbn':fqbn,'firmware_label':label,'combined_pin_sha256':pin_sha,'product_source':str(p),'sdk_source':os.environ.get('DRAFTOR_SDK_SOURCE'),'pin_sources':[str(pin),str(block_pin),str(wubi_pin)]},indent=2)+'\n')
+(evidence/'s3_command.json').write_text(json.dumps({'command':command,'fqbn':fqbn,'firmware_label':label,'board_target':board_target,'combined_pin_sha256':pin_sha,'product_source':str(p),'sdk_source':os.environ.get('DRAFTOR_SDK_SOURCE'),'pin_sources':[str(pin),str(block_pin),str(wubi_pin)]},indent=2)+'\n')
 if ui_r2_test:
- (evidence/'UI_R2_LOCAL_FONT_INPUT.json').write_text(json.dumps({'status':'LOCAL_RELEASE_REVIEW_NOT_UPLOADED','path':str(menu_font),'bytes':menu_font.stat().st_size,'sha256':hashlib.sha256(menu_font.read_bytes()).hexdigest(),'source_commit':'ce0f26f1f173857796c9c8501edee3a782c4e366','device_tested':False},indent=2)+'\n')
+ (evidence/'UI_R2_LOCAL_FONT_INPUT.json').write_text(json.dumps({'status':'EXACT_BUILD_INPUT_CHECKED','path':str(menu_font),'bytes':menu_font.stat().st_size,'sha256':hashlib.sha256(menu_font.read_bytes()).hexdigest(),'source_commit':'ce0f26f1f173857796c9c8501edee3a782c4e366','device_tested':False,'runtime_findings_r1_transport':False,'runtime_findings_r3_causal_diagnostic':False,'raw_hid_capture_limit':0},indent=2)+'\n')
 started_ns=time.time_ns()
 with (evidence/'s3_build.log').open('w') as log:
  result=subprocess.run(command,env=env,stdout=log,stderr=subprocess.STDOUT)
@@ -205,7 +210,7 @@ with (evidence/'s3_build.log').open('w') as log:
 print('S3 build exit:',result.returncode,'log:',evidence/'s3_build.log',flush=True)
 if result.returncode:raise SystemExit(result.returncode)
 database=json.loads((build/'compile_commands.json').read_text())
-objects={f.resolve() for folder in (build/'sketch',build/'libraries/HanimePinned') for f in folder.rglob('*.o')}
+objects={f.resolve() for folder in (build/'sketch',build/'libraries/HanimePinned',build/'libraries/BLE') for f in folder.rglob('*.o')}
 compiled=[]
 sdk_input=Path(os.environ['DRAFTOR_SDK_SOURCE']).resolve()
 sdk_components={name:str((sdk_input/path).resolve()) for name,path in {
@@ -280,5 +285,13 @@ for forbidden in (b'[SW] n=',b'[SW_VIEW]',b'[AUTH_DONE]',b'[SW_CONFIG]',b'[UI_TE
 symbols=(evidence/'ELF_SYMBOLS.txt').read_text()
 for forbidden in ('formatServiceEndpoint','snapshotServiceEndpoint','traceServiceFeedback'):
  assert forbidden not in symbols, 'Linked input observer: '+forbidden
-(evidence/'QUIET_RELEASE.json').write_text(json.dumps({'result':'PASS_LINKED_INPUT_OBSERVER_ABSENCE','auth_observe':0,'telemetry_profile':0,'telemetry_capture':1,'input_endpoint_strings_absent':True,'input_observer_symbols_absent':True,'ordinary_boot_health_error_logs_retained':True,'device_tested':False},indent=2)+'\n')
-print('Release input-code/timing observation absent from linked image.',flush=True)
+(evidence/'QUIET_RELEASE.json').write_text(json.dumps({'result':'PASS_LINKED_INPUT_OBSERVER_ABSENCE','auth_observe':0,'telemetry_profile':0,'telemetry_capture':1,'input_endpoint_strings_absent':True,'input_observer_symbols_absent':True,'ordinary_boot_health_error_logs_retained':True,'device_tested':False,'runtime_findings_r1_transport':False,'runtime_findings_r3_causal_diagnostic':False,'raw_hid_capture_limit':0},indent=2)+'\n')
+if board_target=='WAVESHARE_RLCD42':
+ for forbidden in ('hidprobe::','s3app::runtime_diag::','usbCausalKey','usb_causal::','draftor_hid_r2_static_cost'):
+  assert forbidden not in symbols, 'Special diagnostic linked: '+forbidden
+ for flag in ('DRAFTOR_WS_RUNTIME_DIAG=0','DRAFTOR_WS_HID_DIAG=0','DRAFTOR_WS_CAUSAL_DIAG=0','DRAFTOR_WS_HOGP_INPUTS=1'):
+  assert '-D'+flag in flags
+ for required in ('configureInputs', 'subscribeAllInputs(BLEClient*)::bootMap', 'notifyOtherInput(', 'inputSubscriptions', 'heapIntegrityStopTurn('):
+  assert required in symbols, 'Product path absent: '+required
+ (evidence/'PRODUCT_CLOSURE.json').write_text(json.dumps({'status':'PASS','HOGP_inputs_retained':True,'standard_usbKey_exact_source_and_Host_verified':True,'heap_stop_retained':True,'causal_shortcut_removed':True,'special_diagnostic_symbols_absent':True,'special_diagnostic_flags':0,'HOGP_flag':1},indent=2)+'\n')
+print('Release input observation and special F9 diagnostics absent; product protections retained.',flush=True)

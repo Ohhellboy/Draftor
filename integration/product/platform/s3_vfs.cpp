@@ -72,7 +72,7 @@ int File::read(uint8_t* p,size_t n){
   ++r.reads;r.max_read=std::max(r.max_read,uint32_t(n));
   ++r.read_sizes[n<=64?0:n<=512?1:n<=4096?2:3];
  }
- if(!h_||h_->fd<0||faults.read)return -1;
+ if(!h_||h_->fd<0||faults.read){if(h_)h_->failed=true;return -1;}
  if(faults.max_read_bytes)n=std::min(n,faults.max_read_bytes);
  const auto started=ime_device::clockUs();ssize_t count=::read(h_->fd,p,n);
  ime_device::ioProfile.record(ime_device::IoKind::DocumentRead,n,count>0?size_t(count):0,ime_device::clockUs()-started,count>=0);
@@ -84,10 +84,12 @@ size_t File::write(const uint8_t* p,size_t n){
  s3profile::Scope timing(s3profile::Write);
  if(s3profile::active)++s3profile::record.writes;
  if(!h_||h_->fd<0)return 0;
+ const auto requested=n;
  if(faults.write_bytes>=0)n=std::min(n,size_t(faults.write_bytes));
  const auto started=ime_device::clockUs();ssize_t count=::write(h_->fd,p,n);
  ime_device::ioProfile.record(ime_device::IoKind::DocumentWrite,n,count>0?size_t(count):0,ime_device::clockUs()-started,count>=0&&size_t(count)==n);
  if(count<0){h_->failed=true;return 0;}
+ if(size_t(count)!=requested)h_->failed=true;
  if(faults.write_bytes>=0)faults.write_bytes-=count;
  if(s3profile::active)s3profile::record.write_bytes+=count;
  return count;
@@ -134,40 +136,79 @@ bool File::nextEntry(DirectoryEntry& out){
   out.name=entry->d_name;
   out.directory=entry->d_type==DT_DIR;
   out.regular=entry->d_type==DT_REG;
+  if(entry->d_type==DT_LNK){h_->failed=true;return false;}
   if(entry->d_type==DT_UNKNOWN){
    struct stat st{};
-   if(s3profile::call(s3profile::Stat, [&] { return ::stat((h_->path+"/"+out.name).c_str(),&st); })!=0){h_->failed=true;return false;}
+   if(s3profile::call(s3profile::Stat, [&] {
+#ifdef ARDUINO
+    return ::stat((h_->path+"/"+out.name).c_str(),&st);
+#else
+    return ::lstat((h_->path+"/"+out.name).c_str(),&st);
+#endif
+   })!=0){h_->failed=true;return false;}
+#ifndef ARDUINO
+   if(S_ISLNK(st.st_mode)){h_->failed=true;return false;}
+#endif
    out.directory=S_ISDIR(st.st_mode);out.regular=S_ISREG(st.st_mode);
   }
   return true;
  }
 }
 bool File::error()const{return h_&&h_->failed;}
-File Fs::open(const char* p,const char* mode)const{return File(root_+p,mode,File::OpenKind::Any);}
-File Fs::openFile(const char* p,const char* mode)const{return File(root_+p,mode,File::OpenKind::Regular);}
-File Fs::openDirectory(const char* p)const{return File(root_+p,Read,File::OpenKind::Directory);}
-bool Fs::exists(const char* p)const{
- s3profile::Scope timing(s3profile::Access);
+// Component-aware boundary; a hardware namespace never accepts a card-absolute
+// or another device path. On Host, reject symlinks at/below the configured root.
+// The caller supplies a private, canonical fixture parent; FAT has no symlinks.
+bool Fs::resolve(const char* p,std::string& result)const{
+ if(!p||p[0]!='/'||p[1]=='/'||std::strchr(p,'\\')){errno=EINVAL;return false;}
+ const std::string path(p);
+ std::size_t at=1;
+ while(at<path.size()){
+  const auto slash=path.find('/',at);const auto n=(slash==std::string::npos?path.size():slash)-at;
+  if(!n||path.compare(at,n,".")==0||path.compare(at,n,"..")==0){errno=EINVAL;return false;}
+  if(slash==std::string::npos)break;
+  at=slash+1;
+ }
+ constexpr char prefix[]="/HANIME_S3_TEST";
+ if(documents_only_&&(path.compare(0,sizeof(prefix)-1,prefix)!=0||
+    (path.size()>sizeof(prefix)-1&&path[sizeof(prefix)-1]!='/'))){errno=EACCES;return false;}
+ result=root_+path;
+#ifndef ARDUINO
  struct stat st{};
- return s3profile::call(s3profile::Stat, [&] { return ::stat((root_+p).c_str(),&st); })==0;
+ // Protect both the namespace root itself and each requested component.
+ std::size_t end=root_.size();
+ for(;;){
+  const auto part=result.substr(0,end);
+  if(::lstat(part.c_str(),&st)==0){if(S_ISLNK(st.st_mode)){errno=ELOOP;return false;}}
+  else if(errno!=ENOENT){return false;}
+  if(end==result.size())break;
+  end=result.find('/',end+1);if(end==std::string::npos)end=result.size();
+ }
+#endif
+ return true;
 }
+File Fs::rejected(){File f;f.open_errno_=errno?errno:EINVAL;return f;}
+File Fs::open(const char* p,const char* mode)const{std::string path;return resolve(p,path)?File(path,mode,File::OpenKind::Any):rejected();}
+File Fs::openFile(const char* p,const char* mode)const{std::string path;return resolve(p,path)?File(path,mode,File::OpenKind::Regular):rejected();}
+File Fs::openDirectory(const char* p)const{std::string path;return resolve(p,path)?File(path,Read,File::OpenKind::Directory):rejected();}
+bool Fs::exists(const char* p)const{const auto k=kind(p);return k==PathKind::File||k==PathKind::Directory;}
 PathKind Fs::kind(const char* p)const{
- s3profile::Scope timing(s3profile::Access);
+ s3profile::Scope timing(s3profile::Access);std::string path;if(!resolve(p,path))return PathKind::Error;
  struct stat st{};
- if(s3profile::call(s3profile::Stat, [&] { return ::stat((root_+p).c_str(),&st); })!=0)return errno==ENOENT?PathKind::Missing:PathKind::Error;
+ if(s3profile::call(s3profile::Stat, [&] { return ::stat(path.c_str(),&st); })!=0)return errno==ENOENT?PathKind::Missing:PathKind::Error;
  if(S_ISDIR(st.st_mode))return PathKind::Directory;
  return S_ISREG(st.st_mode)?PathKind::File:PathKind::Error;
 }
 bool Fs::mkdir(const char* p)const{
- s3profile::Scope timing(s3profile::Access);
- return s3profile::call(s3profile::Mkdir, [&] { return ::mkdir((root_+p).c_str(),0777); })==0;
+ s3profile::Scope timing(s3profile::Access);std::string path;if(!resolve(p,path))return false;
+ return s3profile::call(s3profile::Mkdir, [&] { return ::mkdir(path.c_str(),0777); })==0;
 }
 bool Fs::remove(const char* p)const{
- s3profile::Scope timing(s3profile::Access);
- return s3profile::call(s3profile::Unlink, [&] { return ::unlink((root_+p).c_str()); })==0;
+ s3profile::Scope timing(s3profile::Access);std::string path;if(!resolve(p,path))return false;
+ return s3profile::call(s3profile::Unlink, [&] { return ::unlink(path.c_str()); })==0;
 }
 bool Fs::rename(const char* a,const char* b)const{
- s3profile::Scope timing(s3profile::Access);
- return !faults.rename&&s3profile::call(s3profile::Rename, [&] { return ::rename((root_+a).c_str(),(root_+b).c_str()); })==0;
+ s3profile::Scope timing(s3profile::Access);std::string from,to;
+ if(!resolve(a,from)||!resolve(b,to))return false;
+ return !faults.rename&&s3profile::call(s3profile::Rename, [&] { return ::rename(from.c_str(),to.c_str()); })==0;
 }
 }

@@ -1,0 +1,24 @@
+{
+  "WAVESHARE_RLCD42": {
+    "app_bytes": 3911888,
+    "app_sha256": "4bad10414fd688b1d938927665a2e999dd6ebd406d61afb8947aa4475c01eeb6",
+    "elf_bytes": 41062084,
+    "elf_sha256": "bdf8a78d5005c6b5e5ada821f48e93d89c40327582f6db36ec6859fa5bdcb61e",
+    "static_dram_bytes": 113180,
+    "app_slot_remaining": 282416,
+    "stack_gate": "PASS",
+    "maximum_bounded_chain_bytes": 4832,
+    "runtime_heap_psram_stack_peaks": "NOT_MEASURED"
+  },
+  "ESP32S3_OSPTEK_ST7306": {
+    "app_bytes": 3894368,
+    "app_sha256": "a292a06e909436af1bb9705471868232c7aed87a31ee3fafb57cebe13be30527",
+    "elf_bytes": 41031476,
+    "elf_sha256": "817a7496b09520ca086cfcdf2429f39105ba8d0c3cccff463ffcbc2b7c0e31e8",
+    "static_dram_bytes": 128252,
+    "app_slot_remaining": 299936,
+    "stack_gate": "PASS",
+    "maximum_bounded_chain_bytes": 4832,
+    "runtime_heap_psram_stack_peaks": "NOT_MEASURED"
+  }
+}

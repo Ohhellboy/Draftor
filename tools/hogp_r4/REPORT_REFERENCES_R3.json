@@ -1,0 +1,37 @@
+[
+  {
+    "handle": 42,
+    "report_id": 1,
+    "report_type": 1,
+    "keyboard_bits": 56,
+    "selected_keyboard": true
+  },
+  {
+    "handle": 52,
+    "report_id": 3,
+    "report_type": 1,
+    "keyboard_bits": 0,
+    "selected_keyboard": false
+  },
+  {
+    "handle": 56,
+    "report_id": 4,
+    "report_type": 1,
+    "keyboard_bits": 0,
+    "selected_keyboard": false
+  },
+  {
+    "handle": 60,
+    "report_id": 5,
+    "report_type": 1,
+    "keyboard_bits": 0,
+    "selected_keyboard": false
+  },
+  {
+    "handle": 64,
+    "report_id": 17,
+    "report_type": 1,
+    "keyboard_bits": 0,
+    "selected_keyboard": false
+  }
+]

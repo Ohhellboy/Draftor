@@ -10,6 +10,7 @@ struct VerticalPaintPort {
   void* context=nullptr;
   // Optional synchronous geometry observer, no retained borrowed text/identity.
   void (*ab_run)(void*,const draftor::vertical::AbRun&)=nullptr;
+  bool monochrome=false;
 };
 struct VerticalPaintResult {
   draftor::vertical::Status status=draftor::vertical::Status::Ready;

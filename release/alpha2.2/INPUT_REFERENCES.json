@@ -1,0 +1,21 @@
+{
+  "reused_without_regeneration": true,
+  "external_inputs": "EXTERNAL_INPUTS.json",
+  "runtime_manifest": "release/alpha2/RESOURCE_MANIFEST.json",
+  "shared_bundle_id": 17304919664082782091,
+  "format": 4,
+  "runtime_payload_bytes": 132153747,
+  "assets": {
+    "BuildInputs": {
+      "url": "https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.1/Draftor_v0.1.0-alpha.2.1_BuildInputs.zip",
+      "bytes": 470993697,
+      "sha256": "666edd63bcda953c71754e858526743d2f709cb0c784c65fc9a7071b4f9bf49e"
+    },
+    "Resources": {
+      "url": "https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.1/Draftor_v0.1.0-alpha.2.1_Resources.zip",
+      "bytes": 60546074,
+      "sha256": "460096846036bd01c941bc07ab98e6db4e130a247563e44fa3cb01d12a9c6636"
+    }
+  },
+  "licenses": "docs/RESOURCE_STATUS.md; docs/FONT_DISTRIBUTION.md; THIRD_PARTY.md; docs/LICENSE_INVENTORY.md"
+}

@@ -4,6 +4,10 @@
 #endif
 #include "horizontal_body.hpp"
 #include "stability_diagnostics.hpp"
+#include "runtime_findings_diag.hpp"
+#include "menu_footer_owner.hpp"
+namespace rd=s3app::runtime_diag;
+#include "hanime_hid_probe.hpp"
 #include "behavior_bench.hpp"
 #include "behavior_observer.hpp"
 #if DRAFTOR_TELEMETRY_PROFILE
@@ -21,14 +25,20 @@
 #include "operation_profile.hpp"
 #include "input_route.hpp"
 #include <Arduino.h>
+#include "board_config.hpp"
+#if DRAFTOR_BOARD == ESP32S3_OSPTEK_ST7306
 #include <SD.h>
+#else
+#include "board_sdmmc.hpp"
+#include "board_namespace.hpp"
+#endif
 #include <SPI.h>
 #include <esp_system.h>
 #include <driver/uart.h>
 #include <hal/uart_ll.h>
 #include <esp_heap_caps.h>
 #include <esp_memory_utils.h>
-#include "ST7306_OsptekLpm8.h"
+#include "board_display.hpp"
 #include "writing_app.hpp"
 #include "hanime_document_sd_storage.hpp"
 #include "ble_keyboard_host.hpp"
@@ -68,7 +78,9 @@
 #include <ffconf.h>
 #include <esp_idf_version.h>
 #include <cstdarg>
+#if DRAFTOR_BOARD == ESP32S3_OSPTEK_ST7306
 #include <hanime_mount_budget.h>
+#endif
 #include "selection_highlight.hpp"
 #include "find_highlight.hpp"
 #include "reader_display.hpp"
@@ -98,9 +110,14 @@ constexpr unsigned FastSeekCompiled=0;
 #endif
 constexpr const char* Firmware=ime_device::CandidateFirmware;
 
-SPIClass displaySpi(FSPI),tfSpi(HSPI);
-ST7306OsptekLpm8 lcd(displaySpi,12,11,10,9,4); // donor framebuffer remains internal RAM
-s3fs::Fs filesystem("/sd");
+SPIClass displaySpi(FSPI);
+#if DRAFTOR_BOARD == ESP32S3_OSPTEK_ST7306
+SPIClass tfSpi(HSPI);
+#else
+draftor::board::SdmmcVolume tfVolume;
+#endif
+BoardDisplay lcd(displaySpi,draftor::board::DisplaySck,draftor::board::DisplayMosi,draftor::board::DisplayCs,draftor::board::DisplayDc,draftor::board::DisplayReset);
+s3fs::Fs filesystem(draftor::board::DocumentRoot,draftor::board::Waveshare);
 hanime::documents::ArduinoSdStoragePort storage(filesystem);
 ime_device::ChineseFont font;
 ime_device::Resources* imeResources=nullptr;
@@ -141,6 +158,7 @@ __attribute__((noinline)) void heapIntegrityStopTurn(){
  if(count>16)count=16;
  const auto room=uart_ll_get_txfifo_len(hw);if(count>room)count=room;
  if(count){uart_ll_write_txfifo(hw,reinterpret_cast<const uint8_t*>(HeapStopMessage)+heapStopSent,count);heapStopSent+=count;}
+ rd::service(); // Internal bounded FIFO only; no product work resumes.
  delay(1); // Yield the stopped loop task; do not spin or auto-restart.
 }
 s3hid::InputRoute inputRoute;
@@ -161,14 +179,21 @@ UsbRuntime* usbRuntime=nullptr;
 bool usbActive(){return usbRuntime&&usbRuntime->transfer.active();}
 s3app::TransferInputState usbInput(){return {ime&&ime->active(),ime&&ime->hasWork(),false};}
 bool usbKey(const s3hid::Event& e){
+ const bool traced=e.down&&e.usage==66;
+ if(traced)rd::mark(rd::Stage::UsbKey);
  if(!usbRuntime){
   if(!s3app::usbEntryKey(*app,e))return false;
-  if(!s3app::stability::capture(s3app::stability::Kind::UsbBefore,e.usage,e.epoch,0,true)){heapIntegrityStopped=true;return true;}
-  if(!s3app::ensureUsbRuntime(usbRuntime)){s3app::stability::capture(s3app::stability::Kind::UsbDenied,sizeof(UsbRuntime));app->notice="USB unavailable: memory low";app->dirtyDisplay=true;return true;}
+  rd::mark(rd::Stage::IntegrityBegin);
+  if(!s3app::stability::capture(s3app::stability::Kind::UsbBefore,e.usage,e.epoch,0,true)){heapIntegrityStopped=true;rd::mark(rd::Stage::IntegrityFail);return true;}
+  rd::mark(rd::Stage::IntegrityPass);rd::mark(rd::Stage::AllocateBegin);
+  if(!s3app::ensureUsbRuntime(usbRuntime)){rd::mark(rd::Stage::AllocateDenied);s3app::stability::capture(s3app::stability::Kind::UsbDenied,sizeof(UsbRuntime));app->notice="USB unavailable: memory low";app->dirtyDisplay=true;return true;}
+  rd::mark(rd::Stage::AllocateReady);
   s3app::stability::capture(s3app::stability::Kind::UsbReady,sizeof(UsbRuntime));
  }
  const auto before=usbRuntime->transfer.phase();
+ if(traced)rd::mark(rd::Stage::DispatchBegin);
  const bool consumed=usbRuntime->transfer.key(e,usbInput());
+ if(traced)rd::mark(rd::Stage::DispatchEnd,unsigned(usbRuntime->transfer.phase())|(unsigned(consumed)<<16));
  if(before!=usbRuntime->transfer.phase())s3app::stability::capture(s3app::stability::Kind::UsbPhase,unsigned(before),unsigned(usbRuntime->transfer.phase()));
  return consumed;
 }
@@ -202,6 +227,8 @@ bool wifiKey(const s3hid::Event& e){
  }
  const bool consumed=wifiRuntime->transfer.key(e,usbInput());releaseWifiRuntime();return consumed;
 }
+
+
 #else
 bool wifiBlocked(){return false;}
 #endif
@@ -254,7 +281,7 @@ extern "C" __attribute__((used)) const volatile uint32_t s3_diagnostic_memory_ab
  sizeof(ime_device::UiTraceRecord),ime_device::UiTrace::Capacity,
  ime_device::IdleLog::Capacity,ime_device::IdleLog::LineBytes};
 extern "C" __attribute__((used)) const volatile uint32_t s3_perf_memory_abi[]={
- sizeof(ime_device::DisplaySchedule),ST7306OsptekLpm8::BufferSize,
+ sizeof(ime_device::DisplaySchedule),BoardDisplay::BufferSize,
  sizeof(ime_device::IoProfile),sizeof(ime_device::RoleIo),32,FastSeekCompiled};
 #if DRAFTOR_TELEMETRY_PROFILE
 // Small internal UART staging; the emitter and rich scratch are PSRAM-only.
@@ -300,11 +327,12 @@ ime_device::LogGate logGate(){
 }
 
 bool tfMountFailed=false;
+#if DRAFTOR_BOARD == ESP32S3_OSPTEK_ST7306
 void parkTfPins(){pinMode(15,OUTPUT);digitalWrite(15,HIGH);pinMode(17,OUTPUT);digitalWrite(17,HIGH);pinMode(16,OUTPUT);digitalWrite(16,LOW);}
 struct BootTfPort {
  uint32_t now()const{return millis();}
  bool unowned()const{return !app&&!imeResources&&!ime&&!font.allocation();}
- void park(){SD.end();tfSpi.end();parkTfPins();}
+ bool park(){SD.end();tfSpi.end();parkTfPins();return true;}
  void pause(uint32_t ms){delay(ms);}
  s3tf::MountAttempt mount(uint32_t budgetMs){
   const auto start=millis();hanime_mount::begin(budgetMs);
@@ -319,7 +347,20 @@ struct BootTfPort {
   logLine("[TF_MOUNT_ATTEMPT] attempt=%u elapsed_ms=%u ok=%u timed_out=%u reason=%s fat_result=%d init_hz=400000 runtime_hz=%u\n",attempt,unsigned(r.elapsed_ms),r.mounted,r.timed_out,r.reason,r.fat_result,unsigned(TfRuntimeHz));
  }
 };
-using Color=ST7306OsptekLpm8::Color;
+#else
+bool parkTfPins(){storage.noteUnmounted();return tfVolume.end();} // No original GPIO/SPI side effects.
+struct BootTfPort {
+ uint32_t now()const{return millis();}
+ bool unowned()const{return !app&&!imeResources&&!ime&&!font.allocation();}
+ bool park(){return parkTfPins();}
+ void pause(uint32_t ms){delay(ms);}
+ s3tf::MountAttempt mount(uint32_t budgetMs){return tfVolume.begin(ime_device::Resources::MaximumOpenFiles,budgetMs);}
+ void record(unsigned attempt,const s3tf::MountAttempt& r){
+  logLine("[TF_SDMMC] attempt=%u elapsed_ms=%u ok=%u admission_over=%u reason=%s error=%d cleanup_error=%d width=1 init_khz=%u requested_khz=%u command_timeout_ms=%u\n",attempt,unsigned(r.elapsed_ms),r.mounted,r.timed_out,r.reason,r.fat_result,tfVolume.cleanupError(),draftor::board::SdmmcVolume::InitKHz,draftor::board::SdRuntimeKHz,draftor::board::SdCommandTimeoutMs);
+ }
+};
+#endif
+using Color=BoardDisplay::Color;
 constexpr Color black=Color::Black,white=Color::White;
 void glyph(uint32_t cp,int x,int y,Color color,unsigned scale=1){
  const auto g=scale==2?smallFont.glyph(cp):font.glyph(cp);
@@ -436,19 +477,29 @@ __attribute__((noinline)) void drawHorizontalBody(){
   [](uint32_t cp,int x,int y,bool ink){glyph(cp,x,y,ink?black:white);});
 }
 
+bool updateLcd(const uint8_t* previous,size_t size){
+#if DRAFTOR_WS_RUNTIME_DIAG
+ const auto start=micros();const bool ok=lcd.update(previous,size);rd::lcd(micros()-start,ok);return ok;
+#else
+ return lcd.update(previous,size);
+#endif
+}
 void draw(){
 #if DRAFTOR_USB_ENABLED
  if(wifiRuntime&&wifiRuntime->transfer.panel()){
   s3app::paintWifiPanel(wifiRuntime->transfer,menuFont16,menuFill,menuAux,menuContent);
-  if(!displaySchedule.presentCompared(lcd.framebuffer(),lcd.BufferSize,millis(),[](const uint8_t* previous,size_t size){return lcd.update(previous,size);}))return;
+  if(!displaySchedule.presentCompared(lcd.framebuffer(),lcd.BufferSize,millis(),[](const uint8_t* previous,size_t size){return updateLcd(previous,size);}))return;
   inputRoute.framePresented(app->focusToken());keyboard::publishFrame(inputRoute.epoch(),0);
   lastDraw=millis();displaySchedule.completed(lastDraw);app->dirtyDisplay=false;return;
  }
  if(usbActive()){
+  rd::mark(rd::Stage::PaintBegin,unsigned(usbRuntime->transfer.phase()));
   s3app::paintUsbPanel(usbRuntime->transfer,menuFont16,menuFill,menuAux,menuContent);
-  if(!displaySchedule.presentCompared(lcd.framebuffer(),lcd.BufferSize,millis(),[](const uint8_t* previous,size_t size){return lcd.update(previous,size);}))return;
+  rd::mark(rd::Stage::PaintEnd);rd::mark(rd::Stage::PresentBegin);
+  if(!displaySchedule.presentCompared(lcd.framebuffer(),lcd.BufferSize,millis(),[](const uint8_t* previous,size_t size){return updateLcd(previous,size);})){rd::mark(rd::Stage::PresentEnd,0);return;}
+  rd::mark(rd::Stage::PresentEnd,1);
   // A modal frame advances only the input route, never publishes body/IME pixels.
-  inputRoute.framePresented(app->focusToken());keyboard::publishFrame(inputRoute.epoch(),0);
+  inputRoute.framePresented(app->focusToken());keyboard::publishFrame(inputRoute.epoch(),0);rd::mark(rd::Stage::RoutePublished,inputRoute.epoch());
   lastDraw=millis();displaySchedule.completed(lastDraw);app->dirtyDisplay=false;return;
  }
 #endif
@@ -470,7 +521,7 @@ void draw(){
  s3app::MetadataFont metadataFont(font);
  const bool editorPage=app&&!fatal&&!menuPage&&!app->statsOpen();
  auto ble=keyboard::status();
- if(fatal){label(fatal,8,50);label("Save 115200 log",8,80);if(tfMountFailed){label("Temporary recovery:",8,110);label("Power OFF board AND TF, then ON",8,140);}else label("See log before retry",8,110);}
+ if(fatal){label(fatal,8,50);label(draftor::board::Waveshare?"See DEVICE_HANDOFF":"Save 115200 log",8,80);if(tfMountFailed){label("Temporary recovery:",8,110);label("Power OFF board AND TF, then ON",8,140);}else label("See log before retry",8,110);}
  else if(app){
   if(app->progressDrawing()||app->commandBarrier()){
    s3app::display::secondary::header("正在处理",menuFill,menuAux);
@@ -483,7 +534,7 @@ void draw(){
    if(vertical){
     const s3app::VerticalPaintPort port{
      [](void*,draftor::vertical::Rect r,s3app::VerticalColor c){lcd.fillRect(r.x,r.y,r.width,r.height,c==s3app::VerticalColor::White?white:c==s3app::VerticalColor::Red?Color::Red:black);},
-     [](void*,uint16_t x,uint16_t y,s3app::VerticalColor c){lcd.pixel(x,y,c==s3app::VerticalColor::White?white:c==s3app::VerticalColor::Red?Color::Red:black);},nullptr,nullptr};
+     [](void*,uint16_t x,uint16_t y,s3app::VerticalColor c){lcd.pixel(x,y,c==s3app::VerticalColor::White?white:c==s3app::VerticalColor::Red?Color::Red:black);},nullptr,nullptr,draftor::board::Monochrome};
     verticalFrame=s3app::paintVerticalView(*app,app->verticalPresentation(),app->findOpen()?nullptr:ime,font,millis(),port);
     if(verticalFrame.status!=draftor::vertical::Status::Ready){app->candidateVisual.complete(false);return;}
    }else{
@@ -510,9 +561,10 @@ void draw(){
     const auto first=std::max(selectedView.begin,member.text_begin);
     const auto last=std::min(selectedView.end,member.text_begin+member.text_size);
     if(first>=last)continue;
-    const auto part=snap.selected_text.substr(first,last-first);
+    const auto part=snap.selected_text.substr(first,last-first);const int memberX=selectedX;
     textAt(part,selectedX,compositionY+(ime->raw().empty()?0:s3app::ImeCompositionFontMetrics::horizontal_selected_y),member.valid?black:Color::Red,294);
     for(size_t at=0;at<part.size();at=editor::nextUtf8Boundary(part,at))selectedX+=font.glyph(s3app::display::scalar(part,at)).advance;
+    if(draftor::board::Monochrome&&!member.valid)for(int px=memberX;px<std::min(selectedX,294);px+=4)lcd.fillRect(px,compositionY+(ime->raw().empty()?0:s3app::ImeCompositionFontMetrics::horizontal_selected_y)+28,2,1,black);
    }
    if(selectedView.left)lcd.fillRect(3,compositionY+12,2,5,Color::Red);
    if(selectedView.right)lcd.fillRect(296,compositionY+12,2,5,Color::Red);
@@ -526,7 +578,9 @@ void draw(){
    for(size_t c=0;c<row.count;++c){const auto& item=row.items[c];const bool selected=candidatesAvailable&&row.index==view->row&&c==view->col;
     app->candidateVisual.captureHorizontal({item.text.data(),item.bytes},x,y,item.width);
     if(candidatesAvailable&&row.index==view->row){char labelText[2]={char('1'+c),0};label(labelText,x,y+8,selected?Color::Red:black);}
-    textAt({item.text.data(),item.bytes},x+14,y,selected?Color::Red:black,std::min(294,x+int(item.width)-4));x+=item.width;
+    textAt({item.text.data(),item.bytes},x+14,y,selected?Color::Red:black,std::min(294,x+int(item.width)-4));
+    if(draftor::board::Monochrome&&selected)lcd.fillRect(x,y+29,std::min(int(item.width)-2,294-x),1,black);
+    x+=item.width;
    }
   }}
   const auto& pending=app->candidateVisual;
@@ -539,7 +593,11 @@ void draw(){
    if(ime->boundaryEdge()==ime_device::BoundaryEdge::RawLeft||ime->boundaryEdge()==ime_device::BoundaryEdge::RawRight){rect.y=compositionY+s3app::ImeCompositionFontMetrics::horizontal_ink_y;rect.height=s3app::ImeCompositionFontMetrics::horizontal_ink_height;}
    lcd.fillRect(rect.x,rect.y,rect.width,rect.height,Color::Red);}
  }
- if(app&&app->findOpen()){
+ // R1_MENU_FOOTER_BEGIN: menu renderer owns its hints, including rename IME.
+ if(s3app::display::menuOwnsFooter(draftor::board::Waveshare,menuPage)){
+  s3app::display::menuPairingHint(ble.phase==keyboard::Phase::Pairing,ble.passkey,
+   app->renameOpen()&&imeVisible?compositionY-12:328,menuFill,menuAux);
+ }else if(app&&app->findOpen()){
   if(ble.phase==keyboard::Phase::Pairing&&ble.passkey<1000000){
    char pin[64];std::snprintf(pin,sizeof(pin),"Type %06lu then Enter",(unsigned long)ble.passkey);
    lcd.fillRect(0,380,300,20,white);label(pin,8,383);findFrame.candidates=false;
@@ -566,10 +624,11 @@ void draw(){
   char rawStatus[64];std::snprintf(rawStatus,sizeof(rawStatus),"Raw buffered: %u | %s",unsigned(ime->raw().size()),ime->raw().empty()?ime->notice():"not in body");label(rawStatus,8,383);
  }else if(ble.phase==keyboard::Phase::Ready&&imeVisible){char caption[64];ime->editCaption(caption,sizeof(caption));label(caption,8,383);}
  else if(!menuPage)label(keyboard::phaseName(ble.phase),8,383);
+ // R1_MENU_FOOTER_END
  const auto transfers=displaySchedule.sent;
  const auto transfer_started_us=ime_device::clockUs();
  if(app){BT_OBSERVE(displayBegin(*app,ime,imeVisible&&ime->candidateAvailable()));}
- if(!displaySchedule.presentCompared(lcd.framebuffer(),lcd.BufferSize,millis(),[](const uint8_t* previous,size_t size){return lcd.update(previous,size);})){BT_OBSERVE(displayEnd(false));if(app)app->candidateVisual.complete(false);return;}
+ if(!displaySchedule.presentCompared(lcd.framebuffer(),lcd.BufferSize,millis(),[](const uint8_t* previous,size_t size){return updateLcd(previous,size);})){BT_OBSERVE(displayEnd(false));if(app)app->candidateVisual.complete(false);return;}
  BT_OBSERVE(displayEnd(true));BT_MEASURE(drawn(vertical,draw_started_us));
  const auto lcd_completed_us=ime_device::clockUs();
  CPATTR(cp_draw.stop(lcd_completed_us);cpattr::presented(transfer_started_us,lcd_completed_us,displaySchedule.sent!=transfers));
@@ -903,10 +962,15 @@ void deviceSetup(){
  logLine("[NEXT_STAGE_ABI] app=%u raw_viewport=%u file_timing=%u raw_gap_px=%u\n",unsigned(s3_next_stage_abi[0]),unsigned(s3_next_stage_abi[1]),unsigned(s3_next_stage_abi[2]),unsigned((smallFont.glyph(32).advance+1)/2));
  logLine("[IME_ABI] cplusplus=%u exceptions=%u gcc=%u.%u string=%u resources=%u controller=%u window=%u item=%u row=%u view=%u selection=%u attempt=%u font_bytes=%u\n",unsigned(s3_ime_compile_abi[0]),unsigned(s3_ime_compile_abi[1]),unsigned(s3_ime_compile_abi[2]),unsigned(s3_ime_compile_abi[3]),unsigned(s3_ime_compile_abi[4]),unsigned(s3_ime_memory_abi[0]),unsigned(s3_ime_memory_abi[1]),unsigned(s3_ime_memory_abi[2]),unsigned(s3_ime_memory_abi[3]),unsigned(s3_ime_memory_abi[4]),unsigned(s3_ime_memory_abi[5]),unsigned(s3_ime_memory_abi[6]),unsigned(s3_ime_memory_abi[7]),unsigned(s3_ime_memory_abi[8]));
  logLine("[SCOPE] BLE HID HOST / HANIME BASIC / TEST DIRECTORY / NO WIFI\n");
+#if DRAFTOR_BOARD == ESP32S3_OSPTEK_ST7306
  logLine("[HARDWARE] flash=%u psram=%u pins=DISPLAY(12,11,4,9,10,5),TF(16,17,18,15) power=IN-OUT_BRIDGED\n",unsigned(ESP.getFlashChipSize()),unsigned(ESP.getPsramSize()));
+#else
+ logLine("[HARDWARE] target=WAVESHARE_RLCD42 flash=%u psram=%u ST7305=11,12,40,5,41 SDMMC=38,21,39 width=1 USB=19,20 diagnostic=UART0_NOT_USB\n",unsigned(ESP.getFlashChipSize()),unsigned(ESP.getPsramSize()));
+#endif
  logLine("[RESET] esp_reason=%u tf_power_control=NONE external_card_power=UNOBSERVED mount_attempt_limit=%u mount_admission_ms=%u single_attempt_ms=%u\n",unsigned(esp_reset_reason()),s3tf::MaximumAttempts,unsigned(s3tf::TotalBudgetMs),unsigned(s3tf::AttemptBudgetMs));
- // Display-before-TF order retained; only the task-owned SD fork has init guards.
- displaySchedule.invalidate();lcd.begin();
+ // Display-before-TF order retained. A failed WS bus never admits storage work.
+ displaySchedule.invalidate();const bool displayReady=lcd.begin();
+ if(draftor::board::Waveshare&&!displayReady){fatal="Display bus init failed";logLine("[DISPLAY] bus_init_failed target=WAVESHARE_RLCD42\n");return;}
  if(!psramFound()||ESP.getPsramSize()!=8388608){fatal="PSRAM unavailable";draw();return;}
 #if DRAFTOR_USB_ENABLED
  s3app::preparePlatformMemory();
@@ -917,10 +981,17 @@ void deviceSetup(){
  memory("before-BLE");
  if(!keyboard::begin()){fatal="BLE task allocation failed";draw();return;}
  BootTfPort tfPort;const auto mount=s3tf::recoverMount(tfPort);
- logLine("[TF_MOUNT_END] ok=%u attempts=%u elapsed_ms=%u max_call_ms=%u over_admission_ms=%u\n",mount.mounted,mount.attempts,unsigned(mount.elapsed_ms),unsigned(mount.max_call_ms),unsigned(mount.elapsed_ms>s3tf::TotalBudgetMs?mount.elapsed_ms-s3tf::TotalBudgetMs:0));
- if(!mount.mounted){tfMountFailed=true;fatal="TF mount failed; bounded retries ended";draw();return;}
+ logLine("[TF_MOUNT_END] ok=%u attempts=%u elapsed_ms=%u max_call_ms=%u over_admission_ms=%u cleanup_failed=%u\n",mount.mounted,mount.attempts,unsigned(mount.elapsed_ms),unsigned(mount.max_call_ms),unsigned(mount.elapsed_ms>s3tf::TotalBudgetMs?mount.elapsed_ms-s3tf::TotalBudgetMs:0),mount.cleanup_failed);
+ if(!mount.mounted){tfMountFailed=true;fatal=mount.cleanup_failed?"TF cleanup failed; reset required":"TF mount failed; bounded retries ended";draw();return;}
+#if DRAFTOR_BOARD == ESP32S3_OSPTEK_ST7306
  logLine("[TF_CLOCK] init_requested_hz=400000 runtime_requested_hz=%u register_hz=%u (divider; not a scope measurement)\n", unsigned(TfRuntimeHz),unsigned(spiClockDivToFrequency(tfSpi.bus(),tfSpi.getClockDivider())));
  logLine("[TF] official SD.begin mounted; no formatting; root=/HANIME_S3_TEST/v01 max_files=%u resource_active=5 resource_reserved=6 document_bound=3\n",ime_device::Resources::MaximumOpenFiles);storage.noteMounted();
+#else
+ logLine("[TF_CLOCK] transport=SDMMC init_driver_khz=%u requested_khz=%u actual_khz=%d card_khz=%d\n",draftor::board::SdmmcVolume::InitKHz,draftor::board::SdRuntimeKHz,tfVolume.actualKHz(),tfVolume.cardKHz());
+ const auto space=draftor::board::prepareNamespace(draftor::board::MountPoint);
+ if(space!=draftor::board::NamespaceResult::Ready){fatal=space==draftor::board::NamespaceResult::OutOfMemory?"WS data space memory failed":"WS data space invalid";draw();return;}
+ storage.noteMounted();
+#endif
 
  try{
   auto allocation=draftor::memory::allocate(sizeof(s3app::App));if(!allocation)throw std::bad_alloc();
@@ -976,44 +1047,58 @@ __attribute__((noinline)) static void observeBlockActivation(uint64_t ready_us){
 }
 #endif
 void deviceLoop(){
- if(heapIntegrityStopped){heapIntegrityStopTurn();return;}
+ hidprobe::LoopScope probeLoop;
+ if(heapIntegrityStopped){hidprobe::point(hidprobe::Stopped);heapIntegrityStopTurn();return;}
+ rd::heartbeat();
+ hidprobe::point(hidprobe::Status);
  uint32_t start=micros();auto ble=keyboard::status();
  serialDiagnostic();
+ hidprobe::point(hidprobe::Visual);
  if(ime&&!usbActive()&&!wifiBlocked())ime->serviceVisuals(millis());
  auto observeEpoch=[&](uint32_t current){if(lastEpoch!=current){s3app::stability::capture(s3app::stability::Kind::BleBoundary,lastEpoch,current,unsigned(ble.phase));ime_device::uiTrace.setMode(1);detailedDiagnostics=false;lastEpoch=current;repeat.clear();if(ime)ime->interrupt();if(app)app->disconnected();}};
+ hidprobe::point(hidprobe::EpochCheck);
  observeEpoch(ble.epoch);
  if(uint32_t(ble.phase)!=lastBleState||ble.passkey!=lastPasskey||ble.pairing_not_saved!=lastPairingWarning){s3app::stability::event(s3app::stability::Kind::BlePhase,lastBleState,unsigned(ble.phase),ble.epoch);lastPairingWarning=ble.pairing_not_saved;lastBleState=uint32_t(ble.phase);lastPasskey=ble.passkey;if(app)app->dirtyDisplay=true;}
  if(app&&!fatal&&app->ready()){
   try{
+   hidprobe::point(hidprobe::Present);
    presentContext(); // publish reconnect/focus boundary before accepting queued keys
    auto repeatContext=[&](){repeat.queryAxis(app->findOpen(),!app->horizontalActive());repeat.context(app->focusToken(),!usbActive()&&!wifiBlocked()&&(!ime||!ime->chinese()||!ime->active())&&(app->renameOpen()||(app->session.hasCurrent()&&!app->filesOpen()&&!app->statsOpen()))&&!app->commandBarrier()&&app->manager.state().pending==hanime::documents::PendingAction::None);};
    repeatContext();s3hid::Event e;unsigned processed=0;const auto keyBatchStart=micros();
-   while(!app->commandBarrier()&&processed<64&&(!processed||micros()-keyBatchStart<2000)&&keyboard::pop(e)){
-    ++processed;
+   hidprobe::point(hidprobe::Pop);
+   while(!app->commandBarrier()&&processed<64&&(!processed||micros()-keyBatchStart<2000)&&(hidprobe::point(hidprobe::Pop),keyboard::pop(e))){
+    hidprobe::KeyScope probeKey(e.usage,e.mods,e.down);
+    ++processed;if(e.down&&e.usage==66)rd::f9();
     // Keep the original cumulative age metric, including rejected events.
     maxInputAge=std::max(maxInputAge,millis()-e.ms);
+    hidprobe::point(hidprobe::Admit);
     uint32_t currentEpoch=0;const bool admitted=keyboard::admit(e,currentEpoch);
     observeEpoch(currentEpoch);
-    if(!admitted){ime_device::traceUi(ime_device::UiTraceKind::RouteDrop,ime?ime->composition():nullptr,ime?ime->window():nullptr,&e,nullptr,uint8_t(e.down));continue;}
+    if(!admitted){hidprobe::inc(hidprobe::AdmitDrop);if(e.down&&e.usage==66)rd::mark(rd::Stage::AdmissionDrop);ime_device::traceUi(ime_device::UiTraceKind::RouteDrop,ime?ime->composition():nullptr,ime?ime->window():nullptr,&e,nullptr,uint8_t(e.down));continue;}
 #if DRAFTOR_USB_ENABLED
     if((usbActive()||wifiBlocked())&&(!e.down||e.usage>=224)){
      // The existing owners see releases/modifiers even across modal route epochs.
      productInput.layout(*app,e);productInput.ime(*app,ime,e);repeat.clear();continue;
     }
 #endif
+    hidprobe::point(hidprobe::Route);
     if(!inputRoute.accept(e,millis())){
+     hidprobe::inc(hidprobe::RouteDrop);
+     if(e.down&&e.usage==66)rd::mark(rd::Stage::RouteDrop);
      // Retire only same-epoch Enter/F2 releases across the completed frame;
      // the rejected event still cannot act on this UI or reach app->key().
      productInput.releaseAfterRouteDrop(*app,ime,e);
      ime_device::traceUi(ime_device::UiTraceKind::RouteDrop,ime?ime->composition():nullptr,ime?ime->window():nullptr,&e,nullptr,uint8_t(e.down));continue;
     }
 #if DRAFTOR_USB_ENABLED
+    hidprobe::point(hidprobe::Usb);
     if(wifiKey(e)){repeat.clear();presentContext();continue;}
     if(wifiRuntime&&s3app::usbEntryKey(*app,e)){app->notice="Turn Wi-Fi off before USB transfer";app->dirtyDisplay=true;continue;}
     if(usbKey(e)){if(heapIntegrityStopped){heapIntegrityStopTurn();return;}repeat.clear();presentContext();continue;}
 #endif
     // Layout is a product action. It never enters DeviceIme, even while
     // query/selection/submission is Working. Candidate route tokens stay intact.
+    hidprobe::point(hidprobe::Layout);
     if(productInput.layout(*app,e)){repeat.clear();continue;}
     const bool bodyInput=e.down&&e.usage<224&&app->session.hasCurrent()&&!app->filesOpen()&&!app->findOpen()&&!app->statsOpen();
     if(bodyInput){++response.accepted;response.max_age_ms=std::max(response.max_age_ms,millis()-e.ms);}
@@ -1021,8 +1106,9 @@ void deviceLoop(){
     const bool wasChinese=ime&&ime->chinese(),hadRaw=ime&&!ime->raw().empty();
     std::array<char,65> oldRaw{};const auto oldRawSize=ime?ime->raw().size():0;if(ime)std::copy(ime->raw().begin(),ime->raw().end(),oldRaw.begin());
     const auto eventUs=ime_device::receivedUs(ime_device::clockUs(),millis(),e.ms);const auto oldScheme=imeResources?imeResources->rules():hanime_extension::SchemeRules::R1Xiaohe;
+    hidprobe::point(hidprobe::Ime);
     auto keyStart=micros();if(!productInput.ime(*app,ime,e)){
-     const auto oldRequest=app->fileTiming.serial;const auto dispatchUs=ime_device::clockUs();repeat.event(e);app->key(e,wasChinese);
+     const auto oldRequest=app->fileTiming.serial;const auto dispatchUs=ime_device::clockUs();repeat.event(e);hidprobe::point(hidprobe::AppKey);app->key(e,wasChinese);
      if(app->fileTiming.serial!=oldRequest)logLine("[FILE_INPUT] request=%u action=%u epoch=%u route=%u event_ms=%u received_us=%llu dispatch_us=%llu\n",unsigned(app->fileTiming.serial),unsigned(ime?ime->actionId():0),unsigned(e.epoch),unsigned(e.route_epoch),unsigned(e.ms),(unsigned long long)eventUs,(unsigned long long)dispatchUs);
     }else repeat.clear();if(ime)keyboard::publishImeContext(ime->ingressContext(),ime->resourceOwner());
     if(ime&&imeResources){
@@ -1047,9 +1133,10 @@ void deviceLoop(){
    }
    if(tfProbe&&ime&&ime->chinese())tfProbe->cancel();
    const bool saving=app->persistence.backgroundSaveActive();ime_device::ioProfile.save_active=saving;
+   hidprobe::point(hidprobe::Service);
    uint32_t serviceStart=micros();const bool deferSave=keyboard::pending()&&millis()-lastSaveTurn<20;
 #if DRAFTOR_USB_ENABLED
-   if(usbActive()){const auto before=usbRuntime->transfer.phase();usbRuntime->transfer.tick(millis(),usbInput());if(before!=usbRuntime->transfer.phase())s3app::stability::capture(s3app::stability::Kind::UsbPhase,unsigned(before),unsigned(usbRuntime->transfer.phase()));}
+   if(usbActive()){const auto before=usbRuntime->transfer.phase();rd::tickBegin(unsigned(before));usbRuntime->transfer.tick(millis(),usbInput());rd::tickEnd(unsigned(usbRuntime->transfer.phase()));if(before!=usbRuntime->transfer.phase())s3app::stability::capture(s3app::stability::Kind::UsbPhase,unsigned(before),unsigned(usbRuntime->transfer.phase()));}
    else
 #endif
    if(!wifiBlocked())app->service(millis(),deferSave);
@@ -1059,6 +1146,7 @@ void deviceLoop(){
    ime_device::ioProfile.save_active=app->persistence.backgroundSaveActive();
    if(!deferSave){lastSaveTurn=millis();++initSchedule.save_turns;}else ++initSchedule.save_deferred;
    if(saving)response.save_us=std::max(response.save_us,micros()-serviceStart);
+   hidprobe::point(hidprobe::Background);
    if(keyboard::pending())++initSchedule.blocked_by_keys;
    else if(!usbActive()&&!wifiBlocked()){
     const bool initializing=(!font.ready()&&!font.failed())||(imeResources&&!imeResources->ready()&&imeResources->state()!=ime_device::ResourceState::Error&&imeResources->state()!=ime_device::ResourceState::Dormant);
@@ -1084,6 +1172,7 @@ void deviceLoop(){
     initSchedule.slices+=slices;initSchedule.max_turn_us=std::max(initSchedule.max_turn_us,micros()-workStart);
    }
    BT_MEASURE(sample(ime_device::bench::ServiceTurn,micros()-serviceStart));
+   hidprobe::point(hidprobe::FinalPresent);
    maxService=std::max(maxService,micros()-serviceStart);if(s3profile::active)s3profile::record.max_main_step_us=std::max(s3profile::record.max_main_step_us,uint64_t(micros()-serviceStart));presentContext();repeatContext();
    if(app->operationSerial!=lastOperation){
     const auto logStart=micros();lastOperation=app->operationSerial;
@@ -1102,7 +1191,7 @@ void deviceLoop(){
     app->createTiming={};memory("document-operation");
     response.log_us=std::max(response.log_us,micros()-logStart);
    }
-  }catch(const std::bad_alloc&){if(ime)ime->interrupt();app->allocationFailed();repeat.clear();logLine("[ERROR] allocation failed; pending operation NOT acknowledged\n");}
+  }catch(const std::bad_alloc&){rd::mark(rd::Stage::AllocationException);if(ime)ime->interrupt();app->allocationFailed();repeat.clear();logLine("[ERROR] allocation failed; pending operation NOT acknowledged\n");}
  }
  if(reportedDiscards!=inputRoute.discarded&&!keyboard::pending()){
   logLine("[INPUT_CONTEXT] discarded_total=%u max_discarded_age_ms=%u policy=WAIT_FOR_DESTINATION_FRAME\n",unsigned(inputRoute.discarded),unsigned(inputRoute.max_discarded_age_ms));

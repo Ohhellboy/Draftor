@@ -1,0 +1,143 @@
+{
+  "version": "v0.1.0-alpha.2.1",
+  "firmware_label": "DRAFTOR_ALPHA_2_1_20261026_RELEASE",
+  "app": {
+    "name": "Draftor_v0.1.0-alpha.2.1.app.bin",
+    "bytes": 3893280,
+    "sha256": "cd0bc68dc1cb5ccd2c2f39dff9db5e7180328c11c5c75b7f887b1bbdcd5d1b68",
+    "device_tested": false,
+    "source_commit_location": "distribution PAIRING_MANIFEST.json and Source ZIP embedded git commit",
+    "origin": "Fresh S3 build of the accepted HUD REV2 implementation with Alpha 2.1 release identity"
+  },
+  "resources": {
+    "shared_bundle_id": 17304919664082782091,
+    "all_files_bytes": 132153747,
+    "format": 4,
+    "resource_root": "/sd/HANIME/IME/B_SHORT_TEXT_20261018",
+    "files": [
+      {
+        "name": "shared.hns",
+        "bytes": 32384515,
+        "sha256": "f6a2afec4759ff879e6052f6c582606f33e78270a53d82d1e3deb85351a17339"
+      },
+      {
+        "name": "shared.hnv",
+        "bytes": 64770048,
+        "sha256": "49fe7363b2ce7b1ff0fd53ec17e65e5c98ff588a5bf6aac016af932a7701c93b"
+      },
+      {
+        "name": "xiaohe.hnm",
+        "bytes": 2756648,
+        "sha256": "9a0585f1662e6337a0936c6a5479b1a3ff9e76840927def05ace14070da56328"
+      },
+      {
+        "name": "xiaohe.hnv",
+        "bytes": 91136,
+        "sha256": "8ef5237e2638364510f0fb7514ecbb52e7a58cc46395c257efd5d42061787ae2"
+      },
+      {
+        "name": "full_pinyin.hnm",
+        "bytes": 2080808,
+        "sha256": "d91b7ae982d80cfc59885852b3f5abdfb0b01d1940f8b811ab22b655aaa9723b"
+      },
+      {
+        "name": "full_pinyin.hnv",
+        "bytes": 68608,
+        "sha256": "c8600a8a36a4a2cf0fdcd410fd0ceb8cce2b3dca534c2869b9e373a9641c73c9"
+      },
+      {
+        "name": "wubi86.hnm",
+        "bytes": 1482792,
+        "sha256": "0fa4b31c9e817626f434f5e3802c8ad7b53ef7a583d499febb87beba54c8fd84"
+      },
+      {
+        "name": "wubi86.hnv",
+        "bytes": 50176,
+        "sha256": "9e13336d42d326808e9d00451d607c6c2f0a5ca81b30044c4d9ec4bb2fdd0319"
+      },
+      {
+        "name": "xiaohe_base.hbo",
+        "bytes": 11986536,
+        "sha256": "f9109dd7b89c5573e09d74a14c2f294565e9bd649a7f34f386dbb87234d08530"
+      },
+      {
+        "name": "xiaohe_base.hnv",
+        "bytes": 388096,
+        "sha256": "49c54c0f55d11b6bcd0e5e13e5228b923ba6e5d162d9de10741ee34a8fee2bb9"
+      },
+      {
+        "name": "full_pinyin_base.hbo",
+        "bytes": 8219096,
+        "sha256": "bd23b97291e2c486dcec2e2d3930d4ab0d718bdac5ba59a947986b80c0f39365"
+      },
+      {
+        "name": "full_pinyin_base.hnv",
+        "bytes": 266240,
+        "sha256": "08b0dd721fab3be4b7919ca29b3ffa7904b51dee8a37b03b0e207024d1561ff1"
+      },
+      {
+        "name": "wubi86_base.hbo",
+        "bytes": 7369432,
+        "sha256": "cae1470b8537e696a3f81f9c6b963292918efafeec75ac49f39beabbfa3a5c5e"
+      },
+      {
+        "name": "wubi86_base.hnv",
+        "bytes": 239616,
+        "sha256": "5945d83a0750c5e582b784db156ead0d35f2e5f3a515d958280e60fcf374e28f"
+      }
+    ],
+    "pins": [
+      {
+        "bytes": 5756,
+        "name": "release_pin.hpp",
+        "sha256": "2ec45bfa39cd4542c07d5c6501c7a69f889dad1af4b05e35efc6bade48e17db4"
+      },
+      {
+        "bytes": 2764,
+        "name": "block_release_pin.hpp",
+        "sha256": "1a3f943f81d176b474d8d18a8cd81cbb8bcf44ee831326461f0a794afb440f8b"
+      },
+      {
+        "bytes": 3318,
+        "name": "wubi_release_v1.hpp",
+        "sha256": "c8b98b40da4a9cbd0b5b95346685a1eb4c220853556f475428d08f4f1a6a82e1"
+      }
+    ],
+    "relationship_to_alpha2": "Identical runtime payload and pins; new built-in UI glyphs belong to App/BuildInputs, not TF"
+  },
+  "partition": {
+    "flash_bytes": 16777216,
+    "app_slot_bytes": 4194304,
+    "old_2MiB_app_only_supported": false
+  },
+  "build": {
+    "arduino_cli": "1.4.1",
+    "arduino_esp32": "3.3.11",
+    "esp_x32": "2601",
+    "core": "0.13.1-rc.1 (CMake 0.13.1)",
+    "api": "0.13.0",
+    "host": "0.8.4-rc.1",
+    "combined_pin_sha256": "2b85265d958d6e47439a6fc75c4aff994fb8c615df72e9cb1205539a8f6de0a9"
+  },
+  "publication": "local author review; not uploaded",
+  "observation": {
+    "auth": 0,
+    "cp": 0,
+    "display_detail": 0,
+    "telemetry_profile": 0,
+    "telemetry_capture": 1,
+    "reason": "Explicit author decision 2026-10-19: remove serial composition/input timing feature for release; preserve business implementation."
+  },
+  "inherited_device_evidence": {
+    "label": "DRAFTOR_EDITOR_HUD_CN_R1_REV2_20261026_TEST_ONLY",
+    "app_bytes": 3893296,
+    "app_sha256": "25953c4fcddbc204b4bf7c97673e83e5015538a2b679a2fa5f365eeebeb1f63f",
+    "scope": "Author accepted H1-H4: horizontal/vertical status display, input/save and F2/Find return; no new release image device test"
+  },
+  "validation": {
+    "new_release_app_device_tested": false,
+    "software": "Fresh S3 build, bounded Host checks, linked provider and resource comparison",
+    "device_access_this_preparation": false
+  },
+  "generated_input_distribution": "MiSans generated menu table kept in local BuildInputs; public distribution basis remains to be resolved, see docs/FONT_DISTRIBUTION.md"
+}
