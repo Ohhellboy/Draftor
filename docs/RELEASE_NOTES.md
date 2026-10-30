@@ -1,16 +1,48 @@
-# Draftor Alpha 2.2 — Waveshare
+# Draftor Alpha 2.2: Waveshare Board Support
 
-Target tag: `v0.1.0-alpha.2.2`. This is a prerelease, not a general stability certification. [Qualification/status](ALPHA2_2_VALIDATION.md) controls whether firmware may be published. [Alpha 2.1 notes](RELEASE_NOTES_ALPHA2_1.md) remain historical.
+**English** | [简体中文](RELEASE_NOTES.zh-CN.md)
 
-- Brings the accepted Waveshare ST7305/SDMMC port into clean public source, with isolated mutable data and unchanged read-only format4/font resources.
-- Retains HOGP all-Input subscription/CCCD readback and menu-footer fixes, with standard F9 restored and special diagnostics/causal shortcut disabled. Bare F9 Consumer input is not mapped into a USB command.
-- Corrects normal optional-position absence after valid document import/restore; real position/body/I/O/metadata degradation still reports errors. The small common-source fix affects both S3 builds, without changing the document format or transactions.
-- Adds explicit-target, explicit-port installation, separate fresh/update modes, actual partition/OTA-slot checks and independent verify. Adds Host sized-delete portability without weakening sanitizers.
+Alpha 2.2 adds support for the **Waveshare ESP32-S3-RLCD-4.2**, integrating the ESP32-S3, a 4.2-inch monochrome reflective LCD and a microSD card slot on one board. It reduces the wiring required to build a Chinese writing device.
 
-bgIME Core/Extension/Wubi, candidate/commit semantics, resources/pins, ST7305 timing/packing, SDMMC lifecycle and protection guards are retained. The original board remains the default build and continues using its existing Alpha 2.1 device release; no Alpha 2.2 original-board firmware asset is advertised. Pico remains a standalone display demo.
+The existing Alpha 2.1 writing features remain available, including Full Pinyin, Xiaohe Shuangpin, Wubi 86, horizontal and vertical writing, Find, document management and USB file transfer. The input engine and dictionary resources remain unchanged.
 
-Use [Installation](INSTALL.md), [Build](BUILD.md), the [target manifest](../release/alpha2.2/WAVESHARE_RLCD42.json), and unchanged [input references](../release/alpha2.2/INPUT_REFERENCES.json). The USB string `Draftor USB v1.2 build236` is inherited and does not identify the App version. TF namespaces never fall back or auto-adopt unknown directories.
+## What's new
 
-Device scope, storage evidence, costs and untested areas are listed in [validation](ALPHA2_2_VALIDATION.md). Wi-Fi/QR remains an inherited experiment with limited Waveshare evidence. No claim covers all keyboards, power arrangements or fresh boards. No private manuscripts, MAC, pairing, Flash backup, ELF, SDK or raw device logs are included in public assets. Third-party licenses remain separate; see [Resource Status](RESOURCE_STATUS.md) and [Third Party](../THIRD_PARTY.md).
+**Waveshare monochrome display support.** Draftor now uses the ST7305 display controller, with monochrome markings for candidate focus, text selection and Find results. Chinese menu hints have also been adjusted to avoid overlapping status messages.
 
-Finite final-image result / 最终镜像有限结果：88 B 未编辑导入→正常保存→一次重启→真实导出逐字节相同；82 B 原稿保护通过，3 次正常 SCSI eject，普通键/两种 F9/菜单/横竖 Find 正常，本轮无存储警告。USB 供电、同一 Logitech/Fn 配置、Linux/Pi 主机；照片未收到，存储实际 status/stage 未采集。完整边界见验收说明。
+**Integrated microSD support.** The Waveshare port uses the board's native SDMMC interface and stores its manuscripts in a separate directory. It shares the existing Alpha 2.1 dictionaries and fonts while keeping the original Draftor document directory intact.
+
+**Better support for multifunction Bluetooth keyboards.** The input handling now correctly receives separate keyboard and multimedia reports, addressing an issue where pressing a media key could interrupt subsequent typing. Standard F9 remains the USB transfer shortcut; some keyboards require Fn to send it.
+
+**Document position restoration.** Newly imported manuscripts can reopen at the default position when no cursor position has previously been saved. Genuine read errors and damaged document records continue to be reported.
+
+## Downloads
+
+Alpha 2.2 provides the Waveshare firmware and updated source code. Dictionaries, fonts and build inputs are reused from Alpha 2.1.
+
+| File | Purpose |
+|---|---|
+| [Alpha 2.2 Waveshare Firmware](https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.2/Draftor_v0.1.0-alpha.2.2_WAVESHARE_RLCD42_Firmware.zip) | Board-specific firmware, boot files, partition layout and installation tools |
+| [Alpha 2.1 Resources](https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.1/Draftor_v0.1.0-alpha.2.1_Resources.zip) | Matching dictionaries, indexes and Chinese fonts |
+| [Alpha 2.2 Source](https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.2/Draftor_v0.1.0-alpha.2.2_Source.zip) | Draftor source and documentation |
+| [Alpha 2.1 BuildInputs](https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.1/Draftor_v0.1.0-alpha.2.1_BuildInputs.zip) | Fixed dependencies and generated inputs required to build the firmware |
+
+For normal installation, use the matching Firmware and the prepared Resources. Source and BuildInputs are needed when building from source.
+
+## Installation and upgrades
+
+**First installation on a Waveshare board:** Follow the [installation guide](INSTALL.md) to prepare the microSD card and install the firmware. A first installation erases the board's internal Flash contents and settings. Back up anything you want to keep before proceeding.
+
+**Updating a compatible Waveshare installation:** After verifying the partition layout and active application slot, you can update the application while retaining the existing microSD resources and manuscripts. Formatting the microSD card is unnecessary.
+
+**Original ESP32-S3 + Osptek ST7306 hardware:** Continue using [Alpha 2.1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1). Select the firmware for the correct display and storage hardware.
+
+See the [installation guide](INSTALL.md) for flashing and the [user guide](USAGE.md) for keyboard shortcuts, Chinese input and document transfers.
+
+## Notes
+
+Alpha 2.2 remains a test release. Back up important manuscripts regularly. The Waveshare version has been used with USB power, a Logitech Bluetooth keyboard and a Linux host; wider hardware and battery testing remains to be done.
+
+Local Wi-Fi transfer is still experimental. Document lists and trash operations may also take longer when many manuscripts are stored. See [Known Issues](KNOWN_ISSUES.md).
+
+Licensing and source information for fonts, dictionaries and third-party components is available in [Resource Status](RESOURCE_STATUS.md). Earlier Alpha 2 input-performance results remain documented separately; no new performance claim is made for this hardware port.

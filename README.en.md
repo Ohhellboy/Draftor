@@ -6,11 +6,13 @@ Draftor is an open-source, portable Chinese writing device built around a microc
 
 It aims to provide a distraction-free writing experience: no internet connection is needed, there are no AI writing features, and the device keeps to basic editing and document transfer.
 
-## Latest update: Alpha 2.2 — Waveshare
+## Latest update: Alpha 2.2 — Waveshare Board Support
 
-Alpha 2.2 brings the accepted Waveshare ESP32-S3-RLCD-4.2 port into the product source: ST7305, native SDMMC, isolated manuscripts, HOGP input subscriptions and menu footer ownership. A new document with no optional position record now restores normally; corrupt, mismatched or unreadable records still report errors. bgIME and format4 resources are unchanged.
+Alpha 2.2 adds support for the **Waveshare ESP32-S3-RLCD-4.2**, which combines an ESP32-S3, a 4.2-inch monochrome reflective LCD and a microSD card slot on one board. There are fewer separate modules to wire together. With a Bluetooth keyboard and a prepared microSD card, Draftor can be used for offline Chinese writing.
 
-[Alpha 2.2 prerelease](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.2) · [Current qualification and limits](docs/ALPHA2_2_VALIDATION.md) · [Release notes](docs/RELEASE_NOTES.md) · [Installation](docs/INSTALL.md) · [Usage](docs/USAGE.md) · [Original-board Alpha 2.1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1)
+Full Pinyin, Xiaohe Shuangpin, Wubi 86, horizontal and vertical writing, Chinese Find and document management are all carried over. This update also improves multifunction Bluetooth keyboard compatibility, adjusts candidate focus and Chinese menu hints for the monochrome display, and fixes an unnecessary warning when reopening certain imported manuscripts.
+
+[Download Alpha 2.2](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.2) · [Release notes](docs/RELEASE_NOTES.md) · [Installation](docs/INSTALL.md) · [User guide](docs/USAGE.md) · [Original-board Alpha 2.1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1)
 
 ![Draftor prototype running Chinese input](draftor-prototype.jpg)
 
@@ -18,37 +20,45 @@ Alpha 2.2 brings the accepted Waveshare ESP32-S3-RLCD-4.2 port into the product 
 
 | Feature | Support |
 |---|---|
-| Chinese input | Full Pinyin, Xiaohe Shuangpin, and Wubi 86 |
+| Chinese input | Full Pinyin, Xiaohe Shuangpin and Wubi 86 |
 | English input | Direct English input |
-| Character display | Simplified, Traditional, and variant Chinese characters using the supplied font resources |
+| Character display | Simplified, Traditional and variant Chinese characters using the supplied fonts |
 | Writing layout | Horizontal and vertical |
 | Document management | Local saving, Chinese file menus, renaming, trash and help |
-| Find in a manuscript | Chinese and English queries, forward/backward search and wraparound in both layouts |
-| Document transfer | Import and export over USB and local Wi-Fi |
+| Find in a manuscript | Chinese and English search, forward/backward navigation and wraparound in both layouts |
+| Document transfer | USB import and export; experimental local Wi-Fi transfer |
 
-Source supports **Waveshare ESP32-S3-RLCD-4.2** (ST7305/SDMMC) and the original **ESP32-S3 N16R8 + Osptek ST7306**. Select the exact board package; see the qualification table above. The original target remains the default build and keeps its Alpha 2.1 device release.
+The complete ESP32-S3 writing firmware currently supports two hardware configurations:
 
-The repository also provides standalone ST7306 display examples for the **Raspberry Pi Pico 2 W**. The current complete writing firmware is the ESP32-S3 version.
+**Waveshare ESP32-S3-RLCD-4.2:** An integrated board with an ST7305 monochrome reflective display and microSD slot, using Alpha 2.2.
 
-See [Hardware](docs/HARDWARE.md) for wiring and hardware requirements.
+**Original ESP32-S3 N16R8 + Osptek ST7306:** A separate black-white-red reflective display and microSD module, continuing with Alpha 2.1.
+
+The repository also provides standalone ST7306 display examples for Raspberry Pi Pico 2 W. See [Hardware](docs/HARDWARE.md) for connections and requirements.
 
 ## Getting started
 
 ### Install the firmware
 
-Use the target-specific Waveshare Alpha 2.2 package only after its release qualification is recorded. Follow [Installation](docs/INSTALL.md): compatible updates write only the actual active App; fresh installation is a separate explicitly destructive internal-Flash mode. Never format TF or cross-flash boards. Existing exact Alpha 2.1 resources are reused unchanged.
+Choose the firmware that matches your board.
+
+The Waveshare board uses [Alpha 2.2 Firmware](https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.2/Draftor_v0.1.0-alpha.2.2_WAVESHARE_RLCD42_Firmware.zip). The original ST7306 setup continues using [Alpha 2.1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1).
+
+The Waveshare version reuses the [Alpha 2.1 dictionaries, indexes and fonts](https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.1/Draftor_v0.1.0-alpha.2.1_Resources.zip). An existing microSD card prepared with the matching resources can be reused.
+
+The installation guide covers first installation and updates to compatible Draftor partitions. First installation erases the device's internal Flash, so back up anything you want to keep. The microSD card does not need formatting.
 
 ### Write and transfer documents
 
-The [user guide](docs/USAGE.md) covers keyboard shortcuts, Chinese input, Find, renaming documents, and transferring documents over USB and local Wi-Fi.
+The [user guide](docs/USAGE.md) covers Chinese input, writing layouts, Find, document management, USB transfers and local Wi-Fi transfers.
 
-Alpha 2.2 is a test release, and local Wi-Fi document transfer remains experimental. Export and back up important writing regularly. See [Known Issues](docs/KNOWN_ISSUES.md) for details.
+Alpha 2.2 is still a test release, and local Wi-Fi transfer remains experimental. Back up important manuscripts regularly. See [Known Issues](docs/KNOWN_ISSUES.md).
 
 ### Build from source
 
-Use Alpha 2.2 **Source** and the explicitly referenced Alpha 2.1 **BuildInputs** and follow the [build guide](docs/BUILD.md) to prepare the toolchain and compile the firmware. Running the device also requires the matching Resources.
+Use Alpha 2.2 **Source** with the matching Alpha 2.1 **BuildInputs**. Follow the [build guide](docs/BUILD.md) to prepare the toolchain and select the correct hardware target. The device also requires the matching microSD resources.
 
-GitHub's automatically generated “Source code” archives are repository snapshots. To install the device, use the matching files supplied on the release page.
+GitHub's automatically generated Source code archives are repository snapshots. For firmware installation, use the files provided on the release page.
 
 ## Chinese input: bgIME
 
