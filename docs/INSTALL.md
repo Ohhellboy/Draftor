@@ -1,14 +1,14 @@
-# Install Alpha 2.2 — Waveshare
+# Install Draftor Alpha 3 on Waveshare
 
 **English** | [简体中文](INSTALL.zh-CN.md)
 
-This guide is for **Waveshare ESP32-S3-RLCD-4.2**, 16 MiB Flash / 8 MiB OPI PSRAM. Check [current qualification](ALPHA2_2_VALIDATION.md) before installing. The original Osptek board keeps its [Alpha 2.1 guide](INSTALL_ALPHA2_1.md) and existing release; do not cross-flash targets. Pico has no complete writing image.
+This guide is for **Waveshare ESP32-S3-RLCD-4.2**, 16 MiB Flash / 8 MiB OPI PSRAM. Check [device and installer qualification](ALPHA3_VALIDATION.md) before installing. The original Osptek board keeps its [Alpha 2.1 guide](INSTALL_ALPHA2_1.md) and existing release; do not cross-flash targets. The Alpha 3 images for the original board and Pico 2 W are scheduled separately.
 
 ## Files and identity
 
-Use `Draftor_v0.1.0-alpha.2.2_WAVESHARE_RLCD42_Firmware.zip` only when published. Its `Firmware/` contains `app.bin`, `bootloader.bin`, `partitions.bin`, `boot_app0.bin`, `FIRMWARE_MANIFEST.json`, `install_firmware.py` and `check_install.py`. The [target manifest](../release/alpha2.2/WAVESHARE_RLCD42.json) is authoritative; the old original-board digest is historical only. ELF and private device logs are not release assets.
+Use `Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_Firmware.zip`. Its `Firmware/` contains `app.bin`, `bootloader.bin`, `partitions.bin`, `boot_app0.bin`, `FIRMWARE_MANIFEST.json`, `install_firmware.py` and `check_install.py`. The [target manifest](../release/alpha3/WAVESHARE_RLCD42.json) is authoritative; the old original-board digest is historical only. ELF and private device logs are not release assets.
 
-Install Python 3.11+ and esptool **5.3.1** in a virtual environment. Use that environment's `python` below. Identify your intended serial port explicitly; never select an arbitrary first port. The ROM route uses `--no-stub --before no-reset --after no-reset` because USB-Serial/JTAG stub reads were unreliable in this setup.
+The separate `app.bin` is a 4,021,152-byte application image. Its SHA-256 is `165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd`. Extract the firmware ZIP, then run the following commands from the directory containing `Firmware/`. Install Python 3.11+ and esptool **5.3.1** in a virtual environment (`python -m pip install esptool==5.3.1`). Use that environment's `python` below. Identify your intended serial port explicitly; never select an arbitrary first port. The ROM route uses `--no-stub --before no-reset --after no-reset` because USB-Serial/JTAG stub reads were unreliable in this setup.
 
 Save documents and safely eject/exit any transfer. Disconnect power completely, remove the TF card, hold BOOT while attaching USB, then release BOOT after about two seconds. Disconnect other boards. Battery-equipped boards may remain powered after USB removal. Read the ROM MAC with the explicit port and record it privately:
 
@@ -52,10 +52,11 @@ Do not use fresh on an existing compatible board merely because update refuses a
 
 ## TF resources and first boot
 
-Reuse the exact [Alpha 2.1 Resources](../release/alpha2.2/INPUT_REFERENCES.json); format4 and font bytes are unchanged. Existing paired cards require no resource rewrite. For a new card, use the released Resources tree to provide `HANIME/IME/B_SHORT_TEXT_20261018/` and `HANIME/IME/R1_API080/matched28.hbf1`. Do not overwrite an unknown existing dictionary/font/marker to make a check pass. Do not format, move old manuscript folders or copy private namespaces from another device.
+The [TF manifest](../release/alpha3/TF_RESOURCES.json) lists each path relative to the card root, its size and SHA-256. Before changing an existing card, back up its manuscript and learning directories to your computer. Keep their names and contents together.
 
-Leave `/WAVESHARE_RLCD42` absent for initial firmware creation, or retain the previously valid namespace/marker. An arbitrary empty folder is not a valid namespace. On a refusal, retain the card for inspection; there is no fallback to original data.
-
-After verification, fully disconnect power, insert the prepared TF, release BOOT and connect normally. Wait for resources, original keyboard pairing (updates) and the editor. Check saved status, noncommitting input and standard F9. Consumer F9 need not open a menu; on the tested keyboard Fn+F9 sends standard F9. Do not change Fn-Lock to hide failures.
+1. On a new card, copy the contents of `Resources/HANIME/` from the [exact Alpha 2.1 Resources ZIP](https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.1/Draftor_v0.1.0-alpha.2.1_Resources.zip) into `HANIME/` at the card root. This supplies the 14 format4 files and installation marker under `HANIME/IME/B_SHORT_TEXT_20261018/`, and the body font `HANIME/IME/R1_API080/matched28.hbf1`. An existing card can retain the matching files.
+2. From `Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_LearningIndex.zip`, copy `Resources/WAVESHARE_R7_L1_AREV1_RES_20261112/` to the card root. This supplies both `relations.bgr` and `relations.hnv`. Compare their sizes and digests with the TF manifest. If an existing file differs, preserve it and check the card and release before proceeding.
+3. The firmware creates its manuscript namespace at `WAVESHARE_R7_L1_AREV1_DOC_TEST_20261112/`. Documents live under `HANIME_S3_TEST/v01/` inside it. Let the firmware create the directory and marker on first boot. Keep an existing valid namespace intact. The private learning directory is `WAVESHARE_R7_L1_AREV1_TEST_20261112/`. Preserve the whole directory, including both state banks and their auxiliary files. Firmware updates do not automatically migrate old documents or learning records. Keep your old card content and use normal document export/import to bring selected documents across.
+4. Once firmware verification is complete, power off, insert the prepared card and start normally with BOOT released. Reuse your paired keyboard on its original channel. On a new empty board, pair the first keyboard as described in the [release notes](RELEASE_NOTES.md). No physical blank-board first installation has been claimed for this release.
 
 For real USB transfer, export is a read-only document snapshot; import is a **512 KiB RAM Inbox**, never the physical TF. Safely eject the actual newly enumerated volume using the host's normal eject action (SCSI eject), then follow the device's finish prompt. `sync`/unmount alone is insufficient. See [Usage](USAGE.md). Unexpected save warnings, wrong data or verification failures require preserving the state, not formatting or repeatedly saving over evidence.

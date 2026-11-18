@@ -1,48 +1,55 @@
-# Draftor Alpha 2.2: Waveshare Board Support
+# Draftor Alpha 3 — Waveshare: Learning from Word Selection, Seven Candidates, and Bluetooth Keyboards
 
-**English** | [简体中文](RELEASE_NOTES.zh-CN.md)
+[简体中文](RELEASE_NOTES.zh-CN.md) | **English**
 
-Alpha 2.2 adds support for the **Waveshare ESP32-S3-RLCD-4.2**, integrating the ESP32-S3, a 4.2-inch monochrome reflective LCD and a microSD card slot on one board. It reduces the wiring required to build a Chinese writing device.
+Alpha 3 for the Waveshare **ESP32-S3-RLCD-4.2 (ST7305)** adds learning from word selection, improves the arrangement of Chinese candidates, and reworks Bluetooth keyboard connection. Keyboard connection is faster.
 
-The existing Alpha 2.1 writing features remain available, including Full Pinyin, Xiaohe Shuangpin, Wubi 86, horizontal and vertical writing, Find, document management and USB file transfer. The input engine and dictionary resources remain unchanged.
+This first batch provides the Waveshare firmware and its matching learning index. Download and installation instructions are below.
 
-## What's new
+## Frequently selected words move up
 
-**Waveshare monochrome display support.** Draftor now uses the ST7305 display controller, with monochrome markings for candidate focus, text selection and Find results. Chinese menu hints have also been adjusted to avoid overlapping status messages.
+bgIME now learns from your word selections. A word that initially appears further down the list can move up after you select it repeatedly. Full Pinyin, Xiaohe Shuangpin, and Wubi 86 share these preferences: changing input schemes does not discard what the engine has learned about the same word.
 
-**Integrated microSD support.** The Waveshare port uses the board's native SDMMC interface and stores its manuscripts in a separate directory. It shares the existing Alpha 2.1 dictionaries and fonts while keeping the original Draftor document directory intact.
+Learning turns on automatically at startup, with a `Learning ON` message. Learning records are stored on the TF card and can be used again after saving and restarting.
 
-**Better support for multifunction Bluetooth keyboards.** The input handling now correctly receives separate keyboard and multimedia reports, addressing an issue where pressing a media key could interrupt subsequent typing. Standard F9 remains the USB transfer shortcut; some keyboards require Fn to send it.
+To clear the learned preference for a displayed candidate, use `Ctrl+1` through `Ctrl+7` while the seven-candidate list is visible. The shortcut applies to the corresponding displayed candidate in the current row or column.
 
-**Document position restoration.** Newly imported manuscripts can reopen at the default position when no cursor position has previously been saved. Genuine read errors and damaged document records continue to be reported.
+## Up to seven candidates in horizontal and vertical layouts
 
-## Downloads
+The main Chinese input view displays up to seven numbered candidates per row (horizontal) or column (vertical). Longer phrases take more space: up to **four two-character candidates** or **two three-character candidates** fit in a row. The Find interface continues to display up to six candidates per row.
 
-Alpha 2.2 provides the Waveshare firmware and updated source code. Dictionaries, fonts and build inputs are reused from Alpha 2.1.
+Sometimes the first character of the next candidate peeks in at the end. It tells you there are more candidates on the next page; that partial hint cannot be selected until you turn the page. When the next row or column is already fully visible, the hint disappears.
 
-| File | Purpose |
-|---|---|
-| [Alpha 2.2 Waveshare Firmware](https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.2/Draftor_v0.1.0-alpha.2.2_WAVESHARE_RLCD42_Firmware.zip) | Board-specific firmware, boot files, partition layout and installation tools |
-| [Alpha 2.1 Resources](https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.1/Draftor_v0.1.0-alpha.2.1_Resources.zip) | Matching dictionaries, indexes and Chinese fonts |
-| [Alpha 2.2 Source](https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.2/Draftor_v0.1.0-alpha.2.2_Source.zip) | Draftor source and documentation |
-| [Alpha 2.1 BuildInputs](https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.1/Draftor_v0.1.0-alpha.2.1_BuildInputs.zip) | Fixed dependencies and generated inputs required to build the firmware |
+## Pairing and switching Bluetooth keyboards
 
-For normal installation, use the matching Firmware and the prepared Resources. Source and BuildInputs are needed when building from source.
+Draftor can remember up to three Bluetooth keyboards, but uses only one at a time. To pair a new keyboard, **press and hold its channel button** to enter pairing mode, then follow the instructions at the bottom of Draftor's screen. Enter the displayed PIN or confirm locally when prompted. If you mistype the PIN, restart the keyboard and enter pairing mode again.
 
-## Installation and upgrades
+Once paired, **briefly press the same channel button** to reconnect. You do not need to hold it and pair again every time.
 
-**First installation on a Waveshare board:** Follow the [installation guide](INSTALL.md) to prepare the microSD card and install the firmware. A first installation erases the board's internal Flash contents and settings. Back up anything you want to keep before proceeding.
+To use a different paired keyboard, first turn off or disconnect the current one. Then turn on the next keyboard and briefly press its original channel button. Draftor will not take over an active keyboard connection merely because another keyboard wakes up nearby.
 
-**Updating a compatible Waveshare installation:** After verifying the partition layout and active application slot, you can update the application while retaining the existing microSD resources and manuscripts. Formatting the microSD card is unnecessary.
+When all three saved places are occupied, you can still pair a fourth keyboard. Only after the new pairing and required confirmation succeed does it replace the earliest saved pairing. Briefly reconnecting or typing on a keyboard does not change that order.
 
-**Original ESP32-S3 + Osptek ST7306 hardware:** Continue using [Alpha 2.1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1). Select the firmware for the correct display and storage hardware.
+## Saving your manuscript and learning records
 
-See the [installation guide](INSTALL.md) for flashing and the [user guide](USAGE.md) for keyboard shortcuts, Chinese input and document transfers.
+Press `F6` or `Ctrl/Cmd+S` to save the current manuscript. Wait for saving to finish before continuing.
 
-## Notes
+Before switching Draftor off, finish the current input and return to the manuscript, then press `Ctrl+F6`. Wait until the screen says `Saved; safe power off` before cutting power. This operation saves the manuscript and recent learning records, and pauses learning. If you decide to keep writing, press `Ctrl+F6` again to resume learning.
 
-Alpha 2.2 remains a test release. Back up important manuscripts regularly. The Waveshare version has been used with USB power, a Logitech Bluetooth keyboard and a Linux host; wider hardware and battery testing remains to be done.
+These are not the same operation: `F6` and `Ctrl/Cmd+S` save the manuscript, while `Ctrl+F6` combines manuscript saving, recent learning-data saving, and toggling learning on or off. The shortcut is admittedly doing too many jobs; its behaviour may be revised later.
 
-Local Wi-Fi transfer is still experimental. Document lists and trash operations may also take longer when many manuscripts are stored. See [Known Issues](KNOWN_ISSUES.md).
+## Display and existing functions
 
-Licensing and source information for fonts, dictionaries and third-party components is available in [Resource Status](RESOURCE_STATUS.md). Earlier Alpha 2 input-performance results remain documented separately; no new performance claim is made for this hardware port.
+The Waveshare version defaults to a 180°-rotated display, including the manuscript, candidates, and menus. The firmware configures the onboard TF interface for 1-bit SDMMC at 40 MHz.
+
+Horizontal and vertical writing, Chinese and English Find, local document management, and USB import/export are retained. Local Wi-Fi document transfer remains experimental. Please export and back up important manuscripts regularly, especially before updating firmware.
+
+## Download and upgrade
+
+This Alpha 3 batch is **only for the Waveshare ESP32-S3-RLCD-4.2 (ST7305)**. Get the firmware and matching resources from [GitHub Releases](https://github.com/Ohhellboy/Draftor/releases), and follow the [installation guide](INSTALL.md).
+
+Compatible dictionaries and fonts may be retained, but the matching learning index is also required. You do not need to format an existing TF card solely to upgrade. Follow the guide to add the learning index and check manuscript and learning directories. **Updating the firmware alone will not migrate existing manuscripts.** Back up your writing and any learning records before updating.
+
+Alpha 3 is being released in batches: **Waveshare → original ESP32-S3 N16R8 + Osptek ST7306 → Raspberry Pi Pico 2 W**. Each board has its own firmware image; do not cross-flash. Other variants will follow. Earlier versions remain available through [GitHub Releases](https://github.com/Ohhellboy/Draftor/releases).
+
+Questions and suggestions are welcome through [GitHub Issues](https://github.com/Ohhellboy/Draftor/issues).

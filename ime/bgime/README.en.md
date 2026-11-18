@@ -8,7 +8,7 @@ bgIME (Big Goose Input Method Engine) is a Chinese input engine designed for res
 
 It supports Full Pinyin, Xiaohe Shuangpin, and Wubi 86. Each input scheme has its own encoding rules, while sharing lexical resources, candidate lookup, and text submission through a common engine. Dictionaries can be stored on a TF card and read on demand, enabling Chinese input on microcontrollers with limited memory.
 
-bgIME currently powers [Draftor](../../README.en.md), an open-source writing device. Its Core can be built independently, and the repository includes command-line examples for developers interested in integrating the engine into other projects.
+bgIME powers [Draftor](../../README.en.md), an open-source writing device. Draftor Alpha 3 for Waveshare includes learning from word selection, shared across Full Pinyin, Xiaohe Shuangpin, and Wubi 86. Its Core can be built independently, and the repository includes command-line examples for developers interested in integrating the engine into other projects.
 
 ## Why “Big Goose”?
 
@@ -129,7 +129,7 @@ See [Source Integration](../../docs/SOURCE_INTEGRATION.md) for a more detailed s
 
 | Component | Version |
 |---|---|
-| [Draftor](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1) | `v0.1.0-alpha.2.1` |
+| [Draftor](https://github.com/Ohhellboy/Draftor/releases) | Alpha 3 (Waveshare first batch) |
 | bgIME Core | `0.13.1-rc.1` |
 | Core public API | `0.13.0` |
 | Core CMake library version | `0.13.1` |
@@ -166,7 +166,7 @@ A Chinese invention patent application has been filed concerning the shared stab
 
 Some features are still in development:
 
-- Core provides user-state and learning interfaces; user-frequency learning is still under development.
+- The Waveshare Draftor Alpha 3 build includes shared learning from word selection. The scoring policy and save shortcut may continue to evolve.
 - Input schemes are integrated through the existing module interfaces. A general plugin ABI is not currently provided.
 - The existing Host file adapters use POSIX APIs. Other platforms require corresponding platform adapters.
 

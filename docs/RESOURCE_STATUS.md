@@ -1,6 +1,6 @@
 # Resources & Licensing Status / 资源来源与许可情况
 
-**Version / 适用版本：Draftor Alpha 2 · v0.1.0-alpha.2**
+**Draftor Alpha 3 · Waveshare / 微雪 · v0.1.0-alpha.3**
 
 [Project](../README.en.md) / [项目主页](../README.md) · [Build / 源码构建](BUILD.md) · [License Inventory / 许可证清单](LICENSE_INVENTORY.md) · [Firmware Distribution / 固件分发](FIRMWARE_DISTRIBUTION.md)
 
@@ -16,7 +16,13 @@ This document explains what is known about their origins, which materials are pr
 
 **确认材料的来源，不等于已经确认其派生作品的再分发权利；反过来，许可问题尚未明确，也不等于已经认定存在侵权。**
 
-## 1. Current resource set / 当前资源
+## Alpha 3 微雪 / Waveshare
+
+本版引用已有 Alpha 2.1 词库及正文字体。新学习索引由通用词表中条目的数字位置构成，配套证明文件是索引页的校验树。两者由项目生成，独立于个人学习记录。见 [TF 资源身份及历史来源](../release/alpha3/TF_RESOURCES.json)、[生成器](../tools/generate_learning_index.py)及[编译资源说明](EXTERNAL_BUILD_INPUTS.md)。下列早期来源记录及未决的独立分发事项继续保留。
+
+The generic format 301 index maps dictionary references to existing scheme row positions. The payload contains numeric offsets and entries, and its proof file authenticates those pages. The files can be regenerated from the pinned historical data. Existing notices and source terms remain applicable. Original dictionaries, fonts and standalone menu glyph tables are supplied only through the indicated prior references.
+
+## 1. Shared format4 resource set / 共用的 format4 资源
 
 Alpha 2.1 retains Alpha 2's format4 `B_SHORT_TEXT_20261018`, bundle `17304919664082782091`: 14 runtime files, 132,153,747 bytes, plus unchanged `matched28.hbf1` (2,464,108 bytes). Alpha 2 inherited the lexical identities and text content of the earlier B2 resource set while changing its physical query, record and proof layout. The exact inventory/pins are [here](../release/alpha2/RESOURCE_MANIFEST.json).
 

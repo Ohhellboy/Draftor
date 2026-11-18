@@ -8,7 +8,7 @@ bgIME（大鹅中文输入法引擎，Big Goose Input Method Engine）是一套�
 
 它支持全拼、小鹤双拼和五笔86。不同输入方案使用各自的编码规则，同时共用词条资源、候选查询和文本提交机制。词库可以存放在TF卡中，按需读取，从而在内存有限的单片机上实现中文输入。
 
-目前，bgIME 已应用于开源写作设备 [Draftor（草稿机）](../../README.md)。引擎核心可以独立编译，仓库中也提供了命令行示例，供其他项目参考和集成。
+目前，bgIME 已应用于开源写作设备 [Draftor（草稿机）](../../README.md)。微雪版 Draftor Alpha 3 已接入选词学习：全拼、小鹤双拼和五笔86共享个人选词习惯。引擎核心可以独立编译，仓库中也提供了命令行示例，供其他项目参考和集成。
 
 ## 为什么叫“大鹅”？
 
@@ -129,7 +129,7 @@ bgIME 将共享输入能力与不同输入方案分开组织。
 
 | 组件 | 版本 |
 |---|---|
-| [Draftor](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1) | `v0.1.0-alpha.2.1` |
+| [Draftor](https://github.com/Ohhellboy/Draftor/releases) | Alpha 3（微雪首批） |
 | bgIME Core | `0.13.1-rc.1` |
 | Core 公开 API | `0.13.0` |
 | Core CMake 库版本 | `0.13.1` |
@@ -166,7 +166,7 @@ bgIME 自有源码采用 **Apache License 2.0**，见 [LICENSE](../../LICENSE) �
 
 目前还有一些功能处于开发阶段：
 
-- Core 已有用户状态和学习接口，用户词频学习功能仍在开发中。
+- 微雪版 Draftor Alpha 3 已提供基于选词次数的共享学习。学习策略与保存快捷键仍可能继续调整。
 - 输入方案目前通过现有模块接口集成，通用插件 ABI 尚未提供。
 - 现有 Host 文件适配器使用 POSIX API，接入其他平台需要实现相应的平台适配。
 

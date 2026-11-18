@@ -1,95 +1,26 @@
-# Building Alpha 2.2 / Alpha 2.2 源码构建
+# Build Draftor Alpha 3 for Waveshare
 
-Build the Chinese Find, menu and editor interface with the fixed inputs below. Product release names follow [VERSIONING.md](../VERSIONING.md); bgIME keeps its own versions.
+本批目标为微雪 ESP32-S3-RLCD-4.2、ST7305、180°，16 MiB Flash、8 MiB OPI PSRAM。构建以 [Alpha 3 目标清单](../release/alpha3/WAVESHARE_RLCD42.json)中的产品源码提交为准。运行时 TF 文件见 [TF 清单](../release/alpha3/TF_RESOURCES.json)。固件构建无需连接设备或准备 TF。
 
-使用以下固定输入编译中文查找、菜单和编辑器界面。整机版本遵循 [VERSIONING.md](../VERSIONING.md)，bgIME 独立维护版本号。
+Use Python 3.11+, Arduino CLI 1.4.1, Arduino-ESP32 3.3.11, esp-x32 2601 (Xtensa GCC 14.2.0) and the ESP32-S3 libraries that come with that core. The SDK `versions.txt` must match the [pinned version file](../vendor/versions.txt), including ESP-IDF 5.5.5. Use the ESP32 Arduino package from [Espressif](https://docs.espressif.com/projects/arduino-esp32/en/latest/installing.html). Set `ARDUINO_CLI` to the installed executable and `DRAFTOR_SDK_SOURCE` to the Arduino data directory that contains `packages/`. The usual source is a local installed SDK; do not set either variable to a serial device.
 
-## Inputs / 输入
+## Build
 
-Unzip Alpha 2.2 Source and the unchanged Alpha 2.1 BuildInputs identified in [INPUT_REFERENCES](../release/alpha2.2/INPUT_REFERENCES.json). `Draftor/` contains Git-tracked project source; `BuildInputs/inputs/` supplies only the eleven entries in `EXTERNAL_INPUTS.json`. Two added inputs are the WenKai UI16 bitmap and exact MiSans 14/16px menu tables. Check [Font Distribution](FONT_DISTRIBUTION.md) before redistributing generated tables. The remainder of BuildInputs holds original licenses, corresponding third-party sources, font/dictionary provenance and the explicit optional format3 input to the current resource generator. It is not an installed SDK or cache. Runtime resource generation is unnecessary for compiling this firmware.
-
-解压 Alpha 2.2 Source 与清单明确引用的原样 Alpha 2.1 BuildInputs。`Draftor/` 是拟提交的源码；`BuildInputs/inputs/` 对应清单中的11项配套输入。新增两项为文楷 UI16 位图和 MiSans 14/16px 菜单表；再分发前请阅读[字体分发说明](FONT_DISTRIBUTION.md)。其余内容为原许可、第三方对应源码、字体词库来源及可选资源生成所需的准确前代输入，不是整套已安装 SDK 或缓存。编译不需要重新生成词库。
-
-Install **Python 3.11+, Arduino CLI 1.4.1, Arduino-ESP32 3.3.11 and esp-x32 2601 (GCC 14.2.0)**. The SDK `versions.txt` must match `vendor/versions.txt` (ESP-IDF v5.5.5 b774170ff46; Arduino 0d7a8614b; TinyUSB 53f8c53c2). `DRAFTOR_SDK_SOURCE` points to the Arduino **data directory containing `packages/`**, not its parent. The build makes an owned USB overlay; installed tools/libraries are read-only inputs. CMake 3.20+ and Clang with C++17/ASan/UBSan support (`clang++` on PATH) are needed for the optional focused Host runner.
-
-工具链固定为上述版本。`DRAFTOR_SDK_SOURCE` 指向包含 `packages/` 的 Arduino **data目录**。构建创建自身 USB 覆盖层，不修改原安装；可选 Host 检查另需 CMake 3.20+及支持 C++17/ASan/UBSan 的 Clang（PATH 中提供 clang++）。
-
-An installed SDK may use symlinks for its versioned components. The build receipt records the resolved hardware, compiler and S3 library roots selected through `DRAFTOR_SDK_SOURCE`; dependency checks allow only these declared SDK components and this source tree.
-
-已安装SDK可能用符号链接组织不同版本组件。回执会明确列出经此配置选中的硬件包、编译器及S3库的实际位置；依赖检查只接受这些已声明组件及本源码树。
+Use a fresh checkout of this tag or extract the Source ZIP. Verify the pinned [external input archive and 11 input files](EXTERNAL_BUILD_INPUTS.md). Extract the archive beside the source tree and run from the folder containing `tools/`.
 
 ```sh
-cd Draftor
 python3 -B tools/install_external_inputs.py --from ../BuildInputs/inputs
-export DRAFTOR_SDK_SOURCE=/your/arduino/data
-export ARDUINO_CLI=/your/bin/arduino-cli
-python3 -B tools/build_candidate.py --target ESP32S3_OSPTEK_ST7306
-python3 -B tools/build_candidate.py --target WAVESHARE_RLCD42
+python3 -B tools/build_candidate.py --target WAVESHARE_RLCD42 --rotation 180
 ```
 
-Use a fresh extracted directory. Outputs are in `TestBuilds/s3/<TARGET>/dist/`; receipts are in `evidence/s3/<TARGET>/`. No step connects to hardware or downloads a hidden input. The supplied TinyUSB archive is the exact fixed MSC-only component; its sources/overlay and upstream material remain in `vendor/` and BuildInputs. [External input details](EXTERNAL_BUILD_INPUTS.md).
+先配置上面的两个环境变量，再执行命令。原样输入包括修改过的 TinyUSB 组件、字形表和编译用头文件。构建工具在本地工作树中准备 SDK 覆盖层，使用冻结的菜单字形、三份 format4 pin、学习索引 pin 与产品编译参数。对开发机源目录和 Arduino SDK 目录应用前缀映射。本版保留内部 R3 硬件标签；用目标清单里的完整 App SHA-256 辨认实际发行文件。
 
-使用全新解包目录；输出与回执分别位于上述目录。构建不会连接设备或暗中下载输入。TinyUSB 使用准确的 MSC-only 配套组件，同时保留源码、覆盖材料及对应上游资料。
+The full build emits the App, bootloader and partition table under `TestBuilds/s3/WAVESHARE_RLCD42_ROT180/dist/`, with the linked ELF and map in the build outputs. The compiler command, stack gate and dependency receipts are in `evidence/s3/WAVESHARE_RLCD42_ROT180/`. These local receipts can contain the developer’s own paths. The startup initializer comes from the installed Arduino core at `tools/partitions/boot_app0.bin`. [Build identity](../release/alpha3/BUILD_IDENTITY.json)
 
-## Active resources and configuration / 生效绑定与配置
+The downloadable App is the specific recorded build. Independently linked ELF files may have different debug metadata and therefore a different embedded ELF digest. Confirm the board, resource pins and build settings when comparing a new build. The source tree retains historical tools and target records; the Alpha 2.2 build and qualifications are available in the [preceding tag](https://github.com/Ohhellboy/Draftor/tree/v0.1.0-alpha.2.2).
 
-`release/alpha2/pins/` is the canonical three-pin set. `build_s3.py` copies it to both the Arduino sketch and HanimePinned library, replacing historical local copies. After compilation it reads the actual `.d` dependencies and checks every consumed `release_pin.hpp`, `block_release_pin.hpp`, and `wubi_release_v1.hpp` against those canonical bytes. Arduino's exact leading `#line` directive is the only permitted normalization. The receipt is `PIN_INCLUDE_BINDING.json`; there is no manual JSON edit or hidden research directory.
-
-三份生效 pin 以 `release/alpha2/pins/` 为准，自动复制到 sketch 与 Core 库，并检查编译器真实 `.d` 包含来源。仅允许去掉 Arduino 添加的准确首行 `#line`，不靠手改清单配对。
-
-| Setting / 设置 | Fixed value / 固定值 |
-|---|---|
-| B block / 分块 | `DRAFTOR_BLOCK_BACKEND=1` |
-| Text handoff / 取字衔接 | `HANIME_TEXT_CHAIN=1` |
-| Shared short text / format4 | `DRAFTOR_SHARED_TEXT_VARIANT=3` |
-| Synchronous delta display / 同步差量显示 | `DRAFTOR_DISPLAY_TRANSACTION=1` |
-| Resident location table / 完整定位驻留 | `DRAFTOR_TEXT_RESIDENT=0` |
-| Old input/display coordination / 旧协同机制 | `DRAFTOR_INPUT_PRESENT_COORD=0` |
-| AUTH / CP / display detail | `0 / 0 / 0` |
-| Telemetry profile / capture | `0 / 1` — ordinary input logging muted, AUTH observer disabled |
-| SHA batched-final experiment | `HANIME_SHA256_BATCHED_FINAL=0` |
-| Output profile / TF runtime | `2 / 20000000 Hz` |
-| USB / release build | `1 / 1` |
-| Flash / PSRAM | `16M / opi` |
-
-The board uses the exact custom dual-4 MiB partition CSV in `integration/product/partitions/B.csv`. Core CMake version is 0.13.1, Core release identifier 0.13.1-rc.1, API 0.13.0 and Host 0.8.4-rc.1; these are independent of the Draftor release number.
-
-分区取准确双4 MiB CSV；Core、API、Host版本与整机 Alpha 2.2 版本号分别保留。
-
-## Source map and optional checks / 源码与可选检查
-
-Canonical Core is `integration/product/dependencies/core`; `ime/bgime/` is an entry guide, not another Core. Product display uses `integration/product/platform/ST7306_OsptekLpm8.cpp`, which includes the cumulative changes. The independent MIT display demo remains a separate module, not the full firmware's driver source.
-
-Core 只有一个权威实现；整机显示驱动与独立 MIT 演示分开，不升级演示来替代整机实现。
+To recreate the 3,587,304-byte learning lookup and its 117,760-byte proof from the published, extracted format4 resources, run the following command. It checks the input hashes, generated output digests and Merkle root before saving the results.
 
 ```sh
-python3 -B tools/check_alpha2.py
-python3 -B tools/generate_format4.py --help
-# Optional, potentially slow resource rebuild; never needed merely to compile:
-python3 -B tools/generate_format4.py   --input-format3 ../BuildInputs/resource-generation/format3_input   --output generated-format4
+python3 -B tools/generate_learning_index.py --resources ../Resources/HANIME/IME/B_SHORT_TEXT_20261018 --output generated-index
 ```
-
-The resource tool inherits the full identity/default/general-output comparison and proof generation, with explicit input/output paths. It produces only the selected format4 release; it does not rerun tree or layout comparisons. Original dictionary/font reconstruction limits remain in [Resource Status](RESOURCE_STATUS.md). Historical CMake replay suites require their own legacy fixtures and are not substituted for this packaged build or advertised as all passing.
-
-资源工具继承生成时的全量身份、默认/通用文字比较及证明生成，只生成选定的 format4，不重跑历史选型。原始词库/字体重建的既有限制见[资源说明](RESOURCE_STATUS.md)。历史回放测试需要各自旧资料，不冒称已在本包全部通过。
-
-## String implementation at link time / 字符串链接
-
-The build extracts `string-inst.o` from the pinned compiler’s `esp32s3/no-rtti/libstdc++.a` and places it immediately after the Arduino core archive. The standard SDK archives and the later libstdc++ link remain in place. The build records the archive/member identity in `MATTER_TEMPLATE_PROVIDER.json`; no prebuilt object is shipped in Source. Runtime licensing is listed in [Third-Party Notices](../THIRD_PARTY.md).
-
-构建从固定工具链的上述库中提取字符串实现，放在 Arduino core 库之后。SDK 库和后续 libstdc++ 链接仍保留，提取对象的身份写入构建回执；Source 不附带预编译对象。运行库许可见[第三方声明](../THIRD_PARTY.md)。
-
-## Alpha 2.2 target and validation
-
-Default remains `ESP32S3_OSPTEK_ST7306`; explicitly select `WAVESHARE_RLCD42` for ST7305 / 1-bit SDMMC. Unknown names and Pico are rejected. Both targets receive the small shared startup-position correction; original-board HOGP behavior is not expanded. Production labels are `DRAFTOR_ALPHA_2_2_<TARGET>`. Waveshare uses `WS_HOGP_INPUTS=1`, runtime/HID/causal diagnostics all 0; no temporary causal shortcut.
-
-Both complete target builds run actual dependency, pin, link and stack gates. [Current validation and costs](ALPHA2_2_VALIDATION.md) separates hardware observations from Host results. [A3](WAVESHARE_A3_HISTORY.md) is historical software-only evidence, not a current “not flashed” claim.
-
-```sh
-# From the source root; Resources is an extracted local archive, not a mounted card:
-python3 -B tools/validate_alpha2_2.py --resources ../Resources/HANIME/IME/B_SHORT_TEXT_20261018
-```
-
-This bounded normal + ASan/UBSan runner covers startup storage, USB import/save/lifecycle, heap guard, product F9 route, footer ownership, display integration, HOGP diagnostics-off behavior and parameterized installer failures. Configuration and compile steps are not extra functional test cases. It does not rerun every historical CTest. Sized-delete overloads preserve allocation matching; sanitizer checks remain enabled.
-
-微雪文稿与共享资源路径见 [Hardware](HARDWARE.md)。A2 的 SDMMC 回滚/卸载隔离和 A3 的命名空间分配异常保护原样保留；本轮只继承相关有效证据，不声称重新穷举全部旧故障。最终生产源码提交与镜像绑定写入目标清单；后续纯文档提交不改变已测二进制。

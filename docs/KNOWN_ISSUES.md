@@ -1,14 +1,19 @@
-# Known issues, limits and privacy / 已知问题、限制与隐私
+# Draftor Alpha 3 limitations / 已知限制
+
+微雪首批仅覆盖 ST7305、180°。新增学习索引、文稿位置与升级备份见[安装](INSTALL.zh-CN.md)。已验收范围及全新空板首装边界见[实机记录](ALPHA3_VALIDATION.md)。Wi-Fi 文稿传输仍属实验功能。
+
+## Historical Alpha 2.2 observations / 历史记录
+
 
 Alpha 2.2 adds the Waveshare target while retaining Chinese Find and interface labels. Keep independent exports of important manuscripts. The limits below apply to the current product; historical measurements retain their original version names.
 
 Alpha 2.2 增加微雪目标并保留中文查找及界面。使用时仍请独立导出重要文稿。以下说明当前限制；历史测量保留原版本归属。
 
-## Waveshare Alpha 2.2 / 微雪当前范围
+## Waveshare Alpha 2.2 / 历史微雪范围
 
 The accepted R5 F-01 input-stall finding is closed only for the tested Waveshare board, Logitech keyboard and Fn configuration. No new keyboard-internal or air-interface evidence is claimed. HOGP all-Input subscriptions and CCCD readback stay enabled independently of diagnostics. Menu footer overlap is fixed; no quantified trash performance claim is made.
 
-R5 had one reboot “存储异常” observation without a captured status/stage. Host reproduction proves a narrower issue: a valid imported body/CURRENT with no optional position record returned `OK_DEGRADED / position_fallback`. Alpha 2.2 uses the snapshot's valid default cursor and returns `OK / position_default` only for `NOT_FOUND`. Corruption, mismatch, I/O, genuine body/metadata recovery and PARTIAL still warn. This is not proof of the historical event's exact cause. See [current hardware qualification](ALPHA2_2_VALIDATION.md) for the final unedited import/reboot/export outcome.
+R5 had one reboot “存储异常” observation without a captured status/stage. Host reproduction proves a narrower issue: a valid imported body/CURRENT with no optional position record returned `OK_DEGRADED / position_fallback`. Alpha 2.2 uses the snapshot's valid default cursor and returns `OK / position_default` only for `NOT_FOUND`. Corruption, mismatch, I/O, genuine body/metadata recovery and PARTIAL still warn. This is not proof of the historical event's exact cause. See [Alpha 2.2 hardware qualification](ALPHA2_2_VALIDATION.md) for the final unedited import/reboot/export outcome.
 
 历史警告的实际分支未知；本轮不把“提示消失”当作数据安全证明。正常位置缺省与真实损坏分开处理；真实警告仍须留证。原机也编译验证这项共享修改，但没有新原机实测或可刷发行资产。
 

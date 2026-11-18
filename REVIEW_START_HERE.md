@@ -1,12 +1,11 @@
-# Alpha 2.1 文档与发行文件
+# Draftor Alpha 3 · 微雪首批
 
-| 文档 | 简体中文 | English |
+| 入口 | 简体中文 | English |
 | --- | --- | --- |
-| 项目首页 | [中文](README.md) | [English](README.en.md) |
-| 发行说明 | [中文](docs/RELEASE_NOTES.zh-CN.md) | [English](docs/RELEASE_NOTES.md) |
-| 安装指南 | [中文](docs/INSTALL.zh-CN.md) | [English](docs/INSTALL.md) |
-| 操作手册 | [中文](docs/USAGE.zh-CN.md) | [English](docs/USAGE.md) |
+| 项目 | [项目首页](README.md) | [Project](README.en.md) |
+| 发行说明 | [更新内容](docs/RELEASE_NOTES.zh-CN.md) | [Release notes](docs/RELEASE_NOTES.md) |
+| 安装 | [安装指南](docs/INSTALL.zh-CN.md) | [Installation](docs/INSTALL.md) |
 
-安装需要Firmware与Resources；自行编译还需要Source与BuildInputs。四包使用同一版本号，资源配对见[RELEASE_PAIR.json](RELEASE_PAIR.json)。字体分发状态见[字体说明](docs/FONT_DISTRIBUTION.md)。
+本批提供微雪 ESP32-S3-RLCD-4.2 的 ST7305、180° 固件及 format 301 学习索引。普通安装还需指定的历史词库与字体，开发者可从对应提交及固定构建输入自行编译。原版 Osptek 与 Pico 2 W 的 Alpha 3 固件后续提供。
 
-[版本约定](VERSIONING.md) · [构建指南](docs/BUILD.md) · [已知问题](docs/KNOWN_ISSUES.md)
+[固件与源码对应关系](RELEASE_PAIR.json) · [TF 清单](release/alpha3/TF_RESOURCES.json) · [实机验收](docs/ALPHA3_VALIDATION.md) · [自行编译](docs/BUILD.md)

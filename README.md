@@ -6,13 +6,19 @@
 
 它希望提供一种无打搅的写作方式：无需联网，没有 AI 写作功能，保留基本编辑和文稿传输功能。
 
-## 最新更新：Alpha 2.2 · 微雪一体板
+## 最新发布：Alpha 3 · 微雪
 
-Alpha 2.2 为草稿机增加了 **微雪 ESP32-S3-RLCD-4.2** 的支持。主控、4.2 英寸黑白反射屏和 TF 卡槽集成在一块板上，搭建时少了不少接线工作。连接蓝牙键盘、准备好配套 TF 卡，就可以继续使用草稿机进行离线中文写作。
+微雪 ESP32-S3-RLCD-4.2 的 Alpha 3 加入选词学习：原本排在后面的词，被多次选中后，可以排得更靠前。全拼、小鹤双拼和五笔86共用这份学习记录。
 
-全拼、小鹤双拼、五笔 86、横竖排、中文查找和文稿管理等功能继续保留。这次还改善了多功能蓝牙键盘的兼容性，整理了黑白屏下的候选焦点和中文菜单提示，并修正了一种文稿重新打开时的存储提示误报。
+单字候选词在横排每行、竖排每列最多显示7项，多字候选词按实际字数显示（双字候选词每行4个候选，三字候选词每行2个候选，以此类推）。蓝牙键盘的连接速度更快，换用已配对键盘也更方便。
 
-[下载 Alpha 2.2](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.2) · [完整更新说明](docs/RELEASE_NOTES.zh-CN.md) · [安装指南](docs/INSTALL.zh-CN.md) · [操作手册](docs/USAGE.zh-CN.md) · [原机 Alpha 2.1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1)
+| 硬件 | Alpha 3 发布情况 | 下载与说明 |
+|---|---|---|
+| 微雪 ESP32-S3-RLCD-4.2（ST7305） | **首批发布** | [获取微雪版固件及配套资源](https://github.com/Ohhellboy/Draftor/releases) · [安装指南](docs/INSTALL.zh-CN.md) |
+| 原版 ESP32-S3 N16R8＋Osptek ST7306 | Alpha 3 后续发布 | [历史版本](https://github.com/Ohhellboy/Draftor/releases) |
+| Raspberry Pi Pico 2 W | Alpha 3 后续发布 | [硬件与开发进展](docs/HARDWARE.md) |
+
+三种硬件共用 Alpha 3 名称，但固件不通用，不能混刷。本次先发布微雪版。[阅读 Alpha 3 微雪版更新说明](docs/RELEASE_NOTES.zh-CN.md)。
 
 ![运行中文输入的草稿机原型](draftor-prototype.jpg)
 
@@ -28,11 +34,11 @@ Alpha 2.2 为草稿机增加了 **微雪 ESP32-S3-RLCD-4.2** 的支持。主控�
 | 文内查找 | 中文及英文查询、前后查找与回绕，适配横排和竖排 |
 | 文稿传输 | USB 导入导出；实验性本地 Wi-Fi 传输 |
 
-目前的 ESP32-S3 完整写作固件有两套硬件配置：
+草稿机已有两套 ESP32-S3 硬件配置，但**本次 Alpha 3 固件只适用于微雪板**：
 
-**微雪 ESP32-S3-RLCD-4.2：** 使用板载 ST7305 黑白反射屏和 TF 卡槽，对应 Alpha 2.2 固件。
+**微雪 ESP32-S3-RLCD-4.2：** 使用板载 ST7305 黑白反射屏和 TF 卡槽，对应本次 Alpha 3 固件。
 
-**原 ESP32-S3 N16R8＋Osptek ST7306：** 使用独立的黑白红反射屏和 TF 模块，继续使用 Alpha 2.1 固件。
+**ESP32-S3 N16R8＋Osptek ST7306：** 使用独立的黑白红反射屏和 TF 模块；其 Alpha 3 固件将在后续批次提供。旧版固件可从[历史 Releases](https://github.com/Ohhellboy/Draftor/releases)获取。
 
 仓库也提供 Raspberry Pi Pico 2 W 的独立 ST7306 显示示例。接线、设备要求及硬件差异见[硬件说明](docs/HARDWARE.md)。
 
@@ -40,11 +46,9 @@ Alpha 2.2 为草稿机增加了 **微雪 ESP32-S3-RLCD-4.2** 的支持。主控�
 
 ### 安装固件
 
-根据使用的硬件下载对应的固件包：
+从 [GitHub Releases](https://github.com/Ohhellboy/Draftor/releases) 获取 **Alpha 3 微雪版固件和配套资源**，按[微雪版安装指南](docs/INSTALL.zh-CN.md)操作。不要将此固件刷入原版 ST7306 或 Pico 2 W。
 
-微雪一体板使用 [Alpha 2.2 Firmware](https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.2/Draftor_v0.1.0-alpha.2.2_WAVESHARE_RLCD42_Firmware.zip)，原 ST7306 原型机继续使用 [Alpha 2.1](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.1)。
-
-微雪版本继续使用 Alpha 2.1 的[词库、索引与字体资源](https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.1/Draftor_v0.1.0-alpha.2.1_Resources.zip)。如果 TF 卡已经准备好这些资源，可以直接复用。
+已有兼容词库和字体的 TF 卡可以继续保留原文件，但还需要加入 Alpha 3 配套的学习索引，并按指南核对文稿与学习目录。**仅更新固件不会自动迁移旧文稿。**更新前请备份文稿和已有学习记录。
 
 安装指南区分首次安装和已有兼容分区的固件更新。首次安装会清除设备内部 Flash，请提前备份需要保留的内容；无需格式化 TF 卡。
 
@@ -52,11 +56,11 @@ Alpha 2.2 为草稿机增加了 **微雪 ESP32-S3-RLCD-4.2** 的支持。主控�
 
 [操作手册](docs/USAGE.zh-CN.md)介绍中文输入、横竖排、查找、文稿管理，以及 USB 和本地 Wi-Fi 文稿传输。
 
-Alpha 2.2 仍是测试版本，本地 Wi-Fi 传输属于实验功能。重要文稿请定期导出备份，其他使用限制见[已知问题](docs/KNOWN_ISSUES.md)。
+Alpha 3 仍是测试版本，本地 Wi-Fi 传输属于实验功能。重要文稿请定期导出备份，其他使用限制见[已知问题](docs/KNOWN_ISSUES.md)。
 
 ### 自行编译
 
-使用 Alpha 2.2 的 **Source** 和配套的 Alpha 2.1 **BuildInputs**，按照[构建指南](docs/BUILD.md)准备工具链并选择对应硬件目标。运行时仍需要配套的 TF 资源。
+自行编译微雪 Alpha 3 时，请使用本批发行对应的源码和构建输入，按[构建指南](docs/BUILD.md)准备工具链并选择微雪目标。运行时还需要与此固件匹配的 TF 资源。其他硬件的 Alpha 3 构建输入随各自批次提供。
 
 GitHub 自动生成的 Source code 压缩包是仓库快照。安装设备请使用发行页提供的固件及配套文件。
 

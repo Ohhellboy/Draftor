@@ -2,47 +2,56 @@
   {
     "path": "integration/product/platform/composition_font_data.hpp",
     "bytes": 62659,
-    "reason": "restricted derived resource or incomplete generated font provenance"
+    "reason": "restricted derived resource or incomplete generated font provenance",
+    "sha256": "a91ddc4a7ab0df39d04d8679020f8f1915d49716479b0d64a725b6e9475a207d"
   },
   {
     "path": "integration/product/platform/latin_font.hpp",
     "bytes": 26193,
-    "reason": "restricted derived resource or incomplete generated font provenance"
+    "reason": "restricted derived resource or incomplete generated font provenance",
+    "sha256": "ca8e13e41779c46dad0ed12f26c41615f8522e67709c07632c4fd469d73074cb"
   },
   {
     "path": "integration/product/assets/u28fcd.hbf1",
     "bytes": 148,
-    "reason": "external resource fixture/font input"
+    "reason": "external resource fixture/font input",
+    "sha256": "321988555c8e5bf9c1c49170b43ec6d3f6deef4f9585dc3190d2bff1e4064bc8"
   },
   {
     "path": "integration/product/assets/matched28.hbf1",
     "bytes": 2464108,
-    "reason": "external resource fixture/font input"
+    "reason": "external resource fixture/font input",
+    "sha256": "afd6981d76180b8a58b32e65f7463b7ee5354f1ab76166256c4b70ad876a1f58"
   },
   {
     "path": "integration/product/assets/rare_codepoints.json",
     "bytes": 831,
-    "reason": "external resource fixture/font input"
+    "reason": "external resource fixture/font input",
+    "sha256": "1c118cf10fdc29d22fb3d22d9b2378dea79d74990046971b8a9f4655b13bee5d"
   },
   {
     "path": "integration/product/src/wubi_auto_safe_v1.hpp",
     "bytes": 128605,
-    "reason": "restricted derived resource or incomplete generated font provenance"
+    "reason": "restricted derived resource or incomplete generated font provenance",
+    "sha256": "061137d93d010625141a67aa7ced7744241d3d729996cc76c4b9aed075bae023"
   },
   {
     "path": "integration/product/src/ui14_font_data.cpp",
     "bytes": 1548935,
-    "reason": "restricted derived resource or incomplete generated font provenance"
+    "reason": "restricted derived resource or incomplete generated font provenance",
+    "sha256": "7d45e8d4716ae6cc189c806ace2c31c3485171fedb6d3975c2dddbc32b8cd6b7"
   },
   {
     "path": "vendor/CMakeLists.upstream.txt",
     "bytes": 3400,
-    "reason": "upstream lib-builder recipe redistribution license not established"
+    "reason": "upstream lib-builder recipe redistribution license not established",
+    "sha256": "2cb28274878aa525abdf3e6c22f8cfd7f7f5233187c13a138337fc64515bab6f"
   },
   {
     "path": "vendor/libarduino_tinyusb.a",
     "bytes": 649338,
-    "reason": "exact inherited T03 MSC-only component; fixed sources and original licensing in Source/vendor"
+    "reason": "exact inherited T03 MSC-only component; fixed sources and original licensing in Source/vendor",
+    "sha256": "965761410ab467c1b18ecd4f55957d6dda4b15f0c6b2df9a922a75257fcb17a2"
   },
   {
     "path": "integration/product/src/ui16_font_data.cpp",

@@ -1,5 +1,8 @@
 # Hardware and target selection / 硬件与目标选择
 
+**Alpha 3** ships for Waveshare ESP32-S3-RLCD-4.2, ST7305, 180°. The [target manifest](../release/alpha3/WAVESHARE_RLCD42.json) and [installation guide](INSTALL.md) describe this release. 本批仅提供微雪固件；原版与 Pico 2 W 的 Alpha 3 固件后续提供。下列既有板级记录按原版本保留。
+
+
 ## Waveshare ESP32-S3-RLCD-4.2
 
 Use the exact `WAVESHARE_RLCD42` package, not an Osptek image. ROM chip identity alone cannot distinguish boards with different wiring; physically check the model printed on the board. / 必须确认实物板型；芯片 MAC 不能代替板型确认。

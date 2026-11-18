@@ -1,19 +1,44 @@
-# Alpha 2.2 微雪安装指南
+# 草稿机 Alpha 3 微雪安装指南
 
-**简体中文** | [English and complete command reference](INSTALL.md)
+**简体中文** | [English](INSTALL.md)
 
-仅适用 **Waveshare ESP32-S3-RLCD-4.2 / 16 MiB Flash / 8 MiB OPI PSRAM**。先看[当前验收范围](ALPHA2_2_VALIDATION.md)。原 Osptek 板继续使用[Alpha 2.1 安装指南](INSTALL_ALPHA2_1.zh-CN.md)与既有发行；不能混刷，Pico 没有完整写作固件。
+本批适用于微雪 ESP32-S3-RLCD-4.2，ST7305 屏幕，16 MiB Flash，8 MiB OPI PSRAM，默认旋转 180°。原版 Osptek 和 Pico 2 W 的 Alpha 3 固件另批提供。[目标清单](../release/alpha3/WAVESHARE_RLCD42.json) · [验收范围](ALPHA3_VALIDATION.md)
 
-发行包名明确包含 `WAVESHARE_RLCD42`。以包内 `FIRMWARE_MANIFEST.json` 和仓库[目标清单](../release/alpha2.2/WAVESHARE_RLCD42.json)为准，不能使用旧原机 App 摘要。Python 3.11+ 虚拟环境安装 esptool **5.3.1**；使用 `--no-stub --before no-reset --after no-reset` ROM 路径。
+## 准备设备和备份
 
-1. 保存文稿，正常弹出并结束传输，完全断电取出 TF，断开其他板。按住 BOOT 接 USB，两秒后松开。带电池时拔 USB 不一定断电。
-2. 明确实物板型与串口，按英文页的 `read-mac` 命令读取本板 MAC；`PORT` 与 `MAC` 必须由现场确定，不能猜第一个端口。MAC 只确认芯片身份，不证明接线。
-3. 保留并检查已有完整 Flash/NVS/配对备份和文稿/TF 副本；无需重做已有有效备份或整卡哈希。没有可用备份不能仅靠设置确认选项继续。备份和安装日志应私有保存。
-4. 先运行英文页的默认只读计划。每次结果目录必须新建。安装器校验四件套、板型标签、16 MiB Flash、安全状态、实际分区和启动槽；不接受加密/Secure Boot，不改 eFuse、不 force。
-5. 兼容更新用 `--mode update --execute --backup-confirmed`，可用 `--current-app` 增加旧 App 独立核验。实际 app0/app1 决定写址，不假定 app0。只写 App 并独立 verify，不动分区、启动文件、NVS、配对或 TF。失败立即停止，不自动重试。
-6. 首装另用 `--mode fresh`。只有备份确认且确实要清除整片内部 Flash，才加 `--allow-erase`；这会清除旧固件、设置与配对。首装写四件套并分别校验；不得将此路径当作更新失败后的自动补救。新空板首装尚未实测，只有受控夹具覆盖。
-7. `VERIFIED_BOOT_PENDING` 后断电，插回准确资源的 TF，松开 BOOT 正常启动。不要把下载模式的按键动作带入正常启动。
+下载并解压 `Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_Firmware.zip`。其中 `Firmware/app.bin` 仅含 App，共 4,021,152 字节，SHA-256 为 `165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd`。首次安装使用同包的通用 bootloader、分区表与 OTA 初始数据。
 
-TF 继续引用准确 [Alpha 2.1 Resources](../release/alpha2.2/INPUT_REFERENCES.json)，format4、字体和 pins 不变，已有配套卡无需重铺。新卡只铺发布的共享资源；不覆盖未知旧资源/marker、不格式化、不移动旧文稿。微雪文稿根是 `/sd/WAVESHARE_RLCD42/HANIME_S3_TEST/v01`。首次让固件创建不存在的命名空间；未知或不完整目录会拒绝，不能预建任意空目录、强行接管或回退原机目录。
+先在原固件保存文稿及学习记录，正常结束传输，断电后取出 TF。将自己的文稿、学习目录和现有设备 Flash（包括设置和配对）的可恢复备份私下保存并核验。`--backup-confirmed` 表示这一步已完成。带电池时拔 USB 可能仍有供电。核对实物板型，断开其他开发板，按住 BOOT 接入 USB，约两秒后松开。
 
-更新后原配对保留。测试键盘裸 F9 是 Consumer，Fn+F9 才是标准菜单键，不改变 Fn-Lock。导出只读快照，导入只有 512 KiB RAM Inbox，电脑从不直接挂载 TF；每次识别实际新卷，执行正常安全 eject 后再退出。仅 sync/umount 不能代替正常 SCSI eject。完整按键和异常处理见[使用手册](USAGE.zh-CN.md)。
+安装 Python 3.11+，在虚拟环境运行 `python -m pip install esptool==5.3.1`。在含有 `Firmware/` 的目录执行以下命令。将 `PORT` 设为本机实际串口，读出并核对本板 MAC，再把它设为 `MAC`。串口、MAC 与结果目录只在本机使用。
+
+```sh
+python -m esptool --chip esp32s3 --port "$PORT" --before no-reset --after no-reset --no-stub read-mac
+python Firmware/install_firmware.py --firmware Firmware --board WAVESHARE_RLCD42 --port "$PORT" --expected-mac "$MAC" --mode update --output private-plan
+```
+
+## 兼容更新
+
+上面的计划只读检查固件、芯片、16 MiB Flash、安全状态、板上实际分区表和 OTA 状态。安装器只接受兼容布局与能明确选择的活动 App；可能是 app0 或 app1。检查输出，再执行一次更新，结果写入另一个新目录。有原 App 准确文件时可加 `--current-app previous-app.bin` 进行额外比对。
+
+```sh
+python Firmware/install_firmware.py --firmware Firmware --board WAVESHARE_RLCD42 --port "$PORT" --expected-mac "$MAC" --mode update --output private-update --execute --backup-confirmed
+```
+
+更新只写活动 App 并独立校验，保留已有 NVS、键盘配对和 TF 内容。遇到分区、安全状态或校验异常就保留现场和私有日志。
+
+## 全新安装
+
+首次安装另用 `--mode fresh`。先执行只读计划。选择执行后将**擦除整片内部 Flash**，旧固件、内部设置及配对均会被清除。确认已备份，再主动加上擦除参数。更新失败时不要转入此流程。本版首装验证为离线夹具和通用构建文件核对；全新空板首装尚未实测。
+
+```sh
+python Firmware/install_firmware.py --firmware Firmware --board WAVESHARE_RLCD42 --port "$PORT" --expected-mac "$MAC" --mode fresh --output private-fresh-plan
+python Firmware/install_firmware.py --firmware Firmware --board WAVESHARE_RLCD42 --port "$PORT" --expected-mac "$MAC" --mode fresh --output private-fresh --execute --backup-confirmed --allow-erase
+```
+
+## TF 资源与普通启动
+
+1. 新卡从[指定的 Alpha 2.1 资源包](https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.1/Draftor_v0.1.0-alpha.2.1_Resources.zip)将 `Resources/HANIME/` 下的内容放入卡根的 `HANIME/`。其中 `HANIME/IME/B_SHORT_TEXT_20261018/` 提供 14 个 format4 文件和安装标记，`HANIME/IME/R1_API080/matched28.hbf1` 是正文字体。已有卡可以沿用匹配的文件。
+2. 从 `Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_LearningIndex.zip` 将 `Resources/WAVESHARE_R7_L1_AREV1_RES_20261112/` 复制到卡根。目录内须同时有 `relations.bgr` 和 `relations.hnv`。按[TF 清单](../release/alpha3/TF_RESOURCES.json)核对路径、大小和 SHA-256。发现同名文件不符，请保留原件核对。无需格式化 TF。
+3. 文稿位于卡根 `WAVESHARE_R7_L1_AREV1_DOC_TEST_20261112/HANIME_S3_TEST/v01/`，学习记录位于 `WAVESHARE_R7_L1_AREV1_TEST_20261112/`。升级前分别完整备份。保留已有合法标记；首次由固件创建文稿命名空间及学习目录。更新不会自动迁移旧文稿或学习，旧文稿可通过正常导出、导入流程转移。
+4. 安装器显示 `VERIFIED_BOOT_PENDING` 后，断电、插回准备好的 TF、松开 BOOT 正常启动。兼容更新后可用已配键盘原信道普通唤醒。新设备按[发行说明](RELEASE_NOTES.zh-CN.md)配对第一把键盘。

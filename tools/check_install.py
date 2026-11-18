@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Offline Alpha 2 file checks. Never opens a port, disk, network or device.
+"""Offline Draftor file and layout checks. Never opens a port, disk, network or device.
 
 Inputs must be ordinary saved files/directories. This is a compatibility check,
 not a flashing program, backup creator, or substitute for runtime authentication.
@@ -88,6 +88,17 @@ def check(firmware,resource_root,mode,partition=None,ota=None):
  if any(r[4]==0x200000 for r in slots):raise ValueError('2 MiB layout: App does not fit; separate migration required, not App-only')
  if rows!=EXPECTED:raise ValueError('Not the exact supported dual-4 MiB layout')
  res=resources(resource_root,pair['resources'])
+ if 'learning' in pair:
+  card=resource_root.resolve().parents[2]
+  for item in pair['learning']:
+   rel=Path(item['tf_path'])
+   if rel.is_absolute() or '..' in rel.parts:raise ValueError('Invalid learning resource path')
+   index=card/rel
+   if index.is_symlink() or not index.is_file() or index.stat().st_size!=item['bytes']:
+    raise ValueError('Missing or incorrect learning index: '+str(rel))
+   with index.open('rb') as f:
+    if hashlib.file_digest(f,'sha256').hexdigest()!=item['sha256']:raise ValueError('Learning resource digest mismatch: '+str(rel))
+  res['verified_learning_files']=len(pair['learning'])
  if mode=='update':
   if partition is None or ota is None:raise ValueError('Update requires saved current partition and OTA files; do not use package defaults as device evidence')
   slot=active_slot(ota)

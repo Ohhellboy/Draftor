@@ -1,10 +1,14 @@
 {
-  "version": "v0.1.0-alpha.2.2",
-  "status": "FINITE_DEVICE_PASS_RELEASE_READY",
-  "branch": "feature/waveshare-alpha2-2-20261029",
-  "remote_actions_authorized": true,
-  "release_state_reference": "https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.2.2",
-  "PR_status": "connector 403; no PR created",
-  "automatic_main_merge": false,
-  "old_releases_overwritten": false
+  "version": "v0.1.0-alpha.3",
+  "product": "Draftor Alpha 3",
+  "first_target": "WAVESHARE_RLCD42",
+  "channel": "prerelease",
+  "production_commit": "f398ec3839bafca8122d11e94dee4e135d941b62",
+  "qualification": "docs/ALPHA3_VALIDATION.md",
+  "tag_url": "https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.3",
+  "historical_releases": "preserved",
+  "future_targets": [
+    "ESP32S3_OSPTEK_ST7306",
+    "PICO_2_W"
+  ]
 }

@@ -1,0 +1,39 @@
+{
+  "baseline_sha256": "9479d5bfb6ad82f4c6d666fbd36888918ee4aeccd8fc030f58bda4d01eded0d4",
+  "app_sha256": "165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd",
+  "bytes": 4021152,
+  "app_partition_bytes": 4194304,
+  "remaining_bytes": 173152,
+  "elf_sha256": "23fcd351d70a2a2db180515a4bca7a245dfcc5b56f564304bd2b682814e67ace",
+  "toolchain": {
+    "arduino_cli": "1.4.1",
+    "arduino_esp32": "3.3.11",
+    "esp_x32": "2601",
+    "gcc": "14.2.0",
+    "esptool": "5.3.1",
+    "esp_idf": "5.5.5"
+  },
+  "product_commit": "f398ec3839bafca8122d11e94dee4e135d941b62",
+  "build_command": "python3 -B tools/build_candidate.py --target WAVESHARE_RLCD42 --rotation 180",
+  "config": "esp32:esp32:esp32s3:FlashSize=16M,PartitionScheme=custom,PSRAM=opi,FlashMode=qio,USBMode=default,CDCOnBoot=default,UploadSpeed=460800,DebugLevel=none",
+  "runtime_code_changes_after_hud_cleanup": 0,
+  "private_workspace_paths_in_app": 0,
+  "build_change": "Map the resolved Arduino SDK directory to arduino-data in C and C++ file and macro names.",
+  "independent_app_readback": true,
+  "device_acceptance": "PASS_SINGLE_KEYBOARD_NORMAL_WRITING",
+  "fresh_blank_board": "FIXTURE_ONLY",
+  "resources": "TF_RESOURCES.json",
+  "independent_rebuild": {
+    "method": "Fresh Git source export; 11 inputs from verified public BuildInputs; documented SDK overlay and Waveshare build command.",
+    "app_bytes": 4021152,
+    "app_sha256": "e51ac6adc5227dcb683c418c0898027269944b89febf0f9df5567c41f5a38205",
+    "compared_bytes": 4021152,
+    "differing_bytes": 68,
+    "differences_confined_to": [
+      "Arduino software-info compile time",
+      "embedded ELF digest",
+      "image checksum/digest footer"
+    ],
+    "distributed_app": "the read-back and operator-accepted build"
+  }
+}
