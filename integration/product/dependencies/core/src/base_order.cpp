@@ -1,4 +1,5 @@
 #include "hanime/base_order.hpp"
+#include "hanime/key_fence_access.hpp"
 #include "base_order_wire.hpp"
 #include "base_order_block.hpp"
 #include <algorithm>
@@ -39,6 +40,7 @@ struct BaseOrderCursor::Impl {
 BaseOrderCursor::BaseOrderCursor():impl_(std::make_unique<Impl>()) {}
 BaseOrderCursor::~BaseOrderCursor()=default;
 std::uint32_t BaseOrderCursor::count() const {return impl_->count;}
+std::uint32_t BaseOrderCursor::range_start() const {return impl_->start;}
 std::uint32_t BaseOrderCursor::member_position() const {return impl_->member_pos;}
 std::size_t BaseOrderCursor::memory_bytes() const {return sizeof(*this)+sizeof(Impl)+(impl_->block?sizeof(detail::BlockCursor):0);}
 struct BaseOrderIndex::Impl {
@@ -201,7 +203,7 @@ bool BaseOrderIndex::continue_range(BaseOrderCursor& cursor) {
 BaseOrderStep BaseOrderIndex::locate(BaseOrderCursor& cursor,const WorkBudget& b) {
   auto& c=*cursor.impl_; auto& p=*impl_;
   if (!current(cursor)) return {};
-  if (!b.max_work_items || !b.max_read_calls || !b.max_read_bytes) return {BaseOrderStatus::InvalidRequest,{},{}};
+  if (!b.max_work_items) return {BaseOrderStatus::InvalidRequest,{},{}};
   if(p.block) {
     WorkCost used;
     auto finish=[&](BaseOrderStatus status) {Impl::charge(p.stats.directory,used);return BaseOrderStep{status,used,{}};};
@@ -374,7 +376,7 @@ BaseOrderStep BaseOrderIndex::locate(BaseOrderCursor& cursor,const WorkBudget& b
 BaseOrderStep BaseOrderIndex::read_item(BaseOrderCursor& cursor,std::uint32_t position,const WorkBudget& b) {
   auto& c=*cursor.impl_; auto& p=*impl_;
   if (!current(cursor)) return {};
-  if (!b.max_work_items || !b.max_read_calls || !b.max_read_bytes || !c.located || c.missing || position>=c.count)
+  if (!b.max_work_items || !c.located || c.missing || position>=c.count)
     return {BaseOrderStatus::InvalidRequest,{},{}};
   if (!c.item_started) {c.item_started=true; c.item_pos=position; c.decode=false;}
   if (c.item_pos!=position) return {BaseOrderStatus::InvalidRequest,{},{}};
@@ -436,6 +438,66 @@ std::size_t BaseOrderIndex::memory_bytes() const {return sizeof(*this)+sizeof(Im
 BaseOrderLocateStats BaseOrderIndex::locate_stats() const {return impl_->stats;}
 
 namespace detail {
+struct KeyFenceMember::Impl {
+  std::shared_ptr<const VerifiedResourceReader> reader;
+  ResourceReadContext context{std::make_shared<const int>(0),1}, source;
+  std::array<std::uint8_t,8> bytes{};
+  std::uint64_t offset{0};
+  std::uint32_t start{0},lo{0},hi{0},mid{0},count{0},position{0},ref{0};
+  bool decoded{false},done{false},found{false},cancelled{false};
+  ~Impl(){if(reader)reader->cancel_read_budgeted(context);}
+};
+KeyFenceMember::KeyFenceMember()=default;
+KeyFenceMember::~KeyFenceMember(){cancel();}
+bool KeyFenceMember::begin(BaseOrderIndex& index,const BaseOrderCursor& cursor,RuntimeLexemeRef ref) {
+  if(!index.current(cursor) || !cursor.impl_->located || cursor.impl_->missing ||
+     cursor.impl_->item_started || !ref)return false;
+  cancel();auto p=std::make_shared<Impl>();
+  p->reader=index.impl_->reader;p->source=cursor.impl_->context;
+  p->offset=index.impl_->header.member_offset;p->start=cursor.impl_->start;
+  p->hi=p->count=cursor.impl_->count;p->ref=ref;impl_=std::move(p);return true;
+}
+BaseOrderStep KeyFenceMember::advance(BaseOrderIndex& index,const BaseOrderCursor& cursor,const WorkBudget& b) {
+  const auto p=impl_;
+  auto current=[&](){return p && impl_==p && !p->cancelled && index.current(cursor) &&
+      p->source.owner==cursor.impl_->context.owner && p->source.revision==cursor.impl_->context.revision;};
+  if(!current())return {};
+  if(p->done)return {p->found?BaseOrderStatus::Ready:BaseOrderStatus::NotFound,{},{}};
+  if(!b.max_work_items || b.should_stop())return {BaseOrderStatus::Pending,{},{}};
+  if(!current())return {};
+  if(p->lo==p->hi){p->done=true;return {BaseOrderStatus::NotFound,{0,0,1},{}};}
+  if(!p->decoded) {
+    if(!b.max_read_calls || !b.max_read_bytes)return {BaseOrderStatus::Pending,{},{}};
+    p->mid=p->lo+(p->hi-p->lo)/2;
+    const auto s=p->reader->read_budgeted(p->offset+std::uint64_t(p->start+p->mid)*8,p->bytes.data(),8,b,p->context);
+    if(!current())return {BaseOrderStatus::Stale,s.cost,{}};
+    if(s.status==ResourceReadStatus::Error)return {BaseOrderStatus::Error,s.cost,{}};
+    if(s.status==ResourceReadStatus::Ready)p->decoded=true;
+    return {BaseOrderStatus::Pending,s.cost,{}};
+  }
+  p->decoded=false;const auto ref=bo32(p->bytes.data());
+  if(!ref || ref>p->reader->spec().runtime_ref_count)return {BaseOrderStatus::Error,{0,0,1},{}};
+  if(ref<p->ref)p->lo=p->mid+1;
+  else if(ref>p->ref)p->hi=p->mid;
+  else {
+    p->position=bo32(p->bytes.data()+4);
+    if(p->position>=p->count)return {BaseOrderStatus::Error,{0,0,1},{}};
+    p->done=p->found=true;return {BaseOrderStatus::Ready,{0,0,1},{}};
+  }
+  return {BaseOrderStatus::Pending,{0,0,1},{}};
+}
+std::uint32_t KeyFenceMember::position()const{return impl_?impl_->position:0;}
+void KeyFenceMember::cancel(){if(impl_){impl_->cancelled=true;impl_->reader->cancel_read_budgeted(impl_->context);impl_.reset();}}
+std::size_t KeyFenceMember::control_bytes(){return sizeof(KeyFenceMember)+sizeof(Impl)+2*sizeof(void*)*2;}
+bool KeyFenceMember::borrow_located(BaseOrderIndex& index,const BaseOrderCursor& source,BaseOrderCursor& target) {
+  const auto& s=*source.impl_;
+  if(!index.current(source)||!s.located||s.missing||s.item_started)return false;
+  // Same located descriptor, no begin/revision change and no copied item bytes.
+  target.impl_->release();*target.impl_=BaseOrderCursor::Impl{};auto& t=*target.impl_;
+  t.context=s.context;t.reader=s.reader;t.start=s.start;t.count=s.count;t.paths=s.paths;t.located=true;
+  return true;
+}
+std::uint32_t KeyFenceMember::raw_paths(const BaseOrderCursor& c){return c.impl_->paths;}
 bool BaseOrderBlockAccess::is_block(const BaseOrderIndex& index) {return index.impl_->reader && index.impl_->reader->spec().resource_format==105;}
 bool BaseOrderBlockAccess::cursor_descriptor(const BaseOrderIndex& index,const BaseOrderCursor& cursor,
     std::uint32_t& start,std::uint32_t& count,std::uint32_t& paths) {

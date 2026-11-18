@@ -112,7 +112,7 @@ static void clearAndErrors(){
  s.keyboard=ble(keyboard::Phase::Pairing);s.keyboard.passkey=123456;hud::footer(s,face,fill,pixel);
  s.keyboard=ble(keyboard::Phase::Ready);hud::footer(s,face,fill,pixel);CHECK(after==p);
  s.keyboard=ble(keyboard::Phase::Error);CHECK(!hud::feedback(s).empty());
- s.keyboard=ble(keyboard::Phase::AwaitRelease);CHECK(hud::feedback(s).find("Shift")!=std::string_view::npos);
+ s.keyboard=ble(keyboard::Phase::AwaitRelease);CHECK(hud::feedback(s)=="请松开按键");
  s.keyboard=ble(keyboard::Phase::Ready);s.keyboard.pairing_not_saved=true;CHECK(!hud::feedback(s).empty());
  s.keyboard.phase=keyboard::Phase::Disconnected;CHECK(hud::feedback(s).empty());
  std::cout<<"PASS shorter status/passkey repaint leaves no residual pixels; errors and release gate retained\n";

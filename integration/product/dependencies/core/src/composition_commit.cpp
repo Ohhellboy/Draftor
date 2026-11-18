@@ -1,4 +1,5 @@
 #include "hanime/composition_commit.hpp"
+#include "composition_learning_internal.hpp"
 #include <algorithm>
 #include <cstring>
 #include <limits>
@@ -16,7 +17,32 @@ struct CompositionIdentity {
   CompositionCapacity capacity{CompositionCapacity::None};
   std::size_t required{0};
   OutputStatus output{OutputStatus::Pending};
+  CompositionLearningTicket learning;
 };
+CompositionLearningReceipt CompositionLearningTicket::receipt() const {
+  CompositionLearningReceipt r;
+  if (!identity_) return r;
+  r.members=identity_->count; r.local_work=identity_->local_work;
+  // Preparing/cancelled/unknown transactions have no learning work. Avoid an
+  // O(M) receipt walk behind every budgeted output-preparation step.
+  if (!identity_->accepted) return r;
+  for (std::size_t i=0;i<identity_->count;++i) {
+    const auto& m=identity_->members[i];
+    if (m.status==LearningStatus::Pending) ++r.pending;
+    else if (m.status==LearningStatus::RecordedDirty || m.status==LearningStatus::Persisted) ++r.recorded;
+    else if (m.status==LearningStatus::NoChangeSaturated) ++r.saturated;
+    else if (m.status!=LearningStatus::NotNotified) ++r.paused;
+    if (m.persisted) ++r.persisted;
+  }
+  return r;
+}
+CompositionLearningMemberReceipt CompositionLearningTicket::member(std::size_t i) const {
+  if (!identity_ || i>=identity_->count) return {{},LearningStatus::Stale,0,false};
+  return identity_->members[i];
+}
+CompositionLearningTicket CompositionHandle::learning_ticket() const {
+  return identity_ ? identity_->learning : CompositionLearningTicket{};
+}
 CompositionResult CompositionHandle::result() const {
   CompositionResult r;
   if (!identity_) return r;
@@ -24,6 +50,12 @@ CompositionResult CompositionHandle::result() const {
   r.transaction=*this; r.status=t.status; r.origin=t.origin; r.attempt=t.attempt;
   r.member_index=t.member_index; r.member_count=t.count; r.text_bytes=t.text_bytes;
   r.capacity=t.capacity; r.required_capacity=t.required; r.output=t.output;
+  const auto x=t.learning.receipt();
+  if (x.members) {
+    r.learning=t.status!=CompositionStatus::Accepted ? CompositionLearning::NotAccepted :
+      x.paused ? CompositionLearning::PartialPaused : x.pending ? CompositionLearning::Pending :
+      x.persisted==x.members ? CompositionLearning::Persisted : CompositionLearning::Recorded;
+  }
   if (t.status==CompositionStatus::RetryableNoEffect) {
     r.retry.identity_=identity_; r.retry.attempt_=t.attempt;
   }
@@ -36,7 +68,7 @@ void add(WorkCost& a,WorkCost b) {
 }
 bool config_valid(const CompositionConfig& c) {
   if (!c.max_members || !c.form_bytes || !c.member_text_bytes || !c.total_text_bytes ||
-      c.learning!=CompositionLearningPolicy::Disabled) return false;
+      (c.learning!=CompositionLearningPolicy::Disabled && c.learning!=CompositionLearningPolicy::Record)) return false;
   std::size_t size=0;
   auto account=[&](std::size_t n,std::size_t w) {
     if (n>std::numeric_limits<std::size_t>::max()/w || n*w>std::numeric_limits<std::size_t>::max()-size) return false;
@@ -59,6 +91,7 @@ struct CompositionCommitter::Impl {
   PagedSharedResource& shared;
   TextCommitSink& sink;
   CompositionConfig config;
+  CompositionCountSource* learning;
   std::shared_ptr<const CompositionOwnerIdentity> owner{std::make_shared<CompositionOwnerIdentity>()};
   CompositionHandle active;
   std::unique_ptr<PreparedCompositionMember[]> members;
@@ -69,7 +102,7 @@ struct CompositionCommitter::Impl {
   std::size_t position{0}, copied{0}, member_length{0};
   bool reading{false}, busy{false}, closed{false};
   Phase phase{Phase::Done};
-  Impl(PagedSharedResource& r,TextCommitSink& s,CompositionConfig c):shared(r),sink(s),config(c) {
+  Impl(PagedSharedResource& r,TextCommitSink& s,CompositionConfig c,CompositionCountSource* l):shared(r),sink(s),config(c),learning(l) {
     members=std::make_unique<PreparedCompositionMember[]>(c.max_members);
     requests=std::make_unique<char[]>(c.max_members*c.form_bytes);
     names=std::make_unique<char[]>(c.form_bytes);
@@ -158,18 +191,24 @@ struct CompositionCommitter::Impl {
     return {active.result(),cost};
   }
 };
-CompositionCommitter::CompositionCommitter(PagedSharedResource& r,TextCommitSink& s,const CompositionConfig& c) {
-  if (!config_valid(c)) return;
-  try {impl_=std::make_unique<Impl>(r,s,c);} catch (const std::bad_alloc&) {}
+CompositionCommitter::CompositionCommitter(PagedSharedResource& r,TextCommitSink& s,const CompositionConfig& c,CompositionCountSource* l) {
+  if (!config_valid(c) || (c.learning==CompositionLearningPolicy::Record && !l)) return;
+  try {impl_=std::make_unique<Impl>(r,s,c,l);} catch (const std::bad_alloc&) {}
 }
 CompositionCommitter::~CompositionCommitter() {if (impl_) close();}
 bool CompositionCommitter::valid() const {return bool(impl_);}
 CompositionResult CompositionCommitter::prepare(const SharedActivationHandle& binding,CompositionOrigin origin,
     const CompositionMember* input,std::size_t count) {
+  return prepare(binding,origin,input,count,impl_ ? impl_->config.learning : CompositionLearningPolicy::Disabled);
+}
+CompositionResult CompositionCommitter::prepare(const SharedActivationHandle& binding,CompositionOrigin origin,
+    const CompositionMember* input,std::size_t count,CompositionLearningPolicy policy) {
   if (!impl_) return error(CompositionStatus::AllocationFailure);
   auto& p=*impl_;
   if (p.busy) return error(CompositionStatus::Busy);
   if (p.closed) return error(CompositionStatus::Closed);
+  if ((policy!=CompositionLearningPolicy::Disabled && policy!=CompositionLearningPolicy::Record) ||
+      (policy==CompositionLearningPolicy::Record && !p.learning)) return error(CompositionStatus::InvalidRequest);
   if (p.active.identity_ && p.active.identity_->status==CompositionStatus::UnknownOutcome) return p.active.result();
   if (!count || !input || !origin.input_revision || !origin.selection_revision || origin.source.begin>=origin.source.end)
     return error(CompositionStatus::InvalidRequest);
@@ -194,7 +233,30 @@ CompositionResult CompositionCommitter::prepare(const SharedActivationHandle& bi
   }
   if (previous!=origin.source.end) return error(CompositionStatus::InvalidRequest);
   std::shared_ptr<CompositionIdentity> next;
-  try {next=std::make_shared<CompositionIdentity>();} catch (const std::bad_alloc&) {return error(CompositionStatus::AllocationFailure);}
+  try {
+    next=std::make_shared<CompositionIdentity>();
+    if (policy==CompositionLearningPolicy::Record) {
+      auto batch=std::make_shared<CompositionLearningIdentity>();
+      batch->registry_namespace=p.shared.info().registry_namespace;
+      // Body members remain untouched. Only surviving proven actions become
+      // learning receipts; one action/key once, distinct actions never coalesce.
+      batch->members=std::make_unique<CompositionLearningMemberReceipt[]>(count);
+      for (std::size_t i=0;i<count;++i) {
+#if BGIME_L1_A_REV1_TEST_ONLY
+        if (!input[i].learning_source.eligible(input[i].ref)) continue;
+        bool duplicate=false;
+        for (std::size_t j=0;j<i;++j)
+          if (input[j].learning_source.eligible(input[j].ref) &&
+              input[i].learning_source.same_action(input[j].learning_source) &&
+              input[i].expected_key==input[j].expected_key) {duplicate=true;break;}
+        if (duplicate) continue;
+#endif
+        auto& receipt=batch->members[batch->count++];
+        receipt.key=input[i].expected_key;receipt.runtime_ref=input[i].ref;
+      }
+      next->learning.identity_=std::move(batch);
+    }
+  } catch (const std::bad_alloc&) {return error(CompositionStatus::AllocationFailure);}
   BusyGuard guard(p.busy);
   if (p.active.identity_ && cancellable(p.active.identity_->status)) p.finish(CompositionStatus::Cancelled);
   else p.release();
@@ -249,7 +311,13 @@ CompositionResult CompositionCommitter::confirm(const CompositionHandle& h) {
   bool accepted=false;
   try {accepted=p.sink.commit({p.text.get(),t.text_bytes});}
   catch (...) {p.finish(CompositionStatus::UnknownOutcome); return h.result();}
-  if (accepted) p.finish(CompositionStatus::Accepted);
+  if (accepted) {
+    p.finish(CompositionStatus::Accepted); // Fix body outcome before learning.
+    if (t.learning.identity_) {
+      t.learning.identity_->accepted=true;
+      p.learning->notify_composition(t.learning);
+    }
+  }
   else if (!p.shared.activation_is_current(t.binding)) p.finish(CompositionStatus::Stale);
   else p.finish(CompositionStatus::RetryableNoEffect);
   return h.result();
@@ -291,6 +359,8 @@ CompositionMemoryUsage CompositionCommitter::memory_usage() const {
   const auto& c=impl_->config;
   return {sizeof(*this),sizeof(Impl),c.max_members*sizeof(PreparedCompositionMember),c.max_members*c.form_bytes,
     c.form_bytes,c.member_text_bytes,c.total_text_bytes,sizeof(CompositionOwnerIdentity),sizeof(CompositionIdentity),
-    sizeof(OutputReader),sizeof(SharedReadCursor)};
+    sizeof(OutputReader),sizeof(SharedReadCursor),
+    impl_->active.identity_ && impl_->active.identity_->learning.identity_ ? sizeof(CompositionLearningIdentity) : 0,
+    impl_->active.identity_ && impl_->active.identity_->learning.identity_ ? impl_->active.identity_->count*sizeof(CompositionLearningMemberReceipt) : 0};
 }
 } // namespace hanime

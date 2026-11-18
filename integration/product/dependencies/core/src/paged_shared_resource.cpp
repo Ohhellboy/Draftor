@@ -781,7 +781,11 @@ SharedReadResult PagedSharedResource::advance_read(SharedReadCursor* cursor, con
   if (!cursor || !x.matches(cursor->context_)) { r.status = SharedReadStatus::Stale; return r; }
   r.context = cursor->context_; r.kind = x.read_kind;
   if (cursor->cancelled_) { r.status = SharedReadStatus::Cancelled; return r; }
+#if BGIME_KEY_FENCE
+  if (!budget.max_work_items) { r.status = SharedReadStatus::InvalidBudget; return r; }
+#else
   if (!valid_budget(budget)) { r.status = SharedReadStatus::InvalidBudget; return r; }
+#endif
   if (!x.read_active) { r.status = SharedReadStatus::Stale; return r; }
   r.status = SharedReadStatus::InProgress;
   if (!x.read_second) {

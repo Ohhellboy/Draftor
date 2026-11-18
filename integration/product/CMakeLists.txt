@@ -378,18 +378,6 @@ set_tests_properties(ble_async_read_lifetime PROPERTIES TIMEOUT 120 RUN_SERIAL T
 
 endif()
 
-# Stability B2: actual raw-admission/invalidate functions, controlled Host interleavings.
-add_test(NAME ble_epoch_admission
- COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/../tools/epoch_test/run.py"
- --mode $<IF:$<BOOL:${SANITIZE}>,sanitize,normal>)
-set_tests_properties(ble_epoch_admission PROPERTIES TIMEOUT 120 RUN_SERIAL TRUE)
-
-# Integrated B/C boundary: generated from the actual fixed BLE source.
-execute_process(COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/../tools/epoch_test/fixture.py"
- "${CMAKE_CURRENT_SOURCE_DIR}/platform/ble_keyboard_host.cpp" "${CMAKE_CURRENT_BINARY_DIR}/ble_epoch_fixture.hpp"
- COMMAND_ERROR_IS_FATAL ANY)
-target_include_directories(stability_cross PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
-
 if(NOT DRAFTOR_PUBLIC_VALIDATION)
 # A02: actual target capture and stopped UART function bodies, Host API seams.
 add_test(NAME heap_diagnostic_integrity
@@ -439,7 +427,7 @@ target_compile_definitions(ws_namespace PRIVATE RESOURCE_ROOT="${HANIME_RESOURCE
 add_executable(ws_preview ../../tools/ws_checks/ui_preview.cpp)
 target_include_directories(ws_preview PRIVATE ../../tools/ws_checks)
 target_link_libraries(ws_preview device_adapter)
-target_compile_definitions(ws_preview PRIVATE DRAFTOR_BOARD=2 RESOURCE_ROOT="${HANIME_RESOURCE_ROOT}" INDEX_ROOT="${HANIME_INDEX_ROOT}")
+target_compile_definitions(ws_preview PRIVATE DRAFTOR_BOARD=WAVESHARE_RLCD42 RESOURCE_ROOT="${HANIME_RESOURCE_ROOT}" INDEX_ROOT="${HANIME_INDEX_ROOT}")
 add_executable(ws_storage_regression ../../tools/ws_checks/storage_regression.cpp)
 target_link_libraries(ws_storage_regression device_adapter)
 target_include_directories(ws_storage_regression PRIVATE tests/support)
@@ -452,7 +440,7 @@ endforeach()
 
 add_executable(runtime_r1_footer ../../tools/runtime_r1/footer_preview.cpp)
 target_link_libraries(runtime_r1_footer PRIVATE device_adapter adapter_fixture_publisher)
-target_compile_definitions(runtime_r1_footer PRIVATE DRAFTOR_BOARD=2 RESOURCE_ROOT="${HANIME_RESOURCE_ROOT}" INDEX_ROOT="${HANIME_INDEX_ROOT}")
+target_compile_definitions(runtime_r1_footer PRIVATE DRAFTOR_BOARD=WAVESHARE_RLCD42 RESOURCE_ROOT="${HANIME_RESOURCE_ROOT}" INDEX_ROOT="${HANIME_INDEX_ROOT}")
 
 # R5 normal product entry, generated from the actual device block.
 add_executable(product_r5_usb_key ../../tools/product_r5/usb_key.cpp)

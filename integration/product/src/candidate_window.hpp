@@ -11,10 +11,14 @@ struct VisibleItem {
  size_t page=0,slot=0,begin=0,end=0,ordinal=0;
  std::array<char,65> text{};uint16_t bytes=0,width=0;
 };
-struct CandidateRow { std::array<VisibleItem,6> items{};size_t index=0,count=0;uint16_t width=0;bool vertical=false; };
+// Pixels only: an overflow preview carries no identity or Selection.
+struct CandidatePeek { std::array<char,5> text{};uint8_t bytes=0;uint16_t width=0; };
+struct CandidateRow { std::array<VisibleItem,7> items{};CandidatePeek peek{};size_t index=0,count=0;uint16_t width=0;bool vertical=false; };
 struct CandidateView {
  std::array<CandidateRow,3> rows{};size_t count=0,row=0,col=0;
  uint32_t generation=0,action=0;bool expanded=false,at_end=false;
+ // A following visible row already shows the complete candidate.
+ bool showHorizontalPeek(size_t slot)const{return slot<count&&slot+1==count&&rows[slot].peek.bytes;}
 };
 enum class WindowState { Empty, Loading, Ready, NoResults, Boundary, Error, Stale, Selected, Unresolved, Limited, Capacity, Busy, OutputError };
 enum class ChoiceResult {Captured,Waiting,Busy,NoCandidate,Boundary,ExpiredFrame,ExpiredInput};
@@ -34,9 +38,10 @@ class CandidateWindow {
  bool expanded_=false,exact_=false,choosing_=false;
  std::uint8_t occupied_columns_=1; // last complete, current V window; never building_.count
  bool find_profile_=false;
+ bool horizontalSeven()const{return !vertical_&&!find_profile_;}
+ size_t rowLimit()const{return find_profile_?6:7;}
  bool vertical_=false,vertical_seen_=false,stage_expanded_=false,repacking_=false,locating_=false;
  size_t ordinal_=0,focus_ordinal_=0;
- static constexpr unsigned vertical_height=356,vertical_gap=2;
  uint16_t extent(const VisibleItem&)const;
  const VisibleItem* cachedItem(size_t ordinal)const;
  bool default_demand_=false;uint32_t default_action_=0;

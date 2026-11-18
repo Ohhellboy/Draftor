@@ -3,6 +3,8 @@
 #include <algorithm>
 #include "ime_composition_font.hpp"
 #include "ime_presentation_policy.hpp"
+#include "candidate_geometry.hpp"
+#include "vertical_candidate_geometry.hpp"
 
 #include "utf8.hpp"
 namespace draftor::vertical {
@@ -244,19 +246,14 @@ static AbResult layoutAbImpl(const hanime_extension::Snapshot& snapshot,
       const auto text = item.text;
       // Preview candidates reserve the same number header as the current row.
       // Only the current row paints numbers; all candidate text shares a baseline.
-      unsigned height = g.small_height;
-      for (std::size_t at = 0; at < text.size();) {
-        std::uint32_t cp = 0;
-        const auto n = scalar(text, at, cp);
-        if (!n) {
-          result.status = AbStatus::InvalidInput;
-          return result;
-        }
-        height += cp < 128 ? g.latin_advance : g.body_cell;
-        at += n;
+      unsigned natural=g.small_height;
+      for(std::size_t at=0;at<text.size();){
+        std::uint32_t cp=0;const auto n=scalar(text,at,cp);
+        if(!n){result.status=AbStatus::InvalidInput;return result;}
+        natural+=cp<128?g.latin_advance:g.body_cell;at+=n;
       }
-      const bool clipped=height>g.area.height;
-      if(clipped&&source.count==1&&y==g.area.y)height=g.area.height;
+      if(source.heights[i])natural=source.heights[i];
+      const unsigned height=source.count==1?std::min(natural,unsigned(g.area.height)):natural;
       if (y + height > unsigned(g.area.y) + g.area.height) {
         result.status = AbStatus::CapacityExceeded;
         return result;
@@ -268,10 +265,16 @@ static AbResult layoutAbImpl(const hanime_extension::Snapshot& snapshot,
                 current ? AbRole::CurrentCandidate : AbRole::Preview,
                 current ? unsigned(i + 1) : 0,
                 current && i == candidates.col,
-                item.identity});
+                item.identity,s3app::CompositionTypography::Normal,source.heights[i]});
       ++result.runs;
-      if(clipped)port.line(port.context,{x,std::uint16_t(y+height-1),g.body_cell,1},true);
       y += height + g.gap;
+    }
+    // The next visible column already contains the complete successor.
+    if(row+1==column_count&&!source.peek.empty()){
+      std::uint32_t cp=0;const auto bytes=scalar(source.peek,0,cp);
+      if(bytes!=source.peek.size()||source.peek_height<=g.small_height||y+source.peek_height>unsigned(g.area.y)+g.area.height){result.status=AbStatus::InvalidInput;return result;}
+      port.run(port.context,{source.peek,{x,std::uint16_t(y),g.body_cell,source.peek_height},TextFlow::VerticalBody,AbRole::Peek,0,false,nullptr,s3app::CompositionTypography::Normal,source.peek_height});
+      ++result.runs;
     }
   }
   if (edge != EdgeSide::None && column_count) {
@@ -360,14 +363,19 @@ PaintResult paintAbRun(const AbRun& run, const RasterPort& port) noexcept {
       return result;
     }
     advance = 14;
-  } else if (run.role == AbRole::Preview && run.flow == TextFlow::VerticalBody) {
+  } else if ((run.role == AbRole::Preview||run.role == AbRole::Peek) && run.flow == TextFlow::VerticalBody) {
     advance = 14;
   }
+  unsigned natural=advance;
+  if(run.measured_height)natural=run.measured_height;
+  else if(run.flow==TextFlow::VerticalBody)for(std::size_t at=0;at<run.text.size();at=editor::nextUtf8Boundary(run.text,at))natural+=s3app::display::scalar(run.text,at)<128?14:28;
+  const bool clipped=run.flow==TextFlow::VerticalBody&&natural>run.box.height;
   for (std::size_t at = 0; at < run.text.size();) {
     std::uint32_t cp = 0;
     const auto n = scalar(run.text, at, cp);
     const bool small = run.flow == TextFlow::HorizontalSmall;
-    const unsigned step = small ? (cp < 128 ? 7 : 14) : (cp < 128 ? 14 : 28);
+    const unsigned step = run.measured_height?s3app::verticalCandidateAdvance(port.glyph(port.font_context,cp),cp):small?(cp<128?7:14):(cp<128?14:28);
+    if(clipped&&advance+step+3>run.box.height)break;
     if (small && run.role == AbRole::Peek && advance + step > run.box.width) {
       advance = 0; small_y += 14;
     }
@@ -378,6 +386,10 @@ PaintResult paintAbRun(const AbRun& run, const RasterPort& port) noexcept {
     }
     advance += step;
     at += n;
+  }
+  if(clipped)for(unsigned dx:{10U,13U,16U}){
+    const unsigned px=run.box.x+dx,py=run.box.y+run.box.height-2;
+    if(px>=port.clip.x&&px<unsigned(port.clip.x)+port.clip.width&&py>=port.clip.y&&py<unsigned(port.clip.y)+port.clip.height)port.ink(port.pixel_context,std::uint16_t(px),std::uint16_t(py));
   }
   return result;
 }

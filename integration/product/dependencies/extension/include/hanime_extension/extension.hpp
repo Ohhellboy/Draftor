@@ -2,10 +2,12 @@
 
 #include "hanime/bounded_output.hpp"
 #include "hanime/exact_ranker.hpp"
+#include "hanime/selection_learning.hpp"
 #include "hanime_extension/storage.hpp"
 #include <array>
 #include <memory>
 
+namespace ime_device { class CandidateWindow; }
 namespace hanime_extension {
 
 enum class SchemeRules { FullPinyin, R1Xiaohe, DirectExact };
@@ -27,6 +29,7 @@ enum class Status {
 };
 enum class CompositionState { Idle, PartialSelected, NeedsRecheck, AllSelected };
 struct PlanningConfig {
+  bool exact_learning_members{false}; // R1 Host opt-in; product wiring remains a separate decision.
   std::size_t ranges{64}, span_syllables{8};
   std::size_t core_work{200000}, read_bytes{1048576}, local_work{200000};
 };
@@ -34,6 +37,14 @@ struct Config {
   std::size_t raw_bytes{64}, members{16}, page_items{6}, raw_batch{4};
   std::size_t word_bytes{64}, name_bytes{128}, text_bytes{512}, request_bytes{256};
   PlanningConfig planning;
+  // Optional borrowed authority; outlives this Composition. Default has no
+  // real learning owner or state I/O. Planner retains its base split policy.
+  hanime::CountSource* learning_counts{nullptr};
+  bool apply_learning{false};
+  hanime::RankRule rank_rule{};
+  std::size_t rank_replay_capacity{0}; // Optional full-range replay; 0 disables.
+  hanime::SparseCorrections* sparse_corrections{nullptr}; // Optional complete derived correction owner.
+  bool exact_from_base_order{false}; // All authenticated base rows, then dynamic scoring.
 };
 struct PlanningMemory {
   std::size_t owner{0}, impl{0}, buffers{0}, constant_table{0};
@@ -45,6 +56,7 @@ struct Member {
   std::size_t begin{0}, end{0}, text_begin{0}, text_size{0}, form_begin{0}, form_size{0};
   hanime::OutputInvocation invocation{hanime::OutputInvocation::Profile};
   bool valid{false};
+  hanime::SelectionLearningProof learning_source;
 };
 struct Snapshot {
   std::uint64_t input_id{0}, revision{0};
@@ -107,6 +119,8 @@ struct Page {
   std::size_t size{0}, begin{0}, end{0};
   bool has_more{false};
   std::uint64_t generation{0};
+  hanime::ScoringMode mode{hanime::ScoringMode::BaseOnly};
+  hanime::BaseOnlyReason reason{hanime::BaseOnlyReason::HostSelected};
 };
 struct Step {
   Status status{Status::Ready};
@@ -155,6 +169,7 @@ class Composition {
   bool input_is_current(const InputStamp&) const;
   Snapshot snapshot() const;
   Page page() const;
+  bool ranking_is_current() const; // Count/policy/resource lifetime, no I/O.
   Selection selection(std::size_t slot) const;
   Status status() const;
   Operation operation() const;
@@ -168,6 +183,7 @@ class Composition {
   // Optional, bounded range recommendation; no output materialization. Output
   // context changes require cancel + a new call, with a new context revision.
   Status query_next(hanime::OutputRequest = {}, std::uint64_t context_revision = 0);
+  bool planning_edge(std::size_t,std::size_t&,std::size_t&,hanime::RankItem&) const;
   PlanningReport planning_report() const; // By value; recheck before deferred use.
   bool plan_is_current(const PlanningReport&) const;
   PlanningMemory planning_memory_usage() const;
@@ -187,8 +203,12 @@ class Composition {
   std::array<StorageAllocation,3> storage_usage() const noexcept;
   std::size_t command_work() const; // Fixed setup/copy bytes, separate from tick work.
   std::size_t count_begin_calls() const;
+  hanime::RankStatistics rank_statistics() const;
  private:
   friend class Submission;
+  friend class ime_device::CandidateWindow;
+  Status select_explicit(const Selection&, std::size_t global_ordinal, hanime::OutputRequest = {});
+  Status select_impl(const Selection&, hanime::OutputRequest, bool explicit_nonfirst);
   bool begin_submission();
   void end_submission(bool unknown);
   struct Impl;

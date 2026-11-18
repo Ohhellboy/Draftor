@@ -1,14 +1,17 @@
 #include "hanime/state_v3.hpp"
+#include "hanime/execution_policy.hpp"
 #include <algorithm>
 #include <cstring>
 #include <limits>
+#include <stdexcept>
+#include <new>
 
 namespace hanime {
 void StateCost::add(const StateCost& c) {
   read_calls+=c.read_calls; write_calls+=c.write_calls; read_bytes+=c.read_bytes;
   write_bytes+=c.write_bytes; control_calls+=c.control_calls; work_items+=c.work_items;
 }
-namespace {
+namespace state_v3_private {
 constexpr std::uint64_t header_bytes=128, record_bytes=36, frame_bytes=64;
 constexpr std::uint32_t fnv_seed=2166136261U;
 using Buffer=std::array<std::uint8_t,64>;
@@ -43,16 +46,15 @@ Buffer make_seal(const StateV3Config& c,std::uint64_t gen,std::uint64_t count,st
 Buffer make_frame(const Value& v,std::uint64_t seq) {
   auto b=encode_value(v); put(b,40,seq,8); put(b,48,hash(b.data(),48),4); mark(b,56,"TAILV3!!"); return b;
 }
-bool frame_ok(const Buffer& b,std::uint64_t seq) {
-  return magic(b,56,"TAILV3!!") && get(b,40,8)==seq && get(b,48,4)==hash(b.data(),48) && !value(b).key.empty();
-}
 struct Meta {
   bool committed{false}; std::uint64_t gen{0}, keys{0}, seq{0}, tails{0}, size{0};
-  std::uint32_t digest{fnv_seed};
+  std::uint32_t digest{fnv_seed}, tail_digest{fnv_seed};
   std::uint64_t tail_start() const {return header_bytes+keys*record_bytes;}
 };
 struct Transfer {Buffer b{}; std::size_t pos{0}; void reset() {pos=0; b={};}};
 }
+using namespace state_v3_private; // Translation-unit implementation types shared by both PIMPLs.
+#include "state_batch_impl.hpp"
 struct StateV3::Impl {
   StateFilePort& port; StateV3Config cfg;
   std::shared_ptr<const StateIoIdentity> activation;
@@ -61,6 +63,26 @@ struct StateV3::Impl {
   std::array<Meta,2> meta{}; unsigned active{0};
   int open_phase{-1}; unsigned open_file{0}; bool create{false};
   std::uint64_t physical_revision{1};
+  // Private bytes from this port instance only. Epochs make invalidation O(1);
+  // file, block and the actual returned interval are independently tagged.
+  struct ReadWindow {
+    std::uint64_t block{0}, offset{0}, epoch{0};
+    std::size_t length{0}; unsigned file{0};
+  };
+  std::unique_ptr<ReadWindow[]> read_windows;
+  std::unique_ptr<std::uint8_t[]> read_bytes;
+  std::array<std::uint64_t,2> read_epochs{{1,1}};
+  bool cache_disabled{false};
+  StateV3Diagnostics counters;
+  // Values stay in confirmed frame order; only uint16 metadata moves when
+  // inserting into the (full key, frame ordinal) sorted permutation.
+  std::unique_ptr<Value[]> tail_values;
+  std::unique_ptr<std::uint16_t[]> tail_order;
+  struct TailIndex {
+    Meta m; unsigned file{0}; std::uint64_t physical{0}, revision{1};
+    std::size_t covered{0}, lo{0}, hi{0}, insert{0}, move{0};
+    int phase{0}; bool bound{false}; Transfer x; Value next;
+  } tail_index;
   struct Validator {
     unsigned file{0}; int phase{0}; Transfer x; Meta m;
     std::uint64_t index{0},seq{0}; std::uint32_t digest{fnv_seed}; StableLexemeKey previous;
@@ -71,6 +93,7 @@ struct StateV3::Impl {
     StableLexemeKey key; Meta m; unsigned file{0};
     std::uint64_t lo{0},hi{0},mid{0},tail{0}; Transfer x;
     bool found{false}; std::uint32_t count{0};
+    std::uint64_t index_revision{0}; bool fallback_reported{false};
   } reads[2];
   struct Writer {
     bool active{false}; int phase{0}; Transfer x,check;
@@ -83,11 +106,126 @@ struct StateV3::Impl {
     bool tail_valid{false},tail_done{false},snap_valid{false};
     std::uint32_t digest{fnv_seed}; Transfer x;
   } maintenance;
-  explicit Impl(StateFilePort& p,StateV3Config c):port(p),cfg(c) {}
+  explicit Impl(StateFilePort& p,StateV3Config c):port(p),cfg(c) {
+    if (window_config_ok() && cfg.read_window_slots) {
+      read_windows=std::make_unique<ReadWindow[]>(cfg.read_window_slots);
+      read_bytes=std::make_unique<std::uint8_t[]>(cfg.read_window_slots*cfg.read_window_bytes);
+    }
+    if (cfg.tail_index_entries && cfg.tail_index_entries<=4096) {
+      tail_values=std::make_unique<Value[]>(cfg.tail_index_entries);
+      tail_order=std::make_unique<std::uint16_t[]>(cfg.tail_index_entries);
+    }
+  }
+  bool window_config_ok() const {
+    return !cfg.read_window_slots || (cfg.read_window_slots<=16 && cfg.read_window_bytes &&
+        cfg.read_window_bytes<=4096 && cfg.read_window_bytes%64==0);
+  }
   bool config_ok() const {
     return cfg.registry_namespace && cfg.lineage && cfg.max_single_io && cfg.max_single_io<=4096 &&
         cfg.tail_threshold && cfg.max_file_bytes>=header_bytes+frame_bytes &&
-        cfg.max_file_bytes<=static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max());
+        cfg.max_file_bytes<=static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max()) && window_config_ok() && cfg.tail_index_entries<=4096;
+  }
+  void invalidate_tail_index() {tail_index=TailIndex{}; ++counters.tail_index_invalidations;}
+  int compare_tail_keys(const StableLexemeKey& a,const StableLexemeKey& b,bool indexed) {
+    if (indexed) ++counters.tail_index_comparisons; else ++counters.tail_key_comparisons;
+    return std::memcmp(a.bytes.data(),b.bytes.data(),a.bytes.size());
+  }
+  bool checked_frame(const Buffer& b,std::uint64_t seq,Value* out=nullptr) {
+    ++counters.tail_frame_validations; ++counters.tail_frame_decodes;
+    const auto v=value(b); if (out) *out=v;
+    return magic(b,56,"TAILV3!!") && get(b,40,8)==seq && get(b,48,4)==hash(b.data(),48) && !v.key.empty();
+  }
+  bool index_matches(const Lookup& q) const {
+    const auto& i=tail_index;
+    return i.bound && i.physical==q.physical && i.file==q.file && i.m.gen==q.m.gen && i.m.seq==q.m.seq && i.m.keys==q.m.keys;
+  }
+  // One charged local operation or bounded transfer per call. A partial
+  // insertion cannot be observed by either reader; query cursors restart when
+  // the sorted permutation revision changes, retaining their original cutoff.
+  bool build_tail_index(const Lookup& q,const StateBudget& b,StateStep& r) {
+    auto& i=tail_index;
+    if (!index_matches(q)) {
+      invalidate_tail_index(); i.bound=true; i.physical=q.physical; i.file=q.file; i.m=q.m;
+      return false;
+    }
+    if (!i.phase && i.covered>=q.m.tails) return true;
+    if (i.phase==0) {
+      // Reads are restricted to a captured, already confirmed prefix.
+      if (transfer(i.x,i.file,i.m.tail_start()+i.covered*frame_bytes,frame_bytes,false,b,r,false,
+                   i.m.tail_start()+std::max<std::uint64_t>(q.m.tails,i.covered+1)*frame_bytes)) {
+        ++counters.tail_frame_fetches; i.phase=1;
+      }
+    } else if (i.phase==1) {
+      if (!checked_frame(i.x.b,i.m.seq+i.covered+1,&i.next)) {r.status=StateStatus::TailUncertain; return false;}
+      ++counters.tail_index_build_frames; i.lo=0; i.hi=i.covered; i.phase=2;
+    } else if (i.phase==2) {
+      if (i.lo<i.hi) {
+        const auto mid=i.lo+(i.hi-i.lo)/2;
+        // New ordinal follows all existing equal-key ordinals.
+        if (compare_tail_keys(tail_values[tail_order[mid]].key,i.next.key,true)<=0) i.lo=mid+1;
+        else i.hi=mid;
+      } else {i.insert=i.lo; i.move=i.covered; i.phase=3;}
+    } else if (i.phase==3) {
+      if (i.move>i.insert) {tail_order[i.move]=tail_order[i.move-1]; --i.move; ++counters.tail_index_moves;}
+      else {
+        tail_values[i.covered]=i.next; tail_order[i.insert]=static_cast<std::uint16_t>(i.covered);
+        ++i.covered; ++i.revision; i.x.reset(); i.phase=0;
+      }
+    }
+    return false;
+  }
+  void invalidate_reads(unsigned file) {
+    if (read_epochs[file]==std::numeric_limits<std::uint64_t>::max()) cache_disabled=true;
+    else ++read_epochs[file];
+  }
+  void invalidate_reads() {invalidate_reads(0); invalidate_reads(1);}
+  bool cached_read(Transfer& x,unsigned file,std::uint64_t off,std::size_t len,
+                   std::uint64_t limit,const StateBudget& b,StateStep& r,bool exact_record) {
+    const auto at=off+x.pos;
+    if (at>limit || len-x.pos>limit-at) {r.status=StateStatus::Unavailable; return false;}
+    // Binary pivots have reuse but little sequential locality: fetching only
+    // their exact record avoids speculative byte amplification. Stream readers
+    // use the same bounded slots for larger windows. Distinct tags prevent a
+    // partial record interval from masquerading as a complete byte window.
+    const auto number=exact_record ? off/record_bytes : at/cfg.read_window_bytes;
+    const auto block=exact_record ? off*2+1 : number*2;
+    // Constant-time direct mapping: no uncharged LRU walk or metadata scan.
+    const auto mixed=(number^(number>>17)^(number>>7))*0x9e3779b97f4a7c15ULL;
+    const auto slot=static_cast<std::size_t>((mixed^file)%cfg.read_window_slots);
+    auto& w=read_windows[slot];
+    auto* data=read_bytes.get()+slot*cfg.read_window_bytes;
+    const auto current=[&]{return w.epoch==read_epochs[file] && w.file==file && w.block==block;};
+    const auto copy_available=[&] {
+      if (!current() || at<w.offset || at-w.offset>=w.length) return false;
+      const auto start=static_cast<std::size_t>(at-w.offset);
+      const auto n=std::min(len-x.pos,w.length-start);
+      std::memcpy(x.b.data()+x.pos,data+start,n); x.pos+=n;
+      return true;
+    };
+    if (copy_available()) return x.pos==len;
+    if (!b.read_calls || !b.read_bytes) {r.needs_budget=true; return false;}
+    const auto block_start=exact_record ? off : number*cfg.read_window_bytes;
+    const auto block_end=exact_record ? off+len : block_start+std::min<std::uint64_t>(cfg.read_window_bytes,limit-block_start);
+    const auto cap=std::min({b.read_bytes,cfg.max_single_io,cfg.read_window_bytes});
+    // Complete a successful short fill without reading its prefix again.
+    // A partial window never asserts availability of unreturned bytes.
+    if (!current() || w.offset>at || w.offset+w.length>at) {
+      auto start=block_start;
+      if (at-start>=cap) start=at; // Tiny budgets must still make forward progress.
+      w={block,start,read_epochs[file],0,file};
+    }
+    const auto start=w.offset+w.length;
+    const auto n=static_cast<std::size_t>(std::min<std::uint64_t>(cap,block_end-start));
+    if (!n) {r.status=StateStatus::Unavailable; invalidate_reads(file); return false;}
+    ++r.cost.read_calls; r.cost.read_bytes+=n;
+    const auto got=port.read(file,start,data+w.length,n);
+    if (!got.ok || !got.bytes || got.bytes>n) {
+      // In particular, perform-then-fail data cannot enter the reusable prefix.
+      invalidate_reads(file); r.status=StateStatus::Unavailable; return false;
+    }
+    w.length+=got.bytes;
+    copy_available();
+    return x.pos==len;
   }
   static bool work(const StateBudget& b,StateStep& r) {
     if (!b.work_items) {r.status=StateStatus::InvalidBudget; return false;}
@@ -99,14 +237,17 @@ struct StateV3::Impl {
   }
   // At most ONE syscall per advance. Charge requested, not returned, bytes.
   bool transfer(Transfer& x,unsigned f,std::uint64_t off,std::size_t len,bool write,
-                const StateBudget& b,StateStep& r,bool allow_eof=false) {
+                const StateBudget& b,StateStep& r,bool allow_eof=false,std::uint64_t read_limit=0,bool exact_record=false) {
     if (x.pos==len) return true;
+    if (!write && !allow_eof && read_limit && read_windows && !cache_disabled)
+      return cached_read(x,f,off,len,read_limit,b,r,exact_record);
     const auto calls=write ? b.write_calls : b.read_calls;
     const auto bytes=write ? b.write_bytes : b.read_bytes;
     if (!calls || !bytes) {r.needs_budget=true; return false;}
     const auto n=std::min({len-x.pos,bytes,cfg.max_single_io});
     if (write) {++r.cost.write_calls; r.cost.write_bytes+=n;}
     else {++r.cost.read_calls; r.cost.read_bytes+=n;}
+    if (write) invalidate_reads(f);
     const auto t=write ? port.write(f,off+x.pos,x.b.data()+x.pos,n) : port.read(f,off+x.pos,x.b.data()+x.pos,n);
     if (t.bytes>n || !t.ok || (!t.bytes && !allow_eof)) {r.status=StateStatus::Unavailable; return false;}
     if (!t.bytes && allow_eof) {x.pos=len; return true;}
@@ -117,7 +258,7 @@ struct StateV3::Impl {
     auto& v=validator;
     if (!v.m.size || v.m.size>cfg.max_file_bytes) {r.status=StateStatus::Corrupt; return r;}
     if (v.phase==0) {
-      if (transfer(v.x,v.file,0,static_cast<std::size_t>(std::min<std::uint64_t>(64,v.m.size)),false,b,r)) v.phase=1;
+      if (transfer(v.x,v.file,0,static_cast<std::size_t>(std::min<std::uint64_t>(64,v.m.size)),false,b,r,false,v.m.size)) v.phase=1;
     } else if (v.phase==1) {
       const auto& h=v.x.b;
       if (!magic(h,0,"HNSTATE3") || get(h,8,4)!=3 || get(h,12,4)!=kStableKeyFormat ||
@@ -126,7 +267,7 @@ struct StateV3::Impl {
       else if (v.m.size<header_bytes || get(h,60,4)!=hash(h.data(),60)) r.status=StateStatus::Corrupt;
       else {v.m.gen=get(h,32,8); v.x.reset(); v.phase=2;}
     } else if (v.phase==2) {
-      if (transfer(v.x,v.file,64,64,false,b,r)) v.phase=3;
+      if (transfer(v.x,v.file,64,64,false,b,r,false,v.m.size)) v.phase=3;
     } else if (v.phase==3) {
       const auto& s=v.x.b;
       if (s==Buffer{}) {r.status=StateStatus::Ready; return r;} // Proven unsealed staging.
@@ -142,26 +283,31 @@ struct StateV3::Impl {
       if (v.index==v.m.keys) {
         if (v.digest!=v.m.digest) r.status=StateStatus::Corrupt;
         else {v.index=0; v.phase=6;}
-      } else if (transfer(v.x,v.file,header_bytes+v.index*record_bytes,record_bytes,false,b,r)) v.phase=5;
+      } else if (transfer(v.x,v.file,header_bytes+v.index*record_bytes,record_bytes,false,b,r,false,v.m.size)) v.phase=5;
     } else if (v.phase==5) {
       auto val=value(v.x.b);
       if (val.key.empty() || (v.index && !(v.previous<val.key))) r.status=StateStatus::Corrupt;
       else {v.previous=val.key; v.digest=hash(v.x.b.data(),record_bytes,v.digest); ++v.index; v.x.reset(); v.phase=4;}
     } else if (v.phase==6) {
       if (v.index==v.m.tails) {r.status=StateStatus::Ready; return r;}
-      if (transfer(v.x,v.file,v.m.tail_start()+v.index*frame_bytes,frame_bytes,false,b,r)) v.phase=7;
+      if (transfer(v.x,v.file,v.m.tail_start()+v.index*frame_bytes,frame_bytes,false,b,r,false,v.m.size)) {++counters.tail_frame_fetches; v.phase=7;}
     } else {
-      if (!frame_ok(v.x.b,++v.seq)) r.status=StateStatus::TailUncertain;
-      else {++v.index; v.x.reset(); v.phase=6;}
+      if (!checked_frame(v.x.b,++v.seq)) r.status=StateStatus::TailUncertain;
+      else {v.m.tail_digest=hash(v.x.b.data(),frame_bytes,v.m.tail_digest);++v.index; v.x.reset(); v.phase=6;}
     }
     return r;
   }
   void reset_lookup(Lookup& q) {
-    q.physical=physical_revision; q.file=active; q.m=meta[active]; q.phase=0;
+    q.physical=physical_revision; q.file=active; q.m=meta[active];
+    // An empty captured tail is already a complete absence proof; snapshot
+    // lookup still runs, without constructing an empty runtime index.
+    q.phase=q.m.tails?5:0;
     q.lo=0; q.hi=q.m.keys; q.tail=0; q.found=false; q.count=0; q.x.reset();
+    q.index_revision=0; q.fallback_reported=false;
   }
 };
 
+#include "state_batch_methods.hpp"
 StateV3::StateV3(StateFilePort& p,StateV3Config c):impl_(new Impl(p,c)) {}
 StateV3::~StateV3()=default;
 StateStatus StateV3::begin_open(bool create) {
@@ -169,6 +315,8 @@ StateStatus StateV3::begin_open(bool create) {
   if (!p.config_ok() || p.writer.active || p.maintenance.active || (p.open_phase>=0 && p.state==StateStatus::Pending)) return StateStatus::InvalidRequest;
   if (p.physical_revision==std::numeric_limits<std::uint64_t>::max()) return StateStatus::InvalidRequest;
   p.activation=std::make_shared<StateIoIdentity>(); ++p.physical_revision;
+  p.invalidate_reads();
+  p.invalidate_tail_index();
   p.reads[0].active=p.reads[1].active=false;
   p.create=create; p.open_phase=0; p.open_file=0; p.missing={}; p.meta={}; p.state=StateStatus::Pending;
   return p.state;
@@ -239,11 +387,13 @@ StateStep StateV3::advance_open(const StateBudget& b) {
 StateStatus StateV3::status() const {return impl_->state;}
 std::shared_ptr<const StateIoIdentity> StateV3::activation() const {return impl_->activation;}
 RegistryNamespaceId StateV3::registry_namespace() const {return impl_->cfg.registry_namespace;}
-bool StateV3::ready() const {return impl_->state==StateStatus::Ready;}
+bool StateV3::ready() const {return impl_->state==StateStatus::Ready && storage_current();}
+bool StateV3::storage_current() const {return impl_->port.current();}
 StateIoTicket StateV3::begin_lookup(StateReadRole role,const StableLexemeKey& key) {
   auto& p=*impl_; const auto i=static_cast<unsigned>(role);
   if (!ready() || i>1 || key.empty() || p.reads[i].revision==std::numeric_limits<std::uint64_t>::max()) return {};
   auto& q=p.reads[i]; ++q.revision; q.active=true; q.key=key; p.reset_lookup(q);
+  ++p.counters.lookup_begins;
   return {p.activation,role,q.revision};
 }
 bool StateV3::read_is_owned(const StateIoTicket& t) const {
@@ -251,31 +401,115 @@ bool StateV3::read_is_owned(const StateIoTicket& t) const {
   return i<2 && t.activation && t.activation==p.activation && t.revision && p.reads[i].active && p.reads[i].revision==t.revision;
 }
 void StateV3::cancel_read(const StateIoTicket& t) {if (read_is_owned(t)) impl_->reads[static_cast<unsigned>(t.role)].active=false;}
-StateStep StateV3::advance_lookup(const StateIoTicket& t,const StateBudget& b) {
+StateStep StateV3::advance_lookup(const StateIoTicket& t,const StateBudget& budget) {
+#if BGIME_RANKING_ARM == 0
+  return advance_lookup_one(t,budget);
+#else
+  StateStep out; auto& p=*impl_;
+  // Compare actual mutable cursor state: a charged Pending may still be waiting.
+  auto marker=[&]() {
+    if (!read_is_owned(t)) return std::array<std::uint64_t,15>{};
+    const auto& q=p.reads[static_cast<unsigned>(t.role)];const auto& i=p.tail_index;
+    return std::array<std::uint64_t,15>{{std::uint64_t(q.phase),q.lo,q.hi,q.tail,q.x.pos,q.physical,
+      std::uint64_t(i.phase),i.covered,i.lo,i.hi,i.move,i.x.pos,i.revision,q.index_revision,i.bound}};
+  };
+  while(out.cost.work_items<budget.work_items && !budget.should_stop()) {
+    const auto before=marker();
+    const StateBudget left{budget.read_calls-out.cost.read_calls,budget.write_calls-out.cost.write_calls,
+      budget.read_bytes-out.cost.read_bytes,budget.write_bytes-out.cost.write_bytes,
+      budget.control_calls-out.cost.control_calls,budget.work_items-out.cost.work_items,
+      budget.stop_requested,budget.stop_context};
+    auto step=advance_lookup_one(t,left);const bool changed=marker()!=before;
+    out.status=step.status;out.count=step.count;out.needs_budget=step.needs_budget;
+    out.restart_lookup=step.restart_lookup;out.cost.add(step.cost);out.progressed|=changed;
+    if(step.status!=StateStatus::Pending || !changed)break;
+  }
+  return out;
+#endif
+}
+StateStep StateV3::advance_lookup_one(const StateIoTicket& t,const StateBudget& b) {
   auto& p=*impl_; StateStep r;
   if (!read_is_owned(t)) {r.status=StateStatus::Stale; return r;}
   if (!ready()) {r.status=StateStatus::Unavailable; return r;}
   if (!Impl::work(b,r)) return r;
   auto& q=p.reads[static_cast<unsigned>(t.role)];
-  if (q.physical!=p.physical_revision) {p.reset_lookup(q); return r;}
-  if (q.phase==0) {
+  if (q.physical!=p.physical_revision) {
+    const auto& current=p.meta[p.active];
+    // Equivalent compaction can transparently restart the physical search.
+    // If an append advanced its cutoff first, the old logical read must be
+    // re-established by the caller instead of observing the newer snapshot.
+    if (q.m.seq+q.m.tails!=current.seq+current.tails) {q.active=false; r.status=StateStatus::Stale; r.restart_lookup=true; return r;}
+    p.reset_lookup(q); return r;
+  }
+  if (q.phase==5) {
+    if (!p.tail_values || q.m.tails>p.cfg.tail_index_entries) {
+      if (!q.fallback_reported) {
+        ++p.counters.tail_fallback_lookups;
+        if (q.m.tails>p.cfg.tail_index_entries && p.cfg.tail_index_entries) ++p.counters.tail_index_overflows;
+        q.fallback_reported=true;
+      }
+      q.phase=0; return r;
+    }
+    if (!p.build_tail_index(q,b,r)) return r;
+    ++p.counters.tail_index_lookups;
+    q.index_revision=p.tail_index.revision; q.lo=0; q.hi=p.tail_index.covered; q.phase=6;
+  } else if (q.phase==6) {
+    if (p.tail_index.phase || q.index_revision!=p.tail_index.revision || !p.index_matches(q)) {q.phase=5; return r;}
+    if (q.lo<q.hi) {
+      const auto mid=q.lo+(q.hi-q.lo)/2; const auto ordinal=p.tail_order[mid];
+      const auto cmp=p.compare_tail_keys(p.tail_values[ordinal].key,q.key,true);
+      if (cmp<0 || (!cmp && ordinal<q.m.tails)) q.lo=mid+1; else q.hi=mid;
+    } else {
+      if (q.lo && p.compare_tail_keys(p.tail_values[p.tail_order[q.lo-1]].key,q.key,true)==0) {
+        ++p.counters.tail_index_hits; r.status=StateStatus::Found; r.count=p.tail_values[p.tail_order[q.lo-1]].count;
+      } else {
+        ++p.counters.tail_index_misses; q.lo=0; q.hi=q.m.keys; q.tail=q.m.tails; q.phase=0;
+      }
+    }
+  } else if (q.phase==0) {
     if (q.lo==q.hi) q.phase=3;
     else {q.mid=q.lo+(q.hi-q.lo)/2; q.phase=1;}
   } else if (q.phase==1) {
-    if (p.transfer(q.x,q.file,header_bytes+q.mid*record_bytes,record_bytes,false,b,r)) q.phase=2;
+    if (p.transfer(q.x,q.file,header_bytes+q.mid*record_bytes,record_bytes,false,b,r,false,q.m.size,true)) q.phase=2;
   } else if (q.phase==2) {
-    auto v=value(q.x.b);
-    if (v.key==q.key) {q.found=true; q.count=v.count; q.phase=3;}
-    else {if (v.key<q.key) q.lo=q.mid+1; else q.hi=q.mid; q.phase=0;}
+    auto v=value(q.x.b); ++p.counters.snapshot_decodes; ++p.counters.snapshot_key_comparisons;
+    const auto cmp=std::memcmp(v.key.bytes.data(),q.key.bytes.data(),q.key.bytes.size());
+    if (!cmp) {q.found=true; q.count=v.count; q.phase=3;}
+    else {if (cmp<0) q.lo=q.mid+1; else q.hi=q.mid; q.phase=0;}
     q.x.reset();
   } else if (q.phase==3) {
     if (q.tail==q.m.tails) {r.status=q.found ? StateStatus::Found : StateStatus::NotFound; r.count=q.count;}
-    else if (p.transfer(q.x,q.file,q.m.tail_start()+q.tail*frame_bytes,frame_bytes,false,b,r)) q.phase=4;
+    else if (p.transfer(q.x,q.file,q.m.tail_start()+q.tail*frame_bytes,frame_bytes,false,b,r,false,q.m.size)) {++p.counters.tail_frame_fetches; q.phase=4;}
   } else {
-    if (!frame_ok(q.x.b,q.m.seq+q.tail+1)) r.status=StateStatus::TailUncertain;
-    else {auto v=value(q.x.b); if (v.key==q.key) {q.found=true; q.count=v.count;} ++q.tail; q.x.reset(); q.phase=3;}
+    Value v;
+    if (!p.checked_frame(q.x.b,q.m.seq+q.tail+1,&v)) r.status=StateStatus::TailUncertain;
+    else {if (p.compare_tail_keys(v.key,q.key,false)==0) {q.found=true; q.count=v.count;} ++q.tail; q.x.reset(); q.phase=3;}
   }
   return r;
+}
+bool StateV3::begin_export(StateExportCursor& c) const {
+  const auto& p=*impl_;if(!ready()||!storage_current())return false;
+  const auto& m=p.meta[p.active];c={};c.activation=p.activation;c.physical=p.physical_revision;
+  c.generation=m.gen;c.keys=m.keys;c.tails=m.tails;c.sequence=m.seq;c.file=p.active;return true;
+}
+StateExportStep StateV3::advance_export(StateExportCursor& c,const StateBudget& b) {
+  auto& p=*impl_;StateExportStep out;auto& r=out.step;
+  if(c.activation!=p.activation||c.physical!=p.physical_revision||!ready()||!storage_current()) {
+    r.status=StateStatus::Stale;return out;
+  }
+  if(!b.work_items||b.should_stop()){r.needs_budget=true;return out;}
+  r.cost.work_items=1;
+  if(c.index==c.keys+c.tails){out.complete=true;r.status=StateStatus::Ready;return out;}
+  const bool tail=c.index>=c.keys;const auto n=tail?frame_bytes:record_bytes;
+  const auto off=tail?header_bytes+c.keys*record_bytes+(c.index-c.keys)*frame_bytes:header_bytes+c.index*record_bytes;
+  Transfer x;x.b=c.bytes;x.pos=c.pos;
+  if(p.transfer(x,c.file,off,n,false,b,r,false,header_bytes+c.keys*record_bytes+c.tails*frame_bytes)) {
+    Value v=value(x.b);
+    if(tail&&!p.checked_frame(x.b,c.sequence+c.index-c.keys+1,&v)){r.status=StateStatus::TailUncertain;return out;}
+    out.item=true;out.key=v.key;r.count=v.count;r.status=StateStatus::Found;
+    ++c.index;c.pos=0;c.bytes={};r.progressed=true;
+  } else {r.progressed=x.pos!=c.pos;c.bytes=x.b;c.pos=x.pos;}
+  return out;
 }
 StateStatus StateV3::begin_write(const StableLexemeKey& key,std::uint32_t count) {
   auto& p=*impl_; const auto& m=p.meta[p.active];
@@ -300,7 +534,7 @@ StateStep StateV3::advance_write(const StateBudget& b) {
     if (p.transfer(w.check,p.active,w.offset,64,false,b,r,w.phase==3)) {
       if (w.check.b==w.x.b) {
         if (w.phase==3) w.phase=1; // Must still sync after an uncertain write.
-        else {auto& m=p.meta[p.active]; ++m.tails; m.size+=64; w.active=false; r.status=StateStatus::HostStorageConfirmed;}
+        else {auto& m=p.meta[p.active];m.tail_digest=hash(w.x.b.data(),frame_bytes,m.tail_digest); ++m.tails; m.size+=64; ++p.counters.confirmed_appends; p.invalidate_reads(p.active); w.active=false; r.status=StateStatus::HostStorageConfirmed;}
       } else {w.x.pos=0; w.phase=0;} // Only this frozen writer's unconfirmed region.
     }
   }
@@ -320,7 +554,7 @@ StateStep StateV3::advance_maintenance(const StateBudget& b) {
     r=p.validate(b);
     if (r.status==StateStatus::Ready) {
       if (!p.validator.m.committed) r.status=StateStatus::Corrupt;
-      else {p.meta[m.target]=p.validator.m; p.active=m.target; ++p.physical_revision; m.active=false;}
+      else {p.meta[m.target]=p.validator.m; p.active=m.target; ++p.physical_revision; p.invalidate_reads(); p.invalidate_tail_index(); m.active=false;}
     }
     return r;
   }
@@ -328,6 +562,7 @@ StateStep StateV3::advance_maintenance(const StateBudget& b) {
   if (m.phase==0) {
     // Only the known inactive generation may be reused. Old active untouched.
     if (!Impl::control(b,r)) return r;
+    p.invalidate_reads(m.target);
     if (!p.port.truncate(m.target,128)) r.status=StateStatus::Unavailable;
     else {m.x.reset(); m.x.b=make_header(p.cfg,m.old.gen+1); m.phase=1;}
   } else if (m.phase==1) {
@@ -337,15 +572,15 @@ StateStep StateV3::advance_maintenance(const StateBudget& b) {
   } else if (m.phase==3) {
     // Repeated tail minimum selection; scan ALL tail frames each round.
     if (m.scan==m.old.tails) {m.tail_done=!m.tail_valid; m.phase=6;}
-    else if (p.transfer(m.x,p.active,m.old.tail_start()+m.scan*64,64,false,b,r)) m.phase=4;
+    else if (p.transfer(m.x,p.active,m.old.tail_start()+m.scan*64,64,false,b,r,false,m.old.size)) {++p.counters.tail_frame_fetches; m.phase=4;}
   } else if (m.phase==4) {
-    if (!frame_ok(m.x.b,m.old.seq+m.scan+1)) {r.status=StateStatus::TailUncertain; return r;}
-    const auto v=value(m.x.b);
-    if (m.previous_tail<v.key && (!m.tail_valid || !(m.tail.key<v.key))) {m.tail=v; m.tail_valid=true;}
+    Value v;
+    if (!p.checked_frame(m.x.b,m.old.seq+m.scan+1,&v)) {r.status=StateStatus::TailUncertain; return r;}
+    if (p.compare_tail_keys(m.previous_tail,v.key,false)<0 && (!m.tail_valid || p.compare_tail_keys(m.tail.key,v.key,false)>=0)) {m.tail=v; m.tail_valid=true;}
     ++m.scan; m.x.reset(); m.phase=3;
   } else if (m.phase==6) {
     if (!m.snap_valid && m.snap_index<m.old.keys) {
-      if (p.transfer(m.x,p.active,128+m.snap_index*36,36,false,b,r)) m.phase=7;
+      if (p.transfer(m.x,p.active,128+m.snap_index*36,36,false,b,r,false,m.old.size)) m.phase=7;
     } else m.phase=8;
   } else if (m.phase==7) {m.snap=value(m.x.b); m.snap_valid=true; m.x.reset(); m.phase=8;}
   else if (m.phase==8) {
@@ -387,13 +622,25 @@ StateStep StateV3::advance_close(const StateBudget& b) {
     else p.opened[f]=false;
     return r;
   }
-  p.reads[0].active=p.reads[1].active=false; p.state=r.status=StateStatus::ClosedSaved; return r;
+  p.reads[0].active=p.reads[1].active=false; p.invalidate_reads(); p.invalidate_tail_index(); p.state=r.status=StateStatus::ClosedSaved; return r;
 }
 StateFileInfo StateV3::info() const {
   const auto& p=*impl_; const auto& m=p.meta[p.active];
-  return {m.gen,m.keys,m.tails,m.seq+m.tails,m.size,p.active,p.maintenance.active,p.writer.active};
+  return {m.gen,m.keys,m.tails,m.seq+m.tails,m.size,p.active,p.maintenance.active,p.writer.active,(std::uint64_t(m.digest)<<32)|m.tail_digest};
 }
 StateV3Memory StateV3::memory_usage() const {
-  return {sizeof(*this),sizeof(Impl),sizeof(impl_->reads),sizeof(Impl::Validator),sizeof(Impl::Maintenance),sizeof(Impl::Writer)};
+  return {sizeof(*this),sizeof(Impl),sizeof(impl_->reads),sizeof(Impl::Validator),sizeof(Impl::Maintenance),sizeof(Impl::Writer),
+    impl_->read_windows ? impl_->cfg.read_window_slots*sizeof(Impl::ReadWindow) : 0,
+    impl_->read_bytes ? impl_->cfg.read_window_slots*impl_->cfg.read_window_bytes : 0,
+    impl_->tail_values ? impl_->cfg.tail_index_entries*sizeof(Value) : 0,
+    impl_->tail_order ? impl_->cfg.tail_index_entries*sizeof(std::uint16_t) : 0};
+}
+StateV3Diagnostics StateV3::diagnostics() const {
+  const auto& p=*impl_; auto d=p.counters; const auto& i=p.tail_index;
+  d.index_capacity=p.cfg.tail_index_entries; d.index_covered=i.covered;
+  d.index_generation=i.bound?i.m.gen:0; d.index_sequence=i.bound?i.m.seq+i.covered:0;
+  const auto& m=p.meta[p.active];
+  d.index_complete=i.bound && !i.phase && i.physical==p.physical_revision && i.file==p.active && i.m.gen==m.gen && i.m.seq==m.seq && i.covered==m.tails;
+  return d;
 }
 } // namespace hanime

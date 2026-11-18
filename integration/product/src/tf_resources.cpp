@@ -1,5 +1,12 @@
 #include "order_allocation.hpp"
+#include "hanime/execution_policy.hpp"
+#if BGIME_RANKING_ARM == 2
+#include "sparse_release.hpp"
+#endif
 #include "tf_resources.hpp"
+#if BGIME_KEY_FENCE
+#include "shared_key_fences_pin.hpp"
+#endif
 #include "io_profile.hpp"
 #if defined(DRAFTOR_SHARED_TEXT_VARIANT) && DRAFTOR_SHARED_TEXT_VARIANT == 2
 #include "shared_structural.hpp"
@@ -125,6 +132,8 @@ bool Resources::fail(const char* text,const char* detail){
  state_=ResourceState::Error;return false;
 }
 void Resources::closeScheme(){
+ if(sparse_reader_)sparse_reader_->deactivate();
+ sparse_reader_.reset();sparse_data_.reset();sparse_proof_.reset();sparse_phase_=0;++sparse_generation_;
 #if defined(DRAFTOR_BLOCK_BACKEND) && DRAFTOR_BLOCK_BACKEND
  // Retire the incomplete loader before either authenticated resource owner.
  if(pending_order_)hanime::detail::BaseOrderBlockAccess::cancel_initialization(*pending_order_);
@@ -326,4 +335,51 @@ void Resources::service(){
  metrics.step(phase,start,cost.read_calls,cost.read_bytes,cost.work_items,io);
  stage_work_=state_==oldState?stage_work_+cost.work_items:0;
 }
+}
+
+namespace ime_device {
+hanime::SparseOpenStep Resources::open_sparse(const hanime::WorkBudget& b){
+ using namespace hanime;
+#if BGIME_KEY_FENCE
+ if(!ready()||sparse_phase_==99)return {SparseStatus::Fallback,{},{}};
+ if(!b.max_work_items||b.should_stop())return {};
+ if(!ready()||sparse_phase_==99)return {SparseStatus::Fallback,{},{}};
+ try {
+  const std::string root=BGIME_FENCE_ROOT;
+  if(sparse_phase_==0){sparse_data_=std::make_shared<TfReader>(mount_,root+"/shared_key_fences_v1.hkf");sparse_phase_=sparse_data_->valid()?1:99;}
+  else if(sparse_phase_==1){sparse_proof_=std::make_shared<TfReader>(mount_,root+"/shared_key_fences_v1.hnv");sparse_phase_=sparse_proof_->valid()?2:99;}
+  else if(sparse_phase_==2){sparse_reader_=std::make_shared<VerifiedResourceReader>(sparse_data_,sparse_proof_,key_fence_release::pin,VerifiedResourceConfig{4,2,1024});sparse_phase_=sparse_reader_->healthy()?3:99;}
+ }catch(const std::bad_alloc&){sparse_phase_=99;}
+ if(sparse_phase_==99){sparse_reader_.reset();sparse_data_.reset();sparse_proof_.reset();return {SparseStatus::Fallback,{0,0,1},{}};}
+ return {sparse_phase_==3?SparseStatus::Ready:SparseStatus::Pending,{0,0,1},sparse_reader_};
+#elif BGIME_RANKING_ARM == 2
+ if(!ready()||sparse_phase_==99)return {SparseStatus::Fallback,{},{}};
+ if(!b.max_work_items||b.should_stop())return {};
+ const auto name=rules_==hanime_extension::SchemeRules::R1Xiaohe?"xiaohe":rules_==hanime_extension::SchemeRules::FullPinyin?"full_pinyin":"wubi86";
+ const auto& pin=rules_==hanime_extension::SchemeRules::R1Xiaohe?bgime_reverse::xiaohe:rules_==hanime_extension::SchemeRules::FullPinyin?bgime_reverse::full_pinyin:bgime_reverse::wubi86;
+ const auto& source=rules_==hanime_extension::SchemeRules::R1Xiaohe?bgime_reverse::xiaohe_source:rules_==hanime_extension::SchemeRules::FullPinyin?bgime_reverse::full_pinyin_source:bgime_reverse::wubi86_source;
+ if(!pins_.order(rules_)||pins_.order(rules_)->file_sha256!=source||pin.required_shared_sha256!=pins_.shared->file_sha256||pin.required_scheme_sha256!=pins_.scheme(rules_).file_sha256){sparse_phase_=99;return {SparseStatus::Fallback,{0,0,1},{}};}
+#ifdef BGIME_SPARSE_ROOT
+ const std::string root=BGIME_SPARSE_ROOT;
+#else
+ const std::string root=index_root_+"/bgime_ranking_r1";
+#endif
+ try{
+  if(sparse_phase_==0){sparse_data_=std::make_shared<TfReader>(mount_,root+"/"+name+".bgr");if(!sparse_data_->valid())sparse_phase_=99;else sparse_phase_=1;}
+  else if(sparse_phase_==1){sparse_proof_=std::make_shared<TfReader>(mount_,root+"/"+name+".hnv");if(!sparse_proof_->valid())sparse_phase_=99;else sparse_phase_=2;}
+  else if(sparse_phase_==2){sparse_reader_=std::make_shared<VerifiedResourceReader>(sparse_data_,sparse_proof_,pin,VerifiedResourceConfig{4,2,1024});sparse_phase_=sparse_reader_->healthy()?3:99;}
+ }catch(const std::bad_alloc&){sparse_phase_=99;}
+ if(sparse_phase_==99)return {SparseStatus::Fallback,{0,0,1},{}};
+ return {sparse_phase_==3?SparseStatus::Ready:SparseStatus::Pending,{0,0,1},sparse_reader_};
+#else
+ (void)b;return {SparseStatus::Fallback,{},{}};
+#endif
+}
+#if BGIME_KEY_FENCE
+void Resources::close_sparse(const std::shared_ptr<const hanime::VerifiedResourceReader>& expected) {
+ if(!expected||expected!=sparse_reader_)return;
+ sparse_reader_->deactivate();sparse_reader_.reset();sparse_data_.reset();sparse_proof_.reset();sparse_phase_=0;++sparse_generation_;
+}
+#endif
+
 }

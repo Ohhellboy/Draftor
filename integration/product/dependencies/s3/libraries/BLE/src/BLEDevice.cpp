@@ -139,7 +139,19 @@ ble_gap_event_listener BLEDevice::m_listener;
 BLEDeviceCallbacks BLEDevice::defaultDeviceCallbacks{};
 BLEDeviceCallbacks *BLEDevice::m_pDeviceCallbacks = &defaultDeviceCallbacks;
 uint8_t BLEDevice::m_ownAddrType = BLE_OWN_ADDR_PUBLIC;
-bool BLEDevice::m_synced = false;
+std::atomic<bool> BLEDevice::m_synced{false};
+namespace {
+void (*hostLifecycle)(bool, int) = nullptr;
+uint32_t firstSyncLimitMs = 0;
+std::atomic<int> syncError{0};
+}
+void BLEDevice::observePublicHost(void (*lifecycle)(bool, int), uint32_t timeoutMs) {
+  hostLifecycle = lifecycle;
+  firstSyncLimitMs = timeoutMs;
+  syncError = 0;
+}
+int BLEDevice::hostSyncError() { return syncError.load(); }
+
 #endif
 
 /***************************************************************************
@@ -413,6 +425,7 @@ bool BLEDevice::init(String deviceName) {
 #if defined(CONFIG_NIMBLE_ENABLED)
   errRc = nimble_port_init();
   if (errRc != ESP_OK) {
+    syncError = errRc;
     log_e("nimble_port_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
     return false;
   }
@@ -440,7 +453,13 @@ bool BLEDevice::init(String deviceName) {
   ble_store_config_init();
   nimble_port_freertos_init(BLEDevice::host_task);
 
-  while (!m_synced) {
+  const uint32_t started = millis();
+  while (!m_synced.load()) {
+    if (hostLifecycle && syncError.load()) return false;
+    if (firstSyncLimitMs && uint32_t(millis() - started) >= firstSyncLimitMs) {
+      syncError = BLE_HS_ETIMEOUT;
+      return false;
+    }
     ble_npl_time_delay(1);
   }
 #endif  // CONFIG_NIMBLE_ENABLED
@@ -1500,6 +1519,7 @@ void BLEDevice::host_task(void *param) {
 }
 
 void BLEDevice::onReset(int reason) {
+  if (hostLifecycle) hostLifecycle(false, reason);
   if (!m_synced) {
     return;
   }
@@ -1537,11 +1557,20 @@ void BLEDevice::onSync() {
   }
 
   if (rc != 0) {
+    if (hostLifecycle) {
+      syncError = rc;
+      hostLifecycle(false, rc);
+    }
     log_e("onSync: failed to ensure BLE address. rc=%d", rc);
     return;
   }
 
   rc = ble_hs_id_copy_addr(BLE_OWN_ADDR_PUBLIC, NULL, NULL);
+  if (rc != 0 && hostLifecycle) {
+    syncError = rc;
+    hostLifecycle(false, rc);
+    return;
+  }
   if (rc != 0) {
     log_d("onSync: no public address available");
     m_ownAddrType = BLE_OWN_ADDR_RANDOM;
@@ -1551,6 +1580,8 @@ void BLEDevice::onSync() {
   // Occasionally triggers exception without.
   ble_npl_time_delay(1);
 
+  syncError = 0;
+  if (hostLifecycle) hostLifecycle(true, 0);
   m_synced = true;
 
   if (initialized) {

@@ -15,6 +15,7 @@ RULES = {
     'paintVerticalView': (r':s3app::VerticalPaintResult s3app::paintVerticalView\(', 448),
     'draw': (r':void \{anonymous\}::draw\(\)$', 1280),
     'deviceLoop': (r':void deviceLoop\(\)$', 896),
+    'candidateRuns': (r':draftor::vertical::AbResult ime_device::candidateRuns\(', 512),
     'verticalIme': (r':ime_device::VerticalImeFrame ime_device::verticalIme\(', 512),
     'layoutAb': (r':draftor::vertical::AbResult draftor::vertical::layoutAb\(', 160),
     'layoutAbImpl': (r':draftor::vertical::AbResult draftor::vertical::layoutAbImpl\(', 320),
@@ -57,6 +58,7 @@ R3_RULES = {
  'compositionRowWidth':(r'::compositionRowWidth\(',96),
  'finishScan':(r'::CandidateWindow::finishScan\(',80),
  'finishRow':(r'::CandidateWindow::finishRow\(',32),
+ 'setCandidatePeek':(r':void ime_device::setCandidatePeek\(',80),
 }
 
 # R3-R1 bounded presentation helpers. Existing frame/loop/nested limits above
@@ -119,7 +121,7 @@ def inspect(root):
     nested={}
     if all(k in frames for k in RULES) and all(k in frames for k in ('ab_callback','pixel_callback','device_pixel')):
         # SDK wrapper + Arduino loopTask: 32 each, verified from linked ELF.
-        prefix=64+sum(frames[k]['bytes'] for k in ('loop','deviceLoop','draw','paintVerticalView','verticalIme','layoutAb','layoutAbImpl','ab_callback','paintAbRun'))
+        prefix=64+sum(frames[k]['bytes'] for k in ('loop','deviceLoop','draw','paintVerticalView','verticalIme','candidateRuns','layoutAb','layoutAbImpl','ab_callback','paintAbRun'))
         nested['reproduced_scalar_path']=prefix+frames['scalar']['bytes']
         # Same caller prefix; scalar and paintOne are sequential, not nested.
         # Reserve 256 B for the driver pixel/font leaf branch (linked review).
@@ -150,8 +152,9 @@ def inspect(root):
             nested['R1_prepare_repacking_with_context']=root+size('draw','prepareIme','setPacking','beginText','cachedItem','presentContext')+768
             nested['R1_spatial_navigation']=root+size('imeEvent','imeDispatch','spatialNavigate','serviceArrows','applySpatial','candidateRequest','candidateContinue','beginText','cachedItem')+1024
             nested['R1_cached_materialization']=root+size('imeService','candidateService','appendText','candidateContinue','beginText','cachedItem')+1024
-            nested['R2_projection_with_context']=root+size('draw','paintVerticalView','verticalIme')+max(size('focusedCurrent','candidateCurrent'),size('candidateProjection'))+size('presentContext')+256
+            nested['R2_projection_with_context']=root+size('draw','paintVerticalView','verticalIme')+max(size('focusedCurrent','candidateCurrent'),size('candidateRuns')+max(size('focusedCurrent','candidateCurrent'),size('candidateProjection')))+size('presentContext')+256
             nested['SPACE02_complete_window']=root+size('imeService','candidateService','appendText','finishRow','finishScan','focusedCurrent','candidateCurrent')+256
+            nested['VC7_overflow_peek']=root+size('imeService','candidateService','appendText','setCandidatePeek')+256
             nested['R2_observation']=root+size('imeService','navigationReady','observeComposition','compositionWidth','compositionRowWidth','compositionGlyph')+256
             nested['R1_hud_with_context']=root+size('draw','hudAppend','verticalStatus','presentContext')+256
         if max(nested.values())>5632:failures.append('active-IME nested path exceeds 5632 B budget')

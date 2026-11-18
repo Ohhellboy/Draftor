@@ -56,7 +56,7 @@ int main(){try{
   r.app.candidateVisual.complete(false);r.type("o");CHECK(prepareImePresentation(&r.ime,r.app));CHECK(!r.app.candidateVisual.pending());
  }
  {s3app::CandidateVisualContinuity p;p.state=s3app::CandidateVisualContinuity::State::Ready;
-  for(unsigned i=0;i<19;++i)p.captureHorizontal("visual",8,326,50);
+  for(unsigned i=0;i<22;++i)p.captureHorizontal("visual",8,326,50);
   p.complete(true);CHECK(!p.valid);p.state=s3app::CandidateVisualContinuity::State::Pending;CHECK(!p.pending());
   p.reset();p.state=s3app::CandidateVisualContinuity::State::Ready;p.captureHorizontal(std::string(66,'x'),8,326,50);p.complete(true);CHECK(!p.valid);
  }

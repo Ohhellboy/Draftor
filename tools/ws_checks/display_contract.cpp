@@ -61,7 +61,13 @@ int main(){try{
  auto fill=[&](Color c){lcd.fill(c);expected.fill(c==Color::White||c==Color::Off);};
  ime_device::DisplaySchedule schedule;schedule.prepare(lcd.BufferSize);CHECK(schedule.memoryBytes()==15000);
  auto send=[&](){return schedule.presentCompared(lcd.framebuffer(),lcd.BufferSize,1,[&](const auto* old,std::size_t n){return lcd.update(old,n);});};
- auto verify=[&](){CHECK(model::pixels==expected);CHECK(lcd.lastTransfer().windows<=8);};
+ auto verify=[&](){
+  for(std::size_t i=0;i<expected.size();++i){
+   const auto physical=st7305_waveshare::RotationDegrees==180?expected.size()-1-i:i;
+   CHECK(model::pixels[physical]==expected[i]);
+  }
+  CHECK(lcd.lastTransfer().windows<=8);
+ };
  fill(Color::White);model::counts();CHECK(send());verify();CHECK(model::payload==15000&&lcd.lastTransfer().full);
  model::counts();CHECK(send());CHECK(!model::wire&&schedule.reused==1);
  for(auto xy:{std::pair<int,int>{0,0},{299,0},{0,399},{299,399},{3,1},{4,2},{11,1},{12,2}}){pixel(xy.first,xy.second,Color::Black);model::counts();CHECK(send());verify();CHECK(model::payload==75);}

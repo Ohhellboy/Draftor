@@ -3,6 +3,7 @@
 #define HANIME_STRUCTURAL_HOST_OBSERVE 0
 #endif
 #include "hanime/verified_resource.hpp"
+#include "hanime/execution_policy.hpp"
 #include <algorithm>
 #include <cstring>
 #include <limits>
@@ -127,7 +128,7 @@ bool merkle_layout(std::uint64_t bytes,MerkleLayout* out) {
 
 namespace detail {
 #if HANIME_STRUCTURAL_HOST_OBSERVE
-static StructuralAuthStats structural_auth_values[4];
+static StructuralAuthStats structural_auth_values[5];
 #endif
 StructuralAuthStats structural_auth_stats(ResourceReleaseRole role) {
 #if HANIME_STRUCTURAL_HOST_OBSERVE
@@ -506,10 +507,17 @@ VerifiedResourceReader::VerifiedResourceReader(std::shared_ptr<const ResourceRea
      spec.rule_version!=kResourceVerificationRule||
      (spec.role==ResourceReleaseRole::BaseOrder ?
         (spec.resource_format!=1U && spec.resource_format!=2U
+#if BGIME_RANKING_ARM == 2
+         && spec.resource_format!=106U // Rebuildable pinned reverse association, separate from original resources.
+#endif
 #if defined(DRAFTOR_BLOCK_BACKEND) && DRAFTOR_BLOCK_BACKEND
          && spec.resource_format!=105U // This isolated candidate admits only the pinned block format.
 #endif
-        ) : (spec.resource_format!=2U && !(spec.role==ResourceReleaseRole::Shared && (spec.resource_format==3U || spec.resource_format==4U))))||spec.key_format!=kStableKeyFormat||
+        ) : (spec.role!=ResourceReleaseRole::RelationLocations && spec.resource_format!=2U && !(spec.role==ResourceReleaseRole::Shared && (spec.resource_format==3U || spec.resource_format==4U
+#if BGIME_KEY_FENCE
+          || spec.resource_format==108U // Isolated trusted shared-key fence sidecar.
+#endif
+          ))))||spec.key_format!=kStableKeyFormat||
      !spec.registry_namespace||!spec.shared_bundle_id||!spec.runtime_ref_count||!spec.text_capacity||!spec.name_capacity||
      !nonzero(spec.file_sha256)||!nonzero(spec.merkle_root)||
      config.data_cache_blocks<3||config.data_cache_blocks>64||!config.index_cache_pages||config.index_cache_pages>64||
@@ -549,6 +557,10 @@ VerifiedResourceReader::VerifiedResourceReader(std::shared_ptr<const ResourceRea
        !is_valid_utf8({spec.scheme_id.data(),static_cast<std::size_t>(zero-spec.scheme_id.begin())})||
        spec.bootstrap_root_offset||spec.bootstrap_root_bytes) {
       p.fail("base-order release dependencies or rule invalid");return;
+    }
+  } else if(spec.role==ResourceReleaseRole::RelationLocations) {
+    if(spec.resource_format!=301U||!nonzero(spec.required_shared_sha256)||zero!=spec.scheme_id.begin()||spec.bootstrap_root_offset||spec.bootstrap_root_bytes) {
+      p.fail("relation resource dependency invalid");return;
     }
   } else {p.fail("unknown release resource role");return;}
   if(spec.role!=ResourceReleaseRole::BaseOrder &&

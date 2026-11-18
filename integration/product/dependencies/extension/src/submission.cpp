@@ -11,7 +11,7 @@ struct Guard { bool& flag; explicit Guard(bool& f):flag(f){flag=true;} ~Guard(){
 CompositionConfig checked(CompositionConfig c) {
   if (!c.max_members||c.max_members>64||!c.form_bytes||c.form_bytes>512||
       !c.member_text_bytes||c.member_text_bytes>4096||!c.total_text_bytes||c.total_text_bytes>16384||
-      c.learning!=CompositionLearningPolicy::Disabled) throw std::invalid_argument("Invalid bounded submission configuration");
+      (c.learning!=CompositionLearningPolicy::Disabled&&c.learning!=CompositionLearningPolicy::Record)) throw std::invalid_argument("Invalid bounded submission configuration");
   return c;
 }
 }
@@ -35,9 +35,11 @@ struct Submission::Impl {
   SharedActivationHandle binding;
   std::uint64_t epoch{0},sequence{0};
   bool locked{false},calling{false},closed{false};
-  Impl(Composition& c,PagedSharedResource& r,TextCommitSink& sink,CompositionConfig cfg,StorageBackend backend)
-    :input(c),shared(r),config(checked(cfg)),core(r,sink,config),
-     capture(config.max_members,StorageRole::SubmissionCapture,backend) {}
+  bool record_enabled{false};
+  Impl(Composition& c,PagedSharedResource& r,TextCommitSink& sink,CompositionConfig cfg,StorageBackend backend,CompositionCountSource* counts)
+    :input(c),shared(r),config(checked(cfg)),core(r,sink,config,counts),
+     capture(config.max_members,StorageRole::SubmissionCapture,backend),
+     record_enabled(cfg.learning==CompositionLearningPolicy::Record) {}
   bool ours(const SubmissionHandle& h) const {
     return h.owner_==owner&&h.sequence_&&h.sequence_==sequence&&h.attempt_==active.attempt_;
   }
@@ -66,17 +68,18 @@ struct Submission::Impl {
     return wrap(std::move(r));
   }
 };
-Submission::Submission(Composition& c,PagedSharedResource& r,TextCommitSink& sink,CompositionConfig cfg)
-  :Submission(c,r,sink,cfg,StorageBackend{}) {}
-Submission::Submission(Composition& c,PagedSharedResource& r,TextCommitSink& sink,CompositionConfig cfg,StorageBackend backend) {
+Submission::Submission(Composition& c,PagedSharedResource& r,TextCommitSink& sink,CompositionConfig cfg,CompositionCountSource* counts)
+  :Submission(c,r,sink,cfg,StorageBackend{},counts) {}
+Submission::Submission(Composition& c,PagedSharedResource& r,TextCommitSink& sink,CompositionConfig cfg,StorageBackend backend,CompositionCountSource* counts) {
   detail::validate_storage_backend(backend);
-  p_=std::make_unique<Impl>(c,r,sink,cfg,backend);
+  p_=std::make_unique<Impl>(c,r,sink,cfg,backend,counts);
 }
 Submission::~Submission(){close();}
 StorageAllocation Submission::storage_usage() const noexcept { return p_->capture.allocation(); }
 bool Submission::valid() const {return p_->core.valid()&&!p_->closed;}
 SubmissionResult Submission::result() const {return p_->wrap(p_->active.result());}
-SubmissionResult Submission::prepare() {
+void Submission::set_record_enabled(bool enabled) {p_->record_enabled=enabled;}
+SubmissionResult Submission::prepare(InputTarget target) {
   auto& p=*p_;
   if(p.calling)return error(CompositionStatus::Busy);
   if(p.closed)return error(CompositionStatus::Closed);
@@ -99,12 +102,13 @@ SubmissionResult Submission::prepare() {
   p.locked=true;
   for(std::size_t i=0;i<s.member_count;++i) {
     const auto& m=s.members[i];
-    p.capture[i]={m.ref,m.key,{m.begin,m.end},{s.output_forms.substr(m.form_begin,m.form_size),m.invocation}};
+    p.capture[i]={m.ref,m.key,{m.begin,m.end},{s.output_forms.substr(m.form_begin,m.form_size),m.invocation},m.learning_source};
   }
-  const auto r=p.core.prepare(s.activation,{s.input_id,s.revision,{0,s.raw.size()}},p.capture.data(),s.member_count);
+  const auto r=p.core.prepare(s.activation,{s.input_id,s.revision,{0,s.raw.size()}},p.capture.data(),s.member_count,
+    p.record_enabled&&target==InputTarget::Body?CompositionLearningPolicy::Record:CompositionLearningPolicy::Disabled);
   if(r.status!=CompositionStatus::Preparing){p.unlock();return {r,{}};}
   p.active.owner_=p.owner;p.active.sequence_=++p.sequence;p.active.core_=r.transaction;
-  p.active.attempt_=r.attempt;
+  p.active.attempt_=r.attempt;p.active.target_=target;
   p.binding=s.activation;p.epoch=s.scheme_epoch;
   return p.wrap(r);
 }

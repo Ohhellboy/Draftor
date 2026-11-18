@@ -2,6 +2,9 @@
 #include "ui_trace.hpp"
 namespace ime_device {
 using CS=hanime::CompositionStatus;
+bool DeviceIme::candidateNumber(uint8_t usage)const{
+ return usage>=30&&(usage<=35||(usage==36&&!app_.findOpen()));
+}
 void DeviceIme::noteIntent(uint8_t reason,const s3hid::Event& e,uint32_t action,uint32_t parent){
  if(action==current_action_)event_result_=reason;
  // Raw edits carry separate receipt and disposition records, without letter values.
@@ -21,7 +24,7 @@ bool DeviceIme::flowCurrent()const{
 }
 void DeviceIme::startFlow(const s3hid::Event& e,FlowStage stage){
  flow_.body_successor=false; // A selection intent is not an Accepted receipt.
- flow_.event=e;flow_.action=current_action_;flow_.stage=stage;flow_.captured=false;flow_.numbered=e.usage>=30&&e.usage<=35;flow_.column=flow_.numbered?uint8_t(e.usage-30):0;flow_.query=window_?window_->querySerial():0;
+ flow_.event=e;flow_.action=current_action_;flow_.stage=stage;flow_.captured=false;flow_.numbered=candidateNumber(e.usage);flow_.column=flow_.numbered?uint8_t(e.usage-30):0;flow_.query=window_?window_->querySerial():0;
  flow_.layout=window_?window_->layoutSerial():0;flow_.target=sink_.target();flow_.guarded=bool(composition_);
  if(composition_)flow_.stamp=composition_->raw_input().stamp;
 }
@@ -32,7 +35,7 @@ void DeviceIme::stopFlow(uint8_t reason){
 }
 bool DeviceIme::enqueue(const s3hid::Event& e){
  if(following_count_==following_.size()){++following_overflow_;noteIntent(QueueFull,e,current_action_);mark("Input queue full; key rejected");return true;}
- if(e.usage>=30&&e.usage<=35&&!e.ime_context){noteIntent(UnknownNumberedRow,e,current_action_);return true;}
+ if(candidateNumber(e.usage)&&!e.ime_context){noteIntent(UnknownNumberedRow,e,current_action_);return true;}
  // A queued successor is confined to the next initial row of this verified
  // predecessor chain. It never means an unknown navigation destination.
  following_[(following_head_+following_count_)%following_.size()]={e,current_action_,flow_.action,window_?window_->querySerial():0,composition_?composition_->raw_input().stamp:hanime_extension::InputStamp{},composition_?composition_->snapshot().focus:0};
@@ -49,7 +52,7 @@ bool DeviceIme::selectIntent(const s3hid::Event& e,bool successor){
  if(!composition_||!window_){
   // A fresh explicit choice may retry construction; service never spins retries.
   initialization_failed_=false;
-  if(!raw().empty()&&(e.usage==0x2c||e.usage==0x28||((e.usage>=30&&e.usage<=35)&&earlyContext(e)))){startFlow(e,FlowStage::Query);noteIntent(QueuedQuery,e,current_action_);mark("Default queued until CN ready");}
+  if(!raw().empty()&&(e.usage==0x2c||e.usage==0x28||((candidateNumber(e.usage))&&earlyContext(e)))){startFlow(e,FlowStage::Query);noteIntent(QueuedQuery,e,current_action_);mark("Default queued until CN ready");}
   else {noteIntent(NoCandidate,e,current_action_);mark("Resources pending; selection unavailable");}
   return true;
  }
@@ -74,14 +77,14 @@ bool DeviceIme::selectIntent(const s3hid::Event& e,bool successor){
  clearArrows();
  const auto* v=window_->presented(e.ime_frame);const VisibleItem* item=nullptr;
  if(!successor&&v&&v->count&&v->row>=v->rows[0].index&&v->row<v->rows[0].index+v->count){
-  const auto& row=v->rows[v->row-v->rows[0].index];const auto col=e.usage>=30&&e.usage<=35?size_t(e.usage-30):v->col;
+  const auto& row=v->rows[v->row-v->rows[0].index];const auto col=candidateNumber(e.usage)?size_t(e.usage-30):v->col;
   if(col<row.count)item=&row.items[col];
  }
  const auto snapshot=composition_->snapshot();
  if(reselection_.active&&!successor&&!earlyContext(e)){noteIntent(QueryContextChanged,e,current_action_);mark("Reselection target expired");return true;}
  const bool valid=item&&targetMatches(*item)&&item->input==snapshot.input_id&&item->revision==snapshot.revision&&item->scheme==snapshot.scheme_epoch&&item->activation.mount_epoch()==snapshot.activation.mount_epoch()&&item->activation.shared_bundle_id()==snapshot.activation.shared_bundle_id();
  if(valid){
-  const auto result=e.usage>=30&&e.usage<=35?window_->choose(e.usage-30,e.ime_frame,current_action_):window_->chooseHighlighted(e.ime_frame,current_action_);
+  const auto result=candidateNumber(e.usage)?window_->choose(e.usage-30,e.ime_frame,current_action_):window_->chooseHighlighted(e.ime_frame,current_action_);
   traceUi(UiTraceKind::Choice,composition_.get(),window_.get(),&e,item,uint8_t(result),current_action_);
   choiceFeedback(result);
   if(result==ChoiceResult::Captured){startFlow(e,FlowStage::Selecting);flowCaptured();noteIntent(CapturedDisplayed,e,current_action_);}
@@ -93,7 +96,7 @@ bool DeviceIme::selectIntent(const s3hid::Event& e,bool successor){
  // frames stay expired; a current displayed identity was handled above.
  const bool early_frame=earlyContext(e)&&(!e.ime_frame||e.ime_frame==superseded_frame_);
  if(!successor&&e.ime_frame&&e.ime_frame!=window_->onScreenGeneration()&&!early_frame){noteIntent(DisplayedChoiceExpired,e,current_action_);mark("Original displayed frame expired");return true;}
- const bool numbered=e.usage>=30&&e.usage<=35;
+ const bool numbered=candidateNumber(e.usage);
  if(!successor&&!earlyContext(e)){noteIntent(QueryContextChanged,e,current_action_);mark("Selection input/query expired");return true;}
  if(numbered){
   if((!successor&&!earlyContext(e))||!initial_numbered_||arrow_count_||(entering_&&!raw_edit_&&!initial_numbered_)||window_->requestedRow()!=0){noteIntent(UnknownNumberedRow,e,current_action_);mark("Numbered row not fixed; key rejected");return true;}

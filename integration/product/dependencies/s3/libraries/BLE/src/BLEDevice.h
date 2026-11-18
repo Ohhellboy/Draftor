@@ -41,6 +41,7 @@
  ***************************************************************************/
 
 #include <map>
+#include <atomic>
 
 #if defined(SOC_BLE_SUPPORTED)
 #include <esp_bt.h>
@@ -249,9 +250,14 @@ public:
    ***************************************************************************/
 
 #if defined(CONFIG_NIMBLE_ENABLED)
+  // Register before starting the NimBLE host task. Applications that supply
+  // this hook require their public identity and a bounded first sync.
+  static void observePublicHost(void (*lifecycle)(bool synced, int rc), uint32_t timeoutMs);
+  static int hostSyncError();
   static void onReset(int reason);
   static void onSync(void);
   static void host_task(void *param);
+  static uint8_t ownAddressType() { return m_ownAddrType; }
   static bool setOwnAddrType(uint8_t type);
   static bool setOwnAddr(BLEAddress &addr);
   static bool setOwnAddr(uint8_t *addr);
@@ -290,7 +296,7 @@ private:
 
 #if defined(CONFIG_NIMBLE_ENABLED)
   static uint8_t m_ownAddrType;
-  static bool m_synced;
+  static std::atomic<bool> m_synced;
   static std::vector<BLEAddress> m_whiteList;
   static BLEDeviceCallbacks defaultDeviceCallbacks;
   static BLEDeviceCallbacks *m_pDeviceCallbacks;

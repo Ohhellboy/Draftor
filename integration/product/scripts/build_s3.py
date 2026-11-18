@@ -6,9 +6,11 @@ if not __debug__:raise SystemExit('Run without Python -O: validation is required
 R=Path(__file__).resolve().parents[3]
 parser=argparse.ArgumentParser()
 parser.add_argument('--target',choices=['ESP32S3_OSPTEK_ST7306','WAVESHARE_RLCD42'],default='ESP32S3_OSPTEK_ST7306')
-board_target=parser.parse_args().target
-p=R/'integration/product';out=R/'TestBuilds/s3'/board_target
-evidence=R/'evidence/s3'/board_target;evidence.mkdir(parents=True,exist_ok=True)
+parser.add_argument('--rotation',type=int,choices=[0,180],default=180)
+args=parser.parse_args();board_target=args.target;rotation=args.rotation
+build_variant=board_target+'_ROT'+str(rotation)
+p=R/'integration/product';out=R/'TestBuilds/s3'/build_variant
+evidence=R/'evidence/s3'/build_variant;evidence.mkdir(parents=True,exist_ok=True)
 tmp=out/'tmp';tmp.mkdir(parents=True,exist_ok=True)
 for name in ('TMPDIR','TMP','TEMP'):os.environ[name]=str(tmp)
 os.environ['PYTHONDONTWRITEBYTECODE']='1'
@@ -58,7 +60,7 @@ shutil.copy2(menu_font,stage/menu_font.name)
 for name in ('candidate_window.cpp','device_ime.cpp','device_main.cpp','candidate_build.hpp','cp_observe.hpp'):
  source=p/('platform' if name=='device_main.cpp' else 'src')/name
  shutil.copy2(source,stage/name)
-for private_name in ('base_order_internal.hpp','shared_structural.hpp'):
+for private_name in ('base_order_internal.hpp','shared_structural.hpp','base_order_wire.hpp'):
  private_header=p/'dependencies/core/src'/private_name
  if private_header.exists():shutil.copy2(private_header,stage/private_header.name)
 # Match the existing Arduino flat-header stage; nested non-src headers would
@@ -87,7 +89,7 @@ for selected_pin in (pin,block_pin,wubi_pin):
 shutil.copytree(ext/'include/hanime_extension',src/'hanime_extension')
 shutil.copytree(p/'dependencies/wubi/include/hanime_wubi',src/'hanime_wubi')
 shutil.copytree(p/'dependencies/wubi/src',src/'wubi')
-for tag,folder,names in [('core',core/'src','core stable_key paged_scheme_index paged_shared_resource exact_ranker base_order member_eligibility bounded_output candidate_session composition_commit state_v3 bounded_user_state verified_resource packed_auth'.split()),('extension',ext/'src',['composition','submission','navigation','segment_planner'])]:
+for tag,folder,names in [('core',core/'src','core stable_key paged_scheme_index paged_shared_resource exact_ranker sparse_corrections base_order member_eligibility bounded_output candidate_session composition_commit state_v3 bounded_user_state verified_resource packed_auth'.split()),('extension',ext/'src',['composition','submission','navigation','segment_planner'])]:
  dest=src/tag;dest.mkdir()
  for n in names:shutil.copy2(folder/(n+'.cpp'),dest/(n+'.cpp'))
  for f in folder.glob('*.hpp'):shutil.copy2(f,dest/f.name)
@@ -157,30 +159,39 @@ for name in helper_names:
 helper_flags='-B'+str(helper_root/'libexec/gcc/xtensa-esp-elf/14.2.0')+'/ -B'+str(helper_root/'xtensa-esp-elf/bin')+'/'
 flags=helper_flags+' -DHANIME_BUILD_HOST_ADAPTERS=0 -DHANIME_BUILD_TOOLS=0 -DHANIME_BUILD_FIXTURES=0 -DHANIME_BUILD_TESTS=0 -DHANIME_OUTPUT_PROFILE='+str(profile)+' -DHANIME_TF_RUNTIME_HZ='+str(tf_hz)+' -std=gnu++17 -fexceptions -Werror -fstack-usage -DHANIME_SAVE_SUBSTAGE_DIAGNOSTIC='+str(save_diagnostic)+' -DHANIME_BASE_ORDER_LOCATE_ENTRIES=8'
 flags+=' -DDRAFTOR_BOARD='+board_target
+flags+=' -DDRAFTOR_WS_ROTATION_DEG='+str(rotation)
 flags+=' -DDRAFTOR_PERFORMANCE_COMMON=1 -DDRAFTOR_TEXT_RESIDENT=0 -DDRAFTOR_BLOCK_BACKEND=1 -DHANIME_TEXT_CHAIN=1 -DHANIME_STRUCTURAL_HOST_OBSERVE=0 -DDRAFTOR_INPUT_PRESENT_COORD=0 -DDRAFTOR_COORD_OBSERVE=0 -DDRAFTOR_SHARED_TEXT_VARIANT='+str(variant)
 pin_sha=hashlib.sha256(pin.read_bytes()+block_pin.read_bytes()+wubi_pin.read_bytes()).hexdigest()
-label='DRAFTOR_ALPHA_2_2_'+board_target
+assert board_target=='WAVESHARE_RLCD42', 'This diagnostic candidate is Waveshare only'
+label='WAVESHARE_A3_BLE_REWRITE_R3_ROT'+str(rotation)+'_TEST_ONLY'
 
 (stage/'block_build_metadata.hpp').write_text('#pragma once\n#define DRAFTOR_B_FIRMWARE_LABEL "'+label+'"\n#define DRAFTOR_B_PIN_SHA "'+pin_sha+'"\n#define DRAFTOR_LAYOUT_ARM "'+a.arm+'"\n#define DRAFTOR_LAYOUT_RESOURCE_ROOT "'+resource_root+'"\n')
 flags+=' -DDRAFTOR_DISPLAY_TRANSACTION='+str(display_tx)+' -DDRAFTOR_DISPLAY_TX_OBSERVE=0'
 flags+=' -DDRAFTOR_CP_OBSERVE='+str(int(observe))
-if board_target=='WAVESHARE_RLCD42':flags+=' -DDRAFTOR_WS_RUNTIME_DIAG=0 -DDRAFTOR_WS_HID_DIAG=0 -DDRAFTOR_WS_CAUSAL_DIAG=0 -DDRAFTOR_WS_HOGP_INPUTS=1'
+if board_target=='WAVESHARE_RLCD42':flags+=' -DDRAFTOR_WS_RUNTIME_DIAG=0 -DDRAFTOR_WS_HID_DIAG=0 -DDRAFTOR_WS_CAUSAL_DIAG=0 -DDRAFTOR_WS_SDMMC40_TEST_ONLY=1'
 flags+=' -Wno-error=misleading-indentation'
+flags+=' -DWAVESHARE_R7_L1_AREV1_TEST_ONLY=1 -DBGIME_A_REV1_DAILY=1 -DBGIME_L1_A_REV1_TEST_ONLY=1 -DBGIME_COUNT_SUPPLY=1 -DBGIME_RANKING_ARM=1 -DBGIME_ARCH3_R1=1 -DBGIME_ARCH3_R1_1=1 -DBGIME_KEY_FENCE=0 -DBGIME_KEYFENCE_S3_AB=0 -DR2_HOST_TEST=0 -DR2_RELATION_ROOT=\"/sd/WAVESHARE_R7_L1_AREV1_RES_20261112\"' 
 flags+=' -DDRAFTOR_AUTH_HANDOFF=1 -DHANIME_SHA256_BATCHED_FINAL=0 -DDRAFTOR_AUTH_OBSERVE=0'
 flags+=' -DDRAFTOR_RELEASE_BUILD=1 -DDRAFTOR_USB_ENABLED='+str(usb_enabled)
-mapping=' '.join(chr(34)+flag+prefix+'=.'+chr(34) for prefix in (str(R),) for flag in ('-ffile-prefix-map=','-fmacro-prefix-map='))
+# Arduino also compiles core sources using the physical path of the installed SDK.
+path_maps = ((R, '.'), ((data / 'data').resolve(), 'arduino-data'))
+mapping = ' '.join(
+    f'"{flag}{path}={name}"'
+    for path, name in path_maps
+    for flag in ('-ffile-prefix-map=', '-fmacro-prefix-map=')
+)
 flags+=' '+mapping
 flags+=' -DDRAFTOR_TELEMETRY_PROFILE='+str(telemetry_profile)+' -DDRAFTOR_TELEMETRY_CAPTURE='+str(telemetry_capture)
 sd=p/'libraries/SD' if (p/'libraries/SD').is_dir() else base/'libraries/SD'
 evidence.mkdir(parents=True,exist_ok=True)
-command=[str(cli),'compile','--jobs','2','--fqbn',fqbn,'--warnings','all','--build-property','compiler.c.extra_flags='+helper_flags+' '+mapping,'--build-property','compiler.cpp.extra_flags='+flags,'--build-property','compiler.cpp.flags=-MMD -c "@{compiler.sdk.path}/flags/cpp_flags" {compiler.warning_flags} {compiler.optimization_flags} {compiler.common_werror_flags} -std=gnu++17','--build-property','compiler.c.elf.extra_flags='+helper_flags+' -Wl,--wrap=_Znwj,--wrap=_Znaj,--wrap=_ZnwjRKSt9nothrow_t,--wrap=_ZnajRKSt9nothrow_t','--library',str(lib),*usb_library,*(['--library',str(sd)] if board_target=='ESP32S3_OSPTEK_ST7306' else []),'--library',str(base/'libraries/BLE'),'--build-path',str(build),'--output-dir',str(dist),str(stage)]
+command=[str(cli),'compile','--jobs','8','--fqbn',fqbn,'--warnings','all','--build-property','compiler.c.extra_flags='+helper_flags+' '+mapping,'--build-property','compiler.cpp.extra_flags='+flags,'--build-property','compiler.cpp.flags=-MMD -c "@{compiler.sdk.path}/flags/cpp_flags" {compiler.warning_flags} {compiler.optimization_flags} {compiler.common_werror_flags} -std=gnu++17','--build-property','compiler.c.elf.extra_flags='+helper_flags+' -Wl,--wrap=_Znwj,--wrap=_Znaj,--wrap=_ZnwjRKSt9nothrow_t,--wrap=_ZnajRKSt9nothrow_t,--wrap=esp_partition_erase_range,--wrap=ble_sm_tx,--wrap=ble_gap_rx_conn_complete,--wrap=ble_store_write_local_irk','--library',str(lib),*usb_library,*(['--library',str(sd)] if board_target=='ESP32S3_OSPTEK_ST7306' else []),'--library',str(base/'libraries/BLE'),'--build-path',str(build),'--output-dir',str(dist),str(stage)]
 command[2:2]=['--build-property','upload.maximum_size=4194304']
 command[2:2]=['--build-property','compiler.path='+str(data/'data/packages/esp32/tools/esp-x32/2601/bin')+'/']
 # Matter LinkChain R1 C2: resolve only the proven string template provider early.
 # Keep SDK C++ guards, all SDK archives, and the normal late libstdc++ pass.
 provider_root=data/'data/packages/esp32/tools/esp-x32/2601'
 provider_archive=provider_root/'xtensa-esp-elf/lib/esp32s3/no-rtti/libstdc++.a'
-provider_object=base/'link_support/string-inst.o'
+provider_object=out/'link_support/string-inst.o'
 provider_object.parent.mkdir(parents=True,exist_ok=True)
 provider_bytes=subprocess.check_output([str(provider_root/'bin/xtensa-esp-elf-ar'),
                                        'p',str(provider_archive),'string-inst.o'])
@@ -289,9 +300,10 @@ for forbidden in ('formatServiceEndpoint','snapshotServiceEndpoint','traceServic
 if board_target=='WAVESHARE_RLCD42':
  for forbidden in ('hidprobe::','s3app::runtime_diag::','usbCausalKey','usb_causal::','draftor_hid_r2_static_cost'):
   assert forbidden not in symbols, 'Special diagnostic linked: '+forbidden
- for flag in ('DRAFTOR_WS_RUNTIME_DIAG=0','DRAFTOR_WS_HID_DIAG=0','DRAFTOR_WS_CAUSAL_DIAG=0','DRAFTOR_WS_HOGP_INPUTS=1'):
+ for flag in ('DRAFTOR_WS_RUNTIME_DIAG=0','DRAFTOR_WS_HID_DIAG=0','DRAFTOR_WS_CAUSAL_DIAG=0'):
   assert '-D'+flag in flags
- for required in ('configureInputs', 'subscribeAllInputs(BLEClient*)::bootMap', 'notifyOtherInput(', 'inputSubscriptions', 'heapIntegrityStopTurn('):
+ for required in ('keyboard::begin()', 'ws_bonds::commit(', 'keyboard::input::prepare(', 'heapIntegrityStopTurn(', '__wrap_esp_partition_erase_range'):
   assert required in symbols, 'Product path absent: '+required
- (evidence/'PRODUCT_CLOSURE.json').write_text(json.dumps({'status':'PASS','HOGP_inputs_retained':True,'standard_usbKey_exact_source_and_Host_verified':True,'heap_stop_retained':True,'causal_shortcut_removed':True,'special_diagnostic_symbols_absent':True,'special_diagnostic_flags':0,'HOGP_flag':1},indent=2)+'\n')
-print('Release input observation and special F9 diagnostics absent; product protections retained.',flush=True)
+ for removed in ('reconnect_diag::','automaticRound(', 'PairingPicker::', 'commitSelection(', 'smptrace::'):
+  assert removed not in symbols, 'Obsolete keyboard implementation in ELF: '+removed
+ (evidence/'PRODUCT_CLOSURE.json').write_text(json.dumps({'status':'PASS','replacement_linked':True,'device_tested':False},indent=2)+'\n')

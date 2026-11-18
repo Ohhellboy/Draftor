@@ -45,6 +45,8 @@ struct SegmentPlanner::Impl {
   RankItem rank_work, rank_result;
   RankTicket ticket;
   SharedActivationHandle activation;
+  StateView member_view;
+  bool exact_members()const{return cfg.planning.exact_learning_members&&cfg.apply_learning&&cfg.learning_counts;}
   std::uint64_t scheme_epoch{0}, context{0};
   OutputInvocation invocation{OutputInvocation::Profile};
   std::size_t n{0}, focus{0}, form_n{0}, used{0}, width{0};
@@ -73,7 +75,7 @@ struct SegmentPlanner::Impl {
      nodes(cfg.raw_bytes+1),edges(cfg.planning.ranges),width(cfg.raw_bytes+1) {}
   std::uint16_t& at(std::size_t i,std::size_t j){return units[i*width+j];}
   bool current() const {
-    return shared.activation_is_current(activation)&&scheme.ready()&&scheme.index_epoch()==scheme_epoch;
+    return shared.activation_is_current(activation)&&scheme.ready()&&scheme.index_epoch()==scheme_epoch&&(!exact_members()||cfg.learning_counts->view_is_current(member_view));
   }
   void stop_query(){if(ranker){ranker->abandon_range(ticket);ranker.reset();}ticket={};}
   void reset_prefixes_before(Phase next) {
@@ -174,13 +176,14 @@ struct SegmentPlanner::Impl {
     if(empty_slot<edges.size())std::swap(edges[used],edges[empty_slot]);
     auto& e=edges[used];e={};e.begin=static_cast<std::uint16_t>(offered_begin);
     e.end=static_cast<std::uint16_t>(offered_end);e.units=at(offered_begin,offered_end);
-    ranker=std::make_unique<ExactRanker>(scheme,shared,counts,&rank_work,1,cfg.raw_batch,cfg.raw_bytes);
-    auto s=ranker->begin_input(std::string(raw.data()+offered_begin,offered_end-offered_begin),activation.mount_epoch(),{},ScoringMode::BaseOnly);
+    const bool learned=exact_members();
+    ranker=std::make_unique<ExactRanker>(scheme,shared,learned?*cfg.learning_counts:counts,&rank_work,1,cfg.raw_batch,cfg.raw_bytes,0,learned&&cfg.exact_from_base_order,learned?cfg.sparse_corrections:nullptr);
+    auto s=ranker->begin_input(std::string(raw.data()+offered_begin,offered_end-offered_begin),activation.mount_epoch(),cfg.rank_rule,learned?ScoringMode::Exact:ScoringMode::BaseOnly);
     if(s!=RankStatus::InProgress){stop_query();phase=Phase::Idle;return;}
     auto& chain=prefixes[prefix_slot];
     if(!prefixes_live||!chain.age||chain.begin!=offered_begin)chain.state.reset();
     chain.begin=static_cast<std::uint16_t>(offered_begin);chain.age=++prefix_clock;
-    s=ranker->request_first_prefix(chain.state,1,&rank_result,1,&ticket);
+    s=learned?ranker->request_range(RangeDirection::First,nullptr,1,&rank_result,1,&ticket):ranker->request_first_prefix(chain.state,1,&rank_result,1,&ticket);
     if(s!=RankStatus::InProgress){stop_query();phase=Phase::Idle;return;}
     report.query_begin=offered_begin;report.query_end=offered_end;
     ++report.queries;phase=Phase::Query;
@@ -238,7 +241,7 @@ Status SegmentPlanner::begin(const RawInput& input,std::size_t focus,OutputReque
   p.direct_pending=false;p.facts_valid=true;p.used=0;p.n=input.raw.size();p.focus=focus;p.rules=input.rules;p.context=context;
   std::copy(input.raw.begin(),input.raw.end(),p.raw.begin());
   std::copy(request.form.begin(),request.form.end(),p.form.begin());p.form_n=request.form.size();p.invocation=request.invocation;
-  p.activation=p.shared.activation_handle();p.scheme_epoch=p.scheme.index_epoch();
+  p.activation=p.shared.activation_handle();p.scheme_epoch=p.scheme.index_epoch();if(p.exact_members())p.member_view=p.cfg.learning_counts->view();
   p.setup=p.n+p.form_n+prefix+p.edges.size();
   if(p.fresh){p.setup+=p.raw.size()+p.form.size()+p.links.size()+p.tails.size()+p.units.size()*sizeof(std::uint16_t)+p.nodes.size()*sizeof(Node)+p.edges.size()*sizeof(Edge);p.fresh=false;}
   p.report={};p.report.input_id=input.stamp.input_id();p.report.revision=input.stamp.revision();
@@ -262,7 +265,7 @@ Step SegmentPlanner::advance(const WorkBudget& budget) {
     if(s.status==RankStatus::Ready||s.status==RankStatus::NoMatches) {
       // Optional checkpoint: never consume an extra tick or overrun either
       // the current slice or the unchanged total planning work budget.
-      if(s.cost.work_items<budget.max_work_items&&p.report.core_cost.work_items<p.cfg.planning.core_work&&
+      if(!p.exact_members()&&s.cost.work_items<budget.max_work_items&&p.report.core_cost.work_items<p.cfg.planning.core_work&&
          p.scheme.base_order()) {
         WorkBudget remaining{};remaining.max_work_items=1;
         const auto saved=p.ranker->save_prefix(p.ticket,p.prefixes[p.prefix_slot].state,remaining);
@@ -382,7 +385,8 @@ void SegmentPlanner::accept_direct_fact(std::size_t begin,std::size_t end,const 
 void SegmentPlanner::cancel(){if(p_->phase!=Impl::Phase::Done)retire();}
 void SegmentPlanner::retire(){p_->prefixes_live=false;p_->stop_query();p_->direct_pending=false;p_->report.valid=false;p_->phase=Impl::Phase::Idle;}
 void SegmentPlanner::invalidate(){p_->facts_valid=false;retire();}
-PlanningReport SegmentPlanner::report() const{return p_->report;}
+PlanningReport SegmentPlanner::report() const{auto r=p_->report;if(!p_->current())r.valid=false;return r;}
+bool SegmentPlanner::scored_edge(std::size_t i,std::size_t& begin,std::size_t& end,RankItem& item)const{if(!p_->current()||!p_->report.valid||i>=p_->used)return false;const auto& e=p_->edges[i];if(!e.known||!e.matched)return false;begin=e.begin;end=e.end;item=e.item;return true;}
 std::size_t SegmentPlanner::command_work() const{return p_->setup;}
 PlanningMemory SegmentPlanner::memory() const {
   const auto& p=*p_;PlanningMemory m;m.owner=sizeof(*this);m.impl=sizeof(Impl);

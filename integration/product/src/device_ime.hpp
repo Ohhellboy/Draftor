@@ -2,6 +2,7 @@
 #include "candidate_window.hpp"
 #include "member_storage.hpp"
 #include "editor_sink.hpp"
+#include "learning_trial.hpp"
 #include "raw_viewport.hpp"
 #include "selected_viewport.hpp"
 #include "raw_edit_admission.hpp"
@@ -13,12 +14,32 @@ namespace ime_device {
 enum class ImeAction:uint8_t { Native, PreviousCandidate, NextCandidate, ExpandOrNextColumn,
  NextColumn, PreviousColumn, RawPrevious, RawNext, RawCandidates, Unassigned };
 enum class EditTargetKind:uint8_t {Unavailable,Boundary,Prefix,Member};
+enum class DailyLearningPhase:uint8_t {Disabled,Opening,Enabled,Saving,Paused,Fault};
 struct EditTarget {EditTargetKind kind=EditTargetKind::Unavailable;size_t begin=0,end=0,member=0;
  bool valid()const{return kind==EditTargetKind::Prefix||kind==EditTargetKind::Member;}
 };
 class DeviceIme {
  s3app::App& app_;Resources& resources_;const s3host::FontPort& font_;
  EditorSink sink_;
+ LearningTrial* learning_=nullptr;
+ void retireLearningConsumers();
+#if BGIME_A_REV1_DAILY
+ DailyLearningPhase daily_phase_=DailyLearningPhase::Disabled;
+ bool daily_saved_=false,daily_save_failed_=false,daily_revision_changed_=false,daily_detach_=false;
+ hanime::documents::DocumentId daily_document_{};
+ uint64_t daily_session_=0,daily_revision_epoch_=0;
+ uint32_t daily_revision_=0,daily_operation_=0;
+ bool dailySave(uint32_t);bool dailyOpen();bool dailyKey(const s3hid::Event&);
+ void dailyFault();void dailyFeedback(const char*);
+ bool dailyDocumentCurrent()const;
+#endif
+ bool recordForTarget()const;
+ bool candidateNumber(uint8_t usage)const;
+ bool reset_active_=false,reset_expanded_=false,reset_refresh_=false;
+ uint32_t reset_query_=0;
+ size_t reset_row_=0,reset_end_=0;
+ hanime_extension::InputStamp reset_stamp_;
+ bool resetIntent(const s3hid::Event&);void serviceReset();
  // Declared before consumers and destroyed after every owned array.
  MemberStorage member_storage_;
  hanime_extension::StorageBackend member_backend_;
@@ -135,9 +156,17 @@ class DeviceIme {
  bool navigationReady();bool moveBoundary(size_t,hanime_extension::NavigationDirection);
  void escapeComposition(const s3hid::Event&);void enterRaw();void rawDown();void rawKey(const s3hid::Event&);void navigate(uint8_t,uint32_t);
  public:
- DeviceIme(s3app::App& app,Resources& resources,const s3host::FontPort& font,void(*publish)(uint32_t)=nullptr,hanime_extension::StorageBackend storage={}):app_(app),resources_(resources),font_(font),sink_(app),member_backend_(storage.allocate||storage.deallocate||storage.id?storage:member_storage_.backend()){publish_attempt_=publish;}
+ DeviceIme(s3app::App& app,Resources& resources,const s3host::FontPort& font,void(*publish)(uint32_t)=nullptr,hanime_extension::StorageBackend storage={},LearningTrial* learning=nullptr):app_(app),resources_(resources),font_(font),sink_(app),learning_(learning),member_backend_(storage.allocate||storage.deallocate||storage.id?storage:member_storage_.backend()){publish_attempt_=publish;}
  const MemberStorage& memberStorage()const{return member_storage_;}
  ~DeviceIme();
+ // TEST_ONLY commands are rejected while input/commit is active.
+ bool learningCommand(const char*);
+ // Product lifecycle: the existing learning and document owners retain all I/O.
+ bool startDailyLearning(bool root_ready);
+ void serviceDailyLearning();
+ DailyLearningPhase dailyLearningPhase()const;
+ const char* dailyLearningNotice()const;
+ bool dailySafeToPowerOff()const;
  uint32_t ingressContext(); // Main loop only; publish before/after service and before LCD transfer.
  uint32_t resourceOwner()const{return resource_owner_;}
  bool event(const s3hid::Event&,ImeAction=ImeAction::Native);void service(bool allow_prefetch=false);void interrupt();
@@ -163,7 +192,7 @@ class DeviceIme {
     accepted_target_.session==app_.session.sessionSerial()&&accepted_target_.stamp.focus==app_.focusToken()&&
     accepted_body_revision_==app_.renameRevision();
  }
- bool hasWork()const{return following_count_||flow_.stage!=FlowStage::Idle||arrow_count_||preparing_||(window_&&window_->busy())||(chinese_&&resources_.ready()&&!composition_&&!initialization_failed_)||(resources_.state()!=ResourceState::Ready&&resources_.state()!=ResourceState::Dormant&&resources_.state()!=ResourceState::Error);}
+ bool hasWork()const{return reset_active_||(learning_&&learning_->hasWork())||following_count_||flow_.stage!=FlowStage::Idle||arrow_count_||preparing_||(window_&&window_->busy())||(chinese_&&resources_.ready()&&!composition_&&!initialization_failed_)||(resources_.state()!=ResourceState::Ready&&resources_.state()!=ResourceState::Dormant&&resources_.state()!=ResourceState::Error);}
  size_t queuedInput()const{return following_count_;}
  uint32_t inputPeak()const{return following_peak_;}uint32_t inputOverflow()const{return following_overflow_;}
  uint32_t inputCancelled()const{return following_cancelled_;}

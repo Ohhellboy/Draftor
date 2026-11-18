@@ -72,6 +72,7 @@
 #if defined(CONFIG_NIMBLE_ENABLED)
 #include <host/ble_hs.h>
 #include <host/ble_gap.h>
+#include <host/ble_l2cap.h>
 #include <nimble/ble.h>
 #include <nimble/nimble_npl_os.h>
 #include <nimble/nimble_port.h>
@@ -124,7 +125,6 @@ BLEClient::BLEClient() {
 #if defined(CONFIG_NIMBLE_ENABLED)
   m_connectTimeout = 30000;
   m_pTaskData = nullptr;
-  m_lastErr = 0;
   m_terminateFailCount = 0;
 
   m_pConnParams.scan_itvl = 16;                                             // Scan interval in 0.625ms units (NimBLE Default)
@@ -158,6 +158,7 @@ BLEClient::~BLEClient() {
   while (m_conn_id != BLE_HS_CONN_HANDLE_NONE && (millis() - start < 2000)) {
     delay(10);
   }
+  vSemaphoreDelete(m_connectSignal);
   BLEDevice::removePeerDevice(m_gattAppId, true);
 #endif
   clearServices();
@@ -211,6 +212,11 @@ esp_gatt_if_t BLEClient::getGattcIf() {
  * @return True on success.
  */
 bool BLEClient::secureConnection() {
+#if defined(CONFIG_NIMBLE_ENABLED)
+  // An ATT access failure does not authorize key replacement or SMP on the
+  // keyboard client. The worker completes the required security first.
+  if (m_externalSecurity) return false;
+#endif
 #if defined(CONFIG_BLUEDROID_ENABLED)
   if (BLESecurity::m_authenticationComplete) {
     return true;
@@ -916,15 +922,65 @@ void BLEClient::dcTimerCb(ble_npl_event *event) {
  * @param [in] timeoutMs The number of milliseconds to wait for the connection to complete.
  * @return True on success.
  */
+// A single external-security client may be dialing. The pointer is cleared
+// by that client's retirement on this same Host queue before destruction.
+static std::atomic<BLEClient*> pendingSecurityClient{nullptr};
+// Only the NimBLE host task allocates cookies. An old callback can carry its
+// cookie past retirement without retaining a pointer to the old client.
+static uintptr_t lastMtuCookie = 0;
+
+void BLEClient::completeConnect(int rc) {
+  BLETaskData* expected = &m_connectTask;
+  if (!m_pTaskData.compare_exchange_strong(expected, nullptr)) return;
+  if (rc == 0) m_isConnected = true;
+  m_connectResult = rc;
+  if (m_externalSecurity) xSemaphoreGive(m_connectSignal);
+  else BLEUtils::taskRelease(m_connectTask, rc);
+}
+
+int BLEClient::mtuExchangeComplete(uint16_t handle, const ble_gatt_error *error, uint16_t mtu, void *cookie) {
+  BLEClient* client = pendingSecurityClient.load();
+  const auto id = reinterpret_cast<uintptr_t>(cookie);
+  if (!id || !client || client->m_mtuCookie != id || client->m_conn_id != handle) return 0;
+  client->m_mtuCookie = 0;
+  if (client->m_retiring || client->m_pTaskData != &client->m_connectTask) return 0;
+  const int rc = error ? error->status : BLE_HS_EUNKNOWN;
+  client->m_pClientCallbacks->onConnectionStage(handle, "mtu_result", rc, mtu);
+  client->completeConnect(rc);
+  return 0;
+}
+
+void BLEClient::controllerConnectionAvailable() {
+  BLEClient* client = pendingSecurityClient.load();
+  if (!client || !client->m_connectPending || client->m_retiring ||
+      client->m_pTaskData != &client->m_connectTask) return;
+  ble_addr_t dialed{};
+  dialed.type = client->m_peerAddress.getType();
+  memcpy(dialed.val, client->m_peerAddress.getNative(), sizeof(dialed.val));
+  ble_gap_conn_desc link{};
+  if (ble_gap_conn_find_by_addr(&dialed, &link) || link.role != BLE_GAP_ROLE_MASTER) return;
+  const uint16_t owned = client->m_conn_id.load();
+  if (owned != BLE_HS_CONN_HANDLE_NONE && owned != link.conn_handle) return;
+  // GAP has installed this dial's live link, but its public CONNECT may still
+  // be waiting for feature/version exchange. Bind before the next SMP packet.
+  client->m_conn_id = link.conn_handle;
+  if (!client->m_pClientCallbacks->onLinkEstablished(link)) {
+    client->m_retiring = true;
+    client->disconnect();
+  }
+}
+
 bool BLEClient::connect(BLEAddress address, uint8_t type, uint32_t timeoutMs) {
   log_v(">> connect(%s)", address.toString().c_str());
 
   if (!BLEDevice::m_synced) {
+    m_lastErr = BLE_HS_ENOTSYNCED;
     log_d("BLEClient", "Host reset, wait for sync.");
     return false;
   }
 
   if (m_conn_id != BLE_HS_CONN_HANDLE_NONE || m_isConnected || m_pTaskData != nullptr || m_connectPending || m_retiring || m_connectAttempted) {
+    m_lastErr = BLE_HS_EBUSY;
     log_e("Client busy, connected to %s, id=%u", m_peerAddress.toString().c_str(), getConnId());
     return false;
   }
@@ -938,16 +994,18 @@ bool BLEClient::connect(BLEAddress address, uint8_t type, uint32_t timeoutMs) {
   memcpy(&peerAddr_t.val, address.getNative(), 6);
   peerAddr_t.type = type;
   if (ble_gap_conn_find_by_addr(&peerAddr_t, NULL) == 0) {
+    m_lastErr = BLE_HS_EDONE;
     log_e("A connection to %s already exists", address.toString().c_str());
     return false;
   }
 
   if (address == BLEAddress("")) {
+    m_lastErr = BLE_HS_EINVAL;
     log_e("Invalid peer address (NULL)");
     return false;
   }
 
-  m_peerAddress = address;
+  m_peerAddress = BLEAddress(peerAddr_t);
 
   int rc = 0;
   m_connectAttempted = true; // never reuse this callback argument for another attempt
@@ -955,6 +1013,14 @@ bool BLEClient::connect(BLEAddress address, uint8_t type, uint32_t timeoutMs) {
   m_connectResult = BLE_HS_ETIMEOUT;
   m_pTaskData = &m_connectTask; // publish before GAP can deliver even an immediate event
   unsigned busyRetries = 0;
+  if (m_externalSecurity) {
+    BLEClient* available = nullptr;
+    if (!pendingSecurityClient.compare_exchange_strong(available, this)) {
+      m_pTaskData = nullptr;
+      m_lastErr = BLE_HS_EBUSY;
+      return false;
+    }
+  }
 
   /* Try to connect the the advertiser.  Allow 30 seconds (30000 ms) for
    *  timeout (default value of m_connectTimeout).
@@ -962,7 +1028,8 @@ bool BLEClient::connect(BLEAddress address, uint8_t type, uint32_t timeoutMs) {
    */
   do {
     m_connectPending = true;
-    rc = ble_gap_connect(BLEDevice::m_ownAddrType, &peerAddr_t, m_connectTimeout, &m_pConnParams, BLEClient::handleGAPEvent, this);
+    rc = ble_gap_connect(BLEDevice::ownAddressType(), &peerAddr_t, m_connectTimeout, &m_pConnParams, BLEClient::handleGAPEvent, this);
+    if (m_externalSecurity) m_pClientCallbacks->onConnectionStage(BLE_HS_CONN_HANDLE_NONE, "gap_start", rc);
     if (rc != 0) m_connectPending = false;
     switch (rc) {
       case 0: break;
@@ -999,9 +1066,14 @@ bool BLEClient::connect(BLEAddress address, uint8_t type, uint32_t timeoutMs) {
   }
 
   // Timeout does not mean "no link": MTU may still be pending on a live handle.
-  const bool completed = BLEUtils::taskWait(m_connectTask, m_connectTimeout + 1000);
+  const bool completed = m_externalSecurity
+      ? xSemaphoreTake(m_connectSignal, pdMS_TO_TICKS(m_connectTimeout + 1000)) == pdTRUE
+      : BLEUtils::taskWait(m_connectTask, m_connectTimeout + 1000);
   m_pTaskData = nullptr;
   rc = completed ? m_connectResult.load() : BLE_HS_ETIMEOUT;
+  if (!completed && m_externalSecurity) {
+    m_pClientCallbacks->onConnectionStage(m_conn_id.load(), m_waitingForMtu ? "mtu_wait" : "gap_wait", rc);
+  }
 
   if (rc != 0) {
     log_e("Connection failed; status=%d %s", rc, BLEUtils::returnCodeToString(rc));
@@ -1010,14 +1082,19 @@ bool BLEClient::connect(BLEAddress address, uint8_t type, uint32_t timeoutMs) {
     return false;
   }
 
-  if (!isConnected() || getConnId() == BLE_HS_CONN_HANDLE_NONE) return false;
+  if (!isConnected() || getConnId() == BLE_HS_CONN_HANDLE_NONE) {
+    m_lastErr = BLE_HS_ENOTCONN;
+    return false;
+  }
   m_pClientCallbacks->onConnect(this);
 
   log_i("<< connect()");
 
   BLEDevice::addPeerDevice(this, true, m_gattAppId);
   // Check if still connected before returning
-  return isConnected();
+  const bool connected = isConnected();
+  m_lastErr = connected ? 0 : BLE_HS_ENOTCONN;
+  return connected;
 }
 
 /**
@@ -1101,6 +1178,9 @@ int BLEClient::handleGAPEvent(struct ble_gap_event *event, void *arg) {
   switch (event->type) {
     case BLE_GAP_EVENT_DISCONNECT:
     {
+      // The stack also delivers host-wide reset through ble_hs_cfg.reset_cb.
+      // A reset-class reason on another handle cannot finish this keyboard dial.
+      if (client->m_externalSecurity && client->m_conn_id != event->disconnect.conn.conn_handle) return 0;
       rc = event->disconnect.reason;
       // If Host reset tell the device now before returning to prevent
       // any errors caused by calling host functions before resyncing.
@@ -1125,7 +1205,16 @@ int BLEClient::handleGAPEvent(struct ble_gap_event *event, void *arg) {
 
       // No longer connected, clear the connection ID.
       const bool wasReady = client->m_isConnected.exchange(false);
+      const bool wasBound = client->m_conn_id == event->disconnect.conn.conn_handle;
+      if (wasBound && client->m_externalSecurity)
+        client->m_pClientCallbacks->onConnectionStage(event->disconnect.conn.conn_handle, "disconnect", rc);
+      client->m_lastErr = rc;
+      client->m_earlyAttMtu = 0;
+      client->m_mtuCookie = 0;
       client->m_conn_id = BLE_HS_CONN_HANDLE_NONE;
+      client->m_connectPending = false;
+      client->m_pendingPasskey = false;
+      client->m_pendingPasskeyParams = {};
       client->m_terminateFailCount = 0;
 
       // If we received a connected event but did not get established (no PDU)
@@ -1133,6 +1222,8 @@ int BLEClient::handleGAPEvent(struct ble_gap_event *event, void *arg) {
       // app for processing. Instead we will ensure the task is released
       // and report the error.
       if (!wasReady) {
+        if (wasBound && client->m_externalSecurity)
+          client->m_pClientCallbacks->onDisconnect(client);
         break;
       }
 
@@ -1151,24 +1242,82 @@ int BLEClient::handleGAPEvent(struct ble_gap_event *event, void *arg) {
     case BLE_GAP_EVENT_CONNECT:
     {
       rc = event->connect.status;
+      if (client->m_externalSecurity)
+        client->m_pClientCallbacks->onConnectionStage(rc ? BLE_HS_CONN_HANDLE_NONE : event->connect.conn_handle, "gap_connect", rc);
       // Record even a late successful connection BEFORE clearing pending. The
       // callback argument remains owned until its real DISCONNECT is delivered.
+      const uint16_t earlyHandle = client->m_conn_id.load();
+      if (rc == 0 && earlyHandle != BLE_HS_CONN_HANDLE_NONE && earlyHandle != event->connect.conn_handle) {
+        // Never transfer an early action to a different connection.
+        rc = BLE_HS_EINVAL;
+        client->m_retiring = true;
+      }
       if (rc == 0) client->m_conn_id = event->connect.conn_handle;
       client->m_connectPending = false;
-      if (rc != 0) break;
+      if (rc != 0) {
+        client->m_pendingPasskey = false;
+        client->m_pendingPasskeyParams = {};
+        break;
+      }
       if (client->m_retiring || pTaskData != &client->m_connectTask) {
+        client->m_pendingPasskey = false;
+        client->m_pendingPasskeyParams = {};
         client->m_retiring = true;
         client->disconnect(); // checks handle, logs errors; retireStep retries
         return 0;
       }
-      rc = ble_gattc_exchange_mtu(client->m_conn_id, nullptr, nullptr);
-      if (rc != 0) {
-        log_e("MTU exchange error; rc=%d", rc);
-        client->m_retiring = true;
-        break;
+      if (client->m_externalSecurity) {
+        ble_gap_conn_desc link{};
+        rc = ble_gap_conn_find(event->connect.conn_handle, &link);
+        if (rc != 0 || !client->m_pClientCallbacks->onLinkEstablished(link)) {
+          if (!rc) rc = BLE_HS_EAUTHEN;
+          client->m_retiring = true;
+          client->disconnect();
+          break;
+        }
       }
-      if (BLESecurity::m_securityEnabled && BLESecurity::m_forceSecurity) {
+      if (client->m_pendingPasskey) {
+        struct ble_gap_event pending{};
+        pending.type = BLE_GAP_EVENT_PASSKEY_ACTION;
+        pending.passkey.conn_handle = event->connect.conn_handle;
+        pending.passkey.params = client->m_pendingPasskeyParams;
+        client->m_pendingPasskey = false;
+        client->m_pendingPasskeyParams = {};
+        // Use the existing PIN/security path, exactly once, on the host task.
+        BLEClient::handleGAPEvent(&pending, client);
+      }
+      // A peer can finish its ATT exchange while remote features/version are
+      // still pending. That completion belongs to the verified handle, but
+      // must not release connect() until the real GAP CONNECT has arrived.
+      if (!client->m_earlyAttMtu) {
+        const uint16_t handle = event->connect.conn_handle;
+        if (client->m_externalSecurity) {
+          client->m_waitingForMtu = true;
+          // Do not recycle an identifier within a boot, even on handle reuse.
+          if (lastMtuCookie == UINTPTR_MAX) rc = BLE_HS_ENOMEM;
+          else {
+            client->m_mtuCookie = ++lastMtuCookie;
+            rc = ble_gattc_exchange_mtu(handle, mtuExchangeComplete, reinterpret_cast<void*>(client->m_mtuCookie));
+          }
+          client->m_pClientCallbacks->onConnectionStage(handle, "mtu_start", rc);
+        } else {
+          rc = ble_gattc_exchange_mtu(handle, nullptr, nullptr);
+        }
+        if (rc != 0) {
+          client->m_mtuCookie = 0;
+          log_e("MTU exchange error; rc=%d", rc);
+          client->m_retiring = true;
+          break;
+        }
+      }
+      if (!client->m_externalSecurity && BLESecurity::m_securityEnabled && BLESecurity::m_forceSecurity) {
         BLESecurity::startSecurity(client->m_conn_id);
+      }
+      if (client->m_earlyAttMtu) {
+        if (client->m_externalSecurity)
+          client->m_pClientCallbacks->onConnectionStage(event->connect.conn_handle, "mtu_peer", 0, client->m_earlyAttMtu);
+        client->m_earlyAttMtu = 0;
+        break;
       }
       return 0;
     }  // BLE_GAP_EVENT_CONNECT
@@ -1286,38 +1435,62 @@ int BLEClient::handleGAPEvent(struct ble_gap_event *event, void *arg) {
       return 0;
     }  // BLE_GAP_EVENT_CONN_UPDATE
 
+    case BLE_GAP_EVENT_REPEAT_PAIRING:
+      if (client->m_externalSecurity && client->m_conn_id == event->repeat_pairing.conn_handle) {
+        client->m_pClientCallbacks->onRepeatPairing(event->repeat_pairing.conn_handle);
+      } else if (client->m_externalSecurity) {
+        client->m_pClientCallbacks->onConnectionStage(event->repeat_pairing.conn_handle, "repeat_skip_handle", 0);
+      }
+      // Never replace an existing key implicitly, including a locally
+      // confirmed Just Works key during automatic recovery.
+      return BLE_GAP_REPEAT_PAIRING_IGNORE;
+
     case BLE_GAP_EVENT_ENC_CHANGE:
     {
       if (client->m_conn_id != event->enc_change.conn_handle) {
         return 0;
       }
 
+      if (client->m_externalSecurity) {
+        client->m_pClientCallbacks->onEncryptionResult(event->enc_change.conn_handle, event->enc_change.status);
+      }
       if (event->enc_change.status == 0 || event->enc_change.status == (BLE_HS_ERR_HCI_BASE + BLE_ERR_PINKEY_MISSING)) {
         struct ble_gap_conn_desc desc;
         rc = ble_gap_conn_find(event->enc_change.conn_handle, &desc);
         assert(rc == 0);
 
         if (event->enc_change.status == (BLE_HS_ERR_HCI_BASE + BLE_ERR_PINKEY_MISSING)) {
-          // Key is missing, try deleting.
-          ble_store_util_delete_peer(&desc.peer_id_addr);
+          // A failed recovery is not consent to erase a stored identity.
+          // Let the coordinator retire this attempt and search other bonds.
+          if (BLEDevice::m_securityCallbacks != nullptr) {
+            BLEDevice::m_securityCallbacks->onAuthenticationComplete(&desc);
+          }
         } else if (BLEDevice::m_securityCallbacks != nullptr) {
           BLEDevice::m_securityCallbacks->onAuthenticationComplete(&desc);
         }
       }
 
       rc = event->enc_change.status;
-      if (pTaskData == &client->m_connectTask) return 0;
+      // An externally secured client never owns a generic authentication
+      // waiter. An ENC_CHANGE cannot finish its concurrent GATT discovery.
+      if (client->m_externalSecurity || pTaskData == &client->m_connectTask) return 0;
       break;
     }  //BLE_GAP_EVENT_ENC_CHANGE
 
     case BLE_GAP_EVENT_MTU:
     {
-      if (client->m_conn_id != event->mtu.conn_handle) {
+      if (client->m_conn_id != event->mtu.conn_handle || event->mtu.channel_id != BLE_L2CAP_CID_ATT) {
         return 0;
       }
       log_i("mtu update event; conn_handle=%u mtu=%u", event->mtu.conn_handle, event->mtu.value);
       if (client->m_retiring || pTaskData != &client->m_connectTask) return 0;
-      client->m_isConnected = true;
+      if (client->m_connectPending) {
+        client->m_earlyAttMtu = event->mtu.value;
+        return 0;
+      }
+      // The local procedure reports both ATT errors and a negotiated MTU of
+      // 23. A separate GAP notification must not mask its terminal result.
+      if (client->m_externalSecurity) return 0;
       rc = 0;
       break;
     }  // BLE_GAP_EVENT_MTU
@@ -1325,11 +1498,42 @@ int BLEClient::handleGAPEvent(struct ble_gap_event *event, void *arg) {
     case BLE_GAP_EVENT_PASSKEY_ACTION:
     {
       struct ble_sm_io pkey = {0, 0};
+      const uint16_t handle = event->passkey.conn_handle;
+      const uint16_t action = event->passkey.params.action;
+      auto ignored = [&](const char* why, int status = 0) {
+        if (client->m_externalSecurity) client->m_pClientCallbacks->onConnectionStage(handle, why, status, action);
+        return 0;
+      };
 
-      if (client->m_conn_id != event->passkey.conn_handle) {
+      if (client->m_retiring) return ignored("io_skip_retire");
+      if (handle == BLE_HS_CONN_HANDLE_NONE) return ignored("io_skip_handle");
+      if (client->m_connectPending && pTaskData == &client->m_connectTask) {
+        const uint16_t owned = client->m_conn_id.load();
+        struct ble_gap_conn_desc desc{};
+        if (owned != BLE_HS_CONN_HANDLE_NONE && owned != handle) return ignored("io_skip_handle");
+        const int found = ble_gap_conn_find(handle, &desc);
+        if (found != 0) return ignored("io_skip_lookup", found);
+        if (desc.role != BLE_GAP_ROLE_MASTER) return ignored("io_skip_role");
+        auto matches = [&](const ble_addr_t& peer) {
+          return (peer.type & 1) == (client->m_peerAddress.getType() & 1) &&
+                 memcmp(peer.val, client->m_peerAddress.getNative(), 6) == 0;
+        };
+        if (!matches(desc.peer_ota_addr) && !matches(desc.peer_id_addr)) return ignored("io_skip_identity");
+        // Own the verified live handle for timeout/cancel cleanup, but do not
+        // publish connected/ready or complete the connection waiter early.
+        client->m_conn_id = handle;
+        if (!client->m_pendingPasskey) {
+          client->m_pendingPasskeyParams = event->passkey.params;
+          client->m_pendingPasskey = true;
+        } else return ignored("io_skip_duplicate");
         return 0;
       }
+      if (client->m_conn_id != handle) return ignored("io_skip_handle");
 
+      if (client->m_externalSecurity &&
+          !client->m_pClientCallbacks->acceptPairingIO(event->passkey.conn_handle, event->passkey.params.action)) {
+        return 0;
+      }
       if (event->passkey.params.action == BLE_SM_IOACT_DISP) {
         // Display the passkey on this device
         log_d("BLE_SM_IOACT_DISP");
@@ -1415,6 +1619,8 @@ int BLEClient::handleGAPEvent(struct ble_gap_event *event, void *arg) {
         log_i("No passkey action required");
       }
 
+      if (rc && client->m_externalSecurity)
+        client->m_pClientCallbacks->onConnectionStage(handle, "io_inject", rc, action);
       return 0;
     }  // BLE_GAP_EVENT_PASSKEY_ACTION
 
@@ -1425,12 +1631,7 @@ int BLEClient::handleGAPEvent(struct ble_gap_event *event, void *arg) {
   }  // Switch
 
   if (pTaskData == &client->m_connectTask) {
-    // Compare/exchange prevents later events from completing this attempt twice.
-    BLETaskData* expected = pTaskData;
-    if (client->m_pTaskData.compare_exchange_strong(expected, nullptr)) {
-      client->m_connectResult = rc;
-      BLEUtils::taskRelease(*pTaskData, rc);
-    }
+    client->completeConnect(rc);
   } else if (pTaskData != nullptr) {
     BLEUtils::taskRelease(*pTaskData, rc);
   }
@@ -1463,7 +1664,12 @@ int BLEClient::disconnect(uint8_t reason) {
 
 bool BLEClient::retireStep(uint32_t now) {
   // Executed by the existing NimBLE event queue, after earlier GAP callbacks.
+  BLEClient* owned = this;
+  pendingSecurityClient.compare_exchange_strong(owned, nullptr);
+  m_mtuCookie = 0;
   m_retiring = true;
+  m_pendingPasskey = false;
+  m_pendingPasskeyParams = {};
   BLETaskData* abandoned = &m_connectTask;
   m_pTaskData.compare_exchange_strong(abandoned, nullptr); // connect returned or unwound
   const bool idle = !m_connectPending && m_conn_id == BLE_HS_CONN_HANDLE_NONE

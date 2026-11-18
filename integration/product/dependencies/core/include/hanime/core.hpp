@@ -128,6 +128,10 @@ struct WorkBudget {
   std::size_t max_read_calls{1};
   std::size_t max_read_bytes{256};
   std::size_t max_work_items{32};
+  // Optional borrowed, call-local cancellation/deadline check. No platform dependency.
+  // Never retained by an operation. Existing three-field callers remain valid.
+  bool (*stop_requested)(void*){nullptr}; void* stop_context{nullptr};
+  bool should_stop() const { return stop_requested && stop_requested(stop_context); }
 };
 
 struct WorkCost {

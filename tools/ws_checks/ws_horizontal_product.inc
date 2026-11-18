@@ -1,4 +1,4 @@
-// Extracted exactly from current device_main.cpp by run_port_checks.py.
+// Extracted exactly from final R7 device_main.cpp for Host verification.
  if(imeVisible&&!vertical&&!app->findOpen()){
   lcd.fillRect(0,compositionY-4,300,1,black);
   auto textAt=[&](std::string_view text,int x,int y,Color color,int limit){
@@ -31,7 +31,8 @@
    for(size_t c=0;c<row.count;++c){const auto& item=row.items[c];const bool selected=candidatesAvailable&&row.index==view->row&&c==view->col;
     app->candidateVisual.captureHorizontal({item.text.data(),item.bytes},x,y,item.width);
     if(candidatesAvailable&&row.index==view->row){char labelText[2]={char('1'+c),0};label(labelText,x,y+8,selected?Color::Red:black);}
-    textAt({item.text.data(),item.bytes},x+14,y,selected?Color::Red:black,std::min(294,x+int(item.width)-4));
+    s3app::paintHorizontalCandidateText({item.text.data(),item.bytes},font,x,y,item.width,
+     [&](int px,int py){lcd.pixel(px,py,selected?Color::Red:black);});
     if(draftor::board::Monochrome&&selected)lcd.fillRect(x,y+29,std::min(int(item.width)-2,294-x),1,black);
     x+=item.width;
    }
@@ -39,7 +40,8 @@
   const auto& pending=app->candidateVisual;
   if(pending.pending()){
    for(size_t i=0;i<pending.text.count;++i){const auto& item=pending.text.items[i];
-    textAt({item.text.data(),item.bytes},item.box.x+14,item.box.y,black,item.limit);
+    s3app::paintHorizontalCandidateText({item.text.data(),item.bytes},font,item.box.x,item.box.y,item.box.width,
+     [](int px,int py){lcd.pixel(px,py,black);});
    }
   }
   if(ime->boundaryVisible(millis())){auto rect=ime_device::boundaryRect(ime->boundaryEdge(),compositionY,view?view->count:0);

@@ -13,19 +13,21 @@ struct State {
  bool chinese=false,dirty=false,saving=false,savePending=false,imeActive=false,rawEdit=false,vertical=false;
  hanime_extension::SchemeRules scheme=hanime_extension::SchemeRules::R1Xiaohe;
  keyboard::Status keyboard{};
+ unsigned readySlot=0;
+ uint32_t readyAttempt=0;
  ime_device::LoadStage load=ime_device::LoadStage::Idle;
  hanime::CompositionStatus submission{};
- std::string_view notice,imeNotice;
+ std::string_view notice,imeNotice,dailyNotice,pairingNotice;
 };
 inline State state(const App& app,const ime_device::DeviceIme* ime,
                   hanime_extension::SchemeRules scheme,keyboard::Status ble,
-                  const ime_device::LoadSnapshot& load) noexcept {
+                  const ime_device::LoadSnapshot& load,const keyboard::PairingView& pairing={}) noexcept {
  State s;s.chinese=ime&&ime->chinese();s.dirty=app.sharedState().document.dirty();
  s.saving=app.persistence.backgroundSaveActive();s.savePending=app.manualSavePending();
  s.imeActive=ime&&ime->active();s.rawEdit=ime&&ime->rawEditing();s.scheme=scheme;
  s.vertical=!app.horizontalActive();
- s.keyboard=ble;s.load=load.stage;s.notice=app.notice;
- if(ime){s.imeNotice=ime->notice();s.submission=ime->receipt().status;}
+ s.keyboard=ble;s.readySlot=pairing.readySlot;s.readyAttempt=pairing.readyAttempt;s.load=load.stage;s.notice=app.notice;s.pairingNotice=pairing.message;
+ if(ime){s.imeNotice=ime->notice();s.submission=ime->receipt().status;s.dailyNotice=ime->dailyLearningNotice();}
  return s;
 }
 inline const char* mode(bool chinese,hanime_extension::SchemeRules scheme) noexcept {
@@ -102,11 +104,13 @@ inline bool ordinaryCandidate(std::string_view value) noexcept {
 inline std::string_view feedback(const State& s) noexcept {
  if(s.load==ime_device::LoadStage::FontError||s.load==ime_device::LoadStage::ResourceError)
   return "资源错误，请查看日志";
- if(s.keyboard.phase==keyboard::Phase::Error)return "蓝牙故障，请查看日志";
- if(s.keyboard.phase==keyboard::Phase::AwaitRelease)return "松开按键，再轻按 Shift";
+ if(s.keyboard.phase==keyboard::Phase::Error)return s.pairingNotice.empty()?std::string_view("蓝牙故障，请查看日志"):s.pairingNotice;
+ if(s.keyboard.phase==keyboard::Phase::AwaitRelease)return "请松开按键";
  if(s.keyboard.phase==keyboard::Phase::Ready&&s.keyboard.pairing_not_saved)return "已连接，配对未保存";
  if(s.imeActive&&s.submission==hanime::CompositionStatus::UnknownOutcome)return "提交结果待确认，请勿重复提交";
  if(s.imeActive&&s.submission==hanime::CompositionStatus::RetryableNoEffect)return "提交未生效：空格重试，Esc编辑";
+ if(!s.pairingNotice.empty())return s.pairingNotice;
+ if(!s.dailyNotice.empty())return s.dailyNotice;
  if(s.load==ime_device::LoadStage::FontRead||s.load==ime_device::LoadStage::FontIndex)return "正在加载字体";
  if(s.load!=ime_device::LoadStage::Idle&&s.load!=ime_device::LoadStage::Ready)return "正在准备中文输入";
  if(s.imeActive){

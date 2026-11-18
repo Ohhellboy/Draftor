@@ -1,6 +1,7 @@
 #include "cp_observe.hpp"
 #include "behavior_bench.hpp"
 #include "device_ime.hpp"
+#include "response_observe.hpp"
 #include "wubi_product.hpp"
 #include "behavior_observer.hpp"
 #include "ui_trace.hpp"
@@ -27,6 +28,41 @@ const char* resultName(CS status) {
 }
 }
 DeviceIme::~DeviceIme(){submission_.reset();window_.reset();navigator_.reset();composition_.reset();}
+bool DeviceIme::recordForTarget()const{
+ return learning_&&learning_->ready()&&learning_->recording()&&app_.session.hasCurrent()&&
+  sink_.target().kind==TextTarget::Body&&sink_.target().document==app_.session.currentId()&&sink_.target().session==app_.session.sessionSerial()&&sink_.current();
+}
+[[gnu::noinline]] bool DeviceIme::learningCommand(const char* command){
+#if BGIME_A_REV1_DAILY
+ if(daily_phase_!=DailyLearningPhase::Disabled)return false; // Product key owns daily lifecycle.
+#endif
+ if(!learning_||(active()&&std::strcmp(command,"LEARNAPPLY0")!=0)||quarantined_||app_.commandBarrier()||app_.persistence.backgroundSaveActive())return false;
+#if BGIME_KEYFENCE_S3_AB
+ if(std::strncmp(command,"LEARNSESSION",12)==0&&std::strlen(command)==13&&command[12]>='1'&&command[12]<='3')return learning_->selectTestSession(unsigned(command[12]-'0'));
+#endif
+ const bool open=std::strcmp(command,"LEARNOPEN")==0,close=std::strcmp(command,"LEARNCLOSE")==0;
+ auto lambda=learning_->lambda();auto record=learning_->recording();auto apply=learning_->applying();
+ if(std::strcmp(command,"LEARN1000")==0)lambda=1000;
+ else if(std::strcmp(command,"LEARN100")==0)lambda=100;
+ else if(std::strcmp(command,"LEARNRECORD0")==0)record=false;
+ else if(std::strcmp(command,"LEARNRECORD1")==0){
+  if(!app_.session.hasCurrent()||app_.findOpen()||app_.renameOpen()||app_.filesOpen()||app_.document.dirty()||!learning_->ready())return false;
+  record=true;
+ }else if(std::strcmp(command,"LEARNAPPLY0")==0)apply=false;
+ else if(std::strcmp(command,"LEARNAPPLY1")==0){if(!learning_->ready()){mark("Learning unavailable: open Count first");return false;}apply=true;}
+ else if(!open&&!close)return false;
+ if(open&&learning_->phase()!=LearningPhase::Dormant&&learning_->phase()!=LearningPhase::Closed)return false;
+ if(close&&!learning_->ready()&&!(learning_->phase()==LearningPhase::Error&&learning_->counts()))return false;
+ // New rule/lifetime; no old ranking boundary survives a profile change.
+ retireLearningConsumers();
+ if(open){L3OBS(l3diag::open_start=clockUs();l3diag::open_ready=0);return learning_->open();}
+ if(close){L3OBS(l3diag::close_start=clockUs();l3diag::close_ready=0);return learning_->beginClose();}
+ return learning_->configure(lambda,record,apply);
+}
+void DeviceIme::retireLearningConsumers(){
+ discard();submission_.reset();window_.reset();navigator_.reset();composition_.reset();
+ attempts_={};attempt_={};requested_attempt_={};receipt_={};
+}
 void DeviceIme::mark(const char* t){notice_=t;app_.dirtyDisplay=true;}
 bool DeviceIme::active()const{return following_count_||flow_.stage!=FlowStage::Idle||!raw().empty()||preparing_||quarantined_;}
 bool DeviceIme::fresh(const s3hid::Event& e){
@@ -605,7 +641,7 @@ void DeviceIme::clearSelectionCommit() {
 
 void DeviceIme::captureSelectionCommit(const VisibleItem& choice, const s3hid::Event& event, bool automatic) {
     clearSelectionCommit();
-    if ((!automatic && ((event.usage != 0x2c && !(event.usage >= 30 && event.usage <= 35)) || event.mods)) || !composition_ || !has_target_ || !sink_.current()) return;
+    if ((!automatic && ((event.usage != 0x2c && !(candidateNumber(event.usage))) || event.mods)) || !composition_ || !has_target_ || !sink_.current()) return;
     selection_commit_.choice = choice;
     selection_commit_.stamp = composition_->raw_input().stamp;
     selection_commit_.target = sink_.target();
@@ -702,12 +738,52 @@ void DeviceIme::choiceFeedback(ChoiceResult result){
   mark("Candidate expired; wait, then choose shown");break;
  }
 }
+// A reset owns the identity captured from the current selectable frame. It is
+// never a deferred digit that could bind to a replacement row.
+bool DeviceIme::resetIntent(const s3hid::Event& e){
+ if(!chinese_||!active())return false;
+ if(!app_.session.hasCurrent()||app_.findOpen()||app_.renameOpen()||app_.filesOpen()||
+    !has_target_||sink_.target().kind!=TextTarget::Body||!sink_.current()||
+    !composition_||!composition_->ranking_is_current()||!window_||window_->busy()||window_->state()!=WindowState::Ready||
+    preparing_||quarantined_||flow_.stage!=FlowStage::Idle||following_count_||arrow_count_||nav_request_action_||
+    !e.ime_frame||e.ime_frame!=window_->onScreenGeneration()||e.ime_frame!=window_->view().generation||
+    (e.ime_context&&!earlyContext(e))||int32_t(e.ms-raw_event_ms_)<0){
+  mark("Candidate unavailable; reset not applied");return true;
+ }
+ const auto* v=window_->presented(e.ime_frame);
+ if(!v||v->row<v->rows[0].index||v->row-v->rows[0].index>=v->count)return true;
+ const auto& row=v->rows[v->row-v->rows[0].index];const size_t slot=e.usage-30;
+ if(slot>=row.count){mark("No displayed candidate");return true;}
+ const auto& item=row.items[slot];const auto snap=composition_->snapshot();const auto page=composition_->page();
+ if(!targetMatches(item)||item.input!=snap.input_id||item.revision!=snap.revision||item.scheme!=snap.scheme_epoch||
+    item.activation.mount_epoch()!=snap.activation.mount_epoch()||item.activation.shared_bundle_id()!=snap.activation.shared_bundle_id()||
+    item.begin!=page.begin||item.end!=page.end){mark("Candidate expired; reset not applied");return true;}
+ if(!learning_||!learning_->ready()){mark("Learning unavailable: open Count first");return true;}
+ const auto result=learning_->beginReset(item.key);
+ if(result!=hanime::CountResetStatus::Pending){mark("Learning busy or unavailable; reset not applied");return true;}
+ reset_stamp_=composition_->raw_input().stamp;reset_active_=true;reset_row_=v->row;reset_end_=item.end;reset_expanded_=v->expanded;
+ mark("Learning reset pending");return true;
+}
+void DeviceIme::serviceReset(){
+ if(!reset_active_||!learning_||learning_->resetBusy())return;
+ const auto result=learning_->resetResult();learning_->acknowledgeReset();reset_active_=false;
+ if(result==hanime::CountResetStatus::Changed){
+  if(window_&&composition_&&has_target_&&sink_.current()&&composition_->input_is_current(reset_stamp_)&&!raw().empty()){
+   // Retire previous LCD authority as well as all range/prefix/page anchors.
+   window_->retirePresentedChoices();window_->query(reset_end_,current_action_);
+   window_->request(reset_row_,0,reset_expanded_,false,current_action_);
+   reset_refresh_=true;reset_query_=window_->querySerial();
+  }
+  mark("已恢复基础排序");
+ }else if(result==hanime::CountResetStatus::AlreadyZero)mark("已是基础排序，无法再降");
+ else mark("Learning reset unavailable; check state");
+}
 bool DeviceIme::event(const s3hid::Event& e,ImeAction action){
  struct Restore{ImeAction& field;~Restore(){field=ImeAction::Native;}} restore{spatial_action_};
  spatial_action_=action;
  IngressScope ingress_scope(*this);
  const bool owns=chinese_&&active();const bool first=fresh(e);
- if(first){current_action_=next_action_<UINT32_MAX?++next_action_:0;held_[e.usage].action=current_action_;BT_OBSERVE(input(e,current_action_));BT_MEASURE(input(e,current_action_));}
+ if(first){current_action_=next_action_<UINT32_MAX?++next_action_:0;L3OBS(l3diag::input(e,current_action_));held_[e.usage].action=current_action_;BT_OBSERVE(input(e,current_action_));BT_MEASURE(input(e,current_action_));}
  if(e.usage<4||e.usage>29)traceUi(!e.down?UiTraceKind::KeyUp:first?UiTraceKind::KeyDown:UiTraceKind::Duplicate,composition_.get(),window_.get(),&e,nullptr,0,held_[e.usage].action);
  if(!e.resource_owner||e.resource_owner!=resource_owner_){
   // fresh() has already processed releases/watermarks. Consume stale presses
@@ -719,7 +795,7 @@ bool DeviceIme::event(const s3hid::Event& e,ImeAction action){
  if(!e.down)return owns||held_[e.usage].ime;
  if(!first)return true;
  noteIntent(Received,e,current_action_);
- if(e.usage==0x2c||e.usage==0x28||(e.usage>=30&&e.usage<=35))traceText(current_action_,1,raw());
+ if(e.usage==0x2c||e.usage==0x28||(candidateNumber(e.usage)))traceText(current_action_,1,raw());
  const bool raw_navigation=raw_edit_||(initial_&&!entering_&&e.usage==0x50);
  const auto before_query=window_?window_->querySerial():0;
  const auto handled=dispatch(e);
@@ -734,6 +810,13 @@ bool DeviceIme::event(const s3hid::Event& e,ImeAction action){
 }
 bool DeviceIme::dispatch(const s3hid::Event& e,bool successor){
  current_event_ms_=e.ms;
+#if BGIME_A_REV1_DAILY
+ if(!successor&&dailyKey(e))return true;
+#endif
+#if BGIME_L1_A_REV1_TEST_ONLY
+ if(reset_active_){mark("Learning reset pending");return true;}
+ if(!successor&&e.usage>=30&&e.usage<=36&&(e.mods==1||e.mods==16||e.mods==17))return resetIntent(e);
+#endif
  if(!following_count_&&flow_.stage==FlowStage::Idle)flow_.guarded=false;
  const bool body=app_.imeTextTargetAvailable();
  const bool chord=(e.mods&0x99)&&!(e.mods&0x66)&&e.usage==0x2c;
@@ -772,7 +855,24 @@ bool DeviceIme::dispatch(const s3hid::Event& e,bool successor){
   escapeComposition(e);return true;
  }
 
- if(!successor&&(flow_.stage!=FlowStage::Idle||following_count_)&&e.ime_context&&(e.usage==0x2c||e.usage==0x28||(e.usage>=30&&e.usage<=35))&&!earlyContext(e)){
+ // Slot six is an ordinary number key only. Preserve Shift+6 punctuation in
+ // body text; an active composition blocks it like other modified punctuation.
+ if(!successor&&(e.usage==35||(e.usage==36&&candidateNumber(e.usage)))&&e.mods&&active()){noteIntent(AppBlocked,e,current_action_);return true;}
+ // Group shortcuts are owned here, after physical freshness and before
+ // punctuation/selection chaining. Pending navigation is consumed, never queued
+ // as a future body punctuation or a choice on a replacement query.
+ if(!successor&&!e.mods&&(e.usage==54||e.usage==55)&&!raw_edit_&&window_&&composition_&&
+    !raw().empty()&&(window_->busy()||window_->state()==WindowState::Ready||window_->state()==WindowState::Boundary)){
+  if((e.ime_context&&!earlyContext(e))||int32_t(e.ms-raw_event_ms_)<0){noteIntent(QueryContextChanged,e,current_action_);return true;}
+  if(preparing_||flow_.stage!=FlowStage::Idle||following_count_||window_->busy()||arrow_count_||nav_request_action_){noteIntent(InvalidContext,e,current_action_);return true;}
+  if(!window_->setPacking(!app_.horizontalImeSurface(),app_.findOpen()))return true;
+  if(app_.horizontalImeSurface())navigate(e.usage==54?0x52:0x51,e.ime_frame);
+  // V follows the author's spatial-key decision: comma like '-' (left/next),
+  // period like '=' (right/previous); H retains comma previous, period next.
+  else spatialNavigate(e.usage==54?ImeAction::NextColumn:ImeAction::PreviousColumn,e.ime_frame);
+  return true;
+ }
+ if(!successor&&(flow_.stage!=FlowStage::Idle||following_count_)&&e.ime_context&&(e.usage==0x2c||e.usage==0x28||(candidateNumber(e.usage)))&&!earlyContext(e)){
   noteIntent(QueryContextChanged,e,current_action_);mark("Selection input/query expired");return true;
  }
  // Movement/new Down cancels a provisional manual choice, not the input.
@@ -791,7 +891,7 @@ bool DeviceIme::dispatch(const s3hid::Event& e,bool successor){
   if(e.usage==0x29){if(preparing_&&e.ime_attempt!=attempt_serial_){noteIntent(ExpiredInput,e,current_action_);mark("Cancel event expired");return true;}stopFlow(CancelledByUser);}
   else if(!preparing_&&(e.usage==0x2a||(e.usage==0x50&&spatial_action_==ImeAction::Native)||spatial_action_==ImeAction::RawPrevious||spatial_action_==ImeAction::RawNext||e.usage==0x4c)){
    stopFlow(CancelledByUser);clearSelectionCommit();if(window_){window_->cancel();window_->query(0,current_action_);}
-  }else if((e.usage>=4&&e.usage<=35)||e.usage==0x2c||e.usage==0x28){return enqueue(e);}
+  }else if(((e.usage>=4&&e.usage<=29)||candidateNumber(e.usage))||e.usage==0x2c||e.usage==0x28){return enqueue(e);}
   else if((e.usage==54||e.usage==55)&&!e.mods){
    if(!earlyContext(e)){noteIntent(InvalidContext,e,current_action_);mark("Punctuation input expired");return true;}
    return enqueue(e);
@@ -835,7 +935,7 @@ bool DeviceIme::dispatch(const s3hid::Event& e,bool successor){
   return true;
  }
  if(raw_edit_&&e.usage==0x28){noteIntent(UnassignedRawEnter,e,current_action_);mark("Raw Enter not assigned");return true;}
- if(raw_edit_&&!(e.usage==0x2c||(e.usage>=30&&e.usage<=35))){rawKey(e);return true;}
+ if(raw_edit_&&!(e.usage==0x2c||(candidateNumber(e.usage)))){rawKey(e);return true;}
  if(e.usage>=0x4f&&e.usage<=0x52){navigate(e.usage,e.ime_frame);return true;}
  if (e.usage == 0x2a) {
   uint8_t result = EditNoChange;
@@ -843,7 +943,7 @@ bool DeviceIme::dispatch(const s3hid::Event& e,bool successor){
   noteIntent(result, e, current_action_);
   return true;
  }
- if(e.usage==0x2c||e.usage==0x28||(e.usage>=30&&e.usage<=35)){
+ if(e.usage==0x2c||e.usage==0x28||(candidateNumber(e.usage))){
   if(reselection_.pending){
    const auto target=editTarget();
    if(!earlyContext(e)||!has_target_||!sink_.current()||!composition_||!window_||
@@ -864,6 +964,7 @@ bool DeviceIme::dispatch(const s3hid::Event& e,bool successor){
 void DeviceIme::service(bool allow_prefetch){
  CPATTR_TIMER(cp_ime,Ime);CPATTR(cpattr::call());
  IngressScope ingress_scope(*this);
+ serviceDailyLearning();
  serviceVisuals(uint32_t(clockUs()/1000));
  if(flow_.guarded&&!flowCurrent()){
   const bool owns_query=window_&&window_->querySerial()==flow_.query&&window_->layoutSerial()==flow_.layout;
@@ -873,6 +974,9 @@ void DeviceIme::service(bool allow_prefetch){
  serviceFollowing();
  if(selection_commit_.active&&!selectionCommitCurrent())clearSelectionCommit();
  if(!quarantined_&&has_target_&&!preparing_&&!sink_.current()){interrupt();mark("Input target expired");return;}
+ if(learning_&&learning_->applying()&&!learning_->ready()&&learning_->phase()!=LearningPhase::Closing){mark("Learning unavailable: use LEARNAPPLY0");return;}
+ if(learning_&&learning_->service(following_count_||flow_.stage!=FlowStage::Idle||preparing_||(window_&&window_->busy()))){serviceDailyLearning();return;}
+ serviceReset();
  const auto before=resources_.state();resources_.service(); // Ready: no-I/O health guard, including cache hits.
  if(resources_.state()==ResourceState::Error){resourceFailed();return;}
  if(quarantined_){stopFlow(CommitFailed);return;}
@@ -883,16 +987,17 @@ void DeviceIme::service(bool allow_prefetch){
  if(!composition_){
   if(!chinese_||initialization_failed_)return;
   try{
-   const auto config=compositionConfig(resources_.rules());
-   const auto commit_config=submissionConfig(config);
+   auto config=compositionConfig(resources_.rules());
+   auto commit_config=submissionConfig(config);
    if(!compatibleCapacity(config,commit_config)){
     initialization_failed_=true;stopFlow(InvalidContext);mark("IME configuration invalid; input retained");return;
    }
+   if(learning_){learning_->configure(config,&resources_);commit_config.learning=learning_->ready()&&learning_->counts()?hanime::CompositionLearningPolicy::Record:hanime::CompositionLearningPolicy::Disabled;}
    auto composition=std::make_unique<hanime_extension::Composition>(resources_.scheme,resources_.shared,resources_.policy(),config,member_backend_);
    if(!composition->valid())throw std::bad_alloc();
    auto navigator=std::make_unique<hanime_extension::SyllableNavigator>(hanime_extension::NavigationConfig{DeviceCompositionConfig.raw_bytes,DeviceCompositionConfig.raw_bytes});
    auto window=std::make_unique<CandidateWindow>(*composition,font_);
-   auto submission=std::make_unique<hanime_extension::Submission>(*composition,resources_.shared,sink_,commit_config,member_backend_);
+   auto submission=std::make_unique<hanime_extension::Submission>(*composition,resources_.shared,sink_,commit_config,member_backend_,learning_&&learning_->ready()?learning_->counts():nullptr);
    if(!submission->valid())throw std::bad_alloc();
    window->setPacking(!app_.horizontalImeSurface(),app_.findOpen());
    composition_=std::move(composition);navigator_=std::move(navigator);window_=std::move(window);submission_=std::move(submission);
@@ -920,7 +1025,9 @@ void DeviceIme::service(bool allow_prefetch){
  if(preparing_){
   if(confirm_requested_){
    confirm_requested_=false;
-   auto result=retry_requested_?submission_->retry(requested_attempt_):submission_->prepare();
+   if(!retry_requested_)submission_->set_record_enabled(recordForTarget());
+   const auto target=sink_.target().kind==TextTarget::Find?hanime_extension::InputTarget::Find:sink_.target().kind==TextTarget::Rename?hanime_extension::InputTarget::Rename:hanime_extension::InputTarget::Body;
+   auto result=retry_requested_?submission_->retry(requested_attempt_):submission_->prepare(target);
    attempt_=result.transaction;receipt_=result.core;preparing_=receipt_.status==CS::Preparing||receipt_.status==CS::Ready;
    if(preparing_)registerAttempt();else {stopFlow(CommitFailed);traceSubmission(receipt_,confirm_action_);mark(resultName(receipt_.status));}
    return;
@@ -931,6 +1038,7 @@ void DeviceIme::service(bool allow_prefetch){
   if(receipt_.status!=CS::Preparing&&receipt_.status!=CS::Ready){
    preparing_=false;quarantined_=receipt_.status==CS::UnknownOutcome;
    if(receipt_.status==CS::Accepted){
+    if(learning_)learning_->accepted(receipt_,sink_.target().kind==TextTarget::Body);
     app_.endCompositionPresentation();if(window_)window_->endSession();
     accepted_action_=confirm_action_;accepted_target_=sink_.target();
     accepted_body_revision_=accepted_target_.kind==TextTarget::Find?app_.find.view().query_version:accepted_target_.kind==TextTarget::Rename?app_.renameRevision():app_.document.revision(); // A later edit can supersede the pending LCD frame.
@@ -1030,7 +1138,7 @@ void DeviceIme::service(bool allow_prefetch){
   case WindowState::NoResults:mark("No candidates; input retained");break;
   case WindowState::Unresolved:mark("Input unresolved; continue editing");break;
   case WindowState::Limited:mark("Query limit reached; input retained");break;
-  case WindowState::Ready:mark(manual_failure_!=WindowState::Empty?"Auto restored; edit or Space/digit":raw_edit_?(wubi()?"Raw code; Esc candidates; Space/digit choose":"Raw edit; Space/digit choose, Down prefix"):window_->planningLimited()?"Query limited; candidates available":"Candidates ready");break;
+  case WindowState::Ready:if(reset_refresh_&&window_->querySerial()==reset_query_&&window_->view().row==reset_row_){reset_refresh_=false;mark("已恢复基础排序");break;}reset_refresh_=false;mark(manual_failure_!=WindowState::Empty?"Auto restored; edit or Space/digit":raw_edit_?(wubi()?"Raw code; Esc candidates; Space/digit choose":"Raw edit; Space/digit choose, Down prefix"):window_->planningLimited()?"Query limited; candidates available":"Candidates ready");break;
   case WindowState::Capacity:clearSelectionCommit();mark("Selection capacity reached; input retained");break;
   case WindowState::Busy:clearSelectionCommit();mark("Selection busy; input retained");break;
   case WindowState::OutputError:clearSelectionCommit();mark("Candidate output unavailable; input retained");break;

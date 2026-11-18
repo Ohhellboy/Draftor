@@ -8,6 +8,8 @@
 #include "resource_release.hpp"
 #include "io_profile.hpp"
 #include "hanime/base_order.hpp"
+#include "hanime/sparse_corrections.hpp"
+#include "hanime/execution_policy.hpp"
 #include "cache_profile.hpp"
 #include "static_text_residency.hpp"
 namespace ime_device {
@@ -62,7 +64,7 @@ class TfReader final:public hanime::ResourceReader {
 };
 // Each open/index/bootstrap/fixed activation is a separate scheduled step.
 enum class ResourceState { Dormant, OpenShared, OpenSharedIndex, ValidateShared, ActivateShared, AdmitText, OpenScheme, OpenSchemeIndex, ValidateScheme, ActivateScheme, OpenOrder, OpenOrderIndex, ValidateOrder, ActivateOrder, Ready, Error, ResidentText };
-class Resources {
+class Resources : public hanime::SparseResourcePort {
  std::string root_,index_root_; std::shared_ptr<Mount> mount_; ReleasePins pins_;
  std::shared_ptr<TfReader> shared_reader_,shared_index_,scheme_reader_,scheme_index_,order_reader_,order_index_;
  std::shared_ptr<hanime::VerifiedResourceReader> verified_shared_,verified_scheme_,verified_order_;
@@ -74,6 +76,9 @@ class Resources {
  ResourceState state_=ResourceState::Dormant;
  hanime_extension::SchemeRules rules_=hanime_extension::SchemeRules::R1Xiaohe;
  std::string error_;
+ std::shared_ptr<TfReader> sparse_data_,sparse_proof_;
+ std::shared_ptr<hanime::VerifiedResourceReader> sparse_reader_;
+ unsigned sparse_phase_=0;uint64_t sparse_generation_=1;
  uint64_t stage_work_=0;
  hanime::TextAccessStep admission_progress_{};
  bool fail(const char*,const char* detail="");
@@ -100,7 +105,13 @@ class Resources {
  // legacy format1 fixtures retain 65,536 B.
  static constexpr hanime::VerifiedResourceConfig OrderConfig{8,8,1024};
  static constexpr unsigned ResourceOpenFiles=6,DocumentOpenFiles=3; // Mixed production actually uses 5; reserve supports format1 fixtures.
- static constexpr unsigned MaximumOpenFiles=ResourceOpenFiles+DocumentOpenFiles; // Close old scheme/order before opening replacement.
+ static constexpr unsigned LearningOpenFiles=2;
+#if BGIME_KEY_FENCE
+ static constexpr unsigned SparseOpenFiles=2;
+#else
+ static constexpr unsigned SparseOpenFiles=BGIME_RANKING_ARM==2?2:0;
+#endif
+ static constexpr unsigned MaximumOpenFiles=ResourceOpenFiles+DocumentOpenFiles+LearningOpenFiles+2+1+1; // Close old scheme/order before opening replacement.
  size_t cacheBytes()const;
  size_t residentTextBytes()const{
 #if defined(DRAFTOR_SHARED_TEXT_VARIANT) && DRAFTOR_SHARED_TEXT_VARIANT == 2
@@ -139,6 +150,11 @@ class Resources {
  hanime::VerifiedResourceSnapshot orderSnapshot()const{return verified_order_?verified_order_->snapshot():hanime::VerifiedResourceSnapshot{};}
  hanime::VerifiedResourceMemory orderMemory()const{return verified_order_?verified_order_->memory_usage():hanime::VerifiedResourceMemory{};}
  bool optimized()const{return scheme.base_order()&&scheme.base_order()->ready();}
+#if BGIME_KEY_FENCE
+ void close_sparse(const std::shared_ptr<const hanime::VerifiedResourceReader>&) override;
+ hanime::VerifiedResourceSnapshot fenceSnapshot()const{return sparse_reader_?sparse_reader_->snapshot():hanime::VerifiedResourceSnapshot{};}
+ hanime::VerifiedResourceMemory fenceMemory()const{return sparse_reader_?sparse_reader_->memory_usage():hanime::VerifiedResourceMemory{};}
+#endif
  explicit Resources(std::string root,std::shared_ptr<Mount> mount=std::make_shared<Mount>(),ReleasePins pins=productionPins(),std::string indexRoot={})
   :root_(std::move(root)),index_root_(indexRoot.empty()?root_:std::move(indexRoot)),mount_(std::move(mount)),pins_(pins){}
  ~Resources();
@@ -169,5 +185,7 @@ class Resources {
    hanime_extension::SchemePolicy{rules_,pins_.direct?pins_.direct->scheme_id:""}:hanime_extension::spelling_policy(rules_);
  }
  std::shared_ptr<Mount> mount()const{return mount_;}
+ hanime::SparseOpenStep open_sparse(const hanime::WorkBudget&) override;
+ uint64_t sparse_generation()const override{return sparse_generation_;}
 };
 }

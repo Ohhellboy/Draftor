@@ -29,8 +29,9 @@ v::AbCandidateView verticalCandidateView(const hanime_extension::Snapshot& snaps
   result.count=source.count;result.row=source.row;result.col=source.col;result.expanded=source.expanded;
   for(std::size_t row=0;row<source.count;++row){
     const auto& original=source.rows[row];auto& target=result.rows[row];
-    if(original.count>original.items.size()){result.status=v::AbStatus::InvalidInput;return result;}
+    if(original.count>target.items.size()){result.status=v::AbStatus::InvalidInput;return result;}
     target.index=original.index;target.count=original.count;
+    if(row+1==source.count&&original.peek.bytes){target.peek={original.peek.text.data(),original.peek.bytes};target.peek_height=original.peek.width;}
     for(std::size_t i=0;i<original.count;++i){
       const auto& item=original.items[i];
       if(item.input!=snapshot.input_id||item.revision!=snapshot.revision||item.scheme!=snapshot.scheme_epoch||
@@ -40,6 +41,7 @@ v::AbCandidateView verticalCandidateView(const hanime_extension::Snapshot& snaps
       }
       if(item.bytes>item.text.size()||item.begin>=item.end||item.end>snapshot.raw.size()||item.end>65535U){result.status=v::AbStatus::InvalidInput;return result;}
       target.items[i]={{item.text.data(),item.bytes},original.index==source.row?&item:nullptr};
+      target.heights[i]=item.width;
       if(original.index==source.row&&i==source.col){
         result.mark.begin=std::uint16_t(item.begin);result.mark.end=std::uint16_t(item.end);
       }
@@ -75,6 +77,22 @@ v::AbCandidateView verticalCandidateView(const hanime_extension::Snapshot& snaps
       if(port.line&&viewport.left)port.line(port.context,{result.selected.x,result.selected.y,28,1},true);
       if(port.line&&viewport.right)port.line(port.context,{result.selected.x,std::uint16_t(result.selected.y+result.selected.height-1),28,1},true);
 }
+// Seven complete candidates carry measured heights in a bounded, borrowed
+// descriptor. Keep that temporary off the snapshot/selected-text frame.
+[[gnu::noinline]] static v::AbResult candidateRuns(DeviceIme& ime,
+    const hanime_extension::Snapshot& snapshot,v::EdgeSide edge,
+    const v::AbGeometry& geometry,const v::AbPort& port) noexcept {
+  const auto* window=ime.window();
+  const bool available=ime.candidateAvailable()&&window->focusedCurrent();
+  auto candidates=available?verticalCandidateView(snapshot,window->view()):v::AbCandidateView{};
+  if(available){
+    // Compact's current column is numbered too, independently of occupancy.
+    candidates.expanded=true;
+    candidates.mark.candidate=!ime.rawEditing();
+  }
+  return v::layoutAb(snapshot,ime.presentationNavigation(),ime.rawCursor(),
+      candidates,edge,geometry,port);
+}
 VerticalImeFrame verticalIme(DeviceIme* ime,const s3app::App& app,std::uint32_t now,
     std::uint32_t active_column,const v::AbPort& port) noexcept {
   VerticalImeFrame result;const auto geometry=app.imeGeometry();
@@ -92,16 +110,7 @@ VerticalImeFrame verticalIme(DeviceIme* ime,const s3app::App& app,std::uint32_t 
         if(ime->boundaryEdge()==BoundaryEdge::CandidateTop)edge=v::EdgeSide::StartRight;
         if(ime->boundaryEdge()==BoundaryEdge::CandidateBottom)edge=v::EdgeSide::EndLeft;
       }
-      const bool available=ime->candidateAvailable()&&window->focusedCurrent();
-      auto candidates=available?verticalCandidateView(snapshot,window->view()):v::AbCandidateView{};
-      if(available){
-        // Compact's current column is numbered too; this is a drawing
-        // descriptor, independent of the one/two/three-column occupancy.
-        candidates.expanded=true;
-        candidates.mark.candidate=!ime->rawEditing();
-      }
-      result.layout=v::layoutAb(snapshot,ime->presentationNavigation(),ime->rawCursor(),
-          candidates,edge,geometry,port);
+      result.layout=candidateRuns(*ime,snapshot,edge,geometry,port);
     }
     if(result.layout.status==v::AbStatus::Ready&&!snapshot.selected_text.empty())selectedRuns(*ime,snapshot,result.layout,port);
     result.candidate_frame=window&&ime->candidateAvailable()&&window->focusedCurrent()&&
@@ -126,7 +135,7 @@ std::uint32_t publishVerticalFrame(DeviceIme* ime,const s3app::App& app,
   return publishVisibleCandidate(ime,&app);
 }
 ChoiceResult chooseVertical(CandidateWindow& window,const VerticalChoiceTarget& target,std::uint32_t action){
-  if(target.role!=v::AbRole::CurrentCandidate||target.number<1||target.number>6||
+  if(target.role!=v::AbRole::CurrentCandidate||target.number<1||target.number>7||
       !target.frame.candidate_frame)return ChoiceResult::NoCandidate;
   const auto& view=window.view();
   if(view.generation!=target.frame.generation||view.row!=target.frame.row||
@@ -156,7 +165,7 @@ v::EdgeSide verticalCandidateKey(CandidateWindow& window,char key,std::uint32_t 
 }
 VerticalDispatch dispatchVerticalNumber(DeviceIme& ime,const s3app::App& app,
     const VerticalChoiceTarget& target,const s3hid::Event& event){
-  if(event.usage<30||event.usage>35||event.mods)return VerticalDispatch::RejectedTarget;
+  if(event.usage<30||event.usage>36||event.mods)return VerticalDispatch::RejectedTarget;
   if(!event.down){(void)ime.event(event);return VerticalDispatch::Delivered;}
   if(target.role!=v::AbRole::CurrentCandidate||target.number!=unsigned(event.usage-29)||
       !target.frame.candidate_frame||app.findOpen()||!candidateSurfaceVisible(&ime,&app)||app.commandBarrier())

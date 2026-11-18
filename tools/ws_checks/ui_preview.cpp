@@ -2,6 +2,7 @@
 #include "../../integration/product/tests/find_chinese.cpp"
 #undef DRAFTOR_FIND_TEST_FIXTURE_ONLY
 #include "board_config.hpp"
+#include "candidate_geometry.hpp"
 #include "st7305_waveshare_adapter.hpp"
 #include "editor_hud.hpp"
 #include "horizontal_raw.hpp"

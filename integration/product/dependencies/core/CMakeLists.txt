@@ -30,7 +30,7 @@ add_library(hanime_core STATIC
   src/stable_key.cpp
   src/paged_scheme_index.cpp
   src/paged_shared_resource.cpp
-  src/exact_ranker.cpp
+  src/exact_ranker.cpp src/sparse_corrections.cpp
   src/base_order.cpp
   src/member_eligibility.cpp
   src/bounded_output.cpp

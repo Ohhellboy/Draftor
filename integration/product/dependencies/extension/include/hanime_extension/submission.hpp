@@ -3,6 +3,8 @@
 #include "hanime/composition_commit.hpp"
 
 namespace hanime_extension {
+// Captured by the Host at prepare; Core remains independent of input widgets.
+enum class InputTarget { Body, Find, Rename };
 // Operations authorize one immutable (owner, transaction sequence, core attempt).
 // Copying/observing an old handle never upgrades it to a later attempt.
 class SubmissionHandle {
@@ -11,12 +13,14 @@ class SubmissionHandle {
   // original attempt and no new permit. Save SubmissionResult::core for history.
   hanime::CompositionResult result() const;
   std::uint64_t attempt() const { return attempt_; }
+  InputTarget target() const { return target_; }
  private:
   friend class Submission;
   std::shared_ptr<const OwnerIdentity> owner_;
   std::uint64_t sequence_{0};
   std::uint64_t attempt_{0};
   hanime::CompositionHandle core_;
+  InputTarget target_{InputTarget::Body};
 };
 struct SubmissionResult {
   hanime::CompositionResult core;
@@ -35,14 +39,18 @@ struct SubmissionMemory {
 class Submission {
  public:
   Submission(Composition&, hanime::PagedSharedResource&, hanime::TextCommitSink&,
-             hanime::CompositionConfig = {16,128,64,512,hanime::CompositionLearningPolicy::Disabled});
+             hanime::CompositionConfig = {16,128,64,512,hanime::CompositionLearningPolicy::Disabled},
+             hanime::CompositionCountSource* = nullptr);
   Submission(Composition&, hanime::PagedSharedResource&, hanime::TextCommitSink&,
-             hanime::CompositionConfig, StorageBackend);
+             hanime::CompositionConfig, StorageBackend, hanime::CompositionCountSource* = nullptr);
   ~Submission();
   Submission(const Submission&) = delete;
   Submission& operator=(const Submission&) = delete;
   bool valid() const;
-  SubmissionResult prepare(); // Bounded capture, no I/O. Same current origin does not create a duplicate.
+  // Future transactions only. Captured/prepared and already-owned state work
+  // retain their Record decision; this never deletes or closes a state file.
+  void set_record_enabled(bool);
+  SubmissionResult prepare(InputTarget = InputTarget::Body); // Bounded capture, no I/O. Same current origin does not create a duplicate.
   SubmissionStep advance(const SubmissionHandle&, const hanime::WorkBudget&);
   hanime::CompositionStatus prepared(const SubmissionHandle&,
     const std::function<void(const hanime::PreparedCompositionView&)>&);

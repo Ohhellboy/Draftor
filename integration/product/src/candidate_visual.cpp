@@ -5,19 +5,19 @@ namespace s3app {
 namespace v=draftor::vertical;
 namespace {
 bool same(v::Rect a,v::Rect b){return a.x==b.x&&a.y==b.y&&a.width==b.width&&a.height==b.height;}
-void save(CandidateVisualList& list,std::string_view text,v::Rect box,unsigned limit,v::TextFlow flow){
+void save(CandidateVisualList& list,std::string_view text,v::Rect box,unsigned limit,v::TextFlow flow,bool peek=false){
  if(list.count==list.items.size()||text.size()>list.items[0].text.size()){list.overflow=true;return;}
  auto& item=list.items[list.count++];item.bytes=std::uint16_t(text.size());
- std::memcpy(item.text.data(),text.data(),text.size());item.box=box;item.limit=std::uint16_t(limit);item.flow=flow;
+ std::memcpy(item.text.data(),text.data(),text.size());item.box=box;item.limit=std::uint16_t(limit);item.flow=flow;item.horizontal_peek=peek;
 }
 }
 void CandidateVisualContinuity::capture(const v::AbRun& run) noexcept {
  if(state!=State::Ready||!vertical||(run.role!=v::AbRole::CurrentCandidate&&run.role!=v::AbRole::Preview&&run.role!=v::AbRole::Peek))return;
- save(text,run.text,run.box,0,run.flow);
+ save(text,run.text,run.box,run.measured_height,run.flow);
 }
-void CandidateVisualContinuity::captureHorizontal(std::string_view value,int x,int y,unsigned width) noexcept {
+void CandidateVisualContinuity::captureHorizontal(std::string_view value,int x,int y,unsigned width,bool peek) noexcept {
  if(state!=State::Ready||vertical)return;
- save(text,value,{std::uint16_t(x),std::uint16_t(y),std::uint16_t(width),28},std::min(294,x+int(width)-4),v::TextFlow::HorizontalSmall);
+ save(text,value,{std::uint16_t(x),std::uint16_t(y),std::uint16_t(width),28},std::min(294,x+int(width)-4),v::TextFlow::HorizontalSmall,peek);
 }
 void prepareCandidateVisual(App& app,ime_device::DeviceIme* ime) noexcept {
  auto& p=app.candidateVisual;const bool vertical=!app.horizontalImeSurface();
@@ -41,7 +41,7 @@ void prepareCandidateVisual(App& app,ime_device::DeviceIme* ime) noexcept {
 [[gnu::noinline]] void paintPendingCandidateVisual(const CandidateVisualContinuity& p,const v::AbPort& port) noexcept {
  if(!p.pending()||!port.run)return;
  for(std::size_t i=0;i<p.text.count;++i){const auto& item=p.text.items[i];
-  port.run(port.context,{{item.text.data(),item.bytes},item.box,item.flow,v::AbRole::Preview,0,false,nullptr});
+  port.run(port.context,{{item.text.data(),item.bytes},item.box,item.flow,v::AbRole::Preview,0,false,nullptr,s3app::CompositionTypography::Normal,std::uint16_t(p.vertical?item.limit:0)});
  }
 }
 } // namespace s3app

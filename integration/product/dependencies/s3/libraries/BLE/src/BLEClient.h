@@ -145,6 +145,9 @@ public:
   // HANIME: owner calls on the host event queue AFTER connect() returns.
   // true means no pending GAP procedure, connection, waiter or client callback.
   bool retireStep(uint32_t now);
+  void useExternalSecurity() { m_externalSecurity = true; }
+  int lastConnectionError() const { return m_lastErr; }
+  static void controllerConnectionAvailable();
   static int handleGAPEvent(struct ble_gap_event *event, void *arg);
   static int serviceDiscoveredCB(uint16_t conn_handle, const struct ble_gatt_error *error, const struct ble_gatt_svc *service, void *arg);
 #endif
@@ -161,6 +164,7 @@ private:
 
   BLEAddress m_peerAddress = BLEAddress((uint8_t *)"\0\0\0\0\0\0");
 #if defined(CONFIG_NIMBLE_ENABLED)
+  bool m_externalSecurity = false; // Set by owner before the single connect attempt.
   std::atomic<uint16_t> m_conn_id{BLE_HS_CONN_HANDLE_NONE};
   std::atomic<bool> m_isConnected{false};
 #else
@@ -170,7 +174,9 @@ private:
   bool m_haveServices = false;
   BLEClientCallbacks *m_pClientCallbacks;
   FreeRTOS::Semaphore m_semaphoreRegEvt = FreeRTOS::Semaphore("RegEvt");
+#if defined(CONFIG_BLUEDROID_ENABLED)
   FreeRTOS::Semaphore m_semaphoreOpenEvt = FreeRTOS::Semaphore("OpenEvt");
+#endif
   FreeRTOS::Semaphore m_semaphoreSearchCmplEvt = FreeRTOS::Semaphore("SearchCmplEvt");
   FreeRTOS::Semaphore m_semaphoreRssiCmplEvt = FreeRTOS::Semaphore("RssiCmplEvt");
   std::map<std::string, BLERemoteService *> m_servicesMap;
@@ -190,16 +196,27 @@ private:
    ***************************************************************************/
 
 #if defined(CONFIG_NIMBLE_ENABLED)
-  int m_lastErr;
+  std::atomic<int> m_lastErr{BLE_HS_EUNKNOWN};
   int32_t m_connectTimeout;
   uint8_t m_terminateFailCount;
   ble_gap_conn_params m_pConnParams;
   mutable std::atomic<BLETaskData *> m_pTaskData{nullptr};
   // Created and used by the keyboard task; survives timeout and late GAP events.
   BLETaskData m_connectTask{this};
+  // A late signal from a retired keyboard must not wake a subsequent dial
+  // or service discovery running on the same FreeRTOS task.
+  StaticSemaphore_t m_connectSignalStorage{};
+  SemaphoreHandle_t m_connectSignal{xSemaphoreCreateBinaryStatic(&m_connectSignalStorage)};
   std::atomic<int> m_connectResult{BLE_HS_ETIMEOUT};
   std::atomic<bool> m_connectPending{false},m_retiring{false};
+  std::atomic<bool> m_waitingForMtu{false};
   bool m_connectAttempted=false;
+  // NimBLE host-task owned. The SDK can request PIN input before GAP CONNECT.
+  // Retain only the action parameters until this same connection is confirmed.
+  uint16_t m_earlyAttMtu=0;
+  uintptr_t m_mtuCookie=0; // NimBLE host task only
+  bool m_pendingPasskey=false;
+  ble_gap_passkey_params m_pendingPasskeyParams{};
   hanime_ble::Retirement m_retirement;
 #endif
 
@@ -222,6 +239,8 @@ private:
    ***************************************************************************/
 
 #if defined(CONFIG_NIMBLE_ENABLED)
+  void completeConnect(int rc);
+  static int mtuExchangeComplete(uint16_t handle, const ble_gatt_error *error, uint16_t mtu, void *cookie);
   static void dcTimerCb(ble_npl_event *event);
 #endif
 };  // class BLEClient
@@ -258,6 +277,11 @@ public:
    * @param [in] params Pointer to the requested connection parameters.
    * @return true to accept the request, false to reject it.
    */
+  virtual bool onLinkEstablished(const ble_gap_conn_desc&) { return true; }
+  virtual void onConnectionStage(uint16_t, const char*, int, uint16_t = 0) {}
+  virtual bool acceptPairingIO(uint16_t, uint16_t) { return true; }
+  virtual void onEncryptionResult(uint16_t, int) {}
+  virtual void onRepeatPairing(uint16_t) {}
   virtual bool onConnParamsUpdateRequest(BLEClient *pClient, const ble_gap_upd_params *params);
 #endif
 };

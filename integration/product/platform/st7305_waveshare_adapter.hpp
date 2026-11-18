@@ -4,9 +4,18 @@
 #include <cstring>
 // The product's logical color enum is stable; no ST7306 wire encoding is used.
 #include "st7306_osptek_lpm8_adapter.hpp"
+#ifndef DRAFTOR_WS_ROTATION_DEG
+#define DRAFTOR_WS_ROTATION_DEG 180
+#endif
+static_assert(DRAFTOR_WS_ROTATION_DEG==0||DRAFTOR_WS_ROTATION_DEG==180,
+              "Waveshare display rotation must be 0 or 180 degrees");
 namespace st7305_waveshare {
 using Color=st7306_osptek_lpm8::Color;
 inline constexpr int Width=300,Height=400;
+// Boot-time configuration only: select the matching TEST_ONLY image and restart.
+// Document/layout coordinates stay 300x400. Both framebuffer and completed
+// shadow are in the unchanged native panel order; delta windows need no remap.
+inline constexpr int RotationDegrees=DRAFTOR_WS_ROTATION_DEG;
 inline constexpr unsigned NativeRows=Height/2, RowBytes=Width/4;
 inline constexpr std::size_t BufferSize=NativeRows*RowBytes;
 inline constexpr std::uint8_t ColumnFirst=0x12,ColumnLast=ColumnFirst+Width/12-1;
@@ -17,9 +26,13 @@ constexpr PackedPixel packedPixel(int x,int y){return {std::size_t(y/2)*RowBytes
 constexpr bool white(Color c){return c==Color::White||c==Color::Off;}
 inline void pixel(std::uint8_t* fb,int x,int y,Color c){
  if(x<0||y<0||x>=Width||y>=Height)return;
+ // Clip first, including INT_MIN/INT_MAX, then rotate before native packing.
+ // This covers every painter, including rectangles, glyphs, bitmaps and QR.
+ if constexpr(RotationDegrees==180){x=Width-1-x;y=Height-1-y;}
  const auto p=packedPixel(x,y);const auto mask=std::uint8_t(1U<<p.bit);
  fb[p.index]=white(c)?std::uint8_t(fb[p.index]|mask):std::uint8_t(fb[p.index]&~mask);
 }
+// Inspect native physical pixels (not logical drawing coordinates).
 inline bool isWhite(const std::uint8_t* fb,int x,int y){const auto p=packedPixel(x,y);return (fb[p.index]>>p.bit)&1U;}
 inline void fill(std::uint8_t* fb,Color c){std::memset(fb,white(c)?255:0,BufferSize);}
 inline constexpr unsigned MaxWindows=8,WindowBytes=7;

@@ -17,6 +17,7 @@ class SegmentPlanner {
   void accept_direct_fact(std::size_t begin, std::size_t end, const hanime::RankItem* first);
   void invalidate();
   PlanningReport report() const;
+  bool scored_edge(std::size_t, std::size_t&, std::size_t&, hanime::RankItem&) const; // Read-only Host evidence.
   PlanningMemory memory() const;
   std::size_t command_work() const;
  private:

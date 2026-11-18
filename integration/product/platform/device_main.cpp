@@ -19,6 +19,7 @@ namespace rd=s3app::runtime_diag;
 #include "body_caret.hpp"
 #include "order_allocation.hpp"
 #include "candidate_build.hpp"
+#include "candidate_geometry.hpp"
 #include "docmanager_display.hpp"
 #include "device_main.hpp"
 #include "service_endpoints.hpp"
@@ -45,6 +46,10 @@ namespace rd=s3app::runtime_diag;
 #include "chinese_font.hpp"
 #include "tf_resources.hpp"
 #include "device_ime.hpp"
+#include "r2_controls.hpp"
+#include "execution_budget.hpp"
+#include <cerrno>
+#include <climits>
 #include "raw_viewport.hpp"
 #include "horizontal_raw.hpp"
 #include "loading_status.hpp"
@@ -86,6 +91,10 @@ namespace rd=s3app::runtime_diag;
 #include "reader_display.hpp"
 #include <algorithm>
 #include <cstring>
+#if defined(DRAFTOR_WS_SDMMC40_TEST_ONLY) && DRAFTOR_BOARD == WAVESHARE_RLCD42
+#include <cstdio>
+#include <unistd.h>
+#endif
 extern "C" const uint32_t s3_ime_memory_abi[];
 extern "C" const uint32_t s3_ime_compile_abi[];
 extern "C" const uint32_t s3_next_stage_abi[];
@@ -126,6 +135,8 @@ s3app::MenuFont14 menuFont14;
 s3app::MenuFont16 menuFont16;
 s3app::App* app=nullptr;
 ime_device::DeviceIme* ime=nullptr;
+std::unique_ptr<ime_device::LearningTrial> learningTrial;
+r2::LearningControls learningControls;
 uint32_t lastSaveTurn=0;
 ime_device::LoadingStatus loadingStatus;
 ime_device::DisplaySchedule displaySchedule;
@@ -487,12 +498,14 @@ bool updateLcd(const uint8_t* previous,size_t size){
 void draw(){
 #if DRAFTOR_USB_ENABLED
  if(wifiRuntime&&wifiRuntime->transfer.panel()){
+  keyboard::pairingPresentation(0,false,millis());
   s3app::paintWifiPanel(wifiRuntime->transfer,menuFont16,menuFill,menuAux,menuContent);
   if(!displaySchedule.presentCompared(lcd.framebuffer(),lcd.BufferSize,millis(),[](const uint8_t* previous,size_t size){return updateLcd(previous,size);}))return;
   inputRoute.framePresented(app->focusToken());keyboard::publishFrame(inputRoute.epoch(),0);
   lastDraw=millis();displaySchedule.completed(lastDraw);app->dirtyDisplay=false;return;
  }
  if(usbActive()){
+  keyboard::pairingPresentation(0,false,millis());
   rd::mark(rd::Stage::PaintBegin,unsigned(usbRuntime->transfer.phase()));
   s3app::paintUsbPanel(usbRuntime->transfer,menuFont16,menuFill,menuAux,menuContent);
   rd::mark(rd::Stage::PaintEnd);rd::mark(rd::Stage::PresentBegin);
@@ -521,6 +534,24 @@ void draw(){
  s3app::MetadataFont metadataFont(font);
  const bool editorPage=app&&!fatal&&!menuPage&&!app->statsOpen();
  auto ble=keyboard::status();
+ auto pairingFrame=keyboard::pairingView();
+ // Format only this frame's value snapshot; no pointer into worker-owned RAM.
+ char recoveryHint[72];
+ const bool waitingBle=ble.phase==keyboard::Phase::Scanning||ble.phase==keyboard::Phase::Disconnected||
+   ble.phase==keyboard::Phase::Cleaning||ble.phase==keyboard::Phase::Error;
+ if(waitingBle&&pairingFrame.lastStage&&pairingFrame.mode!=keyboard::PickerMode::Confirm&&
+    pairingFrame.mode!=keyboard::PickerMode::Ambiguous){
+  const char* scan=std::strcmp(pairingFrame.message,"Scan OK / no match")==0?" | No match":"";
+  if(pairingFrame.lastAttempt){
+   const char kind=pairingFrame.lastSlot?'S':'U';
+   const auto candidate=pairingFrame.lastSlot?pairingFrame.lastSlot:pairingFrame.lastPeer;
+   std::snprintf(recoveryHint,sizeof(recoveryHint),"#%lu %c%lu %s=%d%s",(unsigned long)pairingFrame.lastAttempt,
+                 kind,(unsigned long)candidate,pairingFrame.lastStage,pairingFrame.lastCode,scan);
+  }else{
+   std::snprintf(recoveryHint,sizeof(recoveryHint),"%s=%d%s",pairingFrame.lastStage,pairingFrame.lastCode,scan);
+  }
+  pairingFrame.message=recoveryHint;
+ }
  if(fatal){label(fatal,8,50);label(draftor::board::Waveshare?"See DEVICE_HANDOFF":"Save 115200 log",8,80);if(tfMountFailed){label("Temporary recovery:",8,110);label("Power OFF board AND TF, then ON",8,140);}else label("See log before retry",8,110);}
  else if(app){
   if(app->progressDrawing()||app->commandBarrier()){
@@ -578,15 +609,26 @@ void draw(){
    for(size_t c=0;c<row.count;++c){const auto& item=row.items[c];const bool selected=candidatesAvailable&&row.index==view->row&&c==view->col;
     app->candidateVisual.captureHorizontal({item.text.data(),item.bytes},x,y,item.width);
     if(candidatesAvailable&&row.index==view->row){char labelText[2]={char('1'+c),0};label(labelText,x,y+8,selected?Color::Red:black);}
-    textAt({item.text.data(),item.bytes},x+14,y,selected?Color::Red:black,std::min(294,x+int(item.width)-4));
+    s3app::paintHorizontalCandidateText({item.text.data(),item.bytes},font,x,y,item.width,
+     [&](int px,int py){lcd.pixel(px,py,selected?Color::Red:black);});
     if(draftor::board::Monochrome&&selected)lcd.fillRect(x,y+29,std::min(int(item.width)-2,294-x),1,black);
     x+=item.width;
+   }
+   if(view->showHorizontalPeek(r)){
+    app->candidateVisual.captureHorizontal({row.peek.text.data(),row.peek.bytes},x,y,row.peek.width,true);
+    s3app::paintHorizontalCandidatePeek({row.peek.text.data(),row.peek.bytes},font,x,y,row.peek.width,
+     [&](int px,int py){lcd.pixel(px,py,black);});
    }
   }}
   const auto& pending=app->candidateVisual;
   if(pending.pending()){
    for(size_t i=0;i<pending.text.count;++i){const auto& item=pending.text.items[i];
-    textAt({item.text.data(),item.bytes},item.box.x+14,item.box.y,black,item.limit);
+    if(item.horizontal_peek){
+     s3app::paintHorizontalCandidatePeek({item.text.data(),item.bytes},font,item.box.x,item.box.y,item.box.width,
+      [](int px,int py){lcd.pixel(px,py,black);});continue;
+    }
+    s3app::paintHorizontalCandidateText({item.text.data(),item.bytes},font,item.box.x,item.box.y,item.box.width,
+     [](int px,int py){lcd.pixel(px,py,black);});
    }
   }
   if(ime->boundaryVisible(millis())){auto rect=ime_device::boundaryRect(ime->boundaryEdge(),compositionY,view?view->count:0);
@@ -604,7 +646,7 @@ void draw(){
   }
  }else if(editorPage){
   const auto status=s3app::editor_hud::state(*app,ime,
-   imeResources?imeResources->rules():hanime_extension::SchemeRules::R1Xiaohe,ble,loadingStatus.shown());
+   imeResources?imeResources->rules():hanime_extension::SchemeRules::R1Xiaohe,ble,loadingStatus.shown(),pairingFrame);
   s3app::editor_hud::footer(status,metadataFont,
    [](int x,int y,int w,int h){lcd.fillRect(x,y,w,h,white);},
    [](int x,int y){lcd.pixel(x,y,black);});
@@ -625,10 +667,21 @@ void draw(){
  }else if(ble.phase==keyboard::Phase::Ready&&imeVisible){char caption[64];ime->editCaption(caption,sizeof(caption));label(caption,8,383);}
  else if(!menuPage)label(keyboard::phaseName(ble.phase),8,383);
  // R1_MENU_FOOTER_END
+ // Local trust must remain actionable even when pairing starts on a menu or
+ // Find page. Use the existing footer, without opening a management screen.
+ const bool localPromptPainted=ble.local_confirmation&&pairingFrame.mode==keyboard::PickerMode::Confirm&&pairingFrame.confirmationToken==ble.epoch;
+ if(localPromptPainted){
+  lcd.fillRect(0,380,300,20,white);label(keyboard::LocalConfirmationHint,8,383);
+  if(app&&app->findOpen())findFrame.candidates=false;
+ }else if(!editorPage&&!(app&&app->findOpen())&&!(ble.phase==keyboard::Phase::Pairing&&ble.passkey<1000000)){
+  const auto* hint=pairingFrame.message;
+  if(hint[0]){lcd.fillRect(0,380,300,20,white);label(hint,8,383);}
+ }
  const auto transfers=displaySchedule.sent;
  const auto transfer_started_us=ime_device::clockUs();
  if(app){BT_OBSERVE(displayBegin(*app,ime,imeVisible&&ime->candidateAvailable()));}
  if(!displaySchedule.presentCompared(lcd.framebuffer(),lcd.BufferSize,millis(),[](const uint8_t* previous,size_t size){return updateLcd(previous,size);})){BT_OBSERVE(displayEnd(false));if(app)app->candidateVisual.complete(false);return;}
+ keyboard::pairingPresentation(localPromptPainted?pairingFrame.confirmationToken:0,!fatal,millis());
  BT_OBSERVE(displayEnd(true));BT_MEASURE(drawn(vertical,draw_started_us));
  const auto lcd_completed_us=ime_device::clockUs();
  CPATTR(cp_draw.stop(lcd_completed_us);cpattr::presented(transfer_started_us,lcd_completed_us,displaySchedule.sent!=transfers));
@@ -716,6 +769,9 @@ void flushUiTrace(){
 
 void serialDiagnostic(){
 #if DRAFTOR_TELEMETRY_CAPTURE
+ // Learning status/control only; R6 owns all pairing and NVS behavior.
+ if(ime&&learningTrial&&diagnostics)for(unsigned n=0;n<32&&Serial.available();++n)
+  learningControls.feed(char(Serial.read()),*ime,*learningTrial,diagnostics->output);
  return;
 #endif
  if(tfProbe)tfProbe->expireAt(ime_device::clockUs());
@@ -938,6 +994,7 @@ void idleDiagnostics(){
 }
 }
 void deviceSetup(){
+ pinMode(draftor::board::KeyboardPairButton,INPUT_PULLUP);
  parkTfPins(); // Park card lines before the display/BLE startup, without power cycling.
  Serial.setTxBufferSize(0);Serial.begin(115200);
  s3app::stability::setup();
@@ -955,7 +1012,7 @@ void deviceSetup(){
  if(void* memory=heap_caps_malloc(sizeof(DeferredDiagnostics),MALLOC_CAP_SPIRAM|MALLOC_CAP_8BIT))diagnostics=new(memory) DeferredDiagnostics;
  if(diagnostics)ime_device::uiTrace.bind(diagnostics->ui_records.data());
  delay(300);bootLogUs=ime_device::clockUs();logLine("\n[BOOT] firmware=%s task=P23_PHASE2C_R3_R2_RUNTIME_HV core_release=HanIME-Core-0.13.1-rc.1 order_resource_format=%s core_api=0.13.0 extension=0.8.4-rc.1 locate_entries=8 base_order=1 record_slices=1 prefetch=0 auth_shared=2 auth_scheme=1 auth_order=1 release_pin_sha=%s uptime_us=%llu built=%s %s\n",Firmware,ime_device::CandidateOrderFormat,ime_device::CandidatePinSha,(unsigned long long)bootLogUs,__DATE__,__TIME__);
- logLine("[CANDIDATE] firmware=%s arm=%s core_release=HanIME-Core-0.13.1-rc.1 order_resource_format=%s wubi_order_format=2 order_verification_format=1 resource_dir=%s e1=1 n1_rows=%u prefetch=0 learning=Disabled profile=2 locate=8 tf_hz=20000000 pool_bytes=%u device=DEVICE_PENDING\n",Firmware,ime_device::CandidateArm,ime_device::CandidateOrderFormat,ime_device::CandidateResourceRoot,unsigned(HANIME_N1_ROWS),unsigned(ime_device::CandidateBuildDiagnostics::poolBytes()));
+ logLine("[CANDIDATE] firmware=%s arm=%s core_release=HanIME-Core-0.13.1-rc.1 order_resource_format=%s wubi_order_format=2 order_verification_format=1 resource_dir=%s e1=1 n1_rows=%u prefetch=0 learning=A_REV1_TEST_DefaultOn profile=2 locate=8 sdmmc_khz=40000 pool_bytes=%u device=DEVICE_PENDING\n",Firmware,ime_device::CandidateArm,ime_device::CandidateOrderFormat,ime_device::CandidateResourceRoot,unsigned(HANIME_N1_ROWS),unsigned(ime_device::CandidateBuildDiagnostics::poolBytes()));
  logLine("[PERF2_CONFIG] firmware=%s core_baseline=HanIME-Core-0.13.1-rc.1 core_api=0.13.0 core_candidate=HN_CORE_PERF2_P3_PREFIX_CONTINUATION_C1_20260923 host_candidate=HN_INPUT_PERF2_P3_CONSUMER_C1_20260923 p2_source=HN_INPUT_PERF2_P2_P_SC_20260923 p2=1 p3=1 prefix_slots=8 planner_allocation=DEFAULT_NEW device=DEVICE_NOT_RUN\n",Firmware);
  logLine("[MEM1_CONFIG] host=%s source=%s lc1=1 py1=1 mr1=%u arrays=4 policy=PSRAM_ONLY backend_bytes=%u record_bytes=%u context_bytes=%u xh_payload=%u py_payload=%u runtime_peak=DEVICE_PENDING\n",hanime_extension::host_candidate_version,hanime_extension::host_candidate_id,unsigned(hanime_extension::host_candidate_mr1),unsigned(s3_mem1_abi[0]),unsigned(s3_mem1_abi[1]),unsigned(s3_mem1_abi[2]),unsigned(s3_mem1_abi[3]),unsigned(s3_mem1_abi[4]));
  logLine("[LC1_CAPACITY] xh_members=%u py_members=%u xh_submission=%u py_submission=%u raw=%u word=%u name=%u text=%u request=%u\n",unsigned(s3_lc1_capacity_abi[0]),unsigned(s3_lc1_capacity_abi[1]),unsigned(s3_lc1_capacity_abi[2]),unsigned(s3_lc1_capacity_abi[3]),unsigned(s3_lc1_capacity_abi[4]),unsigned(s3_lc1_capacity_abi[5]),unsigned(s3_lc1_capacity_abi[6]),unsigned(s3_lc1_capacity_abi[7]),unsigned(s3_lc1_capacity_abi[8]));
@@ -991,6 +1048,30 @@ void deviceSetup(){
  const auto space=draftor::board::prepareNamespace(draftor::board::MountPoint);
  if(space!=draftor::board::NamespaceResult::Ready){fatal=space==draftor::board::NamespaceResult::OutOfMemory?"WS data space memory failed":"WS data space invalid";draw();return;}
  storage.noteMounted();
+#if defined(DRAFTOR_WS_SDMMC40_TEST_ONLY)
+ // A single bounded receipt per boot, after namespace admission. No polling,
+ // task, UART traffic, resource edits or document-format changes. Preserve
+ // prior boot readings and cap the file at 2048 bytes for this finite trial.
+ {
+  const int actual=tfVolume.actualKHz(),card=tfVolume.cardKHz();
+  char receipt[256];
+  const int bytes=std::snprintf(receipt,sizeof(receipt),
+   "WS_SDMMC40_TEST_ONLY requested_khz=%u actual_khz=%d card_khz=%d width=1 pins=38,21,39 mount_ms=%u reset=%u result=%s\n",
+   draftor::board::SdRuntimeKHz,actual,card,unsigned(mount.elapsed_ms),unsigned(esp_reset_reason()),
+   actual<0||card<0?"FREQUENCY_UNAVAILABLE":actual<40000||card<40000?"40M_NOT_NEGOTIATED":"40M_ACTUAL_CONFIRMED");
+  if(bytes>0&&std::size_t(bytes)<sizeof(receipt)){
+   if(auto* f=std::fopen("/sd/WAVESHARE_R7_L1_AREV1_DOC_TEST_20261112/WS_SDMMC40_BOOT.txt","ab")){
+    if(std::fseek(f,0,SEEK_END)==0){
+     const long size=std::ftell(f);
+     if(size>=0&&size+bytes<=2048&&std::fwrite(receipt,1,std::size_t(bytes),f)==std::size_t(bytes)){
+      if(std::fflush(f)==0)fsync(fileno(f));
+     }
+    }
+    std::fclose(f);
+   }
+  }
+ }
+#endif
 #endif
 
  try{
@@ -1006,7 +1087,12 @@ void deviceSetup(){
    logLine("[RESOURCE_INSTALLATION] prepared=%u files=14 auth=compiled_pin demand_auth=1 root=%s error=%s\n",setPrepared,ime_device::CandidateResourceRoot,imeResources->error().c_str());
   const bool fontStarted=font.start(ime_device::CandidateFontPath,imeResources->mount());
   logLine("[FONT] loading=%u bytes=%u read_block=%u storage=PSRAM asset=matched28.hbf1\n",fontStarted,unsigned(ime_device::ChineseFont::Bytes),unsigned(ime_device::ChineseFont::ReadBytes));
-  auto block=draftor::memory::allocate(sizeof(ime_device::DeviceIme));if(!block)throw std::bad_alloc();ime=new(block)ime_device::DeviceIme(*app,*imeResources,font,&keyboard::setImeAttempt);}
+  auto block=draftor::memory::allocate(sizeof(ime_device::DeviceIme));if(!block)throw std::bad_alloc();
+  learningTrial=std::make_unique<ime_device::LearningTrial>(std::string(r2::StateRoot)+"/a.hns",std::string(r2::StateRoot)+"/b.hns",imeResources->mount());
+  ime=new(block)ime_device::DeviceIme(*app,*imeResources,font,&keyboard::setImeAttempt,hanime_extension::StorageBackend{},learningTrial.get());
+  const bool rootReady=r2::prepareDailyRoot(imeResources->mount());
+  ime->startDailyLearning(rootReady);
+  }
  }catch(const std::bad_alloc&){if(app&&app->ready()){app->notice="IME allocation failed; English available";app->dirtyDisplay=true;}else fatal="PSRAM allocation failed";logLine("[ERROR] allocation failed; no save acknowledgement\n");}
  logLine("[TRACE_SCHEMA] version=2 mode=1 raw_text=0 event_clock=esp_timer_us nav_release=recorded reset_on_BLE_epoch=1\n");
  logLine("[RESOURCES] independent_ime=API0130_HOST084_RC1_MEM1_PY1_MR1 lexicon=LAZY_TF_READONLY scheme=XIAOHE_DEFAULT font=TF_TO_PSRAM_MATCHED28_U28FCD\n");
@@ -1052,6 +1138,10 @@ void deviceLoop(){
  rd::heartbeat();
  hidprobe::point(hidprobe::Status);
  uint32_t start=micros();auto ble=keyboard::status();
+ keyboard::pairingButton(digitalRead(draftor::board::KeyboardPairButton)==LOW,millis());
+ static uint32_t pairingRevision=0;
+ const auto pairing=keyboard::pairingView();
+ if(pairing.revision!=pairingRevision){pairingRevision=pairing.revision;if(app)app->dirtyDisplay=true;}
  serialDiagnostic();
  hidprobe::point(hidprobe::Visual);
  if(ime&&!usbActive()&&!wifiBlocked())ime->serviceVisuals(millis());
@@ -1090,6 +1180,7 @@ void deviceLoop(){
      productInput.releaseAfterRouteDrop(*app,ime,e);
      ime_device::traceUi(ime_device::UiTraceKind::RouteDrop,ime?ime->composition():nullptr,ime?ime->window():nullptr,&e,nullptr,uint8_t(e.down));continue;
     }
+    if(keyboard::pairingKey(e)){repeat.clear();app->dirtyDisplay=true;continue;}
 #if DRAFTOR_USB_ENABLED
     hidprobe::point(hidprobe::Usb);
     if(wifiKey(e)){repeat.clear();presentContext();continue;}
@@ -1144,6 +1235,8 @@ void deviceLoop(){
    if(wifiRuntime){wifiRuntime->transfer.tick(millis(),usbInput());releaseWifiRuntime();}
 #endif
    ime_device::ioProfile.save_active=app->persistence.backgroundSaveActive();
+   if(learningTrial)learningTrial->service(ime&&ime->active());
+   if(ime)ime->serviceDailyLearning();
    if(!deferSave){lastSaveTurn=millis();++initSchedule.save_turns;}else ++initSchedule.save_deferred;
    if(saving)response.save_us=std::max(response.save_us,micros()-serviceStart);
    hidprobe::point(hidprobe::Background);
@@ -1151,7 +1244,8 @@ void deviceLoop(){
    else if(!usbActive()&&!wifiBlocked()){
     const bool initializing=(!font.ready()&&!font.failed())||(imeResources&&!imeResources->ready()&&imeResources->state()!=ime_device::ResourceState::Error&&imeResources->state()!=ime_device::ResourceState::Dormant);
     const auto quantum=initializing?InitQuantumUs:RunQuantumUs;const auto limit=initializing?InitSlices:RunSlices;
-    const auto workStart=micros();unsigned slices=0;++initSchedule.turns;
+    const auto workStart=micros();unsigned slices=0;
+    ++initSchedule.turns;
     CPATTR(cpattr::windowBegin());
     do{
      const auto sliceStart=micros();

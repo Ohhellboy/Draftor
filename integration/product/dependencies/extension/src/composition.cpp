@@ -16,7 +16,7 @@ bool same_view(const StateView& a, const StateView& b) {
          a.count_revision == b.count_revision && a.availability_revision == b.availability_revision;
 }
 bool sane(const Config& c) {
-  return c.raw_bytes && c.raw_bytes <= 256 && c.members && c.members <= 64 &&
+  return c.rank_replay_capacity<=512 && c.raw_bytes && c.raw_bytes <= 256 && c.members && c.members <= 64 &&
     c.page_items && c.page_items <= 64 && c.raw_batch && c.raw_batch <= 64 &&
     c.word_bytes && c.word_bytes <= 4096 && c.name_bytes && c.name_bytes <= 512 &&
     c.text_bytes && c.text_bytes <= 16384 && c.request_bytes && c.request_bytes <= 4096 &&
@@ -76,7 +76,7 @@ struct Composition::Impl {
   DisabledCountSource counts;
   std::shared_ptr<const OwnerIdentity> owner{std::make_shared<OwnerIdentity>()};
   SharedActivationHandle activation;
-  std::uint64_t scheme_epoch{0}, input{0}, revision{0}, op_sequence{0}, page_sequence{0};
+  std::uint64_t scheme_epoch{0}, input{0}, revision{0}, op_sequence{0}, page_sequence{0}, selection_action{0};
   std::string scheme_id;
   Data a, b;
   Data* live{&a}; Data* stage{&b};
@@ -85,6 +85,8 @@ struct Composition::Impl {
   std::vector<std::size_t> sources;
   std::vector<char> names, output, request;
   std::unique_ptr<ExactRanker> ranker;
+  RankStatistics retired_rank_stats;
+  unsigned count_restarts{0};
   std::unique_ptr<ExactQueryCursor> probe;
 #ifndef HANIME_EXTENSION_NO_PLANNER
   std::unique_ptr<SegmentPlanner> planner;
@@ -106,6 +108,9 @@ struct Composition::Impl {
   OutputInvocation invocation{OutputInvocation::Profile};
   Member pending;
   bool page_more{false}, page_valid{false}, rechecking{false};
+  bool state_fallback{false}; // Whole input latch, reset only for a new raw input.
+  ScoringMode page_mode{ScoringMode::BaseOnly};
+  BaseOnlyReason page_reason{BaseOnlyReason::HostSelected};
   bool submission_locked{false}, submission_unknown{false};
   bool busy() const { return task != Task::None || submission_locked || submission_unknown; }
 
@@ -138,11 +143,11 @@ struct Composition::Impl {
     reader.cancel();
     shared.cancel_read(&member_cursor);
     if (probe) { scheme.cancel_query(probe.get()); probe.reset(); }
-    if (ranker) { ranker->abandon_range(rank_ticket); ranker.reset(); }
+    if (ranker) { ranker->abandon_range(rank_ticket); retired_rank_stats.add(ranker->statistics()); ranker.reset(); }
     rank_ticket = {}; first = {}; last = {};
   }
   void clear_page() { page_valid = false; page_size = 0; first = {}; last = {}; }
-  Status finish(Status s, bool keep_rank = false) {
+  Status finish(Status s, bool keep_rank = false, bool count_stale_page = false) {
 #ifndef HANIME_EXTENSION_NO_PLANNER
     if (planner && (s==Status::Stale || s==Status::ResourceError)) planner->invalidate();
     else if (planner && s==Status::Cancelled) planner->retire();
@@ -150,8 +155,8 @@ struct Composition::Impl {
     reader.cancel();
     // Retained pages need both a live ranking lifetime and no outstanding
     // result borrow, including empty ranges. Release only our original ticket.
-    if (keep_rank && s != Status::Stale && s != Status::Cancelled && page_valid &&
-        current() && ranker && ranker->boundary_is_current(first) && ranker->boundary_is_current(last)) {
+    if (keep_rank && (s != Status::Stale || count_stale_page) && s != Status::Cancelled && page_valid &&
+        current() && ranker && ranker->input_is_current(ranker->input_handle())) {
       ranker->release(rank_ticket);
     } else {
       clear_page(); cleanup();
@@ -185,13 +190,33 @@ struct Composition::Impl {
     return end > p && end <= live->n && (rules != SchemeRules::R1Xiaohe || (end-p)%2 == 0);
   }
   Status begin_rank(std::size_t begin, std::size_t end, Task next) {
-    cleanup(); qbegin = begin; qend = end;
-    ranker = std::make_unique<ExactRanker>(scheme, shared, counts, work.data(), work.size(), cfg.raw_batch, cfg.raw_bytes);
-    auto s = ranker->begin_input(std::string(live->raw.data()+begin, end-begin), activation.mount_epoch(), {}, ScoringMode::BaseOnly);
+    cleanup(); qbegin = begin; qend = end; count_restarts=0;
+    ranker = std::make_unique<ExactRanker>(scheme, shared, cfg.apply_learning ? *cfg.learning_counts : counts, work.data(), work.size(), cfg.raw_batch, cfg.raw_bytes, cfg.rank_replay_capacity, cfg.exact_from_base_order, cfg.sparse_corrections);
+    auto s = ranker->begin_input(std::string(live->raw.data()+begin, end-begin), activation.mount_epoch(), cfg.rank_rule,
+      cfg.apply_learning && !state_fallback ? ScoringMode::Exact : ScoringMode::BaseOnly);
     if (s != RankStatus::InProgress) return finish(rank_status(s));
     s = ranker->request_range(RangeDirection::First, nullptr, cfg.page_items, result.data(), result.size(), &rank_ticket);
     if (s != RankStatus::InProgress) return finish(rank_status(s));
     task = next; return Status::Working;
+  }
+  bool restart_unpublished_count(std::size_t available,std::size_t& local_work) {
+    // No displayed boundary or captured choice may silently change rank.
+    // A count-only update before publication keeps the same raw operation.
+    if (page_valid || !current() || !ranker || count_restarts==8 ||
+        !ranker->count_revision_changed(rank_ticket)) return false;
+    // The fixed restart transition consumes one local work item. If the prior
+    // Core operation used the slice, defer it to the next tick unchanged.
+    if (!available) return true;
+    ++local_work;
+    ranker->release(rank_ticket); // CopyPage may already hold a Core lease.
+    auto s=ranker->restart_rank(ScoringMode::Exact);
+    if (s==RankStatus::InProgress)
+      s=ranker->request_range(RangeDirection::First,nullptr,cfg.page_items,
+                             result.data(),result.size(),&rank_ticket);
+    if (s!=RankStatus::InProgress) return false;
+    ++count_restarts; ++retired_rank_stats.count_revision_restarts;
+    first={}; last={}; copy_index=0; task=Task::Rank;
+    return true;
   }
   Status begin_probe() {
     cleanup();
@@ -285,7 +310,7 @@ Composition::Composition(PagedSchemeIndex& s, PagedSharedResource& h, SchemeRule
 Composition::Composition(PagedSchemeIndex& s, PagedSharedResource& h, SchemeRules rules, Config c, StorageBackend backend)
   :Composition(s,h,spelling_policy(rules),c,backend) {}
 Composition::Composition(PagedSchemeIndex& s, PagedSharedResource& h, SchemePolicy policy, Config c, StorageBackend backend) {
-  if (!sane(c)) throw std::invalid_argument("Invalid bounded extension configuration");
+  if (!sane(c) || (c.apply_learning && !c.learning_counts)) throw std::invalid_argument("Invalid bounded extension configuration");
   if (policy.resource_scheme.empty() ||
       (policy.rules!=SchemeRules::FullPinyin && policy.rules!=SchemeRules::R1Xiaohe && policy.rules!=SchemeRules::DirectExact) ||
       (policy.rules!=SchemeRules::DirectExact && policy.resource_scheme!=spelling_policy(policy.rules).resource_scheme) ||
@@ -330,7 +355,10 @@ Snapshot Composition::snapshot() const {
 }
 Page Composition::page() const {
   if (!p_->page_valid || !p_->current()) return {};
-  return {p_->page_items.data(),p_->page_size,p_->qbegin,p_->qend,p_->page_more,p_->page_sequence};
+  return {p_->page_items.data(),p_->page_size,p_->qbegin,p_->qend,p_->page_more,p_->page_sequence,p_->page_mode,p_->page_reason};
+}
+bool Composition::ranking_is_current() const {
+  return p_->page_valid && p_->current() && p_->ranker && p_->ranker->boundary_is_current(p_->first);
 }
 Selection Composition::selection(std::size_t slot) const {
   Selection h; if (!page().items || slot>=p_->page_size) return h;
@@ -363,7 +391,7 @@ Status Composition::edit_raw(std::size_t begin, std::size_t end, std::string_vie
     const bool overlaps=begin==end ? m.begin<begin && begin<m.end : m.begin<end && m.end>begin;
     if (overlaps) continue;
     if (m.begin>=end) { m.begin=static_cast<std::size_t>(static_cast<std::ptrdiff_t>(m.begin)+delta);
-      m.end=static_cast<std::size_t>(static_cast<std::ptrdiff_t>(m.end)+delta); m.valid=false; }
+      m.end=static_cast<std::size_t>(static_cast<std::ptrdiff_t>(m.end)+delta); m.valid=false; m.learning_source={}; }
     n.members[n.count++]=m;
   }
   // Text/form pools are repacked on the next selection/revalidation. Expose only
@@ -375,7 +403,7 @@ Status Composition::edit_raw(std::size_t begin, std::size_t end, std::string_vie
     m.text_begin=n.text_n; n.text_n+=m.text_size;
   }
   p.command_bytes+=replacement.size()+tail+d.count*sizeof(Member)+n.text_n;
-  p.cleanup(); if (!d.n && n.n) ++p.input;
+  p.cleanup(); if (!d.n && n.n) { ++p.input; p.state_fallback=false; }
   p.publish_state(); return p.finish(Status::Ready);
 }
 Status Composition::choose_prefix(std::size_t end) {
@@ -434,6 +462,7 @@ Status Composition::query_next(OutputRequest request,std::uint64_t context) {
   } catch (const std::bad_alloc&) { return p.finish(Status::CapacityExceeded); }
 #endif
 }
+bool Composition::planning_edge(std::size_t i,std::size_t& b,std::size_t& e,hanime::RankItem& item)const {return p_->planner&&input_is_current(p_->plan_stamp)&&p_->planner->scored_edge(i,b,e,item);}
 PlanningReport Composition::planning_report() const {
 #ifndef HANIME_EXTENSION_NO_PLANNER
   if (p_->planner&&input_is_current(p_->plan_stamp)) {
@@ -467,7 +496,7 @@ Status Composition::request_page(RangeDirection direction) {
   if (b && !p.ranker->boundary_is_current(*b)) return Status::Stale;
   if (!p.begin_operation()) return Status::CapacityExceeded;
   auto s=p.ranker->request_range(direction,b,p.cfg.page_items,p.result.data(),p.result.size(),&p.rank_ticket);
-  if (s!=RankStatus::InProgress) return p.finish(rank_status(s),true);
+  if (s!=RankStatus::InProgress) return p.finish(rank_status(s),true,s==RankStatus::Stale);
   p.task=Impl::Task::Rank; return Status::Working;
 }
 
@@ -481,10 +510,17 @@ Status Composition::read_text(const Selection& h, OutputRequest r) {
   return p.start_output(Impl::Task::TextOutput);
 }
 Status Composition::select(const Selection& h, OutputRequest r) {
+  return select_impl(h,r,false); // No UI authority: automatic/unknown sources never learn.
+}
+Status Composition::select_explicit(const Selection& h, std::size_t ordinal, OutputRequest r) {
+  return select_impl(h,r,ordinal>0);
+}
+Status Composition::select_impl(const Selection& h, OutputRequest r, bool explicit_nonfirst) {
   auto& p=*p_; if (p.busy()) return Status::Busy;
   if (!p.current() || h.owner_!=p.owner || !p.page_valid || h.input_!=p.input || h.revision_!=p.revision || h.page_!=p.page_sequence || h.begin_!=p.focus())
     return Status::Stale;
-  if (p.revision==UINT64_MAX) return Status::CapacityExceeded;
+  if (!p.ranker || !p.ranker->boundary_is_current(p.first)) return Status::Stale;
+  if (p.revision==UINT64_MAX || (explicit_nonfirst && p.selection_action==UINT64_MAX)) return Status::CapacityExceeded;
   if (!p.capture_request(r) || r.form.size()>p.cfg.request_bytes) return Status::CapacityExceeded;
   p.plan_size=0; bool inserted=false;
   auto add=[&](Member m,std::size_t src) {
@@ -492,6 +528,10 @@ Status Composition::select(const Selection& h, OutputRequest r) {
     p.plan[p.plan_size]=m; p.sources[p.plan_size++]=src; return true;
   };
   Member chosen; chosen.key=h.item_.key; chosen.ref=h.item_.ref; chosen.begin=h.begin_; chosen.end=h.end_;
+  if (explicit_nonfirst) {
+    chosen.learning_source.owner_=p.owner; chosen.learning_source.action_=++p.selection_action;
+    chosen.learning_source.ref_=chosen.ref;
+  }
   for (std::size_t i=0;i<p.live->count;++i) {
     auto m=p.live->members[i];
     if (!inserted && m.begin>=chosen.begin) { if (!add(chosen,p.cfg.members)) return Status::CapacityExceeded; inserted=true; }
@@ -540,7 +580,7 @@ Status Composition::rebind() {
     return Status::InvalidRequest;
   if (p.revision==UINT64_MAX) return Status::CapacityExceeded;
   p.cleanup(); p.task=Impl::Task::None; p.command_bytes=0; p.copy_state();
-  for (std::size_t i=0;i<p.stage->count;++i) p.stage->members[i].valid=false;
+  for (std::size_t i=0;i<p.stage->count;++i) {p.stage->members[i].valid=false;p.stage->members[i].learning_source={};}
   p.activation=a; p.scheme_epoch=p.scheme.index_epoch(); p.publish_state(); return p.finish(Status::Ready);
 }
 Status Composition::cancel(const Operation& o) {
@@ -595,7 +635,22 @@ Step Composition::tick(const Operation& o, const WorkBudget& budget) {
       else if (s.status==ExactQueryStepStatus::InvalidBudget) r.status=Status::InvalidBudget;
     } else if (p.task==Impl::Task::Rank) {
       auto s=p.ranker->advance(p.rank_ticket,budget); r.core_cost=s.cost;
-      if (s.status==RankStatus::Ready) {
+      if (s.status==RankStatus::Stale &&
+          p.restart_unpublished_count(budget.max_work_items-r.core_cost.work_items,r.local_work)) {
+        // Yield this tick; do not advance the replacement inside this budget.
+      } else if (s.status==RankStatus::StateUnavailable) {
+        // Do not mix unknown counts with real counts. A fresh First range
+        // replaces the whole ranking lifetime; Pending never takes this path.
+        p.state_fallback=true;
+        auto restarted=p.ranker->restart_rank(ScoringMode::BaseOnly);
+        if (restarted==RankStatus::InProgress)
+          restarted=p.ranker->request_range(RangeDirection::First,nullptr,p.cfg.page_items,
+            p.result.data(),p.result.size(),&p.rank_ticket);
+        if (restarted!=RankStatus::InProgress) r.status=p.finish(rank_status(restarted));
+      } else if (s.status==RankStatus::Ready) {
+        const auto view=p.ranker->result(p.rank_ticket);
+        p.page_mode=view.mode;
+        p.page_reason=p.state_fallback?BaseOnlyReason::StateUnavailable:view.reason;
         p.copy_index=0; p.task=Impl::Task::CopyPage;
       } else if (s.status!=RankStatus::InProgress && s.status!=RankStatus::WaitingState) {
         auto state=rank_status(s.status);
@@ -606,7 +661,7 @@ Step Composition::tick(const Operation& o, const WorkBudget& budget) {
           if(report.valid&&report.direct_range)state=(report.incomplete_tail||report.unknown_tail)?Status::Unresolved:Status::NoPrefixMatch;
         }
 #endif
-        r.status=p.finish(state,state==Status::RangeExhausted);
+        r.status=p.finish(state,state==Status::RangeExhausted||state==Status::Stale,state==Status::Stale);
       }
     } else if (p.task==Impl::Task::RecheckMap || p.task==Impl::Task::RecheckHint || p.task==Impl::Task::RecheckKey) {
       // A superseded raw query cannot authorize even a cached hint or output.
@@ -650,7 +705,9 @@ Step Composition::tick(const Operation& o, const WorkBudget& budget) {
         else if (s.status!=SharedReadStatus::InProgress) r.status=p.finish(Status::ResourceError);
       }
     } else if (p.task==Impl::Task::CopyPage) {
-      if (!p.ranker->range_is_current(p.rank_ticket)) r.status=p.finish(Status::Stale);
+      if (!p.ranker->range_is_current(p.rank_ticket)) {
+        if (!p.restart_unpublished_count(budget.max_work_items,r.local_work)) r.status=p.finish(Status::Stale,true,true);
+      }
       else {
         auto v=p.ranker->result(p.rank_ticket);
         while (p.copy_index<v.size && r.local_work<budget.max_work_items) {
@@ -660,7 +717,7 @@ Step Composition::tick(const Operation& o, const WorkBudget& budget) {
           if (p.page_sequence==UINT64_MAX) r.status=p.finish(Status::CapacityExceeded);
           else {
             #ifndef HANIME_EXTENSION_NO_PLANNER
-            if(p.planner&&v.size)p.planner->accept_direct_fact(p.qbegin,p.qend,&v.items[0]);
+            if(p.planner&&v.size&&v.mode==ScoringMode::BaseOnly)p.planner->accept_direct_fact(p.qbegin,p.qend,&v.items[0]);
 #endif
             p.first=p.ranker->boundary(p.rank_ticket,0); p.last=p.ranker->boundary(p.rank_ticket,v.size-1);
             p.page_items.swap(p.page_staging);
@@ -700,6 +757,9 @@ MemoryUsage Composition::memory_usage() const {
   return m;
 }
 std::size_t Composition::command_work() const { return p_->command_bytes; }
+RankStatistics Composition::rank_statistics() const {
+  auto stats=p_->retired_rank_stats;if(p_->ranker)stats.add(p_->ranker->statistics());return stats;
+}
 std::size_t Composition::count_begin_calls() const { return p_->counts.begin_calls(); }
 const char* name(Status s) {
   switch(s) {

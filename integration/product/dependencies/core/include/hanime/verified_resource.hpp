@@ -29,7 +29,7 @@ constexpr std::size_t kVerifiedIndexPageBytes = 1024;
 constexpr std::size_t kVerifiedFanout = 32;
 constexpr std::size_t kVerifiedMaxLevels = 6;
 constexpr std::uint32_t kResourceVerificationRule = 1;
-enum class ResourceReleaseRole : std::uint8_t { Shared = 1, Scheme = 2, BaseOrder = 3 };
+enum class ResourceReleaseRole : std::uint8_t { Shared = 1, Scheme = 2, BaseOrder = 3, RelationLocations = 4 };
 
 // TRUSTED INPUT, copied into the reader. The host publisher emits this record
 // only after validating the final serialized files. The adapter pins this

@@ -1,19 +1,45 @@
 #include "cp_observe.hpp"
 #include "behavior_bench.hpp"
 #include "candidate_window.hpp"
+#include "response_observe.hpp"
+#include "execution_budget.hpp"
 #include "ui16_font.hpp"
 #include "behavior_observer.hpp"
 #include "utf8.hpp"
 #include "ui_text.hpp"
+#include "candidate_geometry.hpp"
+#include "vertical_candidate_geometry.hpp"
+#include "draftor/vertical_ab.hpp"
 #include "ui_trace.hpp"
 #include <algorithm>
 #include <cstring>
 namespace ime_device {
+namespace {
+constexpr draftor::vertical::AbGeometry vertical_geometry{};
+constexpr unsigned vertical_height=draftor::vertical::editor_area.height;
+constexpr unsigned vertical_gap=vertical_geometry.gap;
+}
+#if DRAFTOR_L3_RESPONSE_OBSERVE
+// Keep the full current-Composition identity check out of finishScan's bounded
+// product frame. The helper's frame and nested stack cost are audited separately.
+[[gnu::noinline]] static void observeResponseReady(const hanime_extension::Composition& c,
+ uint32_t action,uint32_t query,uint32_t frame){
+ if(!l3diag::active())return;
+ const auto snap=c.snapshot();const auto page=c.page();
+ l3diag::ready(action,query,frame,snap,page.begin,page.end);
+}
+// Isolate observation temporaries from the existing bounded service frame.
+[[gnu::noinline]] static hanime_extension::Step observeResponseTick(hanime_extension::Composition& c,
+ const hanime_extension::Operation& op,const hanime::WorkBudget& budget){
+ l3diag::enter(l3diag::Core);const auto r=c.tick(op,budget);
+ l3diag::leave(l3diag::Core,unsigned(r.status),r.core_cost.work_items,r.core_cost.read_calls,r.core_cost.read_bytes);return r;
+}
+#endif
 using Status=hanime_extension::Status;
 namespace {
 uint32_t presentationSequence=0;
 uint32_t nextPresentation(){return presentationSequence<UINT32_MAX?++presentationSequence:0;}
-void clearRow(CandidateRow& row){for(auto& item:row.items)item=VisibleItem{};row.index=0;row.count=0;row.width=0;row.vertical=false;}
+void clearRow(CandidateRow& row){for(auto& item:row.items)item=VisibleItem{};row.peek={};row.index=0;row.count=0;row.width=0;row.vertical=false;}
 void clearView(CandidateView& view){for(auto& row:view.rows)clearRow(row);view.count=view.row=view.col=0;view.generation=view.action=0;view.expanded=view.at_end=false;}
 }
 void CandidateWindow::failStatus(Status status,hanime::OutputStatus output){
@@ -46,6 +72,7 @@ bool CandidateWindow::focusedNeedsWholeText()const{
  return pixels>(vertical_?196U:272U);
 }
 void CandidateWindow::cancel(){
+ L3OBS(l3diag::cancel());
  CPATTR(cpattr::cancel());
  if(layout_serial_<UINT32_MAX)++layout_serial_;
  last_status_=Status::Ready;last_output_=hanime::OutputStatus::Cancelled;
@@ -59,13 +86,16 @@ void CandidateWindow::cancel(){
  BT_OBSERVE(selectionResult(c_,5));
 }
 uint16_t CandidateWindow::width(std::string_view text)const{
+ if(vertical_&&!find_profile_)return uint16_t(std::min(65535U,s3app::verticalCandidateHeight(text,font_,vertical_geometry.small_height)));
  const s3app::ui16::Font ui;const auto& face=find_profile_?static_cast<const s3host::FontPort&>(ui):font_;
- size_t pixels=find_profile_?24:22;for(size_t at=0;at<text.size();at=editor::nextUtf8Boundary(text,at))pixels+=face.glyph(s3app::display::scalar(text,at)).advance;
+ // Existing 7px label, 3px separation and 2px trailing space; same 28px face.
+ size_t pixels=find_profile_?24:horizontalSeven()?12:14;for(size_t at=0;at<text.size();at=editor::nextUtf8Boundary(text,at))pixels+=face.glyph(s3app::display::scalar(text,at)).advance;
  return uint16_t(std::min(pixels,size_t(find_profile_?296:284)));
 }
 
 uint16_t CandidateWindow::extent(const VisibleItem& item)const{
  if(!vertical_)return item.width;
+ if(!find_profile_)return uint16_t(std::min(unsigned(item.width)+vertical_gap,vertical_height+vertical_gap));
  const s3app::ui16::Font ui;
  unsigned height=find_profile_?20:14+vertical_gap;
  const std::string_view text(item.text.data(),item.bytes);
@@ -133,10 +163,11 @@ void CandidateWindow::query(size_t prefix,uint32_t action){
  action_=action;range_traced_=false;
  // Normal raw/suffix input uses the public planner. A user-selected prefix
  // remains exact; a plan or its first metadata item never authorizes a choice.
- // This adapter has one fixed default output profile and disabled learning;
- // no mutable scoring/output context exists, so context revision is zero.
+ // Output profile is fixed. Trial score changes replace the Composition
+ // lifetime at an idle boundary; count revisions remain owned by the ranker.
  beginScan(prefix?c_.choose_prefix(prefix):c_.query_next({},0));
  BT_OBSERVE(query(c_,*this,prefix));
+ L3OBS(l3diag::query(action_,query_serial_,s);l3diag::rankStart(c_.rank_statistics()));
  CPATTR(cpattr::begin(action_,query_serial_,s.input_id,s.revision,s.scheme_epoch,s.activation.mount_epoch(),s.activation.shared_bundle_id()));
  traceUi(UiTraceKind::Query,&c_,this);
 }
@@ -258,7 +289,7 @@ void CandidateWindow::resumeText(){if(reading_ready_)appendText();else beginText
 void CandidateWindow::beginText(){
  if(repacking_){
   if(const auto* cached=cachedItem(ordinal_)){
-   reading_=*cached;reading_ready_=true;task_=Task::CachedText;return;
+   reading_=*cached;reading_.width=width({reading_.text.data(),reading_.bytes});reading_ready_=true;task_=Task::CachedText;return;
   }
   if(page_!=seek_page_){seek();return;}
   slot_=seek_slot_;
@@ -316,6 +347,17 @@ bool CandidateWindow::finishRow(){
  if(reused){continueScan();return true;}
  return false;
 }
+// Keep glyph measurement out of the long-lived row assembly frame.
+[[gnu::noinline]] static void setCandidatePeek(CandidateRow& row,const VisibleItem& next,const s3host::FontPort& font,bool vertical){
+ const std::string_view text(next.text.data(),next.bytes);
+ const auto bytes=editor::nextUtf8Boundary(text,0);
+ const auto cp=s3app::display::scalar(text,0);const auto glyph=font.glyph(cp);
+ const auto advance=vertical?s3app::verticalCandidateAdvance(glyph,cp):glyph.advance;
+ const auto pixels=(vertical?vertical_geometry.small_height:s3app::HorizontalCandidateTextOffset)+advance;
+ if(bytes<=4&&advance&&row.width+pixels<=(vertical?vertical_height:284)){
+  std::copy_n(text.data(),bytes,row.peek.text.data());row.peek.bytes=uint8_t(bytes);row.peek.width=uint16_t(pixels);
+ }
+}
 void CandidateWindow::appendText(){
  if(!reading_ready_){
   const auto text=c_.last_text();if(text.size()>64){fail(find_profile_?WindowState::OutputError:WindowState::Error);return;}
@@ -323,12 +365,19 @@ void CandidateWindow::appendText(){
   std::copy(text.begin(),text.end(),reading_.text.begin());reading_.bytes=uint16_t(text.size());reading_.width=width(text);reading_ready_=true;++costs_.materialized_items;
  }
  // The one overflow item is retained, so the next row never rereads its text.
- if(row_.count&&(row_.count==6||row_.width+extent(reading_)>(vertical_?(find_profile_?216:vertical_height+vertical_gap):(find_profile_?296:284))))if(finishRow())return;
+ const unsigned budget=find_profile_?(vertical_?216:296):vertical_?vertical_height+vertical_gap:284;
+ const bool width_break=row_.width+extent(reading_)>budget;
+ if(row_.count&&(row_.count==rowLimit()||width_break)){
+  if(!find_profile_&&row_.count<rowLimit()&&width_break&&reading_.bytes){
+   setCandidatePeek(row_,reading_,font_,vertical_);
+  }
+  if(finishRow())return;
+ }
  row_.items[row_.count++]=reading_;row_.width+=extent(reading_);++ordinal_;slot_=reading_.slot+1;
  if(repacking_){seek_page_=reading_.page;seek_slot_=reading_.slot+1;}
  reading_ready_=false;
  const auto p=c_.page();if((!repacking_||page_==seek_page_)&&slot_>=p.size&&!forward_more_){end_known_=true;total_rows_=scan_row_+1;}
- if(row_.count==6&&finishRow())return;
+ if(row_.count==rowLimit()&&finishRow())return;
  beginText();
 }
 void CandidateWindow::finishScan(bool end){
@@ -350,6 +399,7 @@ void CandidateWindow::finishScan(bool end){
   occupied_columns_=expanded_?view_.count:1;
  if(vertical_seen_&&expanded_)stage_expanded_=true;
  BT_MEASURE(ready(view_.action));
+ L3OBS(observeResponseReady(c_,view_.action,query_serial_,view_.generation));
  CPATTR(cpattr::ready());
  traceUi(UiTraceKind::WindowReady,&c_,this);
  if(choosing_){startAuth();return;}
@@ -410,7 +460,7 @@ ChoiceResult CandidateWindow::chooseInitialNumber(size_t column,uint32_t action)
  // A fixed initial ROW ordinal, resolved only by the normal pixel layout.
  // It is neither a global rank nor a fabricated displayed frame/Selection.
  if(choosing_)return ChoiceResult::Busy;
- if(column>=6||want_row_!=0)return ChoiceResult::NoCandidate;
+ if(column>=rowLimit()||want_row_!=0)return ChoiceResult::NoCandidate;
  if(working())return ChoiceResult::Waiting;
  if(state_!=WindowState::Ready||!view_.count||view_.row!=0||view_.rows[0].index!=0||column>=view_.rows[0].count)return ChoiceResult::NoCandidate;
  const auto& item=view_.rows[0].items[column];if(!current(item))return ChoiceResult::ExpiredInput;
@@ -430,7 +480,12 @@ void CandidateWindow::authorize(){
  const auto p=c_.page();
  if(!current(choice_)||p.begin!=choice_.begin||p.end!=choice_.end||choice_.slot>=p.size||p.items[choice_.slot].key!=choice_.key||p.items[choice_.slot].ref!=choice_.ref){++metrics.stale_choices;fail(WindowState::Stale);return;}
  last_output_=hanime::OutputStatus::Cancelled;
- const auto s=c_.select(c_.selection(choice_.slot));last_status_=s;
+#if BGIME_L1_A_REV1_TEST_ONLY
+ const auto s=c_.select_explicit(c_.selection(choice_.slot),choice_.ordinal);
+#else
+ const auto s=c_.select(c_.selection(choice_.slot));
+#endif
+ last_status_=s;
  if(s!=Status::Working){failStatus(s);return;}
  traceUi(UiTraceKind::SelectionResult,&c_,this,nullptr,&choice_,uint8_t(s));
  task_=Task::Select;op_=c_.operation();
@@ -441,6 +496,7 @@ void CandidateWindow::tickDone(Status s){
   task_=Task::None;startAuth();return;
  }
  if(s==Status::PageReady){
+  if(!background_)L3OBS(if(l3diag::active())l3diag::range(action_,query_serial_,c_.snapshot()));
   forward_more_=task_==Task::Query?c_.page().has_more:last_move_before_||c_.page().has_more;
   // Keep the first usable range timestamp for this action. Page counts stay
   // in WindowCosts; a deep scan must not fill the trace ring with every range.
@@ -466,12 +522,18 @@ void CandidateWindow::tickDone(Status s){
  failStatus(s,last_output_);
 }
 void CandidateWindow::service(bool allow_prefetch){
+ L3OBS_TIMER(l3_window,Window);
  CPATTR_TIMER(cp_window,Window);
  if(task_==Task::CachedText){appendText();return;}
  if(background_&&!allow_prefetch&&!choosing_&&!pending_.valid)return;
  if(!working()){if(allow_prefetch)prefetch();return;}
  const auto start=clockUs();const auto io=metrics.io();const auto task=task_;const bool hidden=background_;
- const auto r=c_.tick(op_,Resources::Budget);
+ RankingCallBudget execution(start+1000);
+#if DRAFTOR_L3_RESPONSE_OBSERVE
+ const auto r=observeResponseTick(c_,op_,execution.get(Resources::Budget));
+#else
+ const auto r=c_.tick(op_,execution.get(Resources::Budget));
+#endif
  if(hidden)++costs_.prefetch_steps;
  metrics.step(hidden?Phase::RowPrefetch:task==Task::Text?Phase::VisibleText:Phase::Query,start,r.core_cost.read_calls,r.core_cost.read_bytes,r.core_cost.work_items,io);
  CPATTR(cpattr::interval(cpattr::Core,start,metrics.phases[unsigned(hidden?Phase::RowPrefetch:task==Task::Text?Phase::VisibleText:Phase::Query)].last_us));

@@ -20,6 +20,8 @@ struct AbRun {
   // it beyond this call or select by string/slot without frame authorization.
   const void* identity = nullptr;
   s3app::CompositionTypography typography=s3app::CompositionTypography::Normal;
+  // Product candidates carry their measured vertical extent, including header.
+  std::uint16_t measured_height=0;
 };
 // Fixed presentation descriptors: no text/selection copy and no query state.
 // Text and opaque identities are borrowed from the adapter for this one call.
@@ -29,7 +31,10 @@ struct AbCandidateItem {
   const void* identity = nullptr;
 };
 struct AbCandidateRow {
-  std::array<AbCandidateItem, 6> items{};
+  std::array<AbCandidateItem, 7> items{};
+  std::array<std::uint16_t, 7> heights{};
+  std::string_view peek{};
+  std::uint16_t peek_height=0;
   std::size_t index = 0, count = 0;
 };
 // The input owner treats a raw boundary as a right endpoint (Upstream).
