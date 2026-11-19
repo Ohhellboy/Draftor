@@ -1,0 +1,30 @@
+
+> draftor-web-installer-r1@1.0.0-software test:browser
+> playwright test
+
+(node:78642) [DEP0205] DeprecationWarning: `module.register()` is deprecated. Use `module.registerHooks()` instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[2m[WebServer] [22m(node:78655) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22mnode:events:505
+[2m[WebServer] [22m    throw er; // Unhandled 'error' event
+[2m[WebServer] [22m    ^
+[2m[WebServer] [22m
+[2m[WebServer] [22mError: listen EPERM: operation not permitted 127.0.0.1:4173
+[2m[WebServer] [22m[90m    at Server.setupListenHandle [as _listen2] (node:net:2306:21)[39m
+[2m[WebServer] [22m[90m    at listenInCluster (node:net:2437:12)[39m
+[2m[WebServer] [22m[90m    at node:net:2666:7[39m
+[2m[WebServer] [22m[90m    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)[39m
+[2m[WebServer] [22mEmitted 'error' event on Server instance at:
+[2m[WebServer] [22m[90m    at emitErrorNT (node:net:2416:8)[39m
+[2m[WebServer] [22m[90m    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)[39m {
+[2m[WebServer] [22m  code: [32m'EPERM'[39m,
+[2m[WebServer] [22m  errno: [33m-1[39m,
+[2m[WebServer] [22m  syscall: [32m'listen'[39m,
+[2m[WebServer] [22m  address: [32m'127.0.0.1'[39m,
+[2m[WebServer] [22m  port: [33m4173[39m
+[2m[WebServer] [22m}
+[2m[WebServer] [22m
+[2m[WebServer] [22mNode.js v26.8.2
+Error: Process from config.webServer was not able to start. Exit code: 1
+

@@ -1,0 +1,11 @@
+{
+  "repository": "https://github.com/nayuki/QR-Code-generator",
+  "commit": "3c6d0b3cefb4e049dc337e82237c9644399716a8",
+  "license": "MIT",
+  "upstream_files": {
+    "qrcodegen.h": "e82df4bff37d18b5863b9e7486fe6bda1b6cda8c3b9ecebfec473907265cb589",
+    "qrcodegen.c": "6a2b9cc65176f2345dde260c74b6d352627e8a0a6385d086ae0e9c5d0913c70c",
+    "LICENSE.txt": "aa22f0fefb530552bfcc713e3791c80796c2a2e666ed61856bcf4767a6852984"
+  },
+  "modifications": "none; C source exact upstream; h matches prior Emergency QR reference-lock.json"
+}

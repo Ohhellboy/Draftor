@@ -1,0 +1,33 @@
+import { ESPLoader } from "../esploader.js";
+import { ESP32C3ROM } from "./esp32c3.js";
+import { MemoryMapEntry } from "./rom.js";
+export declare class ESP32C6ROM extends ESP32C3ROM {
+    CHIP_NAME: string;
+    IMAGE_CHIP_ID: number;
+    EFUSE_BASE: number;
+    EFUSE_BLOCK1_ADDR: number;
+    MAC_EFUSE_REG: number;
+    UART_CLKDIV_REG: number;
+    UART_CLKDIV_MASK: number;
+    UART_DATE_REG_ADDR: number;
+    FLASH_WRITE_SIZE: number;
+    BOOTLOADER_FLASH_OFFSET: number;
+    SPI_REG_BASE: number;
+    SPI_USR_OFFS: number;
+    SPI_USR1_OFFS: number;
+    SPI_USR2_OFFS: number;
+    SPI_MOSI_DLEN_OFFS: number;
+    SPI_MISO_DLEN_OFFS: number;
+    SPI_W0_OFFS: number;
+    IROM_MAP_START: number;
+    IROM_MAP_END: number;
+    MEMORY_MAP: MemoryMapEntry[];
+    getPkgVersion(loader: ESPLoader): Promise<number>;
+    getChipRevision(loader: ESPLoader): Promise<number>;
+    getChipDescription(loader: ESPLoader): Promise<string>;
+    getChipFeatures(loader: ESPLoader): Promise<string[]>;
+    getCrystalFreq(loader: ESPLoader): Promise<number>;
+    _d2h(d: number): string;
+    readMac(loader: ESPLoader): Promise<string>;
+    getEraseSize(offset: number, size: number): number;
+}

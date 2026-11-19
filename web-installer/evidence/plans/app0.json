@@ -1,0 +1,200 @@
+{
+  "plan": {
+    "mode": "update",
+    "appSlot": "app0",
+    "appOffset": "0x10000",
+    "appBytes": 4021152,
+    "appSha256": "165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd",
+    "writes": [
+      {
+        "name": "app.bin",
+        "offset": 65536,
+        "bytes": 4021152,
+        "offsetHex": "0x10000",
+        "endExclusive": "0x3e5ba0",
+        "sectorEndExclusive": "0x3e6000"
+      }
+    ],
+    "fullErase": false,
+    "atomicUpdate": false,
+    "interruption": "Active App may be partial; no automatic retry, alternate slot or reboot. Recover from verified private backups.",
+    "neverWrite": [
+      "bootloader",
+      "partition table",
+      "otadata",
+      "NVS / pairing",
+      "inactive App",
+      "ime_ro",
+      "ffat",
+      "coredump",
+      "TF card"
+    ],
+    "requires": [
+      "physical Waveshare board",
+      "matching private MAC",
+      "verified recoverable Flash and TF backups",
+      "TF removed",
+      "explicit plan approval"
+    ],
+    "hardwareWriteAllowed": false,
+    "deviceQualification": "DEVICE_PENDING",
+    "tfResources": "NOT_CHECKED"
+  },
+  "receipt": {
+    "status": "VERIFIED_BOOT_PENDING",
+    "simulation": true,
+    "release": "v0.1.0-alpha.3",
+    "appSha256": "165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd",
+    "eraseStarted": false,
+    "writeStarted": true,
+    "independentVerification": true,
+    "resetIssued": false,
+    "deviceQualification": "DEVICE_PENDING",
+    "tfResources": "NOT_CHECKED",
+    "plan": {
+      "mode": "update",
+      "appSlot": "app0",
+      "appOffset": "0x10000",
+      "appBytes": 4021152,
+      "appSha256": "165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd",
+      "writes": [
+        {
+          "name": "app.bin",
+          "offset": 65536,
+          "bytes": 4021152,
+          "offsetHex": "0x10000",
+          "endExclusive": "0x3e5ba0",
+          "sectorEndExclusive": "0x3e6000"
+        }
+      ],
+      "fullErase": false,
+      "atomicUpdate": false,
+      "interruption": "Active App may be partial; no automatic retry, alternate slot or reboot. Recover from verified private backups.",
+      "neverWrite": [
+        "bootloader",
+        "partition table",
+        "otadata",
+        "NVS / pairing",
+        "inactive App",
+        "ime_ro",
+        "ffat",
+        "coredump",
+        "TF card"
+      ],
+      "requires": [
+        "physical Waveshare board",
+        "matching private MAC",
+        "verified recoverable Flash and TF backups",
+        "TF removed",
+        "explicit plan approval"
+      ],
+      "hardwareWriteAllowed": false,
+      "deviceQualification": "DEVICE_PENDING",
+      "tfResources": "NOT_CHECKED"
+    },
+    "protectedRegionsUnchanged": true,
+    "flashOutcome": "VERIFIED_CONTENT_BOOT_PENDING"
+  },
+  "syntheticCommandTrace": [
+    {
+      "op": "connect"
+    },
+    {
+      "op": "identity"
+    },
+    {
+      "op": "read",
+      "offset": 32768,
+      "size": 4096
+    },
+    {
+      "op": "read",
+      "offset": 57344,
+      "size": 8192
+    },
+    {
+      "op": "md5",
+      "offset": 32768,
+      "size": 4096
+    },
+    {
+      "op": "md5",
+      "offset": 57344,
+      "size": 8192
+    },
+    {
+      "op": "identity"
+    },
+    {
+      "op": "read",
+      "offset": 32768,
+      "size": 4096
+    },
+    {
+      "op": "read",
+      "offset": 57344,
+      "size": 8192
+    },
+    {
+      "op": "md5",
+      "offset": 32768,
+      "size": 4096
+    },
+    {
+      "op": "md5",
+      "offset": 57344,
+      "size": 8192
+    },
+    {
+      "op": "md5",
+      "offset": 0,
+      "size": 65536
+    },
+    {
+      "op": "md5",
+      "offset": 4259840,
+      "size": 12517376
+    },
+    {
+      "op": "write",
+      "offset": 65536,
+      "size": 4021152,
+      "mode": "update"
+    },
+    {
+      "op": "md5",
+      "offset": 65536,
+      "size": 4021152
+    },
+    {
+      "op": "read",
+      "offset": 32768,
+      "size": 4096
+    },
+    {
+      "op": "read",
+      "offset": 57344,
+      "size": 8192
+    },
+    {
+      "op": "md5",
+      "offset": 32768,
+      "size": 4096
+    },
+    {
+      "op": "md5",
+      "offset": 57344,
+      "size": 8192
+    },
+    {
+      "op": "md5",
+      "offset": 0,
+      "size": 65536
+    },
+    {
+      "op": "md5",
+      "offset": 4259840,
+      "size": 12517376
+    }
+  ]
+}

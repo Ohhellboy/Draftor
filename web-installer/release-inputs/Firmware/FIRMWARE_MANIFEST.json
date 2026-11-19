@@ -1,0 +1,44 @@
+{
+  "version": "v0.1.0-alpha.3",
+  "board": "WAVESHARE_RLCD42",
+  "controller": "ST7305",
+  "rotation": 180,
+  "chip": "esp32s3",
+  "flash_bytes": 16777216,
+  "active_slot_capacity": 4194304,
+  "remaining_bytes": 173152,
+  "firmware_label": "WAVESHARE_A3_BLE_REWRITE_R3_ROT180_TEST_ONLY",
+  "production_commit": "f398ec3839bafca8122d11e94dee4e135d941b62",
+  "fresh_app_offset_note": "The packaged app offset is for fresh installation. For a compatible update, use the actual active OTA slot.",
+  "files": {
+    "app.bin": {
+      "offset": 65536,
+      "bytes": 4021152,
+      "sha256": "165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd"
+    },
+    "bootloader.bin": {
+      "offset": 0,
+      "bytes": 19968,
+      "sha256": "31b3c1be45dc5a76aa85c82540d6787b675e711eaf11021a5eea7e36f469c6de"
+    },
+    "partitions.bin": {
+      "offset": 32768,
+      "bytes": 3072,
+      "sha256": "a172a8ae4cd0db329d6de2635991e3f6e3feb374e0ee9dcab78d9d7b360df6c9"
+    },
+    "boot_app0.bin": {
+      "offset": 57344,
+      "bytes": 8192,
+      "sha256": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0"
+    }
+  },
+  "source": "https://github.com/Ohhellboy/Draftor",
+  "toolchain": {
+    "arduino_cli": "1.4.1",
+    "arduino_esp32": "3.3.11",
+    "esp_x32": "2601",
+    "gcc": "14.2.0",
+    "esptool": "5.3.1",
+    "esp_idf": "5.5.5"
+  }
+}

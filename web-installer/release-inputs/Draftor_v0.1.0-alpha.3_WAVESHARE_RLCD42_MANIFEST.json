@@ -1,0 +1,52 @@
+{
+  "tag": "v0.1.0-alpha.3",
+  "repository": "https://github.com/Ohhellboy/Draftor",
+  "release_url": "https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.3",
+  "release_commit": "f18939f8880e2278c231739d553fbf983c19e0f6",
+  "product_commit": "f398ec3839bafca8122d11e94dee4e135d941b62",
+  "target": "WAVESHARE_RLCD42",
+  "controller": "ST7305",
+  "rotation": 180,
+  "app": {
+    "offset": 65536,
+    "bytes": 4021152,
+    "sha256": "165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd"
+  },
+  "app_partition_bytes": 4194304,
+  "free_app_bytes": 173152,
+  "qualification": "https://github.com/Ohhellboy/Draftor/blob/v0.1.0-alpha.3/docs/ALPHA3_VALIDATION.md",
+  "tf_manifest": "https://github.com/Ohhellboy/Draftor/blob/v0.1.0-alpha.3/release/alpha3/TF_RESOURCES.json",
+  "external_inputs": {
+    "runtime": {
+      "url": "https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.1/Draftor_v0.1.0-alpha.2.1_Resources.zip",
+      "bytes": 60546074,
+      "sha256": "460096846036bd01c941bc07ab98e6db4e130a247563e44fa3cb01d12a9c6636"
+    },
+    "build": {
+      "url": "https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.1/Draftor_v0.1.0-alpha.2.1_BuildInputs.zip",
+      "bytes": 470993697,
+      "sha256": "666edd63bcda953c71754e858526743d2f709cb0c784c65fc9a7071b4f9bf49e"
+    }
+  },
+  "assets": [
+    {
+      "name": "Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_Firmware.zip",
+      "url": "https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.3/Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_Firmware.zip",
+      "bytes": 2913395,
+      "sha256": "626fb11222281dc4351d2de71ff9a36422f4aeca487e3475484b8bd55315699a"
+    },
+    {
+      "name": "Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_LearningIndex.zip",
+      "url": "https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.3/Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_LearningIndex.zip",
+      "bytes": 1831828,
+      "sha256": "05da4128d132c0673ae28bf9a1f35d3997a017cd1995d51d38051dc15f55c3eb"
+    },
+    {
+      "name": "Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_Source.zip",
+      "url": "https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.3/Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_Source.zip",
+      "bytes": 8151209,
+      "sha256": "7cca7a13b685ab74f22150f0ed6521081bb9fcceec078da49ff457c85f67f69e"
+    }
+  ],
+  "checksum_file": "SHA256SUMS"
+}

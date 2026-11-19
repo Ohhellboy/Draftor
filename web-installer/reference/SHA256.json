@@ -1,0 +1,72 @@
+[
+  {
+    "path": "reference/esptool-py/LICENSE",
+    "bytes": 18092,
+    "sha256": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643"
+  },
+  {
+    "path": "reference/esptool-py/esptool/loader.py",
+    "bytes": 87879,
+    "sha256": "76dd375f208b0fe142deef06c5fed8cfa462e194296988e404c9ed5f9cb656ef"
+  },
+  {
+    "path": "reference/esptool-py/esptool/cmds.py",
+    "bytes": 131241,
+    "sha256": "8e86fc899f279077cac33cdda581246b59df73a8d22a26f03ec60d45568e64c9"
+  },
+  {
+    "path": "reference/esptool-py/esptool/targets/esp32.py",
+    "bytes": 16331,
+    "sha256": "ef2909c2434abd9043aea0d17a35f37658661be75f4e6d6f9cf056f89ed53521"
+  },
+  {
+    "path": "reference/esptool-py/esptool/targets/esp32s3.py",
+    "bytes": 14138,
+    "sha256": "322e93876291369cda9275ffcf207d32ee9c0f5dc1f4bba1159291c5f2b106f8"
+  },
+  {
+    "path": "reference/esptool-js/LICENSE",
+    "bytes": 11365,
+    "sha256": "1c25f29242785d63e9adb0be7fdc137551dfbbc0756b622fcd26d9cd7de3a4f3"
+  },
+  {
+    "path": "reference/esptool-js/package.json",
+    "bytes": 1714,
+    "sha256": "3bfe8cbd56990cfb6b39cc313f52e50954d233dc5c6fb49f0a08dcad9a72d683"
+  },
+  {
+    "path": "reference/esptool-js/src/webserial.ts",
+    "bytes": 20265,
+    "sha256": "84f66a87d558c42bf763065d3d20353826a371a7ebd3a8fbe301abc18cc37d25"
+  },
+  {
+    "path": "reference/esptool-js/src/esploader.ts",
+    "bytes": 73749,
+    "sha256": "e7b61fd1e75524b973d9c17d22c868cdb659abcaa9d04963f35ee6c12c194030"
+  },
+  {
+    "path": "reference/esptool-js/src/targets/esp32s3.ts",
+    "bytes": 7853,
+    "sha256": "8399efbcd6a3f98e58877f31098a8f280ec3204c798bd29f3a5d6eb50d36cfe3"
+  },
+  {
+    "path": "reference/esp-web-tools/LICENSE",
+    "bytes": 11357,
+    "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+  },
+  {
+    "path": "reference/esp-web-tools/package.json",
+    "bytes": 1160,
+    "sha256": "14f43ee16e5040492c4ccb9b0db2250a1486e7f464a012ac4705fabc8c073982"
+  },
+  {
+    "path": "reference/esp-web-tools/src/flash.ts",
+    "bytes": 6676,
+    "sha256": "c80b6a2b9ecba06a6abc1417769cfa932c21f693c366edaae9625f4213eccfea"
+  },
+  {
+    "path": "reference/esp-web-tools/src/install-dialog.ts",
+    "bytes": 44733,
+    "sha256": "e97b606d25f8ec1a2ef2a4a412390558e4e1678bf94afa00655d8725674011dd"
+  }
+]

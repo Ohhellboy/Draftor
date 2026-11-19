@@ -1,0 +1,366 @@
+{
+  "result": "PASS",
+  "release": {
+    "version": "v0.1.0-alpha.3",
+    "board": "WAVESHARE_RLCD42",
+    "appSha256": "165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd"
+  },
+  "commit": "f18939f8880e2278c231739d553fbf983c19e0f6",
+  "files": [
+    {
+      "file": "firmware/FIRMWARE_MANIFEST.json",
+      "bytes": 1360,
+      "sha256": "9a12078c1f47c92da7f46dfd4d896a7bfa4e36bec1f0824b400e8ed60ef3b7e0",
+      "expected": "9a12078c1f47c92da7f46dfd4d896a7bfa4e36bec1f0824b400e8ed60ef3b7e0"
+    },
+    {
+      "file": "firmware/WAVESHARE_RLCD42.json",
+      "bytes": 1360,
+      "sha256": "9a12078c1f47c92da7f46dfd4d896a7bfa4e36bec1f0824b400e8ed60ef3b7e0",
+      "expected": "9a12078c1f47c92da7f46dfd4d896a7bfa4e36bec1f0824b400e8ed60ef3b7e0"
+    },
+    {
+      "file": "firmware/RELEASE_PAIR.json",
+      "bytes": 4207,
+      "sha256": "1aae2305882ff3a231f2d94bb7a660aeb3d6e9e0bfa502536d974b56025f9400",
+      "expected": "1aae2305882ff3a231f2d94bb7a660aeb3d6e9e0bfa502536d974b56025f9400"
+    },
+    {
+      "file": "firmware/TF_RESOURCES.json",
+      "bytes": 5400,
+      "sha256": "215f0b2fb905b0a7f24d7c2d085a6480711f2e7fe27ffb30ab6c1c9d840fe844",
+      "expected": "215f0b2fb905b0a7f24d7c2d085a6480711f2e7fe27ffb30ab6c1c9d840fe844"
+    },
+    {
+      "file": "firmware/app.bin",
+      "bytes": 4021152,
+      "sha256": "165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd",
+      "expected": "165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd"
+    },
+    {
+      "file": "firmware/bootloader.bin",
+      "bytes": 19968,
+      "sha256": "31b3c1be45dc5a76aa85c82540d6787b675e711eaf11021a5eea7e36f469c6de",
+      "expected": "31b3c1be45dc5a76aa85c82540d6787b675e711eaf11021a5eea7e36f469c6de"
+    },
+    {
+      "file": "firmware/partitions.bin",
+      "bytes": 3072,
+      "sha256": "a172a8ae4cd0db329d6de2635991e3f6e3feb374e0ee9dcab78d9d7b360df6c9",
+      "expected": "a172a8ae4cd0db329d6de2635991e3f6e3feb374e0ee9dcab78d9d7b360df6c9"
+    },
+    {
+      "file": "firmware/boot_app0.bin",
+      "bytes": 8192,
+      "sha256": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+      "expected": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0"
+    },
+    {
+      "file": "release-inputs/Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_Firmware.zip",
+      "bytes": 2913395,
+      "sha256": "626fb11222281dc4351d2de71ff9a36422f4aeca487e3475484b8bd55315699a",
+      "expected": "626fb11222281dc4351d2de71ff9a36422f4aeca487e3475484b8bd55315699a"
+    },
+    {
+      "file": "release-inputs/Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_LearningIndex.zip",
+      "bytes": 1831828,
+      "sha256": "05da4128d132c0673ae28bf9a1f35d3997a017cd1995d51d38051dc15f55c3eb",
+      "expected": "05da4128d132c0673ae28bf9a1f35d3997a017cd1995d51d38051dc15f55c3eb"
+    },
+    {
+      "file": "release-inputs/Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_MANIFEST.json",
+      "bytes": 2383,
+      "sha256": "50dc7c11e4097bb601cc658cbccc986f4fbca4cfef3633840e46696e59f5b548",
+      "expected": "50dc7c11e4097bb601cc658cbccc986f4fbca4cfef3633840e46696e59f5b548"
+    },
+    {
+      "file": "release-inputs/SHA256SUMS",
+      "bytes": 480,
+      "sha256": "42bbf75474f1590d6d514cbf6e6ad73b694e4b87218c6625ee046a273f1ff27b",
+      "expected": "42bbf75474f1590d6d514cbf6e6ad73b694e4b87218c6625ee046a273f1ff27b"
+    },
+    {
+      "file": "release-inputs/Draftor_Web_Installer_v0_1_repacked.zip",
+      "bytes": 8240,
+      "sha256": "702d71dbe462d7944a0370fcff81326fe522a4fd23e9eb176b5f891aec622a28",
+      "expected": "702d71dbe462d7944a0370fcff81326fe522a4fd23e9eb176b5f891aec622a28"
+    },
+    {
+      "file": "release-inputs/BRIEF.md",
+      "bytes": 9206,
+      "sha256": "0ccf2accb5d8fa85a069d7271e556180d684e198e37fe75819212a5e0f05ccfc",
+      "expected": "0ccf2accb5d8fa85a069d7271e556180d684e198e37fe75819212a5e0f05ccfc"
+    },
+    {
+      "file": "release-inputs/CONTENTS.json",
+      "bytes": 6972,
+      "sha256": "4b9347529a4c2561f72ccdcbb62a50a2a9a707deca00c9b66a9e68a5df07cb90",
+      "expected": "4b9347529a4c2561f72ccdcbb62a50a2a9a707deca00c9b66a9e68a5df07cb90"
+    },
+    {
+      "file": "release-inputs/Firmware/ALPHA3_VALIDATION.md",
+      "bytes": 1963,
+      "sha256": "f012aa26bf5160016639c0bb7b04871ac67726f6d3fee2d23f0d614ed7e88e1b",
+      "expected": "f012aa26bf5160016639c0bb7b04871ac67726f6d3fee2d23f0d614ed7e88e1b"
+    },
+    {
+      "file": "release-inputs/Firmware/FIRMWARE_MANIFEST.json",
+      "bytes": 1360,
+      "sha256": "9a12078c1f47c92da7f46dfd4d896a7bfa4e36bec1f0824b400e8ed60ef3b7e0",
+      "expected": "9a12078c1f47c92da7f46dfd4d896a7bfa4e36bec1f0824b400e8ed60ef3b7e0"
+    },
+    {
+      "file": "release-inputs/Firmware/FONT_DISTRIBUTION.md",
+      "bytes": 4251,
+      "sha256": "2a82c52a9b576252b000bf0197dc825d6fed690c4b68826530cacd8133bf5fd1",
+      "expected": "2a82c52a9b576252b000bf0197dc825d6fed690c4b68826530cacd8133bf5fd1"
+    },
+    {
+      "file": "release-inputs/Firmware/INSTALL.md",
+      "bytes": 7813,
+      "sha256": "0f6b77632626f85f2e3c8b12a36f73aaedb1df80f7b3446c58a7395185fa5cfc",
+      "expected": "0f6b77632626f85f2e3c8b12a36f73aaedb1df80f7b3446c58a7395185fa5cfc"
+    },
+    {
+      "file": "release-inputs/Firmware/INSTALL.zh-CN.md",
+      "bytes": 4642,
+      "sha256": "9d05173b2d0c34d5a726cff25be04e923e17f0300707eee923043bc151727523",
+      "expected": "9d05173b2d0c34d5a726cff25be04e923e17f0300707eee923043bc151727523"
+    },
+    {
+      "file": "release-inputs/Firmware/LICENSE_INVENTORY.md",
+      "bytes": 16485,
+      "sha256": "82718f85435b54e35cd7e9f5c3cf93c8432beef9295a4c201736bb3b94ab8174",
+      "expected": "82718f85435b54e35cd7e9f5c3cf93c8432beef9295a4c201736bb3b94ab8174"
+    },
+    {
+      "file": "release-inputs/Firmware/RELEASE_PAIR.json",
+      "bytes": 4207,
+      "sha256": "1aae2305882ff3a231f2d94bb7a660aeb3d6e9e0bfa502536d974b56025f9400",
+      "expected": "1aae2305882ff3a231f2d94bb7a660aeb3d6e9e0bfa502536d974b56025f9400"
+    },
+    {
+      "file": "release-inputs/Firmware/RESOURCE_STATUS.md",
+      "bytes": 20987,
+      "sha256": "f82c963927014921640d010de5f7981baf642df8137c096dd8651a1b7d3ced58",
+      "expected": "f82c963927014921640d010de5f7981baf642df8137c096dd8651a1b7d3ced58"
+    },
+    {
+      "file": "release-inputs/Firmware/TF_RESOURCES.json",
+      "bytes": 5400,
+      "sha256": "215f0b2fb905b0a7f24d7c2d085a6480711f2e7fe27ffb30ab6c1c9d840fe844",
+      "expected": "215f0b2fb905b0a7f24d7c2d085a6480711f2e7fe27ffb30ab6c1c9d840fe844"
+    },
+    {
+      "file": "release-inputs/Firmware/THIRD_PARTY.md",
+      "bytes": 15045,
+      "sha256": "e22a1184b7020c2ca18faf7a98a189704898ff6c62ce438cbf6cdb0fb66ab671",
+      "expected": "e22a1184b7020c2ca18faf7a98a189704898ff6c62ce438cbf6cdb0fb66ab671"
+    },
+    {
+      "file": "release-inputs/Firmware/VENDOR_MODIFICATIONS.md",
+      "bytes": 2373,
+      "sha256": "340aca1c09f915e6c4bb6d840050dcc3d7edd8d019ac4c024cca4357d59f12ab",
+      "expected": "340aca1c09f915e6c4bb6d840050dcc3d7edd8d019ac4c024cca4357d59f12ab"
+    },
+    {
+      "file": "release-inputs/Firmware/app.bin",
+      "bytes": 4021152,
+      "sha256": "165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd",
+      "expected": "165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd"
+    },
+    {
+      "file": "release-inputs/Firmware/boot_app0.bin",
+      "bytes": 8192,
+      "sha256": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+      "expected": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0"
+    },
+    {
+      "file": "release-inputs/Firmware/bootloader.bin",
+      "bytes": 19968,
+      "sha256": "31b3c1be45dc5a76aa85c82540d6787b675e711eaf11021a5eea7e36f469c6de",
+      "expected": "31b3c1be45dc5a76aa85c82540d6787b675e711eaf11021a5eea7e36f469c6de"
+    },
+    {
+      "file": "release-inputs/Firmware/check_install.py",
+      "bytes": 7585,
+      "sha256": "cf8052f571546029ca1b15b46a7e659b505694af5c2769b5f104f5c5935e7742",
+      "expected": "cf8052f571546029ca1b15b46a7e659b505694af5c2769b5f104f5c5935e7742"
+    },
+    {
+      "file": "release-inputs/Firmware/install_firmware.py",
+      "bytes": 9004,
+      "sha256": "576f6eb933d2e3288e86515e4357cdc7f3c8bf2a4ae10e2653bcf32b43c78fb2",
+      "expected": "576f6eb933d2e3288e86515e4357cdc7f3c8bf2a4ae10e2653bcf32b43c78fb2"
+    },
+    {
+      "file": "release-inputs/Firmware/partitions.bin",
+      "bytes": 3072,
+      "sha256": "a172a8ae4cd0db329d6de2635991e3f6e3feb374e0ee9dcab78d9d7b360df6c9",
+      "expected": "a172a8ae4cd0db329d6de2635991e3f6e3feb374e0ee9dcab78d9d7b360df6c9"
+    },
+    {
+      "file": "release-inputs/LICENSE",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "expected": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "file": "release-inputs/LICENSES/CC0-1.0.txt",
+      "bytes": 7171,
+      "sha256": "437ca31a127c9f1b191ff9a42bb563e5f7e414ae819006dca4635d9fb34aeb94",
+      "expected": "437ca31a127c9f1b191ff9a42bb563e5f7e414ae819006dca4635d9fb34aeb94"
+    },
+    {
+      "file": "release-inputs/LICENSES/GNU_GPL_v3.txt",
+      "bytes": 35149,
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+      "expected": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+    },
+    {
+      "file": "release-inputs/LICENSES/GNU_LGPL_v3.txt",
+      "bytes": 7652,
+      "sha256": "e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118",
+      "expected": "e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118"
+    },
+    {
+      "file": "release-inputs/LICENSES/MiSans_License.pdf",
+      "bytes": 79535,
+      "sha256": "4a93a27cd2bd81b3b5ecfd0a853144a876fa26938a93a68443c67d74172fcb86",
+      "expected": "4a93a27cd2bd81b3b5ecfd0a853144a876fa26938a93a68443c67d74172fcb86"
+    },
+    {
+      "file": "release-inputs/LICENSES/Nayuki_QR_MIT.txt",
+      "bytes": 1245,
+      "sha256": "aa22f0fefb530552bfcc713e3791c80796c2a2e666ed61856bcf4767a6852984",
+      "expected": "aa22f0fefb530552bfcc713e3791c80796c2a2e666ed61856bcf4767a6852984"
+    },
+    {
+      "file": "release-inputs/LICENSES/OFL-1.1.txt",
+      "bytes": 4448,
+      "sha256": "c38b1994a5e48ac30ac7d1da7d0409fd8fd8127dfe28a13d6e787d5b1ef34a5e",
+      "expected": "c38b1994a5e48ac30ac7d1da7d0409fd8fd8127dfe28a13d6e787d5b1ef34a5e"
+    },
+    {
+      "file": "release-inputs/LICENSES/Unicode_LICENSE.txt",
+      "bytes": 1995,
+      "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+      "expected": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96"
+    },
+    {
+      "file": "release-inputs/LICENSES/gcc/COPYING.RUNTIME",
+      "bytes": 3324,
+      "sha256": "9d6b43ce4d8de0c878bf16b54d8e7a10d9bd42b75178153e3af6a815bdc90f74",
+      "expected": "9d6b43ce4d8de0c878bf16b54d8e7a10d9bd42b75178153e3af6a815bdc90f74"
+    },
+    {
+      "file": "release-inputs/LICENSES/gcc/COPYING3",
+      "bytes": 35147,
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+      "expected": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+    },
+    {
+      "file": "release-inputs/LICENSES/gcc/COPYING3.LIB",
+      "bytes": 7639,
+      "sha256": "a853c2ffec17057872340eee242ae4d96cbf2b520ae27d903e1b2fef1a5f9d1c",
+      "expected": "a853c2ffec17057872340eee242ae4d96cbf2b520ae27d903e1b2fef1a5f9d1c"
+    },
+    {
+      "file": "release-inputs/LICENSES/jieba_LICENSE",
+      "bytes": 1075,
+      "sha256": "18ba0984839f85853b29fadaf992f7dba8fd0ca0fbeae34de2b8735222dc7a37",
+      "expected": "18ba0984839f85853b29fadaf992f7dba8fd0ca0fbeae34de2b8735222dc7a37"
+    },
+    {
+      "file": "release-inputs/LICENSES/nayuki/LICENSE.txt",
+      "bytes": 1245,
+      "sha256": "aa22f0fefb530552bfcc713e3791c80796c2a2e666ed61856bcf4767a6852984",
+      "expected": "aa22f0fefb530552bfcc713e3791c80796c2a2e666ed61856bcf4767a6852984"
+    },
+    {
+      "file": "release-inputs/LICENSES/nayuki/SOURCE.json",
+      "bytes": 531,
+      "sha256": "3686bccea300b1a46218c62e5674bc9707d0527a67f362a37a57b35da4d8a796",
+      "expected": "3686bccea300b1a46218c62e5674bc9707d0527a67f362a37a57b35da4d8a796"
+    },
+    {
+      "file": "release-inputs/LICENSES/phrase_pinyin_LICENSE",
+      "bytes": 1066,
+      "sha256": "89ac55df747e4776088c3e77531ef61b973a1a59dd8e6a4548a58996da9a4f70",
+      "expected": "89ac55df747e4776088c3e77531ef61b973a1a59dd8e6a4548a58996da9a4f70"
+    },
+    {
+      "file": "release-inputs/LICENSES/thuocl_LICENSE",
+      "bytes": 1063,
+      "sha256": "db4b8cca414db4cf487b933d07a0514f77caf44f9f3d392f2bc9d7ba0d511c58",
+      "expected": "db4b8cca414db4cf487b933d07a0514f77caf44f9f3d392f2bc9d7ba0d511c58"
+    },
+    {
+      "file": "release-inputs/NOTICE",
+      "bytes": 649,
+      "sha256": "ee8bc0efffd59e4b4b92115ba815014918efe2d5abedbefbcdb5b47b1579192c",
+      "expected": "ee8bc0efffd59e4b4b92115ba815014918efe2d5abedbefbcdb5b47b1579192c"
+    },
+    {
+      "file": "release-inputs/Notices/Arduino-LICENSE.md",
+      "bytes": 26335,
+      "sha256": "62e54861b30e953735dc187f036917c588665dbe3c5dd88449e34317608bbf5e",
+      "expected": "62e54861b30e953735dc187f036917c588665dbe3c5dd88449e34317608bbf5e"
+    },
+    {
+      "file": "release-inputs/Notices/LXGW_OFL.txt",
+      "bytes": 4448,
+      "sha256": "c38b1994a5e48ac30ac7d1da7d0409fd8fd8127dfe28a13d6e787d5b1ef34a5e",
+      "expected": "c38b1994a5e48ac30ac7d1da7d0409fd8fd8127dfe28a13d6e787d5b1ef34a5e"
+    },
+    {
+      "file": "release-inputs/Notices/TinyUSB-LICENSE",
+      "bytes": 1095,
+      "sha256": "b01185698f530f4f61b28f42d5a4d6bbe7834bde6a63f00773235628a7bdce22",
+      "expected": "b01185698f530f4f61b28f42d5a4d6bbe7834bde6a63f00773235628a7bdce22"
+    },
+    {
+      "file": "release-inputs/README.md",
+      "bytes": 899,
+      "sha256": "f705f5b211a32dfc179cc30b3f2080161593fbede3557e080bf5e83f275cb078",
+      "expected": "f705f5b211a32dfc179cc30b3f2080161593fbede3557e080bf5e83f275cb078"
+    },
+    {
+      "file": "release-inputs/vendor/sdmmc-lifecycle/LICENSE",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "expected": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "file": "release-inputs/vendor/sdmmc-lifecycle/NOTICE.md",
+      "bytes": 1324,
+      "sha256": "4fa859c51f501a9fabd11a997a0863aae2c8777dc3c3d9dbad922166b293de80",
+      "expected": "4fa859c51f501a9fabd11a997a0863aae2c8777dc3c3d9dbad922166b293de80"
+    },
+    {
+      "file": "release-inputs/vendor/sdmmc-lifecycle/SOURCE.json",
+      "bytes": 321,
+      "sha256": "ecd71f9228bc5ac4f39ee2b4ce0151ab3179b08c4b47b8f78418ce70793b24f7",
+      "expected": "ecd71f9228bc5ac4f39ee2b4ce0151ab3179b08c4b47b8f78418ce70793b24f7"
+    },
+    {
+      "file": "release-inputs/vendor/waveshare-st7305/LICENSE",
+      "bytes": 11339,
+      "sha256": "889d80455bc641cc6aa8dd7f5e78c271f02df0cdde598148739200795e23ef6b",
+      "expected": "889d80455bc641cc6aa8dd7f5e78c271f02df0cdde598148739200795e23ef6b"
+    },
+    {
+      "file": "release-inputs/vendor/waveshare-st7305/NOTICE.md",
+      "bytes": 939,
+      "sha256": "288f53c14c89b084c3124baee3e40fd11b911d6a341a1ac3ecbe8fd0fcf87f3f",
+      "expected": "288f53c14c89b084c3124baee3e40fd11b911d6a341a1ac3ecbe8fd0fcf87f3f"
+    },
+    {
+      "file": "sources/Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_Source.zip",
+      "bytes": 8151209,
+      "sha256": "7cca7a13b685ab74f22150f0ed6521081bb9fcceec078da49ff457c85f67f69e",
+      "expected": "7cca7a13b685ab74f22150f0ed6521081bb9fcceec078da49ff457c85f67f69e"
+    }
+  ],
+  "deviceAccess": false
+}

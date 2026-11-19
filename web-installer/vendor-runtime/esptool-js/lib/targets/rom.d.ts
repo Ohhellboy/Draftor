@@ -1,0 +1,111 @@
+import { ESPLoader } from "../esploader.js";
+/**
+ * One ROM memory-map region: `[start, end, name]`.
+ */
+export type MemoryMapEntry = [number, number, string];
+/**
+ * Represents a chip ROM with basic registers field and abstract functions.
+ */
+export declare abstract class ROM {
+    /**
+     * Read ESP32 eFuse.
+     * @param {ESPLoader} loader - Loader class to communicate with chip.
+     * @param {number} offset - Offset to start erase.
+     * @returns {number} The eFuse number.
+     */
+    protected readEfuse?(loader: ESPLoader, offset: number): Promise<number>;
+    /**
+     * Get the package version number.
+     * @param {ESPLoader} loader - Loader class to communicate with chip.
+     * @returns {number} The package version number.
+     */
+    protected getPkgVersion?(loader: ESPLoader): Promise<number>;
+    /**
+     * Get the chip revision number.
+     * @param {ESPLoader} loader - Loader class to communicate with chip.
+     * @returns {number} The chip revision number.
+     */
+    getChipRevision?(loader: ESPLoader): Promise<number>;
+    /**
+     * Get the chip description.
+     * @param {ESPLoader} loader - Loader class to communicate with chip.
+     * @returns {string} The chip description as string.
+     */
+    abstract getChipDescription(loader: ESPLoader): Promise<string>;
+    /**
+     * Get the chip features.
+     * @param {ESPLoader} loader - Loader class to communicate with chip.
+     * @returns {string} The chip features as string.
+     */
+    abstract getChipFeatures(loader: ESPLoader): Promise<string[]>;
+    /**
+     * Get the crystal frequency for the chip.
+     * @param {ESPLoader} loader - Loader class to communicate with chip.
+     * @returns {string} The crystal frequency as number.
+     */
+    abstract getCrystalFreq(loader: ESPLoader): Promise<number>;
+    /**
+     * Convert a number to hex string.
+     * @param {number} d - Number to convert to hex string.
+     * @returns {string} The hex string.
+     */
+    abstract _d2h(d: number): string;
+    /**
+     * Get the chip mac address.
+     * @param {ESPLoader} loader - Loader class to communicate with chip.
+     * @returns {string} The mac address string.
+     */
+    abstract readMac(loader: ESPLoader): Promise<string>;
+    /**
+     * Function to be executed after chip connection
+     * @param {ESPLoader} loader - Loader class to communicate with chip.
+     */
+    postConnect?(loader: ESPLoader): Promise<void>;
+    /**
+     * True if the ROM is talking over USB-OTG (UARTDEV_BUF_NO fallback).
+     */
+    usesUsbOtg?(loader: ESPLoader): Promise<boolean>;
+    /**
+     * True if the ROM is talking over USB-OTG (ESP32-S2 naming).
+     */
+    usingUsbOtg?(loader: ESPLoader): Promise<boolean>;
+    /**
+     * True if the ROM is talking over USB-Serial/JTAG (UARTDEV_BUF_NO fallback).
+     */
+    usesUsbJtagSerial?(loader: ESPLoader): Promise<boolean>;
+    /**
+     * Get the chip erase size.
+     * @param {number} offset - Offset to start erase.
+     * @param {number} size - Size to erase.
+     * @returns {number} The erase size of the chip as number.
+     */
+    getEraseSize(offset: number, size: number): number;
+    FLASH_SIZES: {
+        [key: string]: number;
+    };
+    FLASH_FREQUENCY: {
+        [key: string]: number;
+    };
+    abstract BOOTLOADER_FLASH_OFFSET: number;
+    abstract CHIP_NAME: string;
+    abstract FLASH_WRITE_SIZE: number;
+    IMAGE_CHIP_ID?: number;
+    /**
+     * True when chip type is identified from the magic register, not GET_SECURITY_INFO chip-id.
+     * ESP8266/ESP32 do not support the command; ESP32-S2 supports it but omits chip-id.
+     */
+    USES_MAGIC_VALUE: boolean;
+    SPI_ADDR_REG_MSB?: boolean;
+    USB_RAM_BLOCK?: number;
+    abstract SPI_MOSI_DLEN_OFFS: number;
+    abstract SPI_MISO_DLEN_OFFS: number;
+    abstract SPI_REG_BASE: number;
+    abstract SPI_USR_OFFS: number;
+    abstract SPI_USR1_OFFS: number;
+    abstract SPI_USR2_OFFS: number;
+    abstract SPI_W0_OFFS: number;
+    abstract UART_CLKDIV_MASK: number;
+    abstract UART_CLKDIV_REG: number;
+    abstract UART_DATE_REG_ADDR: number;
+    abstract MEMORY_MAP: MemoryMapEntry[];
+}

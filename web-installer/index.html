@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f7f5ef">
+  <meta name="description" content="Draftor 草稿机：无打扰口袋中文写作。开源，无网络，无 AI，无广告。官网固件安装入口。">
+  <title>Draftor 草稿机 · 固件安装</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:,">
+</head>
+<body>
+<div class="wrap">
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="Draftor 首页"><span class="brand-seal" aria-hidden="true">稿</span><span class="brand-name">Draftor</span></a>
+    <button type="button" class="lang" id="lang-toggle" aria-label="Switch language to English">中文 / EN</button>
+  </header>
+  <main>
+    <section class="hero" id="hero" aria-labelledby="hero-title">
+      <!-- Reserved for an approved product photo; this release retains the title fallback. -->
+      <img class="hero-image" id="hero-image" alt="Draftor 草稿机设备照片">
+      <h1 id="hero-title" data-i18n="hero">草稿机</h1>
+      <p class="positioning" data-i18n="positioning">无打扰口袋中文写作</p>
+      <p class="values" data-i18n="values">开源，无网络，无 AI，无广告</p>
+    </section>
+    <section class="install" aria-labelledby="install-title">
+      <h2 id="install-title" data-i18n="installTitle">安装 Draftor 固件</h2>
+      <p class="install-intro" data-i18n="intro">通过 USB 连接设备，即可在浏览器中安装固件。无需额外下载软件。</p>
+      <div class="board-line">
+        <span data-i18n="boardLabel">适用设备：</span>
+        <strong id="board-name">微雪 ESP32-S3-RLCD-4.2</strong>
+        <span id="board-detail">（ST7305）</span>
+        <button type="button" class="inline-btn" id="board-change" aria-expanded="false" aria-controls="board-chooser" data-i18n="change">更换</button>
+      </div>
+      <div class="board-chooser" id="board-chooser" hidden>
+        <label class="board-choice">
+          <input type="radio" name="board" checked value="waveshare">
+          <span><strong data-i18n="wsName">微雪集成版</strong><small>ESP32-S3-RLCD-4.2 · ST7305 · SDMMC</small></span>
+        </label>
+        <label class="board-choice disabled">
+          <input type="radio" name="board" disabled value="prototype">
+          <span><strong data-i18n="protoName">Draftor S3 原型版（暂未开放）</strong><small>ESP32-S3 N16R8 · ST7306 · SPI TF</small></span>
+        </label>
+      </div>
+      <button class="install-primary" id="install-btn" type="button" aria-describedby="install-hint">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5M5 16v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/></svg>
+        <span data-i18n="installBtn">连接设备并安装</span>
+      </button>
+      <p class="install-hint" id="install-hint" data-i18n="browserHint">请使用电脑端 Chrome 或 Edge 浏览器</p>
+      <p class="build-note" data-i18n="previewHint">网页预览版 · 尚未接入正式烧录程序</p>
+    </section>
+  </main>
+  <footer class="footer">
+    <nav aria-label="帮助与信息">
+      <button type="button" data-modal="draftor" data-i18n="whatDraftor">什么是草稿机</button>
+      <button type="button" data-modal="bgime" data-i18n="whatBgime">什么是大鹅输入法</button>
+      <button type="button" data-modal="help" data-i18n="help">安装帮助</button>
+      <button type="button" data-modal="advanced" data-i18n="advanced">高级选项</button>
+      <a href="https://github.com/Ohhellboy/Draftor" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </nav>
+  </footer>
+</div>
+<dialog id="info-dialog" aria-labelledby="dialog-heading">
+  <div class="dialog-inner">
+    <div class="dialog-title"><h3 id="dialog-heading"></h3><button class="close" id="dialog-close" aria-label="关闭">×</button></div>
+    <div class="dialog-body" id="dialog-body"></div>
+  </div>
+</dialog>
+<script type="module" src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+{
+  "version": "v0.1.0-alpha.3",
+  "commit": "f18939f8880e2278c231739d553fbf983c19e0f6",
+  "tagObject": "36366a585dc8151b28463d0d78d0d11ce5ccbacf",
+  "board": "WAVESHARE_RLCD42",
+  "controller": "ST7305",
+  "chip": "esp32s3",
+  "flashBytes": 16777216,
+  "slotCapacity": 4194304,
+  "label": "WAVESHARE_A3_BLE_REWRITE_R3_ROT180_TEST_ONLY",
+  "files": {
+    "app.bin": {
+      "offset": 65536,
+      "bytes": 4021152,
+      "sha256": "165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd",
+      "md5": "21695d723c88f0d43e84ae33f8eb848b"
+    },
+    "bootloader.bin": {
+      "offset": 0,
+      "bytes": 19968,
+      "sha256": "31b3c1be45dc5a76aa85c82540d6787b675e711eaf11021a5eea7e36f469c6de",
+      "md5": "51ea0a64aa9692776750b237b2a34821"
+    },
+    "partitions.bin": {
+      "offset": 32768,
+      "bytes": 3072,
+      "sha256": "a172a8ae4cd0db329d6de2635991e3f6e3feb374e0ee9dcab78d9d7b360df6c9",
+      "md5": "c0dc7c8326c9350832563a1aeb6abc13"
+    },
+    "boot_app0.bin": {
+      "offset": 57344,
+      "bytes": 8192,
+      "sha256": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+      "md5": "e6327541e2dc394ca2c3b3280ac0f39f"
+    }
+  },
+  "documents": {
+    "FIRMWARE_MANIFEST.json": {
+      "bytes": 1360,
+      "sha256": "9a12078c1f47c92da7f46dfd4d896a7bfa4e36bec1f0824b400e8ed60ef3b7e0"
+    },
+    "WAVESHARE_RLCD42.json": {
+      "bytes": 1360,
+      "sha256": "9a12078c1f47c92da7f46dfd4d896a7bfa4e36bec1f0824b400e8ed60ef3b7e0"
+    },
+    "RELEASE_PAIR.json": {
+      "bytes": 4207,
+      "sha256": "1aae2305882ff3a231f2d94bb7a660aeb3d6e9e0bfa502536d974b56025f9400"
+    },
+    "TF_RESOURCES.json": {
+      "bytes": 5400,
+      "sha256": "215f0b2fb905b0a7f24d7c2d085a6480711f2e7fe27ffb30ab6c1c9d840fe844"
+    }
+  },
+  "archives": {
+    "Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_Firmware.zip": {
+      "bytes": 2913395,
+      "sha256": "626fb11222281dc4351d2de71ff9a36422f4aeca487e3475484b8bd55315699a"
+    },
+    "Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_LearningIndex.zip": {
+      "bytes": 1831828,
+      "sha256": "05da4128d132c0673ae28bf9a1f35d3997a017cd1995d51d38051dc15f55c3eb"
+    },
+    "Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_MANIFEST.json": {
+      "bytes": 2383,
+      "sha256": "50dc7c11e4097bb601cc658cbccc986f4fbca4cfef3633840e46696e59f5b548"
+    },
+    "SHA256SUMS": {
+      "bytes": 480,
+      "sha256": "42bbf75474f1590d6d514cbf6e6ad73b694e4b87218c6625ee046a273f1ff27b"
+    },
+    "Draftor_Web_Installer_v0_1_repacked.zip": {
+      "bytes": 8240,
+      "sha256": "702d71dbe462d7944a0370fcff81326fe522a4fd23e9eb176b5f891aec622a28"
+    },
+    "BRIEF.md": {
+      "bytes": 9206,
+      "sha256": "0ccf2accb5d8fa85a069d7271e556180d684e198e37fe75819212a5e0f05ccfc"
+    },
+    "CONTENTS.json": {
+      "bytes": 6972,
+      "sha256": "4b9347529a4c2561f72ccdcbb62a50a2a9a707deca00c9b66a9e68a5df07cb90"
+    }
+  },
+  "blankFlashMd5": "d5929b7a5ad99f511fc83d7d0b48b85f"
+}

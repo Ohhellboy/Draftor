@@ -1,0 +1,95 @@
+    :root { --paper:#f7f5ef; --ink:#292924; --cinnabar:#a74539; --quiet:#766f64; --line:#d9d5c9; --focus:#815a50; }
+    * { box-sizing:border-box; }
+    html { background:var(--paper); scroll-behavior:smooth; }
+    body { margin:0; min-height:100vh; color:var(--ink); background:var(--paper);
+      font-family: -apple-system, BlinkMacSystemFont, "Noto Sans CJK SC", "Noto Sans SC", "Source Han Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing:antialiased; }
+    button, input, select { font:inherit; }
+    button { cursor:pointer; }
+    button:focus-visible, a:focus-visible { outline:3px solid var(--focus); outline-offset:4px; }
+    .wrap { max-width:1000px; width:calc(100% - 30px); margin:0 auto; }
+    .site-header { display:flex; align-items:center; justify-content:space-between; gap:20px; min-height:92px; border-bottom:1px solid var(--line); }
+    .brand { display:flex; align-items:center; gap:11px; color:inherit; text-decoration:none; }
+    .brand-seal { display:grid; place-items:center; flex:0 0 auto; width:40px; height:52px; border-radius:4px; background:var(--cinnabar); color:white; font-weight:700; font-size:21px; }
+    .brand-name { font-size:22px; font-weight:700; letter-spacing:-.5px; }
+    .lang { border:0; color:var(--quiet); background:transparent; padding:10px 0 10px 12px; font-size:15px; }
+    .hero { text-align:center; padding:54px 0 23px; }
+    .hero h1 { margin:0 0 10px; font-size:31px; font-weight:750; letter-spacing:.01em; line-height:1.45; }
+    .positioning { margin:0; color:var(--quiet); font-size:18px; font-weight:400; line-height:1.7; }
+    .values { margin:14px 0 0; color:var(--ink); font-size:14px; font-weight:550; letter-spacing:.012em; line-height:1.75; }
+    .hero-image { display:none; max-width:380px; max-height:210px; object-fit:contain; margin:0 auto 14px; }
+    .hero.has-image .hero-image { display:block; }
+    .hero.has-image h1 { display:none; }
+    .install { padding-top:4px; text-align:center; }
+    .install h2 { margin:0 0 12px; font-size:23px; font-weight:750; line-height:1.5; }
+    .install-intro { color:var(--quiet); margin:0 0 18px; font-size:16px; line-height:1.65; }
+    .board-line { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:5px; margin:0 0 16px; color:var(--quiet); font-size:14px; }
+    .board-line strong { color:var(--ink); font-weight:650; }
+    .inline-btn { border:0; background:transparent; color:var(--quiet); border-bottom:1px solid currentColor; margin-left:8px; padding:0 1px 1px; border-radius:0; }
+    .board-chooser { max-width:620px; margin:0 auto 16px; border:1px solid var(--line); border-radius:5px; padding:12px 15px; text-align:left; background:rgba(255,255,255,.18); }
+    .board-chooser[hidden] {display:none;}
+    .board-choice {display:flex; align-items:center; gap:10px; padding:8px 0; line-height:1.5; }
+    .board-choice + .board-choice {border-top:1px solid var(--line);}
+    .board-choice small {display:block; color:var(--quiet); font-size:12px; margin-top:3px;}
+    .board-choice input {accent-color:var(--ink); width:17px; height:17px;}
+    .board-choice.disabled {opacity:.54; cursor:not-allowed;}
+    .install-primary { width:100%; display:flex; align-items:center; justify-content:center; gap:10px; border:0; border-radius:8px; background:var(--ink); color:white; min-height:62px; padding:15px 20px; font-size:19px; font-weight:700; transition:background .15s; }
+    .install-primary:hover { background:#44443c; }
+    .install-primary svg { width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .install-hint { color:var(--quiet); margin:15px 0 0; font-size:14px; line-height:1.65; }
+    .build-note { color:var(--quiet); margin:6px 0 0; font-size:12px; }
+    .footer { margin-top:26px; padding:25px 0 32px; border-top:1px solid var(--line); text-align:center; }
+    .footer nav { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:9px 20px; }
+    .footer button, .footer a {padding:2px 0; border:0; background:transparent; color:var(--quiet); text-decoration:none; font-size:14px;}
+    .footer button:hover, .footer a:hover {color:var(--ink); text-decoration:underline;}
+    dialog { width:min(520px, calc(100% - 32px)); padding:0; border:1px solid var(--line); border-radius:8px; color:var(--ink); background:var(--paper); box-shadow:0 20px 65px #201b1530; }
+    dialog::backdrop {background:rgba(34,32,26,.38);}
+    .dialog-inner { padding:24px 25px 22px; }
+    .dialog-title {display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px;}
+    .dialog-title h3 {margin:0; font-size:21px; line-height:1.4;}
+    .close {border:0; background:transparent; font-size:26px; color:var(--quiet); padding:0 3px; line-height:1;}
+    .dialog-body {color:var(--quiet); font-size:15px; line-height:1.9;}
+    .dialog-body p {margin:0 0 12px;}
+    .dialog-body a {color:var(--ink); text-decoration:underline;}
+    .dialog-body strong {color:var(--ink);}
+    .dialog-body ul {margin:2px 0 0; padding-left:21px;}
+    .notice { border-left:3px solid var(--cinnabar); padding:10px 13px; margin-top:12px; background:#eee9e1; color:var(--ink); }
+    .device-pic-note {display:none;}
+    @media(max-width:600px){
+      .wrap{width:calc(100% - 32px);} .site-header{min-height:76px;}
+      .brand-seal{width:34px;height:44px;font-size:18px;} .brand-name{font-size:20px;}
+      .hero{padding:55px 0 25px;} .hero h1{font-size:28px;}
+      .positioning{font-size:17px;} .values{font-size:14px;}
+      .install h2{font-size:21px;} .install-intro{font-size:15px; padding:0 5px;}
+      .install-primary{font-size:17px; min-height:58px;} .board-line{font-size:13px;}
+      .footer nav{column-gap:17px;} .footer button,.footer a{font-size:13px;}
+    }
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;} .install-primary{transition:none;}}
+/* Installer interaction only; v0.1 page layout, palette and hierarchy retained. */
+[hidden] { display:none !important; }
+#install-dialog { width:min(680px, calc(100% - 32px)); max-height:90vh; overflow:auto; }
+.confirm { display:flex; gap:10px; align-items:flex-start; text-align:left; margin:16px 0; line-height:1.65; }
+.confirm input { flex:0 0 auto; width:18px; height:18px; margin:4px 0 0; accent-color:var(--cinnabar); }
+.field { display:block; margin-top:16px; font-weight:600; color:var(--ink); }
+#expected-mac { width:100%; padding:10px; border:1px solid var(--line); background:#fff9; border-radius:4px; font:16px ui-monospace,monospace; }
+.field-hint { font-size:14px; margin-top:6px !important; }
+#current-app { display:block; width:100%; margin:7px 0 16px; font-size:14px; }
+#workflow-status { color:var(--ink); font-weight:600; }
+#workflow-error { color:var(--cinnabar); overflow-wrap:anywhere; }
+#plan-json { font:13px/1.6 ui-monospace,monospace; white-space:pre-wrap; overflow-wrap:anywhere; margin:10px 0; max-height:270px; overflow:auto; }
+.dialog-body code { overflow-wrap:anywhere; }
+#plan-title { font-size:17px; color:var(--ink); margin:18px 0 10px; }
+#connect-read, #execute-plan { margin-top:18px; font-size:16px; min-height:48px; }
+button:disabled { cursor:not-allowed; opacity:.48; }
+.workflow-actions { display:flex; gap:20px; justify-content:space-between; margin-top:18px; }
+.workflow-actions button { border:0; background:transparent; padding:6px 0; color:var(--ink); text-decoration:underline; font-size:14px; }
+#write-progress { width:100%; margin:16px 0; accent-color:var(--cinnabar); }
+summary { cursor:pointer; color:var(--ink); }
+#simulation-notice { margin-top:0; }
+.resource-guide { padding:24px 0 40px; line-height:1.8; }
+.resource-guide a { color:var(--ink); }
+.resource-guide code { overflow-wrap:anywhere; }
+.resource-guide li { margin:16px 0; }
+.resource-table { overflow-x:auto; }
+.resource-table table { border-collapse:collapse; width:100%; font-size:14px; }
+.resource-table th,.resource-table td { border-bottom:1px solid var(--line); padding:10px 8px; text-align:left; vertical-align:top; }

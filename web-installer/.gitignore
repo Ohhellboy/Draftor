@@ -1,0 +1,10 @@
+node_modules/
+dist/
+dist-device-test/
+.test-cache/
+test-results/
+playwright-report/
+/release-inputs/Draftor_v0.1.0-alpha.2.1_Resources.zip
+/release-inputs/Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_Source.zip
+/public/sources/Draftor_Web_Installer_R1_source.zip
+/delivery/

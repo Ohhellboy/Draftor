@@ -1,0 +1,102 @@
+{
+  "result": "PASS",
+  "physicalDeviceAccess": false,
+  "fixture": "synthetic Web Serial streams",
+  "receipt": {
+    "status": "VERIFIED_BOOT_PENDING",
+    "simulation": false,
+    "release": "v0.1.0-alpha.3",
+    "appSha256": "165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd",
+    "eraseStarted": false,
+    "writeStarted": true,
+    "independentVerification": true,
+    "resetIssued": false,
+    "deviceQualification": "DEVICE_PENDING",
+    "tfResources": "NOT_CHECKED",
+    "plan": {
+      "mode": "update",
+      "appSlot": "app0",
+      "appOffset": "0x10000",
+      "appBytes": 4021152,
+      "appSha256": "165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd",
+      "writes": [
+        {
+          "name": "app.bin",
+          "offset": 65536,
+          "bytes": 4021152,
+          "offsetHex": "0x10000",
+          "endExclusive": "0x3e5ba0",
+          "sectorEndExclusive": "0x3e6000"
+        }
+      ],
+      "fullErase": false,
+      "atomicUpdate": false,
+      "interruption": "Active App may be partial; no automatic retry, alternate slot or reboot. Recover from verified private backups.",
+      "neverWrite": [
+        "bootloader",
+        "partition table",
+        "otadata",
+        "NVS / pairing",
+        "inactive App",
+        "ime_ro",
+        "ffat",
+        "coredump",
+        "TF card"
+      ],
+      "requires": [
+        "physical Waveshare board",
+        "matching private MAC",
+        "verified recoverable Flash and TF backups",
+        "TF removed",
+        "explicit plan approval"
+      ],
+      "hardwareWriteAllowed": true,
+      "deviceQualification": "DEVICE_PENDING",
+      "tfResources": "NOT_CHECKED"
+    },
+    "protectedRegionsUnchanged": true,
+    "flashOutcome": "VERIFIED_CONTENT_BOOT_PENDING"
+  },
+  "opcodeCounts": {
+    "0x8": 1,
+    "0x14": 3,
+    "0x9": 27,
+    "0xa": 17,
+    "0xd": 1,
+    "0xb": 1,
+    "0xe": 576,
+    "0x13": 11,
+    "0x2": 1,
+    "0x3": 3927
+  },
+  "begin": {
+    "op": 2,
+    "size": 20,
+    "payload": [
+      160,
+      91,
+      61,
+      0,
+      87,
+      15,
+      0,
+      0,
+      0,
+      4,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "checksum": 0
+  },
+  "blockSize": 1024,
+  "noFinishCommand": true,
+  "noSignals": true
+}

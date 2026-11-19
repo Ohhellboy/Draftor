@@ -1,0 +1,520 @@
+TAP version 13
+# Subtest: raw Web Serial ROM integration: app0, 64-byte reads, exact writes, independent MD5, no stub/reset/erase
+ok 1 - raw Web Serial ROM integration: app0, 64-byte reads, exact writes, independent MD5, no stub/reset/erase
+  ---
+  duration_ms: 455.028042
+  type: 'test'
+  ...
+# Subtest: raw Web Serial ROM integration: app1, 64-byte reads, exact writes, independent MD5, no stub/reset/erase
+ok 2 - raw Web Serial ROM integration: app1, 64-byte reads, exact writes, independent MD5, no stub/reset/erase
+  ---
+  duration_ms: 429.659125
+  type: 'test'
+  ...
+# Subtest: SLIP escaped c0/db and fragmented frames, including a short slow-read tail
+ok 3 - SLIP escaped c0/db and fragmented frames, including a short slow-read tail
+  ---
+  duration_ms: 58.363084
+  type: 'test'
+  ...
+# Subtest: copy-before-hash prevents caller mutation from changing verified write bytes
+ok 4 - copy-before-hash prevents caller mutation from changing verified write bytes
+  ---
+  duration_ms: 320.017459
+  type: 'test'
+  ...
+# Subtest: ROM stub: terminal refusal, no Flash writes
+ok 5 - ROM stub: terminal refusal, no Flash writes
+  ---
+  duration_ms: 54.553708
+  type: 'test'
+  ...
+# Subtest: ROM wrong chip: terminal refusal, no Flash writes
+ok 6 - ROM wrong chip: terminal refusal, no Flash writes
+  ---
+  duration_ms: 52.223792
+  type: 'test'
+  ...
+# Subtest: ROM secure boot: terminal refusal, no Flash writes
+ok 7 - ROM secure boot: terminal refusal, no Flash writes
+  ---
+  duration_ms: 52.274875
+  type: 'test'
+  ...
+# Subtest: ROM secure download: terminal refusal, no Flash writes
+ok 8 - ROM secure download: terminal refusal, no Flash writes
+  ---
+  duration_ms: 52.967708
+  type: 'test'
+  ...
+# Subtest: ROM unknown flags: terminal refusal, no Flash writes
+ok 9 - ROM unknown flags: terminal refusal, no Flash writes
+  ---
+  duration_ms: 54.253292
+  type: 'test'
+  ...
+# Subtest: ROM encryption: terminal refusal, no Flash writes
+ok 10 - ROM encryption: terminal refusal, no Flash writes
+  ---
+  duration_ms: 53.122875
+  type: 'test'
+  ...
+# Subtest: ROM unknown count: terminal refusal, no Flash writes
+ok 11 - ROM unknown count: terminal refusal, no Flash writes
+  ---
+  duration_ms: 53.203916
+  type: 'test'
+  ...
+# Subtest: ROM 8MiB: terminal refusal, no Flash writes
+ok 12 - ROM 8MiB: terminal refusal, no Flash writes
+  ---
+  duration_ms: 53.88425
+  type: 'test'
+  ...
+# Subtest: ROM unknown JEDEC: terminal refusal, no Flash writes
+ok 13 - ROM unknown JEDEC: terminal refusal, no Flash writes
+  ---
+  duration_ms: 55.203667
+  type: 'test'
+  ...
+# Subtest: ROM SPI busy: terminal refusal, no Flash writes
+ok 14 - ROM SPI busy: terminal refusal, no Flash writes
+  ---
+  duration_ms: 55.665542
+  type: 'test'
+  ...
+# Subtest: ROM ROM read register failure: terminal refusal, no Flash writes
+ok 15 - ROM ROM read register failure: terminal refusal, no Flash writes
+  ---
+  duration_ms: 61.17875
+  type: 'test'
+  ...
+# Subtest: ROM wrong response opcode: terminal refusal, no Flash writes
+ok 16 - ROM wrong response opcode: terminal refusal, no Flash writes
+  ---
+  duration_ms: 54.223042
+  type: 'test'
+  ...
+# Subtest: ROM truncated security: terminal refusal, no Flash writes
+ok 17 - ROM truncated security: terminal refusal, no Flash writes
+  ---
+  duration_ms: 54.840375
+  type: 'test'
+  ...
+# Subtest: ROM declared length mismatch: terminal refusal, no Flash writes
+ok 18 - ROM declared length mismatch: terminal refusal, no Flash writes
+  ---
+  duration_ms: 56.247083
+  type: 'test'
+  ...
+# Subtest: ROM only seven SYNC replies: terminal refusal, no Flash writes
+ok 19 - ROM only seven SYNC replies: terminal refusal, no Flash writes
+  ---
+  duration_ms: 259.50625
+  type: 'test'
+  ...
+# Subtest: unsupported USB transport is refused before opening any port
+ok 20 - unsupported USB transport is refused before opening any port
+  ---
+  duration_ms: 2.862375
+  type: 'test'
+  ...
+# Subtest: security crypt-count 0 is known disabled (even parity)
+ok 21 - security crypt-count 0 is known disabled (even parity)
+  ---
+  duration_ms: 0.265
+  type: 'test'
+  ...
+# Subtest: security crypt-count 3 is known disabled (even parity)
+ok 22 - security crypt-count 3 is known disabled (even parity)
+  ---
+  duration_ms: 0.099542
+  type: 'test'
+  ...
+# Subtest: security crypt-count 5 is known disabled (even parity)
+ok 23 - security crypt-count 5 is known disabled (even parity)
+  ---
+  duration_ms: 0.072375
+  type: 'test'
+  ...
+# Subtest: security crypt-count 6 is known disabled (even parity)
+ok 24 - security crypt-count 6 is known disabled (even parity)
+  ---
+  duration_ms: 0.069125
+  type: 'test'
+  ...
+# Subtest: security crypt-count 1 refuses
+ok 25 - security crypt-count 1 refuses
+  ---
+  duration_ms: 0.290917
+  type: 'test'
+  ...
+# Subtest: security crypt-count 2 refuses
+ok 26 - security crypt-count 2 refuses
+  ---
+  duration_ms: 0.07775
+  type: 'test'
+  ...
+# Subtest: security crypt-count 4 refuses
+ok 27 - security crypt-count 4 refuses
+  ---
+  duration_ms: 0.026209
+  type: 'test'
+  ...
+# Subtest: security crypt-count 7 refuses
+ok 28 - security crypt-count 7 refuses
+  ---
+  duration_ms: 0.025
+  type: 'test'
+  ...
+# Subtest: security crypt-count 8 refuses
+ok 29 - security crypt-count 8 refuses
+  ---
+  duration_ms: 0.023875
+  type: 'test'
+  ...
+# Subtest: security crypt-count 255 refuses
+ok 30 - security crypt-count 255 refuses
+  ---
+  duration_ms: 0.025084
+  type: 'test'
+  ...
+# Subtest: unknown/truncated security structure is never treated as disabled
+ok 31 - unknown/truncated security structure is never treated as disabled
+  ---
+  duration_ms: 0.04025
+  type: 'test'
+  ...
+# Subtest: ROM write status: one attempt, STOP, no finish/reset/fallback
+ok 32 - ROM write status: one attempt, STOP, no finish/reset/fallback
+  ---
+  duration_ms: 107.574709
+  type: 'test'
+  ...
+# Subtest: ROM write throw: one attempt, STOP, no finish/reset/fallback
+ok 33 - ROM write throw: one attempt, STOP, no finish/reset/fallback
+  ---
+  duration_ms: 106.694167
+  type: 'test'
+  ...
+# Subtest: ROM write hang: one attempt, STOP, no finish/reset/fallback
+ok 34 - ROM write hang: one attempt, STOP, no finish/reset/fallback
+  ---
+  duration_ms: 191.51275
+  type: 'test'
+  ...
+# Subtest: ROM write corrupt: one attempt, STOP, no finish/reset/fallback
+ok 35 - ROM write corrupt: one attempt, STOP, no finish/reset/fallback
+  ---
+  duration_ms: 338.590375
+  type: 'test'
+  ...
+# Subtest: non-hex ROM MD5 is fatal and cannot be hex-encoded into a false match
+ok 36 - non-hex ROM MD5 is fatal and cannot be hex-encoded into a false match
+  ---
+  duration_ms: 53.327334
+  type: 'test'
+  ...
+# Subtest: actual adapter refuses fresh, wrong offsets, altered App, and default-locked writes
+ok 37 - actual adapter refuses fresh, wrong offsets, altered App, and default-locked writes
+  ---
+  duration_ms: 232.414208
+  type: 'test'
+  ...
+# Subtest: read timeout, read stream errors and noise become terminal failures
+ok 38 - read timeout, read stream errors and noise become terminal failures
+  ---
+  duration_ms: 184.573375
+  type: 'test'
+  ...
+# Subtest: blocked port close is bounded, with no retry or reset
+ok 39 - blocked port close is bounded, with no retry or reset
+  ---
+  duration_ms: 74.141708
+  type: 'test'
+  ...
+# Subtest: exact release four files and immutable verified storage
+ok 40 - exact release four files and immutable verified storage
+  ---
+  duration_ms: 1.720541
+  type: 'test'
+  ...
+# Subtest: reject tampered app.bin
+ok 41 - reject tampered app.bin
+  ---
+  duration_ms: 9.709041
+  type: 'test'
+  ...
+# Subtest: reject tampered bootloader.bin
+ok 42 - reject tampered bootloader.bin
+  ---
+  duration_ms: 30.337709
+  type: 'test'
+  ...
+# Subtest: reject tampered partitions.bin
+ok 43 - reject tampered partitions.bin
+  ---
+  duration_ms: 16.839208
+  type: 'test'
+  ...
+# Subtest: reject tampered boot_app0.bin
+ok 44 - reject tampered boot_app0.bin
+  ---
+  duration_ms: 19.189625
+  type: 'test'
+  ...
+# Subtest: reject tampered FIRMWARE_MANIFEST.json
+ok 45 - reject tampered FIRMWARE_MANIFEST.json
+  ---
+  duration_ms: 0.252917
+  type: 'test'
+  ...
+# Subtest: reject tampered WAVESHARE_RLCD42.json
+ok 46 - reject tampered WAVESHARE_RLCD42.json
+  ---
+  duration_ms: 0.1945
+  type: 'test'
+  ...
+# Subtest: reject tampered RELEASE_PAIR.json
+ok 47 - reject tampered RELEASE_PAIR.json
+  ---
+  duration_ms: 0.241084
+  type: 'test'
+  ...
+# Subtest: reject tampered TF_RESOURCES.json
+ok 48 - reject tampered TF_RESOURCES.json
+  ---
+  duration_ms: 2.342042
+  type: 'test'
+  ...
+# Subtest: reject truncated / oversized App and forged release handle before opening a port
+ok 49 - reject truncated / oversized App and forged release handle before opening a port
+  ---
+  duration_ms: 3.44825
+  type: 'test'
+  ...
+# Subtest: firmware fetch reject stops without retry
+ok 50 - firmware fetch reject stops without retry
+  ---
+  duration_ms: 0.38275
+  type: 'test'
+  ...
+# Subtest: firmware fetch http stops without retry
+ok 51 - firmware fetch http stops without retry
+  ---
+  duration_ms: 29.09525
+  type: 'test'
+  ...
+# Subtest: firmware fetch redirect stops without retry
+ok 52 - firmware fetch redirect stops without retry
+  ---
+  duration_ms: 0.128084
+  type: 'test'
+  ...
+# Subtest: firmware fetch truncated stops without retry
+ok 53 - firmware fetch truncated stops without retry
+  ---
+  duration_ms: 3.326584
+  type: 'test'
+  ...
+# Subtest: firmware fetch oversized stops without retry
+ok 54 - firmware fetch oversized stops without retry
+  ---
+  duration_ms: 0.315958
+  type: 'test'
+  ...
+# Subtest: firmware fetch sha stops without retry
+ok 55 - firmware fetch sha stops without retry
+  ---
+  duration_ms: 6.264042
+  type: 'test'
+  ...
+# Subtest: firmware fetch stream-error stops without retry
+ok 56 - firmware fetch stream-error stops without retry
+  ---
+  duration_ms: 1.324958
+  type: 'test'
+  ...
+# Subtest: app0: exact active-slot update, independent verify and all other Flash preserved
+ok 57 - app0: exact active-slot update, independent verify and all other Flash preserved
+  ---
+  duration_ms: 160.450083
+  type: 'test'
+  ...
+# Subtest: app1: exact active-slot update, independent verify and all other Flash preserved
+ok 58 - app1: exact active-slot update, independent verify and all other Flash preserved
+  ---
+  duration_ms: 152.844125
+  type: 'test'
+  ...
+# Subtest: partition: STOP with no write or fallback
+ok 59 - partition: STOP with no write or fallback
+  ---
+  duration_ms: 4.705458
+  type: 'test'
+  ...
+# Subtest: pending: STOP with no write or fallback
+ok 60 - pending: STOP with no write or fallback
+  ---
+  duration_ms: 6.670458
+  type: 'test'
+  ...
+# Subtest: unknown: STOP with no write or fallback
+ok 61 - unknown: STOP with no write or fallback
+  ---
+  duration_ms: 58.084042
+  type: 'test'
+  ...
+# Subtest: flash8: STOP with no write or fallback
+ok 62 - flash8: STOP with no write or fallback
+  ---
+  duration_ms: 1.465584
+  type: 'test'
+  ...
+# Subtest: security: STOP with no write or fallback
+ok 63 - security: STOP with no write or fallback
+  ---
+  duration_ms: 1.355416
+  type: 'test'
+  ...
+# Subtest: device chip mismatch refuses
+ok 64 - device chip mismatch refuses
+  ---
+  duration_ms: 1.694833
+  type: 'test'
+  ...
+# Subtest: device mac mismatch refuses
+ok 65 - device mac mismatch refuses
+  ---
+  duration_ms: 2.32725
+  type: 'test'
+  ...
+# Subtest: device secureBoot mismatch refuses
+ok 66 - device secureBoot mismatch refuses
+  ---
+  duration_ms: 1.870459
+  type: 'test'
+  ...
+# Subtest: device flashEncryption mismatch refuses
+ok 67 - device flashEncryption mismatch refuses
+  ---
+  duration_ms: 1.66875
+  type: 'test'
+  ...
+# Subtest: same chip family without physical board confirmation never opens port
+ok 68 - same chip family without physical board confirmation never opens port
+  ---
+  duration_ms: 3.807375
+  type: 'test'
+  ...
+# Subtest: missing backupConfirmed refuses all writes
+ok 69 - missing backupConfirmed refuses all writes
+  ---
+  duration_ms: 11.465667
+  type: 'test'
+  ...
+# Subtest: missing tfRemoved refuses all writes
+ok 70 - missing tfRemoved refuses all writes
+  ---
+  duration_ms: 2.784542
+  type: 'test'
+  ...
+# Subtest: missing planConfirmed refuses all writes
+ok 71 - missing planConfirmed refuses all writes
+  ---
+  duration_ms: 2.430709
+  type: 'test'
+  ...
+# Subtest: update rejects erase permission
+ok 72 - update rejects erase permission
+  ---
+  duration_ms: 3.745584
+  type: 'test'
+  ...
+# Subtest: default build refuses physical updates after a valid plan
+ok 73 - default build refuses physical updates after a valid plan
+  ---
+  duration_ms: 3.23325
+  type: 'test'
+  ...
+# Subtest: real fresh remains blocked even with update-test permission and every confirmation
+ok 74 - real fresh remains blocked even with update-test permission and every confirmation
+  ---
+  duration_ms: 57.835125
+  type: 'test'
+  ...
+# Subtest: fresh requires separate erase approval and never treats erased metadata alone as blank proof
+ok 75 - fresh requires separate erase approval and never treats erased metadata alone as blank proof
+  ---
+  duration_ms: 76.875083
+  type: 'test'
+  ...
+# Subtest: fresh simulator: proof of all-FF, recoverable backup, separate erase, four exact writes and pending boot receipt
+ok 76 - fresh simulator: proof of all-FF, recoverable backup, separate erase, four exact writes and pending boot receipt
+  ---
+  duration_ms: 155.28975
+  type: 'test'
+  ...
+# Subtest: changed OTA after approval invalidates plan before write
+ok 77 - changed OTA after approval invalidates plan before write
+  ---
+  duration_ms: 3.09225
+  type: 'test'
+  ...
+# Subtest: metadata transfer inconsistency refuses a plan
+ok 78 - metadata transfer inconsistency refuses a plan
+  ---
+  duration_ms: 5.140667
+  type: 'test'
+  ...
+# Subtest: disconnect during installation: STOP, partial receipt, no erase/retry/reset
+ok 79 - disconnect during installation: STOP, partial receipt, no erase/retry/reset
+  ---
+  duration_ms: 67.600167
+  type: 'test'
+  ...
+# Subtest: verify during installation: STOP, partial receipt, no erase/retry/reset
+ok 80 - verify during installation: STOP, partial receipt, no erase/retry/reset
+  ---
+  duration_ms: 70.790792
+  type: 'test'
+  ...
+# Subtest: protected-data corruption cannot return success even if App matches
+ok 81 - protected-data corruption cannot return success even if App matches
+  ---
+  duration_ms: 65.538167
+  type: 'test'
+  ...
+# Subtest: optional exact previous App mismatch stops before erasure
+ok 82 - optional exact previous App mismatch stops before erasure
+  ---
+  duration_ms: 30.594958
+  type: 'test'
+  ...
+# Subtest: concurrent execution never creates two writers
+ok 83 - concurrent execution never creates two writers
+  ---
+  duration_ms: 110.950375
+  type: 'test'
+  ...
+# Subtest: cancel is terminal and never becomes success
+ok 84 - cancel is terminal and never becomes success
+  ---
+  duration_ms: 2.370083
+  type: 'test'
+  ...
+# Subtest: OTA selection matches the actual release Python oracle across 53 boundary/adversarial fixtures
+ok 85 - OTA selection matches the actual release Python oracle across 53 boundary/adversarial fixtures
+  ---
+  duration_ms: 293.167792
+  type: 'test'
+  ...
+1..85
+# tests 85
+# suites 0
+# pass 85
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4194.0575

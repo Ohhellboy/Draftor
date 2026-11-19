@@ -1,0 +1,238 @@
+{
+  "plan": {
+    "mode": "fresh",
+    "appSlot": "app0",
+    "appOffset": "0x10000",
+    "appBytes": 4021152,
+    "appSha256": "165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd",
+    "writes": [
+      {
+        "name": "bootloader.bin",
+        "offset": 0,
+        "bytes": 19968,
+        "offsetHex": "0x0",
+        "endExclusive": "0x4e00",
+        "sectorEndExclusive": "0x5000"
+      },
+      {
+        "name": "partitions.bin",
+        "offset": 32768,
+        "bytes": 3072,
+        "offsetHex": "0x8000",
+        "endExclusive": "0x8c00",
+        "sectorEndExclusive": "0x9000"
+      },
+      {
+        "name": "boot_app0.bin",
+        "offset": 57344,
+        "bytes": 8192,
+        "offsetHex": "0xe000",
+        "endExclusive": "0x10000",
+        "sectorEndExclusive": "0x10000"
+      },
+      {
+        "name": "app.bin",
+        "offset": 65536,
+        "bytes": 4021152,
+        "offsetHex": "0x10000",
+        "endExclusive": "0x3e5ba0",
+        "sectorEndExclusive": "0x3e6000"
+      }
+    ],
+    "fullErase": true,
+    "atomicUpdate": false,
+    "interruption": "Active App may be partial; no automatic retry, alternate slot or reboot. Recover from verified private backups.",
+    "neverWrite": [
+      "TF card"
+    ],
+    "requires": [
+      "proven 16 MiB blank Flash",
+      "verified recoverable backup",
+      "separate full internal Flash erase approval",
+      "TF removed",
+      "future hardware qualification"
+    ],
+    "hardwareWriteAllowed": false,
+    "deviceQualification": "DEVICE_PENDING",
+    "tfResources": "NOT_CHECKED"
+  },
+  "receipt": {
+    "status": "VERIFIED_BOOT_PENDING",
+    "simulation": true,
+    "release": "v0.1.0-alpha.3",
+    "appSha256": "165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd",
+    "eraseStarted": true,
+    "writeStarted": true,
+    "independentVerification": true,
+    "resetIssued": false,
+    "deviceQualification": "DEVICE_PENDING",
+    "tfResources": "NOT_CHECKED",
+    "plan": {
+      "mode": "fresh",
+      "appSlot": "app0",
+      "appOffset": "0x10000",
+      "appBytes": 4021152,
+      "appSha256": "165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd",
+      "writes": [
+        {
+          "name": "bootloader.bin",
+          "offset": 0,
+          "bytes": 19968,
+          "offsetHex": "0x0",
+          "endExclusive": "0x4e00",
+          "sectorEndExclusive": "0x5000"
+        },
+        {
+          "name": "partitions.bin",
+          "offset": 32768,
+          "bytes": 3072,
+          "offsetHex": "0x8000",
+          "endExclusive": "0x8c00",
+          "sectorEndExclusive": "0x9000"
+        },
+        {
+          "name": "boot_app0.bin",
+          "offset": 57344,
+          "bytes": 8192,
+          "offsetHex": "0xe000",
+          "endExclusive": "0x10000",
+          "sectorEndExclusive": "0x10000"
+        },
+        {
+          "name": "app.bin",
+          "offset": 65536,
+          "bytes": 4021152,
+          "offsetHex": "0x10000",
+          "endExclusive": "0x3e5ba0",
+          "sectorEndExclusive": "0x3e6000"
+        }
+      ],
+      "fullErase": true,
+      "atomicUpdate": false,
+      "interruption": "Active App may be partial; no automatic retry, alternate slot or reboot. Recover from verified private backups.",
+      "neverWrite": [
+        "TF card"
+      ],
+      "requires": [
+        "proven 16 MiB blank Flash",
+        "verified recoverable backup",
+        "separate full internal Flash erase approval",
+        "TF removed",
+        "future hardware qualification"
+      ],
+      "hardwareWriteAllowed": false,
+      "deviceQualification": "DEVICE_PENDING",
+      "tfResources": "NOT_CHECKED"
+    },
+    "erased": true,
+    "flashOutcome": "VERIFIED_CONTENT_BOOT_PENDING"
+  },
+  "syntheticCommandTrace": [
+    {
+      "op": "connect"
+    },
+    {
+      "op": "identity"
+    },
+    {
+      "op": "read",
+      "offset": 32768,
+      "size": 4096
+    },
+    {
+      "op": "read",
+      "offset": 57344,
+      "size": 8192
+    },
+    {
+      "op": "md5",
+      "offset": 32768,
+      "size": 4096
+    },
+    {
+      "op": "md5",
+      "offset": 57344,
+      "size": 8192
+    },
+    {
+      "op": "md5",
+      "offset": 0,
+      "size": 16777216
+    },
+    {
+      "op": "identity"
+    },
+    {
+      "op": "read",
+      "offset": 32768,
+      "size": 4096
+    },
+    {
+      "op": "read",
+      "offset": 57344,
+      "size": 8192
+    },
+    {
+      "op": "md5",
+      "offset": 32768,
+      "size": 4096
+    },
+    {
+      "op": "md5",
+      "offset": 57344,
+      "size": 8192
+    },
+    {
+      "op": "md5",
+      "offset": 0,
+      "size": 16777216
+    },
+    {
+      "op": "eraseAll"
+    },
+    {
+      "op": "write",
+      "offset": 0,
+      "size": 19968,
+      "mode": "fresh"
+    },
+    {
+      "op": "write",
+      "offset": 32768,
+      "size": 3072,
+      "mode": "fresh"
+    },
+    {
+      "op": "write",
+      "offset": 57344,
+      "size": 8192,
+      "mode": "fresh"
+    },
+    {
+      "op": "write",
+      "offset": 65536,
+      "size": 4021152,
+      "mode": "fresh"
+    },
+    {
+      "op": "md5",
+      "offset": 0,
+      "size": 19968
+    },
+    {
+      "op": "md5",
+      "offset": 32768,
+      "size": 3072
+    },
+    {
+      "op": "md5",
+      "offset": 57344,
+      "size": 8192
+    },
+    {
+      "op": "md5",
+      "offset": 65536,
+      "size": 4021152
+    }
+  ]
+}

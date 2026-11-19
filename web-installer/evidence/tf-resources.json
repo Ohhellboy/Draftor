@@ -1,0 +1,152 @@
+{
+  "result": "PASS",
+  "files": [
+    {
+      "tf_path": "HANIME/IME/B_SHORT_TEXT_20261018/shared.hns",
+      "bytes": 32384515,
+      "sha256": "f6a2afec4759ff879e6052f6c582606f33e78270a53d82d1e3deb85351a17339",
+      "role": "shared dictionary",
+      "source": "Alpha 2.1 Resources",
+      "verified": true
+    },
+    {
+      "tf_path": "HANIME/IME/B_SHORT_TEXT_20261018/shared.hnv",
+      "bytes": 64770048,
+      "sha256": "49fe7363b2ce7b1ff0fd53ec17e65e5c98ff588a5bf6aac016af932a7701c93b",
+      "role": "authentication pages",
+      "source": "Alpha 2.1 Resources",
+      "verified": true
+    },
+    {
+      "tf_path": "HANIME/IME/B_SHORT_TEXT_20261018/xiaohe.hnm",
+      "bytes": 2756648,
+      "sha256": "9a0585f1662e6337a0936c6a5479b1a3ff9e76840927def05ace14070da56328",
+      "role": "scheme lookup map",
+      "source": "Alpha 2.1 Resources",
+      "verified": true
+    },
+    {
+      "tf_path": "HANIME/IME/B_SHORT_TEXT_20261018/xiaohe.hnv",
+      "bytes": 91136,
+      "sha256": "8ef5237e2638364510f0fb7514ecbb52e7a58cc46395c257efd5d42061787ae2",
+      "role": "authentication pages",
+      "source": "Alpha 2.1 Resources",
+      "verified": true
+    },
+    {
+      "tf_path": "HANIME/IME/B_SHORT_TEXT_20261018/full_pinyin.hnm",
+      "bytes": 2080808,
+      "sha256": "d91b7ae982d80cfc59885852b3f5abdfb0b01d1940f8b811ab22b655aaa9723b",
+      "role": "scheme lookup map",
+      "source": "Alpha 2.1 Resources",
+      "verified": true
+    },
+    {
+      "tf_path": "HANIME/IME/B_SHORT_TEXT_20261018/full_pinyin.hnv",
+      "bytes": 68608,
+      "sha256": "c8600a8a36a4a2cf0fdcd410fd0ceb8cce2b3dca534c2869b9e373a9641c73c9",
+      "role": "authentication pages",
+      "source": "Alpha 2.1 Resources",
+      "verified": true
+    },
+    {
+      "tf_path": "HANIME/IME/B_SHORT_TEXT_20261018/wubi86.hnm",
+      "bytes": 1482792,
+      "sha256": "0fa4b31c9e817626f434f5e3802c8ad7b53ef7a583d499febb87beba54c8fd84",
+      "role": "scheme lookup map",
+      "source": "Alpha 2.1 Resources",
+      "verified": true
+    },
+    {
+      "tf_path": "HANIME/IME/B_SHORT_TEXT_20261018/wubi86.hnv",
+      "bytes": 50176,
+      "sha256": "9e13336d42d326808e9d00451d607c6c2f0a5ca81b30044c4d9ec4bb2fdd0319",
+      "role": "authentication pages",
+      "source": "Alpha 2.1 Resources",
+      "verified": true
+    },
+    {
+      "tf_path": "HANIME/IME/B_SHORT_TEXT_20261018/xiaohe_base.hbo",
+      "bytes": 11986536,
+      "sha256": "f9109dd7b89c5573e09d74a14c2f294565e9bd649a7f34f386dbb87234d08530",
+      "role": "base order and ranking rows",
+      "source": "Alpha 2.1 Resources",
+      "verified": true
+    },
+    {
+      "tf_path": "HANIME/IME/B_SHORT_TEXT_20261018/xiaohe_base.hnv",
+      "bytes": 388096,
+      "sha256": "49c54c0f55d11b6bcd0e5e13e5228b923ba6e5d162d9de10741ee34a8fee2bb9",
+      "role": "authentication pages",
+      "source": "Alpha 2.1 Resources",
+      "verified": true
+    },
+    {
+      "tf_path": "HANIME/IME/B_SHORT_TEXT_20261018/full_pinyin_base.hbo",
+      "bytes": 8219096,
+      "sha256": "bd23b97291e2c486dcec2e2d3930d4ab0d718bdac5ba59a947986b80c0f39365",
+      "role": "base order and ranking rows",
+      "source": "Alpha 2.1 Resources",
+      "verified": true
+    },
+    {
+      "tf_path": "HANIME/IME/B_SHORT_TEXT_20261018/full_pinyin_base.hnv",
+      "bytes": 266240,
+      "sha256": "08b0dd721fab3be4b7919ca29b3ffa7904b51dee8a37b03b0e207024d1561ff1",
+      "role": "authentication pages",
+      "source": "Alpha 2.1 Resources",
+      "verified": true
+    },
+    {
+      "tf_path": "HANIME/IME/B_SHORT_TEXT_20261018/wubi86_base.hbo",
+      "bytes": 7369432,
+      "sha256": "cae1470b8537e696a3f81f9c6b963292918efafeec75ac49f39beabbfa3a5c5e",
+      "role": "base order and ranking rows",
+      "source": "Alpha 2.1 Resources",
+      "verified": true
+    },
+    {
+      "tf_path": "HANIME/IME/B_SHORT_TEXT_20261018/wubi86_base.hnv",
+      "bytes": 239616,
+      "sha256": "5945d83a0750c5e582b784db156ead0d35f2e5f3a515d958280e60fcf374e28f",
+      "role": "authentication pages",
+      "source": "Alpha 2.1 Resources",
+      "verified": true
+    },
+    {
+      "tf_path": "HANIME/IME/R1_API080/matched28.hbf1",
+      "bytes": 2464108,
+      "sha256": "afd6981d76180b8a58b32e65f7463b7ee5354f1ab76166256c4b70ad876a1f58",
+      "role": "editor body font",
+      "source": "Alpha 2.1 Resources",
+      "verified": true
+    },
+    {
+      "tf_path": "HANIME/IME/B_SHORT_TEXT_20261018/CANDIDATE_READY.json",
+      "bytes": 190,
+      "sha256": "24d969049dacb0aa13c64b143f09b66049be13474c3066d18add6e81518290a9",
+      "role": "format4 installation marker",
+      "source": "Alpha 2.1 Resources",
+      "verified": true
+    },
+    {
+      "tf_path": "WAVESHARE_R7_L1_AREV1_RES_20261112/relations.bgr",
+      "bytes": 3587304,
+      "sha256": "064a23049f8aaa058e581eae318fa04d19cf65a28f344ace0f4a00af529fe919",
+      "role": "Format 301 reverse index of generic dictionary row positions",
+      "source": "Alpha 3 learning index",
+      "verified": true
+    },
+    {
+      "tf_path": "WAVESHARE_R7_L1_AREV1_RES_20261112/relations.hnv",
+      "bytes": 117760,
+      "sha256": "d611dea66861344e02fcae80f637f16eb17b29b8c77b4ce498d8dd9b1530b022",
+      "role": "Authentication pages for relations.bgr",
+      "source": "Alpha 3 learning index",
+      "verified": true
+    }
+  ],
+  "actualTFCardAccess": false,
+  "resourceSource": "Exact public alpha.2.1 Resources + alpha.3 LearningIndex",
+  "shared_bundle_id": "17304919664082782091"
+}

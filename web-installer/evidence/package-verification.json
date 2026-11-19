@@ -1,0 +1,9 @@
+{
+  "result": "PASS",
+  "files": 62,
+  "all_site_sha256_match": true,
+  "complete_self_hosted": true,
+  "hardware_update_writes": false,
+  "hardware_fresh_writes": false,
+  "real_device_access": false
+}

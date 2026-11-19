@@ -1,0 +1,37 @@
+import { BaseFirmwareImage } from "./base.js";
+import { ROM } from "../targets/rom.js";
+import { ESP32ROM } from "../targets/esp32.js";
+export declare class ESP32FirmwareImage extends BaseFirmwareImage {
+    securePad: string | null;
+    flashMode: number;
+    flashSizeFreq: number;
+    version: number;
+    ramOnlyHeader: boolean;
+    WP_PIN_DISABLED: number;
+    wpPin: number;
+    clkDrv: number;
+    qDrv: number;
+    dDrv: number;
+    csDrv: number;
+    hdDrv: number;
+    wpDrv: number;
+    chipId: number;
+    minRev: number;
+    minRevFull: number;
+    maxRevFull: number;
+    appendDigest: boolean;
+    storedDigest: Uint8Array | null;
+    calcDigest: Uint8Array | null;
+    dataLength: number;
+    IROM_ALIGN: number;
+    ROM_LOADER: ESP32ROM;
+    constructor(rom: ROM, loadFile?: Uint8Array | string | null, appendDigest?: boolean, ramOnlyHeader?: boolean);
+    loadFromFile(loadFile: Uint8Array | string): Promise<void>;
+    isFlashAddr(addr: number): boolean;
+    save(): Promise<Uint8Array>;
+    loadExtendedHeader(data: Uint8Array, offset: number): void;
+    saveExtendedHeader(output: Uint8Array, offset: number): void;
+    private splitByte;
+    private joinByte;
+    private getAlignmentDataNeeded;
+}
