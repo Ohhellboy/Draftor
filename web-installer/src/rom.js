@@ -26,7 +26,10 @@ export class S3Rom {
   async #reply(op, dataBytes, timeout) {
     const packet = await this.#wire.read(timeout);
     requireSafe(packet.length === 8 + dataBytes + 4 && packet[0] === 1 && packet[1] === op && (packet[2] | packet[3] << 8) === dataBytes + 4, 'PROTOCOL');
-    requireSafe(packet.slice(-4).every(v => v === 0), 'ROM_STATUS');
+    // esptool 5.3.1 check_command(): status, error reason, then two reserved
+    // bytes. Only a nonzero status byte signals failure; the reason is only
+    // meaningful on failure. Keep the exact S3 frame/length checks above.
+    requireSafe(packet[8 + dataBytes] === 0, 'ROM_STATUS');
     return { value: u32(packet, 4), data: packet.slice(8, 8 + dataBytes) };
   }
   async #command(op, payload = new Uint8Array(), { dataBytes = 0, checksum = 0, timeout = 10000, responses = 1 } = {}) {

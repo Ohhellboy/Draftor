@@ -51,6 +51,31 @@
       </button>
       <p class="install-hint" id="install-hint" data-i18n="browserHint">请使用电脑端 Chrome 或 Edge 浏览器</p>
       <p class="build-note" data-i18n="previewHint">网页预览版 · 尚未接入正式烧录程序</p>
+      <details class="tf-downloads" id="tf-downloads">
+        <summary data-i18n="tfDownload">下载 TF 卡资源</summary>
+        <div class="tf-content">
+          <p class="tf-version" data-i18n="tfVersion">适用于微雪 ESP32-S3-RLCD-4.2 · 固件 v0.1.0-alpha.3</p>
+          <p data-i18n="tfIntro">首次准备 TF 卡，请下载下方两份资源包。已经备好对应资源的 TF 卡可继续使用。</p>
+          <p data-i18n="tfSizes">基础资源包约 60.5 MB，学习索引包约 1.8 MB；运行资源解压后共约 138.3 MB。</p>
+          <p data-i18n="tfPreserve">下载后按目录说明复制到 TF 卡，保留已有文稿和个人学习数据。</p>
+          <div class="tf-links">
+            <a id="tf-base-download" href="https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.1/Draftor_v0.1.0-alpha.2.1_Resources.zip" rel="noopener noreferrer" data-i18n="tfBase">下载基础资源包</a>
+            <a id="tf-index-download" href="https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.3/Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_LearningIndex.zip" rel="noopener noreferrer" data-i18n="tfIndex">下载学习索引包</a>
+          </div>
+          <details id="tf-instructions">
+            <summary data-i18n="tfDetails">安装说明与校验信息</summary>
+            <p data-i18n="tfVersions">基础包沿用 alpha.2.1，两包共同对应当前 alpha.3 固件。学习索引是公开通用资源，不是个人学习记录。下载来自 GitHub Release，速度和可用性取决于网络。</p>
+            <p data-i18n="tfMerge">仅合并需要的资源子目录；不替换整个 HANIME，不格式化、不清空卡。同名文件有差异时，先保留旧文件并核对版本，只处理发行清单中的资源。</p>
+            <ul>
+              <li><span data-i18n="tfBasePath">基础包：Resources/HANIME/ → 卡根 HANIME/</span><br><code>Draftor_v0.1.0-alpha.2.1_Resources.zip</code><br><span data-i18n="tfBaseBytes">60,546,074 字节</span><br>SHA-256: <code>460096846036bd01c941bc07ab98e6db4e130a247563e44fa3cb01d12a9c6636</code></li>
+              <li><span data-i18n="tfIndexPath">学习索引包：Resources/WAVESHARE_R7_L1_AREV1_RES_20261112/ → 卡根同名目录；relations.bgr 和 relations.hnv 均需要。</span><br><code>Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_LearningIndex.zip</code><br><span data-i18n="tfIndexBytes">1,831,828 字节</span><br>SHA-256: <code>05da4128d132c0673ae28bf9a1f35d3997a017cd1995d51d38051dc15f55c3eb</code></li>
+            </ul>
+            <p data-i18n="tfRoot">不要把 ZIP 外层文件夹或 Resources/ 复制成额外父目录。HANIME 是固件兼容路径，请保留原名。运行清单共 18 项、138,323,109 字节，不含文稿和个人学习数据。</p>
+            <p data-i18n="tfNoMigration">下载资源不会自动迁移旧文稿或学习记录，请保留旧命名空间及所有其他文件。网页不访问或改写 TF 卡。</p>
+            <p><a href="docs/TF_GUIDE.html" data-i18n="tfFullGuide">完整目录说明与 18 项文件清单</a> · <a href="firmware/TF_RESOURCES.json" data-i18n="tfManifest">发行资源清单</a></p>
+          </details>
+        </div>
+      </details>
     </section>
   </main>
   <footer class="footer">

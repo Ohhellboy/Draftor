@@ -2,7 +2,9 @@
 
 本地隔离的软件实现。沿用附件 v0.1 的素纸朱印单页、内容层级、黑体标题回退和单一「连接设备并安装」入口。准确固件为 `v0.1.0-alpha.3`，只适用微雪 ESP32-S3-RLCD-4.2 / ST7305。
 
-结论：**SOFTWARE_READY_FOR_DEVICE_TEST**，范围是兼容更新的受控 ROM 路径与首装软件模拟。真实 USB 读写、普通启动及空板首装仍为 **DEVICE_PENDING**。
+历史软件结论为 **SOFTWARE_READY_FOR_DEVICE_TEST**；R3 已完成同一微雪设备的 **READ_ONLY_DEVICE_PASS**。R4 的真实更新／普通启动结果以独立交付报告为准，不能从只读结果推断。默认构建继续锁写，真实 fresh 未验收。
+
+R4／R5 增加独立的中英文 TF 下载入口，使用两份固定 GitHub Release 原包；不需要连接设备。见 [资源说明](docs/TF_RESOURCES_GUIDE.md) 和 [本轮构建／运行说明](docs/R4_R5_RUN.md)。
 
 ## 直接运行完整站点
 

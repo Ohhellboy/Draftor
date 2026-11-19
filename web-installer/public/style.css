@@ -93,3 +93,19 @@ summary { cursor:pointer; color:var(--ink); }
 .resource-table { overflow-x:auto; }
 .resource-table table { border-collapse:collapse; width:100%; font-size:14px; }
 .resource-table th,.resource-table td { border-bottom:1px solid var(--line); padding:10px 8px; text-align:left; vertical-align:top; }
+/* Secondary TF downloads retain the v0.1 typography and paper palette. */
+.tf-downloads { margin:22px auto 0; max-width:760px; font-size:15px; line-height:1.8; }
+.tf-downloads > summary { display:list-item; width:fit-content; margin:0 auto; color:var(--cinnabar); font-weight:600; }
+.tf-content { text-align:left; padding:16px 0 0; }
+.tf-content p { margin:0 0 10px; }
+.tf-version { color:var(--quiet); font-size:13px; }
+.tf-links { display:flex; flex-wrap:wrap; gap:12px; margin:18px 0; }
+.tf-links a { flex:1 1 200px; border:1px solid var(--line); border-radius:6px; padding:10px 16px; text-align:center; text-decoration:none; color:var(--ink); font-weight:600; }
+.tf-links a:hover { border-color:var(--cinnabar); }
+#tf-instructions { color:var(--quiet); font-size:14px; }
+#tf-instructions summary { margin-bottom:12px; }
+#tf-instructions code, #tf-instructions li { overflow-wrap:anywhere; }
+#tf-instructions ul { padding-left:22px; }
+#tf-instructions li + li { margin-top:14px; }
+#tf-instructions a { color:var(--ink); }
+summary:focus-visible { outline:3px solid var(--focus); outline-offset:4px; }

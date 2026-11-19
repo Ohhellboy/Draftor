@@ -45,7 +45,7 @@ Fresh 本轮只模拟，真实 fresh 应硬禁用。发行 Python 安装器 `--n
 2. 建议R1硬件路径只接受 `port.getInfo()` 的 `usbVendorId=0x303a, usbProductId=0x1001`（Espressif USB Serial/JTAG）。这个条件只证明连接类型，**仍必须人工确认微雪PCB**。无VID/PID或外部UART/OTG应STOP并说明R1未覆盖，不能猜测。
 3. 用户先手动进入ROM下载模式。Transport只open，不调用setSignals、不DTR/RTS reset、不自动changeBaud、不自动重试。直接在一个已知波特率连接；115200为保守初始值，USB/JTAG对该设置的实际影响需实测。
 4. 单次SYNC opcode0x08，payload `07 07 12 20` 后接32个 `55`。处理首个响应再消费7个响应，共8个；不能把第2–8个当成下一命令回复。每个均需严格包头/长度/op/status检查；全零value是stub线索，保守实现可要求每个value非零，任意不一致STOP。
-5. GET_SECURITY_INFO opcode0x14，空payload，S3应返回20字节数据，加4字节ROM状态。严格命令层检查包头declared length与实际长度；返回方向=1，op与请求一致，status[0]=0；可以保守要求4字节状态均0。一个命令在途，禁止并行设备命令。
+5. GET_SECURITY_INFO opcode0x14，空payload，S3应返回20字节数据，加4字节ROM尾部。严格命令层检查包头declared length与实际长度；返回方向=1，op与请求一致。依照 esptool 5.3.1 check_command()，尾部为 status、error reason、两字节 reserved，仅 status[0] 非零表示失败；成功的 `00 00 FF FF` 合法。空 SLIP 分隔帧跳过，非空截断或格式异常仍停止。一个命令在途，禁止并行设备命令。
 6. 安全数据布局：flags u32LE、flash_crypt_cnt u8、key_purposes[7]、chip_id u32LE、api_version u32LE。chip_id必须9。flags bit0=SECURE_BOOT_EN，bit2=SECURE_DOWNLOAD_ENABLE；任何一项为1均STOP。Flash encryption enabled = popcount(flash_crypt_cnt)奇数；偶数仅说明当前未启用，仍需其值落在S3的3位crypt count已知范围0..7。可取更保守策略count必须0，但应注明比发行安装器更严格。
 7. 已定义flags位0..10，mask=0x7ff；未知高位非0建议STOP。flags内其他已知位不是全部都意味着启用安全启动，不能伪称flags!=0就一定有加密；若产品选择全0接受集合，要说明这是保守限制。
 8. api_version的语义是ROM API/ECO版本，并无此审计能证实的单个固定值白名单；不要凭猜测限制为某个值；检查正确S3 chip id、完整结构和已知flags。若无法解释布局则STOP。
