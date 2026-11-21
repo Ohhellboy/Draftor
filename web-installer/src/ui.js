@@ -4,6 +4,7 @@ import { PINS } from './pins.js';
 import { loadRelease } from './firmware.js';
 import { InstallSession } from './session.js';
 import { normalizeMac, Stop } from './safety.js';
+import { publicCopy } from './public-copy.js';
 
 const copy = {
   zh: {
@@ -109,14 +110,20 @@ const errors = {
   BUILD_SCOPE: ['构建权限冲突；停止。', 'Conflicting build permissions. Stopped.'],
 };
 
-export function startUI({ requestDriver, simulation = false, scenario, expectedMac = '', hardwareWritesEnabled = false, hardwareFreshWritesEnabled = false }) {
+export function startUI({ requestDriver, simulation = false, scenario, expectedMac = '', hardwareWritesEnabled = false, hardwareFreshWritesEnabled = false, publicRelease = false, bindSelectedIdentity = false, sessionFactory = (driver, release, options) => new InstallSession(driver, release, options) }) {
   Object.assign(dict.zh, copy.zh); Object.assign(dict.en, copy.en);
+  if (publicRelease) { Object.assign(dict.zh, publicCopy.zh); Object.assign(dict.en, publicCopy.en); }
   dict.zh.dialogs.help = { title: '安装帮助', body: '<p>使用电脑端 Web Serial 浏览器、USB 数据线和准确的微雪 ST7305 设备。R1 只覆盖 USB Serial/JTAG；按住 BOOT 接入 USB，保持 ROM 下载模式。</p><p>写入前须在本机核验可恢复的完整 Flash／配对备份，并单独备份 TF 文稿与学习目录。网页不创建、收集或上传私人备份。</p><p>兼容更新只写已确认的活动 App。未知分区、OTA pending／rollback、安全状态不明均停止。真实首装尚未验收，本轮锁定。</p><p>TF 须另备：Alpha 2.1 资源包中的 <code>HANIME/IME/B_SHORT_TEXT_20261018/</code> 词库及 <code>HANIME/IME/R1_API080/matched28.hbf1</code> 字体；Alpha 3 独立包中的 <code>WAVESHARE_R7_L1_AREV1_RES_20261112/relations.bgr</code> 和 <code>relations.hnv</code>。不要格式化 TF，不覆盖不匹配的原文件。</p><p><a href="docs/TF_GUIDE.html" target="_blank" rel="noopener">准确下载、路径及 SHA-256 清单</a> · <a href="docs/INSTALL.zh-CN.md" target="_blank" rel="noopener">发行安装指南</a></p><div class="notice">固件校验成功 ≠ 整机已具备全部写作资源。普通启动、键盘配对、保存状态仍需实机验收。</div>' };
   dict.en.dialogs.help = { title: 'Installation help', body: '<p>Use desktop Web Serial, a USB data cable and the exact Waveshare ST7305 board. R1 covers USB Serial/JTAG only. Hold BOOT while connecting USB and remain in ROM download mode.</p><p>Verify recoverable full Flash/settings/pairing backups and separate TF document and learning backups privately before a write. This page never creates, collects or uploads private backups.</p><p>Compatible updates write only the confirmed active App. Unknown partitions, pending/rollback OTA or unknown security stop installation. Physical fresh installation is locked and unqualified.</p><p>Prepare TF separately: dictionaries under <code>HANIME/IME/B_SHORT_TEXT_20261018/</code> and <code>HANIME/IME/R1_API080/matched28.hbf1</code> from Alpha 2.1 Resources; both <code>WAVESHARE_R7_L1_AREV1_RES_20261112/relations.bgr</code> and <code>relations.hnv</code> from the separate Alpha 3 LearningIndex. Never format TF or overwrite mismatching originals.</p><p><a href="docs/TF_GUIDE.html" target="_blank" rel="noopener">Exact downloads, paths and SHA-256 list</a> · <a href="docs/INSTALL.md" target="_blank" rel="noopener">Release installation guide</a></p><div class="notice">Verified firmware does not certify writing readiness. Normal boot, keyboard pairing and saved writing still need physical qualification.</div>' };
   for (const lang of ['zh', 'en']) {
     dict[lang].dialogs.advanced = { title: lang === 'zh' ? '高级选项' : 'Advanced', body: `<p>${lang === 'zh' ? '锁定发行' : 'Pinned release'}: <strong>${PINS.version}</strong><br>WAVESHARE_RLCD42 · ST7305 · 16 MiB</p><p>App: 4,021,152 bytes<br><code>${PINS.files['app.bin'].sha256}</code></p><p>${lang === 'zh' ? '固定 B 分区；只接受唯一活动槽。无强刷、改槽或全片擦除开关。设备信息仅在本页内存中比对；回执不含 MAC 或私有 Flash 内容。' : 'Fixed B layout; one unambiguous active slot only. No force, slot override or full erase switch. Device identity stays in page memory; receipts exclude MAC and private Flash content.'}</p><p><a href="simulation.html?scenario=app0">${lang === 'zh' ? '运行软件模拟（不连接设备）' : 'Run software simulation (no device)'}</a> · <a href="simulation.html?scenario=app1">app1</a> · <a href="simulation.html?scenario=fresh">fresh</a></p><p><a href="docs/CAPABILITY_AUDIT.md">${lang === 'zh' ? '底层能力审计' : 'Capability audit'}</a> · <a href="docs/SOURCE.html">${lang === 'zh' ? '源码与许可' : 'Source and licenses'}</a></p>` };
   }
   let language = 'zh', modalKey, release, session, busy = false, chooserOpen = false, lastPhase = '', errorCode = '', dialogEpoch = 0;
+  if (publicRelease) for (const lang of ['zh', 'en']) {
+    const c = dict[lang];
+    c.dialogs.help.body = `<p>${c.intro}</p><p>${c.preflight}</p><p>${c.publicScope}</p><p>${c.tfGuide}</p><p><a href="docs/TF_GUIDE.html">TF 资源 / TF resources</a> · <a href="docs/PUBLIC_STATUS.html">公开范围 / Public scope</a></p>`;
+    c.dialogs.advanced.body = `<p>${c.publicScope}</p><p>App SHA-256: <code>${PINS.files['app.bin'].sha256}</code></p><p><a href="BUILD.json">Build</a> · <a href="SITE_SHA256SUMS">SHA-256</a> · <a href="docs/SOURCE.html">源码与许可 / Source and licenses</a></p>`;
+  }
   const $ = id => document.getElementById(id), t = key => dict[language][key] || key;
   const dialog = $('info-dialog');
   const workflow = document.createElement('dialog'); workflow.id = 'install-dialog'; workflow.setAttribute('aria-labelledby', 'install-heading');
@@ -134,7 +141,7 @@ export function startUI({ requestDriver, simulation = false, scenario, expectedM
         <button id="connect-read" class="install-primary" type="button" data-i18n="connectRead" disabled></button>
       </section>
       <section id="plan-section" hidden>
-        <h4 id="plan-title"></h4><p id="plan-summary"></p>
+        <h4 id="plan-title"></h4><p id="identity-display"></p><p id="plan-summary"></p>
         <details id="plan-details" open><summary data-i18n="plan"></summary><pre id="plan-json"></pre></details>
         <p id="write-lock" class="notice" hidden></p>
         <div id="confirm-section">
@@ -152,6 +159,9 @@ export function startUI({ requestDriver, simulation = false, scenario, expectedM
       <div class="workflow-actions"><button type="button" id="save-receipt" data-i18n="export" disabled></button><button type="button" id="stop-close" data-i18n="close"></button></div>
     </div></div>`;
   document.body.append(workflow);
+  if (bindSelectedIdentity) {
+    for (const el of [document.querySelector('label[for="expected-mac"]'), $('expected-mac'), $('mac-hint')]) el.hidden = true;
+  }
   const supported = simulation || (isSecureContext && !!navigator.serial?.requestPort);
   function updateLanguage() {
     document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en';
@@ -187,6 +197,7 @@ export function startUI({ requestDriver, simulation = false, scenario, expectedM
     $('plan-title').textContent = `${t(p.initialState === 'waveshare-factory-20260120' ? 'factory' : p.mode === 'fresh' ? 'fresh' : 'update')} · ${p.appSlot} · ${p.appOffset}`;
     $('plan-summary').textContent = t(p.mode === 'fresh' ? 'freshSummary' : 'updateSummary');
     $('plan-json').textContent = JSON.stringify(p, null, 2);
+    $('identity-display').textContent = bindSelectedIdentity ? `${t('identityBound')} ${session.selectedIdentity || ''}` : '';
     $('erase-label').hidden = p.mode !== 'fresh';
     $('current-app-label').hidden = p.mode === 'fresh';
     $('write-lock').hidden = simulation || p.hardwareWriteAllowed;
@@ -241,13 +252,13 @@ export function startUI({ requestDriver, simulation = false, scenario, expectedM
     if (busy || !release) return;
     try {
       if (!$('physical-board').checked) throw new Stop('BOARD');
-      normalizeMac($('expected-mac').value);
+      if (!bindSelectedIdentity) normalizeMac($('expected-mac').value);
     } catch (error) { fail(error); return; }
     busy = true; $('connect-read').disabled = true; errorCode = '';
     try {
       // requestPort is called synchronously from this user click before awaiting.
       const driver = await requestDriver(release);
-      session = new InstallSession(driver, release, { hardwareWritesEnabled, hardwareFreshWritesEnabled, onState: state });
+      session = sessionFactory(driver, release, { hardwareWritesEnabled, hardwareFreshWritesEnabled, bindSelectedIdentity, onState: state });
       await session.prepare({ boardConfirmed: $('physical-board').checked, expectedMac: $('expected-mac').value });
       $('connect-section').hidden = true;
     } catch (error) { fail(error); }

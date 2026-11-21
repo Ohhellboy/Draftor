@@ -9,16 +9,18 @@ const UPDATE_NEVER = ['bootloader', 'partition table', 'otadata', 'NVS / pairing
 
 export class InstallSession {
   #driver; #release; #plan; #fingerprint; #mac; #busy = false; #writesEnabled; #state = 'IDLE';
-  #receipt; #emit; #cancelled = false; #freshEnabled;
-  constructor(driver, release, { hardwareWritesEnabled = false, hardwareFreshWritesEnabled = false, onState = () => {} } = {}) {
+  #receipt; #emit; #cancelled = false; #freshEnabled; #bindSelectedIdentity;
+  constructor(driver, release, { hardwareWritesEnabled = false, hardwareFreshWritesEnabled = false, bindSelectedIdentity = false, onState = () => {} } = {}) {
     requireSafe(!(hardwareWritesEnabled && hardwareFreshWritesEnabled), 'BUILD_SCOPE');
     this.#freshEnabled = hardwareFreshWritesEnabled;
+    this.#bindSelectedIdentity = bindSelectedIdentity;
     this.#driver = driver; this.#release = release; this.#writesEnabled = hardwareWritesEnabled; this.#emit = onState;
     this.#receipt = { status: 'IDLE', simulation: driver.kind === 'simulation', release: PINS.version, appSha256: PINS.files['app.bin'].sha256,
       eraseStarted: false, writeStarted: false, independentVerification: false, resetIssued: false, deviceQualification: 'DEVICE_PENDING', tfResources: 'NOT_CHECKED' };
   }
   get state() { return this.#state; }
   get plan() { return this.#plan; }
+  get selectedIdentity() { return this.#mac; } // Display only, never included in receipts.
   receipt() { return structuredClone(this.#receipt); }
   #set(status) { this.#state = status; this.#receipt.status = status; this.#emit(status, this.receipt()); }
   #alive() { requireSafe(!this.#cancelled, 'CANCELLED'); }
@@ -39,7 +41,9 @@ export class InstallSession {
     requireSafe(info.chip === 'ESP32-S3', 'CHIP');
     requireSafe(info.flashBytes === PINS.flashBytes, 'FLASH');
     requireSafe(info.securityKnown === true && info.secureBoot === false && info.flashEncryption === false, 'SECURITY');
-    requireSafe(normalizeMac(info.mac) === this.#mac, 'IDENTITY');
+    const actual = normalizeMac(info.mac);
+    if (this.#mac === undefined && this.#bindSelectedIdentity) this.#mac = actual;
+    requireSafe(actual === this.#mac, 'IDENTITY');
     return info;
   }
   async #metadata() {
@@ -59,7 +63,7 @@ export class InstallSession {
       requireSafe(this.#state === 'IDLE', 'STATE');
       requireSafe(releaseIsVerified(this.#release), 'ASSET');
       requireSafe(boardConfirmed === true, 'BOARD');
-      this.#mac = normalizeMac(expectedMac);
+      this.#mac = this.#bindSelectedIdentity ? undefined : normalizeMac(expectedMac);
       this.#set('CONNECTING');
       await this.#driver.connect();
       this.#set('CHECKING');

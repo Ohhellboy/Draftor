@@ -4,7 +4,7 @@ The original Draftor release, firmware and resource notices retain their existin
 
 `src/rom.js` adapts the ROM protocol/control sequence from Espressif esptool 5.3.1, which is **GPL-2.0-or-later**, not Apache-2.0. Its copyright and license are preserved. The combined browser program is distributed under **GPL-3.0**, an allowed later GPL version compatible with its Apache-2.0 components. New independent application modules carry Apache-2.0 notices; this does not remove the combined program's GPL obligations.
 
-Corresponding installer source, tests, build scripts, dependency lock, source maps, original input records and notices are provided in `sources/Draftor_Web_Installer_R1_source.zip`. The delivery also provides this archive separately. `npm ci && npm run build` reproduces the default locked site; the exact system tool requirements and optional TF verification procedure are in its README.
+Corresponding installer runtime source, build scripts, dependency lock, source maps, release input records and notices are provided in `sources/Draftor_Web_R7_source.zip`. The delivery also provides this archive separately. `npm ci` then `node tools/build-r7.mjs` reproduces the R7 locked site; see `docs/R7_BUILD.md`. Synthetic test and device-maintenance tooling is not shipped as a public runtime entry point.
 
 Runtime components:
 
