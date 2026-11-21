@@ -1,53 +1,24 @@
 {
-  "version": "R7-locked-20261121",
-  "sourceCommit": "aa8a6014b42af10c9aba14ed3aba25f879d758b5",
-  "buildTime": "2026-11-21T00:00:00Z",
-  "buildTimePolicy": "fixed release epoch for reproducibility; actual deployment time recorded in Pages",
-  "release": "v0.1.0-alpha.3",
-  "firmwareSourceCommit": "f18939f8880e2278c231739d553fbf983c19e0f6",
+  "version": "R9-locked-5c142f40d5b7",
+  "sourceCommit": "5c142f40d5b738998973c51fdc12ef89de19f842",
+  "frozen": true,
+  "reviewOnly": false,
   "hardwareUpdateWrites": false,
   "hardwareFreshWrites": false,
+  "hardwareRecoveryWrites": false,
   "publicInstallation": false,
-  "experimental": false,
-  "appBundleSha256": "f2722a40293f56461045897831fcb52f7cd997056bd085167ed2965b32f4bf32",
-  "correspondingSourceSha256": "2504f7850f59e2aaf61c6398adac4fc3d4735856118c30cea5735c6bccd02816",
-  "firmware": {
-    "app.bin": {
-      "offset": 65536,
-      "bytes": 4021152,
-      "sha256": "165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd",
-      "md5": "21695d723c88f0d43e84ae33f8eb848b"
-    },
-    "bootloader.bin": {
-      "offset": 0,
-      "bytes": 19968,
-      "sha256": "31b3c1be45dc5a76aa85c82540d6787b675e711eaf11021a5eea7e36f469c6de",
-      "md5": "51ea0a64aa9692776750b237b2a34821"
-    },
-    "partitions.bin": {
-      "offset": 32768,
-      "bytes": 3072,
-      "sha256": "a172a8ae4cd0db329d6de2635991e3f6e3feb374e0ee9dcab78d9d7b360df6c9",
-      "md5": "c0dc7c8326c9350832563a1aeb6abc13"
-    },
-    "boot_app0.bin": {
-      "offset": 57344,
-      "bytes": 8192,
-      "sha256": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
-      "md5": "e6327541e2dc394ca2c3b3280ac0f39f"
-    }
-  },
+  "schema": "draftor-private-recovery/1",
+  "release": "v0.1.0-alpha.3",
+  "appSha256": "165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd",
+  "appBundleSha256": "49155ebf871ee621457cf8f339120354a759c47c4da1732114bed101281b4e8f",
+  "recoveryBundleSha256": "f7a682be602f61264032ffc0c04239fc50afa6e73d261fadfde2cba9c134334e",
+  "offlineHtmlSha256": "71373ab5cf2700f5751fc5fdf950dc075a1fec139d6ddb3c1dfdc24259a76408",
   "qualification": {
-    "readOnly": "R3_PASS",
-    "app0SameVersion": "R4_PASS_INHERITED",
-    "exactFactoryCoreInstall": "R6_CORE_PASS_INHERITED",
-    "app1": "UNVERIFIED",
-    "windowsEdgeHardware": "UNVERIFIED",
-    "freshTf": "PENDING",
-    "uart0LearningIndex": "UNVERIFIED",
-    "mainlandDownloads": "UNVERIFIED"
+    "recoverySoftware": "SEE_R9_REPORT",
+    "recoveryDevice": "PENDING",
+    "publicRecovery": "NOT_AUTHORIZED",
+    "windows": "NOT_TESTED"
   },
-  "runtimeNetwork": "same-origin static files only; explicit TF downloads from pinned GitHub release URLs",
   "dependencies": {
     "esptool-js": "0.7.1",
     "spark-md5": "3.0.2"
