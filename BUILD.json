@@ -1,6 +1,6 @@
 {
   "version": "R7-locked-20261121",
-  "sourceCommit": "bb4e0ca9fcc620d501fe9e3f2f05a48b98cefe25",
+  "sourceCommit": "aa8a6014b42af10c9aba14ed3aba25f879d758b5",
   "buildTime": "2026-11-21T00:00:00Z",
   "buildTimePolicy": "fixed release epoch for reproducibility; actual deployment time recorded in Pages",
   "release": "v0.1.0-alpha.3",
@@ -9,8 +9,8 @@
   "hardwareFreshWrites": false,
   "publicInstallation": false,
   "experimental": false,
-  "appBundleSha256": "a08edc9514fca22bdd11f4af6409c77afa6a0e4f0ef190cefacb3ba701948660",
-  "correspondingSourceSha256": "f5c8d8b20d5abd744646e90d2009c67790195d795dfdc7d52fa7ecb17ac497f0",
+  "appBundleSha256": "f2722a40293f56461045897831fcb52f7cd997056bd085167ed2965b32f4bf32",
+  "correspondingSourceSha256": "2504f7850f59e2aaf61c6398adac4fc3d4735856118c30cea5735c6bccd02816",
   "firmware": {
     "app.bin": {
       "offset": 65536,

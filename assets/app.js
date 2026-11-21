@@ -774,7 +774,9 @@ async function loadRelease(base = new URL("../firmware/", import.meta.url), fetc
     try {
       response = await fetcher(url, { redirect: "error", credentials: "omit", cache: "no-store", signal: AbortSignal.timeout(6e4) });
       requireSafe(response.ok && !response.redirected && response.body, "DOWNLOAD");
-      if (response.headers.get("content-length")) requireSafe(Number(response.headers.get("content-length")) === pin.bytes, "ASSET");
+      const encoding = response.headers.get("content-encoding");
+      if ((!encoding || encoding === "identity") && response.headers.get("content-length"))
+        requireSafe(Number(response.headers.get("content-length")) === pin.bytes, "ASSET");
       const reader = response.body.getReader(), out = new Uint8Array(pin.bytes);
       let at = 0;
       try {
