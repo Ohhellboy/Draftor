@@ -11,7 +11,7 @@ try { await stat(out); throw new Error('Preserve existing build; select a new ou
 let sourceCommit;
 try { sourceCommit = JSON.parse(await readFile('SOURCE_IDENTITY.json', 'utf8')).sourceCommit; }
 catch { execFileSync('git', ['diff', '--exit-code', 'HEAD', '--', '.']); sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], {encoding:'utf8'}).trim(); }
-await verifyReleaseInputs();
+await verifyReleaseInputs({ verifyDesignBrief: false });
 await mkdir(`${out}/assets`, {recursive:true});
 for (const name of ['LICENSE','NOTICE','LICENSES','Notices','vendor','firmware','style.css','docs']) await cp(`public/${name}`, `${out}/${name}`, {recursive:true});
 await mkdir(`${out}/sources`);

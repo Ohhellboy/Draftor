@@ -6,7 +6,7 @@ import { verifyRelease } from '../src/firmware.js';
 import assert from 'node:assert/strict';
 
 const root = new URL('../', import.meta.url);
-export async function verifyReleaseInputs({ evidence = false } = {}) {
+export async function verifyReleaseInputs({ evidence = false, verifyDesignBrief = true } = {}) {
   const lock = JSON.parse(await readFile(new URL('release-lock.json', root), 'utf8'));
   assert.deepEqual(lock, PINS, 'checked-in pins must equal the reviewed release lock');
   const inputs = {}, rows = [];
@@ -31,6 +31,9 @@ export async function verifyReleaseInputs({ evidence = false } = {}) {
   const contents = JSON.parse(await readFile(new URL('release-inputs/CONTENTS.json', root), 'utf8'));
   assert.equal(contents.commit, PINS.commit);
   for (const item of contents.files) {
+    // The original design brief is not firmware or corresponding runtime source.
+    // Public source archives intentionally omit user task documents.
+    if (!verifyDesignBrief && item.path === 'BRIEF.md') continue;
     assert(!item.path.startsWith('/') && !item.path.split('/').includes('..'));
     const b = await readFile(new URL(`release-inputs/${item.path}`, root));
     assert.equal(b.length, item.bytes, item.path);
