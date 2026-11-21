@@ -52,7 +52,12 @@ export async function loadRelease(base = new URL('../firmware/', import.meta.url
     try {
       response = await fetcher(url, { redirect: 'error', credentials: 'omit', cache: 'no-store', signal: AbortSignal.timeout(60000) });
       requireSafe(response.ok && !response.redirected && response.body, 'DOWNLOAD');
-      if (response.headers.get('content-length')) requireSafe(Number(response.headers.get('content-length')) === pin.bytes, 'ASSET');
+      // Fetch exposes the decoded body. Content-Length describes the encoded
+      // representation when Pages/CDNs apply gzip/br, not the firmware length.
+      // Always enforce decoded size below and the pinned SHA-256 afterwards.
+      const encoding = response.headers.get('content-encoding');
+      if ((!encoding || encoding === 'identity') && response.headers.get('content-length'))
+        requireSafe(Number(response.headers.get('content-length')) === pin.bytes, 'ASSET');
       const reader = response.body.getReader(), out = new Uint8Array(pin.bytes);
       let at = 0;
       try {
