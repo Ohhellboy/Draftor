@@ -1,0 +1,66 @@
+// SPDX-License-Identifier: Apache-2.0
+// Fixed official image; experimental recognition only, not a Draftor release asset.
+import { deepFreeze } from './safety.js';
+export const FACTORY = deepFreeze({
+  "commit": "d0644cf2c7a89459538935404ee04b76648e7dec",
+  "bytes": 4548144,
+  "sha256": "d0591315a722d33f4a08931a0341ab840a6c15c56b289d621e8fc18bec8d55a8",
+  "md5": "4c88298de096e1cdf01a1433dd6896cd",
+  "git_blob_sha1": "de836216f297a8f3c25b82a4e944682bbf90cca5",
+  "offset": 0,
+  "partitions": [
+    {
+      "type": 1,
+      "subtype": 2,
+      "offset": "0x9000",
+      "size": "0x6000",
+      "label": "nvs",
+      "flags": 0
+    },
+    {
+      "type": 1,
+      "subtype": 1,
+      "offset": "0xf000",
+      "size": "0x1000",
+      "label": "phy_init",
+      "flags": 0
+    },
+    {
+      "type": 0,
+      "subtype": 0,
+      "offset": "0x10000",
+      "size": "0x800000",
+      "label": "factory",
+      "flags": 0
+    }
+  ],
+  "header": "e903024f4c893c40ee000000090000000063000000000001",
+  "repository": "https://github.com/waveshareteam/ESP32-S3-RLCD-4.2",
+  "file": "firmware/ESP32-S3-RLCD-4.2_FactoryOnly_20260120.bin",
+  "tableSha256": "597f3a1bd0e54c833cea76f49728719f67a09d69995046f077727904d0267ef4",
+  "fingerprint": [
+    {
+      "offset": 0,
+      "bytes": 36864,
+      "md5": "e901c055ab7598f98b053ba3d50dbd00"
+    },
+    {
+      "offset": 65536,
+      "bytes": 4482608,
+      "md5": "43632d06e0a705969cbcd7bb3eb1da0b"
+    },
+    {
+      "offset": 4548144,
+      "bytes": 12229072,
+      "md5": "db8a00c2dc71ca9943c0a9b074238206"
+    }
+  ],
+  "mutableRanges": [
+    {
+      "offset": 36864,
+      "bytes": 28672,
+      "reason": "factory NVS and phy_init; may change on ordinary factory boot, erased only after separate approval"
+    }
+  ],
+  "draftorInitializedFullMd5": "4e805a469b67740ccaad7e3807ba0509"
+});

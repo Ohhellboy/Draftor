@@ -1,6 +1,9 @@
 node_modules/
 dist/
 dist-device-test/
+dist-r6-locked/
+dist-first-install-test/
+/release-inputs/factory/
 .test-cache/
 test-results/
 playwright-report/

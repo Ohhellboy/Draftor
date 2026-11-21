@@ -9,6 +9,8 @@ const copy = {
   zh: {
     previewHint: 'v0.1.0-alpha.3 · 软件验收版 · 实机写入锁定',
     testHint: 'v0.1.0-alpha.3 · 专用实机测试构建 · 仅兼容更新',
+    firstHint: 'v0.1.0-alpha.3 · R6 首装专项测试 · 将清除内部 Flash',
+    factory: '已识别微雪厂家演示程序：初始化安装',
     intro: '通过 USB 连接设备，先检查兼容性，再确认安装。',
     installHeading: '连接设备并安装', preparing: '正在核验本地发行文件…',
     preflight: '先保存文稿并正常结束传输，完全断电后取出 TF。断开其他开发板，按住 BOOT 接入 USB，约两秒后松开。请保持当前窗口打开。',
@@ -24,21 +26,23 @@ const copy = {
     run: '按已核验计划安装', export: '保存本地回执', close: '关闭', stop: '停止并保留回执',
     update: '兼容更新', fresh: '已证明整片空白：全新安装', plan: '完整只读计划',
     updateSummary: '只写活动 App；擦除范围仅为该 App 覆盖的扇区。保留其他 App、分区、OTA、NVS 和配对，不操作 TF。更新中断可能使设备无法启动，须保留可恢复备份。',
-    freshSummary: '四文件首装需要全片擦除。本轮只允许软件模拟；真实空板首装尚未验收。未知或不兼容旧状态不会转入首装。',
+    freshSummary: '将清除整片 16 MiB 内部 Flash，包括旧固件、设置、配对及内部文件，再写入准确的四份 Draftor 固件。TF 不受操作。必须保留已验证的完整恢复备份并单独确认清除；传输中断可能无法开机，不自动重试或恢复。',
     locked: '此交付构建只允许真实设备只读计划，真实写入已锁定。后续经授权使用专用测试构建验证兼容更新。',
-    freshLocked: '真实首装已锁定：需先解决无 stub 全片擦除接口问题，并完成专用空板验收。',
+    freshLocked: '此构建锁定真实首装。仅独立的 R6 首装测试构建可在完整前检、恢复准备和单独清除确认后执行。',
     sim: '软件模拟 · 合成 Flash · 不访问 USB / TF',
     simHint: '以下结果仅来自软件夹具，不能证明真实设备安装或启动通过。',
     tfGuide: '固件校验完成仍需普通启动验收。TF 词库、字体及独立 LearningIndex 必须另行准备；本页不检查 TF，也不宣称整机已可写作。',
     finished: '固件内容已独立校验，等待普通启动与 TF 验收。没有自动复位。',
     phase_CONNECTING: '正在连接 ROM 下载模式…', phase_CHECKING: '正在只读检查设备与实际分区 / OTA…',
     phase_PLAN_READY: '只读计划已就绪，尚未写入。', phase_RECHECKING: '写入前重新核对同一设备与计划…',
-    phase_ERASING: '正在模拟全片擦除…', phase_WRITING: '正在写入计划指定的区域…', phase_VERIFYING: '正在独立校验 Flash 内容与保护区域…',
+    phase_ERASING: '正在清除内部 Flash 并核验全片空白…', phase_WRITING: '正在写入计划指定的区域…', phase_VERIFYING: '正在独立校验 Flash 内容与保护区域…',
     phase_VERIFIED_BOOT_PENDING: 'VERIFIED_BOOT_PENDING · 等待普通启动验收', phase_STOP: 'STOP · 已停止，请保留状态；不重试、不换槽、不改为清空重刷。',
   },
   en: {
     previewHint: 'v0.1.0-alpha.3 · Software qualification · Hardware writes locked',
     testHint: 'v0.1.0-alpha.3 · Dedicated device test build · Compatible updates only',
+    firstHint: 'v0.1.0-alpha.3 · R6 first-install experiment · Internal Flash will be cleared',
+    factory: 'Recognized Waveshare factory demo: initialization',
     intro: 'Connect by USB, check compatibility, then confirm installation.',
     installHeading: 'Connect & Install', preparing: 'Verifying local release files…',
     preflight: 'Save writing and finish transfers. Fully power off and remove the TF card. Disconnect other boards, hold BOOT while connecting USB, then release after about two seconds. Keep this window open.',
@@ -54,16 +58,16 @@ const copy = {
     run: 'Install the verified plan', export: 'Save local receipt', close: 'Close', stop: 'Stop & keep receipt',
     update: 'Compatible update', fresh: 'Entire Flash proven blank: fresh installation', plan: 'Complete read-only plan',
     updateSummary: 'Write only the active App and erase only its covered sectors. Preserve the other App, partitions, OTA, NVS and pairing. Do not access TF. An interruption may prevent boot; retain recoverable backups.',
-    freshSummary: 'Four-file first installation requires a full erase. Software simulation only in R1; physical blank-board installation is unqualified. Unknown old states never fall back to fresh.',
+    freshSummary: 'Clear all 16 MiB of internal Flash, including firmware, settings, pairing and internal files, then write the four exact Draftor images. TF is untouched. Retain verified full recovery backups and separately approve erasure. An interruption may prevent boot; no automatic retry or recovery.',
     locked: 'This delivery build permits read-only hardware plans. Hardware writing is locked. Use the dedicated test build after authorization for compatible-update qualification.',
-    freshLocked: 'Real fresh installation is locked: resolve the no-stub full-erase interface and qualify a dedicated blank board first.',
+    freshLocked: 'First installation is locked in this build. Only the separate R6 experiment permits it after complete checks, recovery preparation and separate erase approval.',
     sim: 'Software simulation · Synthetic Flash · No USB / TF access',
     simHint: 'These are software fixture results, not proof of physical installation or boot.',
     tfGuide: 'Verified firmware still needs a normal boot check. TF dictionaries, body font and the separate LearningIndex must be prepared independently. This page does not inspect TF or certify writing readiness.',
     finished: 'Flash content independently verified; normal boot and TF qualification remain pending. No automatic reset.',
     phase_CONNECTING: 'Connecting to ROM download mode…', phase_CHECKING: 'Inspecting device, actual partitions and OTA read-only…',
     phase_PLAN_READY: 'Read-only plan ready. No write performed.', phase_RECHECKING: 'Rechecking the same device and approved plan…',
-    phase_ERASING: 'Simulating full Flash erase…', phase_WRITING: 'Writing the ranges specified in the plan…', phase_VERIFYING: 'Independently verifying Flash content and protected ranges…',
+    phase_ERASING: 'Clearing internal Flash and verifying it is entirely blank…', phase_WRITING: 'Writing the ranges specified in the plan…', phase_VERIFYING: 'Independently verifying Flash content and protected ranges…',
     phase_VERIFIED_BOOT_PENDING: 'VERIFIED_BOOT_PENDING · Normal boot qualification pending', phase_STOP: 'STOP · Preserve the state. No retry, alternate slot, or erase-and-reinstall fallback.',
   },
 };
@@ -99,9 +103,13 @@ const errors = {
   ERASE_FORBIDDEN: ['兼容更新不接受全片擦除权限。', 'Compatible updates never accept full erase permission.'],
   FRESH_DEVICE_PENDING: ['真实首装已锁定，等待独立空板验收。', 'Real fresh installation is locked pending separate blank-board qualification.'],
   DEVICE_WRITES_LOCKED: ['此构建的真实写入已锁定。', 'Hardware writing is locked in this build.'],
+  FACTORY_FINGERPRINT: ['厂家镜像指纹不符；未知旧状态禁止清除。', 'Factory fingerprint mismatch. Unknown old state must not be erased.'],
+  ERASE_VERIFY: ['全片擦后校验失败；停止，不写任何固件。', 'Full erase verification failed. Stopped before firmware writes.'],
+  INITIALIZATION_VERIFY: ['初始化完整镜像校验失败；停止并保留现场。', 'Complete initialized Flash verification failed. Preserve the state.'],
+  BUILD_SCOPE: ['构建权限冲突；停止。', 'Conflicting build permissions. Stopped.'],
 };
 
-export function startUI({ requestDriver, simulation = false, scenario, expectedMac = '', hardwareWritesEnabled = false }) {
+export function startUI({ requestDriver, simulation = false, scenario, expectedMac = '', hardwareWritesEnabled = false, hardwareFreshWritesEnabled = false }) {
   Object.assign(dict.zh, copy.zh); Object.assign(dict.en, copy.en);
   dict.zh.dialogs.help = { title: '安装帮助', body: '<p>使用电脑端 Web Serial 浏览器、USB 数据线和准确的微雪 ST7305 设备。R1 只覆盖 USB Serial/JTAG；按住 BOOT 接入 USB，保持 ROM 下载模式。</p><p>写入前须在本机核验可恢复的完整 Flash／配对备份，并单独备份 TF 文稿与学习目录。网页不创建、收集或上传私人备份。</p><p>兼容更新只写已确认的活动 App。未知分区、OTA pending／rollback、安全状态不明均停止。真实首装尚未验收，本轮锁定。</p><p>TF 须另备：Alpha 2.1 资源包中的 <code>HANIME/IME/B_SHORT_TEXT_20261018/</code> 词库及 <code>HANIME/IME/R1_API080/matched28.hbf1</code> 字体；Alpha 3 独立包中的 <code>WAVESHARE_R7_L1_AREV1_RES_20261112/relations.bgr</code> 和 <code>relations.hnv</code>。不要格式化 TF，不覆盖不匹配的原文件。</p><p><a href="docs/TF_GUIDE.html" target="_blank" rel="noopener">准确下载、路径及 SHA-256 清单</a> · <a href="docs/INSTALL.zh-CN.md" target="_blank" rel="noopener">发行安装指南</a></p><div class="notice">固件校验成功 ≠ 整机已具备全部写作资源。普通启动、键盘配对、保存状态仍需实机验收。</div>' };
   dict.en.dialogs.help = { title: 'Installation help', body: '<p>Use desktop Web Serial, a USB data cable and the exact Waveshare ST7305 board. R1 covers USB Serial/JTAG only. Hold BOOT while connecting USB and remain in ROM download mode.</p><p>Verify recoverable full Flash/settings/pairing backups and separate TF document and learning backups privately before a write. This page never creates, collects or uploads private backups.</p><p>Compatible updates write only the confirmed active App. Unknown partitions, pending/rollback OTA or unknown security stop installation. Physical fresh installation is locked and unqualified.</p><p>Prepare TF separately: dictionaries under <code>HANIME/IME/B_SHORT_TEXT_20261018/</code> and <code>HANIME/IME/R1_API080/matched28.hbf1</code> from Alpha 2.1 Resources; both <code>WAVESHARE_R7_L1_AREV1_RES_20261112/relations.bgr</code> and <code>relations.hnv</code> from the separate Alpha 3 LearningIndex. Never format TF or overwrite mismatching originals.</p><p><a href="docs/TF_GUIDE.html" target="_blank" rel="noopener">Exact downloads, paths and SHA-256 list</a> · <a href="docs/INSTALL.md" target="_blank" rel="noopener">Release installation guide</a></p><div class="notice">Verified firmware does not certify writing readiness. Normal boot, keyboard pairing and saved writing still need physical qualification.</div>' };
@@ -149,7 +157,7 @@ export function startUI({ requestDriver, simulation = false, scenario, expectedM
     document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en';
     document.title = language === 'zh' ? 'Draftor 草稿机 · 固件安装' : 'Draftor · Firmware Installer';
     document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
-    document.querySelector('[data-i18n="previewHint"]').textContent = simulation ? `${t('sim')} · ${scenario}` : t(hardwareWritesEnabled ? 'testHint' : 'previewHint');
+    document.querySelector('[data-i18n="previewHint"]').textContent = simulation ? `${t('sim')} · ${scenario}` : t(hardwareFreshWritesEnabled ? 'firstHint' : hardwareWritesEnabled ? 'testHint' : 'previewHint');
     $('board-name').textContent = language === 'zh' ? '微雪 ESP32-S3-RLCD-4.2' : 'Waveshare ESP32-S3-RLCD-4.2';
     $('board-change').textContent = t(chooserOpen ? 'hide' : 'change');
     $('lang-toggle').setAttribute('aria-label', language === 'zh' ? 'Switch language to English' : '切换为中文');
@@ -176,19 +184,19 @@ export function startUI({ requestDriver, simulation = false, scenario, expectedM
   function renderPlan() {
     const p = session.plan;
     $('plan-section').hidden = false;
-    $('plan-title').textContent = `${t(p.mode === 'fresh' ? 'fresh' : 'update')} · ${p.appSlot} · ${p.appOffset}`;
+    $('plan-title').textContent = `${t(p.initialState === 'waveshare-factory-20260120' ? 'factory' : p.mode === 'fresh' ? 'fresh' : 'update')} · ${p.appSlot} · ${p.appOffset}`;
     $('plan-summary').textContent = t(p.mode === 'fresh' ? 'freshSummary' : 'updateSummary');
     $('plan-json').textContent = JSON.stringify(p, null, 2);
     $('erase-label').hidden = p.mode !== 'fresh';
     $('current-app-label').hidden = p.mode === 'fresh';
-    $('write-lock').hidden = simulation || (hardwareWritesEnabled && p.mode === 'update');
+    $('write-lock').hidden = simulation || p.hardwareWriteAllowed;
     $('write-lock').textContent = t(p.mode === 'fresh' ? 'freshLocked' : 'locked');
     enableExecution();
   }
   function enableExecution() {
     const p = session?.plan;
     $('execute-plan').disabled = busy || session?.state !== 'PLAN_READY' || !p ||
-      (!simulation && (!hardwareWritesEnabled || p.mode === 'fresh')) ||
+      (!simulation && !p.hardwareWriteAllowed) ||
       !['backup-confirmed', 'tf-removed', 'plan-confirmed'].every(id => $(id).checked) ||
       (p.mode === 'fresh' && !$('erase-confirmed').checked);
   }
@@ -239,7 +247,7 @@ export function startUI({ requestDriver, simulation = false, scenario, expectedM
     try {
       // requestPort is called synchronously from this user click before awaiting.
       const driver = await requestDriver(release);
-      session = new InstallSession(driver, release, { hardwareWritesEnabled, onState: state });
+      session = new InstallSession(driver, release, { hardwareWritesEnabled, hardwareFreshWritesEnabled, onState: state });
       await session.prepare({ boardConfirmed: $('physical-board').checked, expectedMac: $('expected-mac').value });
       $('connect-section').hidden = true;
     } catch (error) { fail(error); }

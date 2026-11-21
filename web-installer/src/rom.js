@@ -5,7 +5,8 @@
 // Copyright 2026 Draftor contributors (JavaScript adaptation)
 // Provenance and upstream anchors: docs/CAPABILITY_AUDIT.md.
 import { PINS } from './pins.js';
-import { Stop, requireSafe, u32, le32, concat, sha256 } from './safety.js';
+import { Stop, requireSafe, u32, le32, concat, sha256, normalizeMac } from './safety.js';
+import { FIRST_FILES, verifyInitialFlash } from './first-install.js';
 
 export const OP = Object.freeze({ FLASH_BEGIN: 0x02, FLASH_DATA: 0x03, SYNC: 0x08, WRITE_REG: 0x09, READ_REG: 0x0a, SPI_PARAMS: 0x0b, SPI_ATTACH: 0x0d, READ_FLASH_SLOW: 0x0e, MD5: 0x13, SECURITY: 0x14 });
 export function parseSecurity(data) {
@@ -21,7 +22,11 @@ export function parseSecurity(data) {
 export class S3Rom {
   kind = 'hardware';
   #wire; #fatal = false; #connected = false; #inFlight = false; #writesAllowed; #writeUsed = false;
-  constructor(wire, { allowUpdate = false } = {}) { this.#wire = wire; this.#writesAllowed = allowUpdate; }
+  #firstAllowed; #firstStage = 'IDLE'; #firstNext = 0;
+  constructor(wire, { allowUpdate = false, allowFirstInstall = false } = {}) {
+    requireSafe(!(allowUpdate && allowFirstInstall), 'BUILD_SCOPE');
+    this.#wire = wire; this.#writesAllowed = allowUpdate; this.#firstAllowed = allowFirstInstall;
+  }
   #alive() { requireSafe(!this.#fatal, 'STATE'); }
   async #reply(op, dataBytes, timeout) {
     const packet = await this.#wire.read(timeout);
@@ -128,6 +133,7 @@ export class S3Rom {
     return digest;
   }
   async writeImage(offset, image, { mode, slotOffset, progress = () => {} } = {}) {
+    if (mode === 'fresh') return this.#writeFirstImage(offset, image, progress);
     const data = image.slice(); // Snapshot before any asynchronous validation.
     this.#range(offset, data.length);
     requireSafe(this.#writesAllowed, 'DEVICE_WRITES_LOCKED');
@@ -145,6 +151,47 @@ export class S3Rom {
       if (sequence % 32 === 0 || sequence === blocks - 1) progress(Math.min(1, (sequence + 1) / blocks));
     }
     // No FLASH_END: in ROM it can run user code, violating --after no-reset.
+  }
+  async eraseAll({ source, expectedMac, backupConfirmed, tfRemoved, planConfirmed, eraseConfirmed } = {}) {
+    this.#range(0, PINS.flashBytes);
+    requireSafe(this.#firstAllowed && !this.#writesAllowed, 'FRESH_DEVICE_PENDING');
+    requireSafe(backupConfirmed === true && tfRemoved === true && planConfirmed === true, 'BACKUP');
+    requireSafe(eraseConfirmed === true, 'ERASE_CONFIRM');
+    requireSafe(this.#firstStage === 'IDLE' && !this.#writeUsed, 'STATE');
+    this.#firstStage = 'RESERVED'; this.#writeUsed = true;
+    try {
+      const info = await this.identity();
+      requireSafe(normalizeMac(info.mac) === normalizeMac(expectedMac), 'IDENTITY');
+      await verifyInitialFlash(this, source);
+      // esptool 5.3.1 cmds.erase_region() in ROM uses flash_begin(size, address).
+      // SPI_PARAMS already sets the actual 16 MiB capacity. No stub-only 0xd0/d1.
+      await this.#command(OP.FLASH_BEGIN, le32(PINS.flashBytes, PINS.flashBytes / 1024, 1024, 0, 0), { timeout: 480000 });
+      requireSafe(await this.flashMd5(0, PINS.flashBytes) === PINS.blankFlashMd5, 'ERASE_VERIFY');
+      this.#firstStage = 'ERASED_VERIFIED';
+    } catch (error) { this.#fatal = true; throw error; }
+  }
+  async #writeFirstImage(offset, image, progress) {
+    this.#range(offset, image.length);
+    requireSafe(this.#firstAllowed && !this.#writesAllowed, 'FRESH_DEVICE_PENDING');
+    requireSafe(this.#firstStage === 'ERASED_VERIFIED' && this.#firstNext < FIRST_FILES.length, 'STATE');
+    // Reserve the step before awaiting a hash; double clicks cannot create writers.
+    this.#firstStage = 'WRITING';
+    try {
+      const name = FIRST_FILES[this.#firstNext], pin = PINS.files[name], data = image.slice();
+      requireSafe(offset === pin.offset && data.length === pin.bytes && await sha256(data) === pin.sha256, 'ASSET');
+      const blocks = Math.ceil(data.length / 1024), end = offset + Math.ceil(data.length / 4096) * 4096;
+      requireSafe(end <= (this.#firstNext + 1 < FIRST_FILES.length ? PINS.files[FIRST_FILES[this.#firstNext + 1]].offset : 0x410000), 'RANGE');
+      await this.#command(OP.FLASH_BEGIN, le32(data.length, blocks, 1024, offset, 0), { timeout: 120000 });
+      for (let sequence = 0; sequence < blocks; sequence++) {
+        const block = new Uint8Array(1024).fill(255);
+        block.set(data.subarray(sequence * 1024, (sequence + 1) * 1024));
+        await this.#command(OP.FLASH_DATA, concat(le32(1024, sequence, 0, 0), block), { checksum: block.reduce((sum, b) => sum ^ b, 0xef) });
+        if (sequence % 32 === 0 || sequence === blocks - 1) progress((this.#firstNext + (sequence + 1) / blocks) / FIRST_FILES.length);
+      }
+      requireSafe(await this.flashMd5(offset, data.length) === pin.md5, 'VERIFY');
+      this.#firstNext++;
+      this.#firstStage = this.#firstNext === FIRST_FILES.length ? 'COMPLETE' : 'ERASED_VERIFIED';
+    } catch (error) { this.#fatal = true; throw error; }
   }
   cancel() { this.#fatal = true; this.#wire.cancel(); }
   async disconnect() { this.#fatal = true; await this.#wire.disconnect(); }

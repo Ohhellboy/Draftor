@@ -52,7 +52,7 @@ export class RomDevicePort {
       }
     } else if (op === 10) {
       assert.equal(p.length, 4);
-      value = word(p) === 0x60007044 ? 1 : word(p) === 0x60007048 ? 0x0200 : this.registers.get(word(p)) || 0;
+      value = word(p) === 0x60007044 ? (this.options.macLo ?? 1) : word(p) === 0x60007048 ? 0x0200 : this.registers.get(word(p)) || 0;
     } else if (op === 13) {
       assert.deepEqual(p, words(0, 0));
     } else if (op === 11) {
@@ -68,7 +68,11 @@ export class RomDevicePort {
     } else if (op === 2) {
       assert.equal(p.length, 20); const size = word(p), blocks = word(p, 4), blockSize = word(p, 8), offset = word(p, 12);
       assert.equal(blockSize, 1024); assert.equal(word(p, 16), 0); assert.equal(blocks, Math.ceil(size / 1024));
-      assert([0x10000, 0x410000].includes(offset)); assert(size <= 0x400000);
+      if (this.options.firstInstall) {
+        // Independently specified expected protocol: erase, then four release files.
+        const expected = [[0,16777216],[0,19968],[32768,3072],[57344,8192],[65536,4021152]][nth - 1];
+        assert.deepEqual([offset,size], expected);
+      } else { assert([0x10000, 0x410000].includes(offset)); assert(size <= 0x400000); }
       this.pending = { offset, blocks, next: 0, size }; this.flash.fill(255, offset, offset + Math.ceil(size / 4096) * 4096);
     } else if (op === 3) {
       assert(this.pending); assert.equal(p.length, 1040); assert.equal(word(p), 1024); assert.equal(word(p, 4), this.pending.next);
@@ -84,7 +88,9 @@ export class RomDevicePort {
       if (this.options.statusOn === op) reply[reply.length - 4] = 1;
       if (this.options.malformedOn === op) reply[2]++;
       if (this.options.wrongOpOn === op) reply[1]++;
+      if (this.options.reservedFF) reply.set([255,255], reply.length - 2);
       const output = encode(this.options.truncatedOn === op ? reply.slice(0, -1) : reply);
+      if (this.options.emptySlip) this.controller.enqueue(Uint8Array.of(192,192));
       if (this.options.fragment) { for (let j = 0; j < output.length; j += 3) this.controller.enqueue(output.slice(j, j + 3)); }
       else this.controller.enqueue(output);
     }
