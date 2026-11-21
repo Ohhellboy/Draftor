@@ -10,8 +10,11 @@ const UPDATE_NEVER = ['bootloader', 'partition table', 'otadata', 'NVS / pairing
 export class InstallSession {
   #driver; #release; #plan; #fingerprint; #mac; #busy = false; #writesEnabled; #state = 'IDLE';
   #receipt; #emit; #cancelled = false; #freshEnabled; #bindSelectedIdentity;
-  constructor(driver, release, { hardwareWritesEnabled = false, hardwareFreshWritesEnabled = false, bindSelectedIdentity = false, onState = () => {} } = {}) {
+  #candidate; #backupMd5; #capturedSha256;
+  constructor(driver, release, { hardwareWritesEnabled = false, hardwareFreshWritesEnabled = false, bindSelectedIdentity = false, candidate = false, onState = () => {} } = {}) {
     requireSafe(!(hardwareWritesEnabled && hardwareFreshWritesEnabled), 'BUILD_SCOPE');
+    requireSafe(!(candidate && (hardwareWritesEnabled || hardwareFreshWritesEnabled)), 'BUILD_SCOPE');
+    this.#candidate = candidate;
     this.#freshEnabled = hardwareFreshWritesEnabled;
     this.#bindSelectedIdentity = bindSelectedIdentity;
     this.#driver = driver; this.#release = release; this.#writesEnabled = hardwareWritesEnabled; this.#emit = onState;
@@ -21,6 +24,7 @@ export class InstallSession {
   get state() { return this.#state; }
   get plan() { return this.#plan; }
   get selectedIdentity() { return this.#mac; } // Display only, never included in receipts.
+  get backupVerified() { return this.#backupMd5 !== undefined; }
   receipt() { return structuredClone(this.#receipt); }
   #set(status) { this.#state = status; this.#receipt.status = status; this.#emit(status, this.receipt()); }
   #alive() { requireSafe(!this.#cancelled, 'CANCELLED'); }
@@ -82,6 +86,10 @@ export class InstallSession {
         tableMatchesRelease(this.#release, table);
         slot = activeSlot(ota);
       }
+      if (this.#candidate && mode === 'update') {
+        requireSafe(slot === 0, 'UNQUALIFIED_SLOT');
+        requireSafe(await this.#driver.flashMd5(0x10000, PINS.files['app.bin'].bytes) === PINS.files['app.bin'].md5, 'UNQUALIFIED_FIRMWARE');
+      }
       const offset = slot === 0 ? 0x10000 : 0x410000;
       const writes = mode === 'update'
         ? [{ name: 'app.bin', offset, bytes: PINS.files['app.bin'].bytes }]
@@ -92,14 +100,54 @@ export class InstallSession {
         fullErase: mode === 'fresh',
         atomicUpdate: false, interruption: 'Active App may be partial; no automatic retry, alternate slot or reboot. Recover from verified private backups.',
         neverWrite: mode === 'update' ? UPDATE_NEVER : ['TF card'],
-        requires: mode === 'update' ? ['physical Waveshare board', 'matching private MAC', 'verified recoverable Flash and TF backups', 'TF removed', 'explicit plan approval']
+        requires: mode === 'update' ? ['physical Waveshare board', this.#bindSelectedIdentity ? 'same selected USB identity bound to this session' : 'matching private MAC', 'verified recoverable Flash and TF backups', 'TF removed', 'explicit plan approval']
           : ['proven blank or exact pinned factory fingerprint', 'verified recoverable full Flash backup', 'separate full internal Flash erase approval', 'TF removed', 'ordinary boot qualification pending'],
         ...(mode === 'fresh' ? { eraseRange: { offset: 0, bytes: PINS.flashBytes }, eraseMethod: 'ROM FLASH_BEGIN then complete all-FF MD5', factoryCommit: initialState === 'blank' ? null : FACTORY.commit,
           clears: ['entire internal Flash', 'old firmware', 'settings', 'NVS and pairing', 'internal filesystem'], preservedOutsideFlash: ['TF card', 'eFuses'], expectedFullMd5: FACTORY.draftorInitializedFullMd5 } : {}),
-        hardwareWriteAllowed: mode === 'update' ? this.#writesEnabled : this.#freshEnabled,
+        hardwareWriteAllowed: this.#candidate ? initialState !== 'blank' : mode === 'update' ? this.#writesEnabled : this.#freshEnabled,
+        ...(this.#candidate ? { candidateOnly: true, publicApproval: 'PENDING', backupSavedFileReimportRequired: true, supportedUpdate: 'exact alpha.3 app0 same-version only', blankHardwareQualification: 'UNVERIFIED_LOCKED' } : {}),
         deviceQualification: 'DEVICE_PENDING', tfResources: 'NOT_CHECKED' });
       this.#receipt.plan = this.#plan;
       this.#set('PLAN_READY'); return this.#plan;
+    });
+  }
+  async #samePlannedDevice() {
+    await this.#identity();
+    requireSafe((await this.#metadata()).fingerprint === this.#fingerprint, 'STALE_PLAN');
+  }
+  async captureBackup() {
+    return this.#run(async () => {
+      requireSafe(this.#candidate && this.#state === 'PLAN_READY', 'STATE');
+      this.#set('BACKUP_READING');
+      await this.#samePlannedDevice();
+      const before = await this.#driver.flashMd5(0, PINS.flashBytes);
+      const bytes = new Uint8Array(PINS.flashBytes);
+      for (let at = 0; at < bytes.length; at += 65536) {
+        this.#alive(); const chunk = await this.#driver.readFlash(at, 65536);
+        requireSafe(chunk.length === 65536, 'READBACK'); bytes.set(chunk, at);
+        this.#emit('BACKUP_READING', { ...this.receipt(), backupProgress: (at + chunk.length) / bytes.length });
+      }
+      await this.#samePlannedDevice();
+      requireSafe(md5(bytes) === before && await this.#driver.flashMd5(0, bytes.length) === before, 'READBACK');
+      this.#capturedSha256 = await sha256(bytes);
+      this.#backupMd5 = undefined;
+      this.#receipt.backup = 'SAVED_FILE_REIMPORT_REQUIRED';
+      this.#set('PLAN_READY'); return bytes;
+    });
+  }
+  async verifySavedBackup(input) {
+    return this.#run(async () => {
+      requireSafe(this.#candidate && this.#state === 'PLAN_READY', 'STATE');
+      requireSafe(input instanceof Uint8Array && input.length === PINS.flashBytes, 'BACKUP_FILE');
+      const bytes = input.slice();
+      this.#set('BACKUP_VERIFYING');
+      await this.#samePlannedDevice();
+      const digest = md5(bytes);
+      if (this.#capturedSha256) requireSafe(await sha256(bytes) === this.#capturedSha256, 'BACKUP_FILE');
+      requireSafe(await this.#driver.flashMd5(0, bytes.length) === digest, 'BACKUP_FILE');
+      this.#backupMd5 = digest; // Private session evidence, never a receipt/upload.
+      this.#receipt.backup = 'SAVED_FILE_REIMPORTED_AND_DEVICE_MD5_MATCHED';
+      this.#set('PLAN_READY'); return true;
     });
   }
   async execute({ backupConfirmed, tfRemoved, planConfirmed, eraseConfirmed = false, currentApp } = {}) {
@@ -109,7 +157,10 @@ export class InstallSession {
       const fresh = this.#plan.mode === 'fresh';
       requireSafe(fresh || eraseConfirmed === false, 'ERASE_FORBIDDEN');
       requireSafe(!fresh || eraseConfirmed === true, 'ERASE_CONFIRM');
-      requireSafe(this.#driver.kind === 'simulation' || (fresh ? this.#freshEnabled : this.#writesEnabled), fresh ? 'FRESH_DEVICE_PENDING' : 'DEVICE_WRITES_LOCKED');
+      if (this.#candidate) {
+        requireSafe(this.#plan.initialState !== 'blank', 'UNQUALIFIED_BLANK');
+        requireSafe(this.backupVerified, 'BACKUP_FILE');
+      } else requireSafe(this.#driver.kind === 'simulation' || (fresh ? this.#freshEnabled : this.#writesEnabled), fresh ? 'FRESH_DEVICE_PENDING' : 'DEVICE_WRITES_LOCKED');
       this.#set('RECHECKING');
       await this.#identity();
       const metadata = await this.#metadata();
@@ -129,6 +180,10 @@ export class InstallSession {
       const before = [];
       for (const [start, size] of protectedRanges) before.push(await this.#driver.flashMd5(start, size));
       this.#alive();
+      if (this.#candidate) {
+        requireSafe(await this.#driver.flashMd5(0, PINS.flashBytes) === this.#backupMd5, 'BACKUP_STALE');
+        await this.#driver.grantExclusiveMode({ mode: this.#plan.mode, initialState: this.#plan.initialState, expectedMac: this.#mac, metadataFingerprint: this.#fingerprint, backupMd5: this.#backupMd5 });
+      }
       if (fresh) {
         this.#receipt.eraseStarted = true; this.#set('ERASING');
         await this.#driver.eraseAll({ source: this.#plan.initialState, expectedMac: this.#mac, backupConfirmed, tfRemoved, planConfirmed, eraseConfirmed });
@@ -172,5 +227,5 @@ export class InstallSession {
     });
   }
   cancel(code = 'CANCELLED') { this.#cancelled = true; this.#driver.cancel?.(); this.#receipt.error = code; if (this.#receipt.writeStarted || this.#receipt.eraseStarted) this.#receipt.flashOutcome = 'POSSIBLY_PARTIAL'; this.#set('STOP'); }
-  async close() { this.#mac = undefined; await this.#driver.disconnect(); }
+  async close() { this.#mac = undefined; this.#backupMd5 = undefined; this.#capturedSha256 = undefined; await this.#driver.disconnect(); }
 }

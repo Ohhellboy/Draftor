@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { verifyReleaseInputs } from '../tools/verify-release.mjs';
 import { loadRelease } from '../src/firmware.js';
-const { inputs } = await verifyReleaseInputs();
+const { inputs } = await verifyReleaseInputs({verifyDesignBrief:false});
 for (const encoding of ['gzip', 'br', 'identity']) test(`decoded fetch body remains pinned with ${encoding}`, async () => {
   const r = await loadRelease(new URL('https://example.test/firmware/'), async url => {
     const b = inputs[url.pathname.split('/').at(-1)];

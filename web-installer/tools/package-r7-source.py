@@ -11,7 +11,7 @@ if identity.exists():
 else:
     names=subprocess.check_output(['git','ls-files','-z'],cwd=str(root)).decode().split('\0')
     exact={'index.html','package.json','package-lock.json','release-lock.json','factory-lock.json',
-           'tools/build-r7.mjs','tools/package-r7-source.py','tools/verify-release.mjs','docs/WEB_LICENSE.md','docs/R7_BUILD.md'}
+           'tools/build-r7.mjs','tools/build-r7-candidate.mjs','docs/RECOVERY_R7.html','tools/package-r7-source.py','tools/verify-release.mjs','docs/WEB_LICENSE.md','docs/R7_BUILD.md'}
     names=sorted(n for n in names if n and (n in exact or n.startswith(('src/','public/','release-inputs/','reference/')))
                  and n not in {'src/demo.js','src/simulator.js','src/main.js','release-inputs/BRIEF.md','public/sources/Draftor_Web_Installer_R1_source.zip'}
                  and not n.startswith('release-inputs/factory/') and not (n.startswith('release-inputs/') and n.endswith('_Resources.zip')))

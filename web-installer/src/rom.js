@@ -5,7 +5,7 @@
 // Copyright 2026 Draftor contributors (JavaScript adaptation)
 // Provenance and upstream anchors: docs/CAPABILITY_AUDIT.md.
 import { PINS } from './pins.js';
-import { Stop, requireSafe, u32, le32, concat, sha256, normalizeMac } from './safety.js';
+import { Stop, requireSafe, u32, le32, concat, sha256, normalizeMac, md5, activeSlot, checkPartitions } from './safety.js';
 import { FIRST_FILES, verifyInitialFlash } from './first-install.js';
 
 export const OP = Object.freeze({ FLASH_BEGIN: 0x02, FLASH_DATA: 0x03, SYNC: 0x08, WRITE_REG: 0x09, READ_REG: 0x0a, SPI_PARAMS: 0x0b, SPI_ATTACH: 0x0d, READ_FLASH_SLOW: 0x0e, MD5: 0x13, SECURITY: 0x14 });
@@ -23,8 +23,11 @@ export class S3Rom {
   kind = 'hardware';
   #wire; #fatal = false; #connected = false; #inFlight = false; #writesAllowed; #writeUsed = false;
   #firstAllowed; #firstStage = 'IDLE'; #firstNext = 0;
-  constructor(wire, { allowUpdate = false, allowFirstInstall = false } = {}) {
+  #candidate; #candidateMode;
+  constructor(wire, { allowUpdate = false, allowFirstInstall = false, candidate = false } = {}) {
     requireSafe(!(allowUpdate && allowFirstInstall), 'BUILD_SCOPE');
+    requireSafe(!(candidate && (allowUpdate || allowFirstInstall)), 'BUILD_SCOPE');
+    this.#candidate = candidate;
     this.#wire = wire; this.#writesAllowed = allowUpdate; this.#firstAllowed = allowFirstInstall;
   }
   #alive() { requireSafe(!this.#fatal, 'STATE'); }
@@ -132,11 +135,39 @@ export class S3Rom {
     catch (error) { this.#fatal = true; throw error; }
     return digest;
   }
+  async grantExclusiveMode({ mode, initialState, expectedMac, metadataFingerprint, backupMd5 }) {
+    this.#alive();
+    requireSafe(this.#candidate && this.#connected && this.#candidateMode === undefined && !this.#writesAllowed && !this.#firstAllowed && !this.#writeUsed, 'BUILD_SCOPE');
+    this.#candidateMode = 'RESERVING'; // One attempt; no mode switching after failure.
+    try {
+      requireSafe(['update', 'fresh'].includes(mode), 'BUILD_SCOPE');
+      requireSafe(normalizeMac((await this.identity()).mac) === normalizeMac(expectedMac), 'IDENTITY');
+      const table = await this.readFlash(0x8000, 4096), ota = await this.readFlash(0xe000, 8192);
+      requireSafe(await this.flashMd5(0x8000, 4096) === md5(table) && await this.flashMd5(0xe000, 8192) === md5(ota), 'READBACK');
+      requireSafe(`${await sha256(table)}:${await sha256(ota)}` === metadataFingerprint, 'STALE_PLAN');
+      requireSafe(/^[a-f0-9]{32}$/.test(backupMd5) && await this.flashMd5(0, PINS.flashBytes) === backupMd5, 'BACKUP_STALE');
+      if (mode === 'update') {
+        requireSafe(initialState === 'compatible-draftor', 'UNKNOWN');
+        checkPartitions(table);
+        requireSafe(await sha256(table.slice(0, 3072)) === PINS.files['partitions.bin'].sha256, 'PARTITIONS');
+        requireSafe(activeSlot(ota) === 0, 'UNQUALIFIED_SLOT');
+        requireSafe(await this.flashMd5(0x10000, PINS.files['app.bin'].bytes) === PINS.files['app.bin'].md5, 'UNQUALIFIED_FIRMWARE');
+        this.#writesAllowed = true;
+      } else {
+        requireSafe(initialState === 'waveshare-factory-20260120', 'UNQUALIFIED_BLANK');
+        await verifyInitialFlash(this, initialState);
+        this.#firstAllowed = true;
+      }
+      requireSafe(!(this.#writesAllowed && this.#firstAllowed), 'BUILD_SCOPE');
+      this.#candidateMode = mode;
+    } catch (error) { this.#fatal = true; throw error; }
+  }
   async writeImage(offset, image, { mode, slotOffset, progress = () => {} } = {}) {
     if (mode === 'fresh') return this.#writeFirstImage(offset, image, progress);
     const data = image.slice(); // Snapshot before any asynchronous validation.
     this.#range(offset, data.length);
     requireSafe(this.#writesAllowed, 'DEVICE_WRITES_LOCKED');
+    requireSafe(!this.#candidate || (this.#candidateMode === 'update' && offset === 0x10000 && slotOffset === 0x10000), 'UNQUALIFIED_SLOT');
     requireSafe(!this.#writeUsed && mode === 'update' && [0x10000, 0x410000].includes(offset) && slotOffset === offset, 'RANGE');
     this.#writeUsed = true; // Reserve once before yielding to asynchronous hashing.
     requireSafe(data.length === PINS.files['app.bin'].bytes && await sha256(data) === PINS.files['app.bin'].sha256, 'ASSET');
@@ -155,6 +186,7 @@ export class S3Rom {
   async eraseAll({ source, expectedMac, backupConfirmed, tfRemoved, planConfirmed, eraseConfirmed } = {}) {
     this.#range(0, PINS.flashBytes);
     requireSafe(this.#firstAllowed && !this.#writesAllowed, 'FRESH_DEVICE_PENDING');
+    requireSafe(!this.#candidate || (this.#candidateMode === 'fresh' && source === 'waveshare-factory-20260120'), 'UNKNOWN');
     requireSafe(backupConfirmed === true && tfRemoved === true && planConfirmed === true, 'BACKUP');
     requireSafe(eraseConfirmed === true, 'ERASE_CONFIRM');
     requireSafe(this.#firstStage === 'IDLE' && !this.#writeUsed, 'STATE');

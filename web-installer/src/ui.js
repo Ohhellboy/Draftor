@@ -108,11 +108,20 @@ const errors = {
   ERASE_VERIFY: ['全片擦后校验失败；停止，不写任何固件。', 'Full erase verification failed. Stopped before firmware writes.'],
   INITIALIZATION_VERIFY: ['初始化完整镜像校验失败；停止并保留现场。', 'Complete initialized Flash verification failed. Preserve the state.'],
   BUILD_SCOPE: ['构建权限冲突；停止。', 'Conflicting build permissions. Stopped.'],
+  UNQUALIFIED_SLOT: ['app1 尚未实机验收，当前候选拒绝写入。', 'app1 is unqualified and is refused by this candidate.'],
+  UNQUALIFIED_FIRMWARE: ['只接受准确 Alpha 3 app0 同版本；其他旧固件尚未验收。', 'Only the exact Alpha 3 app0 same-version image is qualified.'],
+  UNQUALIFIED_BLANK: ['全空白板仅有软件验证，真实写入仍锁定。', 'Blank boards have software tests only; hardware writes remain locked.'],
+  BACKUP_FILE: ['请选择已保存的完整 16 MiB Flash 文件；必须与当前设备摘要一致。', 'Select the saved complete 16 MiB Flash file; it must match this device.'],
+  BACKUP_STALE: ['设备内容已不再匹配已验证的备份；停止。', 'Device contents no longer match the verified backup. Stopped.'],
 };
 
-export function startUI({ requestDriver, simulation = false, scenario, expectedMac = '', hardwareWritesEnabled = false, hardwareFreshWritesEnabled = false, publicRelease = false, bindSelectedIdentity = false, sessionFactory = (driver, release, options) => new InstallSession(driver, release, options) }) {
+export function startUI({ requestDriver, simulation = false, scenario, expectedMac = '', hardwareWritesEnabled = false, hardwareFreshWritesEnabled = false, publicRelease = false, bindSelectedIdentity = false, candidate = false, sessionFactory = (driver, release, options) => new InstallSession(driver, release, options) }) {
   Object.assign(dict.zh, copy.zh); Object.assign(dict.en, copy.en);
   if (publicRelease) { Object.assign(dict.zh, publicCopy.zh); Object.assign(dict.en, publicCopy.en); }
+  if (candidate) {
+    Object.assign(dict.zh, { previewHint: 'R7 待审候选 · 未公开发布 · 可擦写内部 Flash', intro: 'USB 只读识别后，只开放已验收的 app0 同版本更新或准确厂家首装。先保存、重新选择并校验完整备份。', backupRead: '只读备份完整 Flash 并保存到本机', backupSelect: '重新选择已保存的完整 Flash .bin（16 MiB）', backupHelp: '备份含文稿、设置和配对凭据，请私下保管。先保存文件，再用文件选择框重新打开它；已有完整备份也可直接选择。必须与当前设备完整摘要一致，勾选备份声明本身不能解锁。TF 文稿和学习目录须另行备份。', backupReady: '本机已保存文件与当前设备完整摘要相符。请保留文件及恢复说明。', phase_BACKUP_READING: '正在通过 ROM 只读备份 16 MiB Flash；请勿断线…', phase_BACKUP_VERIFYING: '正在校验重新选择的本机备份与同一设备…' });
+    Object.assign(dict.en, { previewHint: 'R7 review candidate · Not published · Can erase/write internal Flash', intro: 'USB inspection selects only qualified app0 same-version updates or the exact factory installation. Save, reopen and verify a complete backup first.', backupRead: 'Read-only full Flash backup and save locally', backupSelect: 'Reopen saved complete Flash .bin (16 MiB)', backupHelp: 'Backups contain writing, settings and pairing credentials. Keep them private. Save the file, then reopen it using the file chooser; an existing full backup can also be selected. It must match the complete current device digest. A checkbox alone cannot unlock writing. Back up TF writing and learning directories separately.', backupReady: 'The saved local file matches the complete current device digest. Keep it and the recovery instructions.', phase_BACKUP_READING: 'Reading a 16 MiB ROM backup; keep the connection…', phase_BACKUP_VERIFYING: 'Verifying the reopened local backup against the same device…' });
+  }
   dict.zh.dialogs.help = { title: '安装帮助', body: '<p>使用电脑端 Web Serial 浏览器、USB 数据线和准确的微雪 ST7305 设备。R1 只覆盖 USB Serial/JTAG；按住 BOOT 接入 USB，保持 ROM 下载模式。</p><p>写入前须在本机核验可恢复的完整 Flash／配对备份，并单独备份 TF 文稿与学习目录。网页不创建、收集或上传私人备份。</p><p>兼容更新只写已确认的活动 App。未知分区、OTA pending／rollback、安全状态不明均停止。真实首装尚未验收，本轮锁定。</p><p>TF 须另备：Alpha 2.1 资源包中的 <code>HANIME/IME/B_SHORT_TEXT_20261018/</code> 词库及 <code>HANIME/IME/R1_API080/matched28.hbf1</code> 字体；Alpha 3 独立包中的 <code>WAVESHARE_R7_L1_AREV1_RES_20261112/relations.bgr</code> 和 <code>relations.hnv</code>。不要格式化 TF，不覆盖不匹配的原文件。</p><p><a href="docs/TF_GUIDE.html" target="_blank" rel="noopener">准确下载、路径及 SHA-256 清单</a> · <a href="docs/INSTALL.zh-CN.md" target="_blank" rel="noopener">发行安装指南</a></p><div class="notice">固件校验成功 ≠ 整机已具备全部写作资源。普通启动、键盘配对、保存状态仍需实机验收。</div>' };
   dict.en.dialogs.help = { title: 'Installation help', body: '<p>Use desktop Web Serial, a USB data cable and the exact Waveshare ST7305 board. R1 covers USB Serial/JTAG only. Hold BOOT while connecting USB and remain in ROM download mode.</p><p>Verify recoverable full Flash/settings/pairing backups and separate TF document and learning backups privately before a write. This page never creates, collects or uploads private backups.</p><p>Compatible updates write only the confirmed active App. Unknown partitions, pending/rollback OTA or unknown security stop installation. Physical fresh installation is locked and unqualified.</p><p>Prepare TF separately: dictionaries under <code>HANIME/IME/B_SHORT_TEXT_20261018/</code> and <code>HANIME/IME/R1_API080/matched28.hbf1</code> from Alpha 2.1 Resources; both <code>WAVESHARE_R7_L1_AREV1_RES_20261112/relations.bgr</code> and <code>relations.hnv</code> from the separate Alpha 3 LearningIndex. Never format TF or overwrite mismatching originals.</p><p><a href="docs/TF_GUIDE.html" target="_blank" rel="noopener">Exact downloads, paths and SHA-256 list</a> · <a href="docs/INSTALL.md" target="_blank" rel="noopener">Release installation guide</a></p><div class="notice">Verified firmware does not certify writing readiness. Normal boot, keyboard pairing and saved writing still need physical qualification.</div>' };
   for (const lang of ['zh', 'en']) {
@@ -144,6 +153,13 @@ export function startUI({ requestDriver, simulation = false, scenario, expectedM
         <h4 id="plan-title"></h4><p id="identity-display"></p><p id="plan-summary"></p>
         <details id="plan-details" open><summary data-i18n="plan"></summary><pre id="plan-json"></pre></details>
         <p id="write-lock" class="notice" hidden></p>
+        <section id="backup-workflow" hidden>
+          <p data-i18n="backupHelp"></p>
+          <button type="button" id="capture-backup" data-i18n="backupRead"></button>
+          <label class="field"><span data-i18n="backupSelect"></span><input type="file" id="saved-backup" accept=".bin"></label>
+          <p id="backup-ready" class="notice" data-i18n="backupReady" hidden></p>
+          <a href="docs/RECOVERY_R7.html" target="_blank" rel="noopener">备份与恢复说明 / Backup and recovery</a>
+        </section>
         <div id="confirm-section">
           <label class="confirm"><input type="checkbox" id="backup-confirmed"><span data-i18n="backup"></span></label>
           <label class="confirm"><input type="checkbox" id="tf-removed"><span data-i18n="tfRemoved"></span></label>
@@ -188,6 +204,7 @@ export function startUI({ requestDriver, simulation = false, scenario, expectedM
     if (phase === 'STOP' && receipt.error) errorCode = receipt.error;
     $('workflow-error').hidden = !errorCode;
     if (receipt.progress !== undefined) { $('write-progress').hidden = false; $('write-progress').value = receipt.progress; }
+    if (receipt.backupProgress !== undefined) { $('write-progress').hidden = false; $('write-progress').value = receipt.backupProgress; }
     $('save-receipt').disabled = !session;
     updateLanguage();
   }
@@ -202,12 +219,17 @@ export function startUI({ requestDriver, simulation = false, scenario, expectedM
     $('current-app-label').hidden = p.mode === 'fresh';
     $('write-lock').hidden = simulation || p.hardwareWriteAllowed;
     $('write-lock').textContent = t(p.mode === 'fresh' ? 'freshLocked' : 'locked');
+    $('backup-workflow').hidden = !candidate || !p.hardwareWriteAllowed;
+    $('backup-ready').hidden = !session.backupVerified;
+    $('capture-backup').disabled = busy || session.state !== 'PLAN_READY';
+    $('saved-backup').disabled = busy || session.state !== 'PLAN_READY';
     enableExecution();
   }
   function enableExecution() {
     const p = session?.plan;
     $('execute-plan').disabled = busy || session?.state !== 'PLAN_READY' || !p ||
       (!simulation && !p.hardwareWriteAllowed) ||
+      (candidate && !session.backupVerified) ||
       !['backup-confirmed', 'tf-removed', 'plan-confirmed'].every(id => $(id).checked) ||
       (p.mode === 'fresh' && !$('erase-confirmed').checked);
   }
@@ -226,7 +248,7 @@ export function startUI({ requestDriver, simulation = false, scenario, expectedM
     if (busy) { session?.cancel(); return; }
     dialogEpoch++; // Discard any still-pending asset load from this dialog.
     try { await session?.close(); } catch (error) { fail(error); return; }
-    $('expected-mac').value = ''; $('current-app').value = ''; workflow.close(); $('install-btn').focus();
+    $('expected-mac').value = ''; $('current-app').value = ''; $('saved-backup').value = ''; $('identity-display').textContent = ''; workflow.close(); $('install-btn').focus();
   }
   $('install-btn').addEventListener('click', async () => {
     if (workflow.open || busy) return;
@@ -237,7 +259,7 @@ export function startUI({ requestDriver, simulation = false, scenario, expectedM
     $('connect-section').hidden = !supported; $('connect-read').disabled = true; $('save-receipt').disabled = true;
     $('expected-mac').value = expectedMac;
     for (const id of ['physical-board', 'backup-confirmed', 'tf-removed', 'plan-confirmed', 'erase-confirmed']) $(id).checked = false;
-    $('current-app').value = ''; $('write-progress').hidden = true;
+    $('current-app').value = ''; $('saved-backup').value = ''; $('write-progress').hidden = true;
     $('plan-details').open = true;
     updateLanguage(); workflow.showModal();
     if (!supported) return;
@@ -258,11 +280,32 @@ export function startUI({ requestDriver, simulation = false, scenario, expectedM
     try {
       // requestPort is called synchronously from this user click before awaiting.
       const driver = await requestDriver(release);
-      session = sessionFactory(driver, release, { hardwareWritesEnabled, hardwareFreshWritesEnabled, bindSelectedIdentity, onState: state });
+      session = sessionFactory(driver, release, { hardwareWritesEnabled, hardwareFreshWritesEnabled, bindSelectedIdentity, candidate, onState: state });
       await session.prepare({ boardConfirmed: $('physical-board').checked, expectedMac: $('expected-mac').value });
       $('connect-section').hidden = true;
     } catch (error) { fail(error); }
     finally { busy = false; updateLanguage(); enableExecution(); }
+  });
+  $('capture-backup').addEventListener('click', async () => {
+    if (!candidate || busy || session?.state !== 'PLAN_READY') return;
+    busy = true; enableExecution();
+    try {
+      const bytes = await session.captureBackup();
+      const url = URL.createObjectURL(new Blob([bytes], { type: 'application/octet-stream' }));
+      const link = document.createElement('a'); link.href = url; link.download = 'Draftor-private-full-flash.bin'; link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+    } catch (error) { fail(error); }
+    finally { busy = false; updateLanguage(); }
+  });
+  $('saved-backup').addEventListener('change', async () => {
+    if (!candidate || busy || session?.state !== 'PLAN_READY') return;
+    const file = $('saved-backup').files[0]; if (!file) return;
+    busy = true; enableExecution();
+    try {
+      if (file.size !== PINS.flashBytes) throw new Stop('BACKUP_FILE');
+      await session.verifySavedBackup(new Uint8Array(await file.arrayBuffer()));
+    } catch (error) { fail(error); }
+    finally { busy = false; $('saved-backup').value = ''; updateLanguage(); }
   });
   $('execute-plan').addEventListener('click', async () => {
     if (busy || $('execute-plan').disabled) return;

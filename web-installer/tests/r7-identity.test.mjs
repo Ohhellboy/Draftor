@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { verifyReleaseInputs } from '../tools/verify-release.mjs';
 import { InstallSession } from '../src/session.js';
 import { SimulatedFlash, SIM_MAC } from '../src/simulator.js';
-const { release } = await verifyReleaseInputs();
+const { release } = await verifyReleaseInputs({verifyDesignBrief:false});
 const approvals = {backupConfirmed:true,tfRemoved:true,planConfirmed:true};
 function setup(options={}) {const d=new SimulatedFlash(release);return[d,new InstallSession(d,release,{bindSelectedIdentity:true,...options})];}
 test('selected USB identity binds after checks, remains private and clears on close',async()=>{
