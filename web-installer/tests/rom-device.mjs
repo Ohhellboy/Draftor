@@ -20,13 +20,14 @@ export class RomDevicePort {
   getInfo() { return this.options.usb || { usbVendorId: 0x303a, usbProductId: 0x1001 }; }
   async open(options) {
     this.openCount++; this.serialOptions = options;
+    if(this.options.openError)throw Error('Synthetic open failure');
     this.readable = new ReadableStream({ start: c => {
       this.controller = c;
       if (this.options.bootBanner) c.enqueue(new TextEncoder().encode('ESP-ROM:esp32s3-20210327\r\nwaiting for download\r\n'));
     }, cancel: () => { this.cancelled = true; } });
     this.writable = new WritableStream({ write: b => this.#receive(b), abort: () => { this.aborted = true; } });
   }
-  async close() { this.closeCount++; this.readable = null; this.writable = null; }
+  async close() { this.closeCount++; if(this.options.closeError)throw Error('Synthetic close failure'); this.readable = null; this.writable = null; }
   async setSignals() { this.signalCount++; throw new Error('No signal changes allowed'); }
   #receive(slip) {
     const b = decode(slip), op = b[1], p = b.slice(8);
@@ -68,7 +69,8 @@ export class RomDevicePort {
     } else if (op === 2) {
       assert.equal(p.length, 20); const size = word(p), blocks = word(p, 4), blockSize = word(p, 8), offset = word(p, 12);
       assert.equal(blockSize, 1024); assert.equal(word(p, 16), 0); assert.equal(blocks, Math.ceil(size / 1024));
-      if (this.options.firstInstall) {
+      if(this.options.fullRecovery) {assert.equal(nth,1);assert.equal(offset,0);assert.equal(size,16777216);assert.equal(blocks,16384);}
+      else if (this.options.firstInstall) {
         // Independently specified expected protocol: erase, then four release files.
         const expected = [[0,16777216],[0,19968],[32768,3072],[57344,8192],[65536,4021152]][nth - 1];
         assert.deepEqual([offset,size], expected);
@@ -94,5 +96,6 @@ export class RomDevicePort {
       if (this.options.fragment) { for (let j = 0; j < output.length; j += 3) this.controller.enqueue(output.slice(j, j + 3)); }
       else this.controller.enqueue(output);
     }
+    if(this.options.yieldEvery&&nth%this.options.yieldEvery===0)return new Promise(resolve=>setTimeout(resolve,0));
   }
 }

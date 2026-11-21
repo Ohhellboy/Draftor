@@ -16,3 +16,7 @@ playwright-report/
 /dist-r7-locked-*/
 /dist-r7-candidate-*/
 /evidence/R7_20261121/
+/dist-r9-locked/
+/dist-r9-recovery/
+/dist-r9-locked-*/
+/dist-r9-recovery-*/

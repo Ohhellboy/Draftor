@@ -11,7 +11,9 @@ export class InstallSession {
   #driver; #release; #plan; #fingerprint; #mac; #busy = false; #writesEnabled; #state = 'IDLE';
   #receipt; #emit; #cancelled = false; #freshEnabled; #bindSelectedIdentity;
   #candidate; #backupMd5; #capturedSha256;
-  constructor(driver, release, { hardwareWritesEnabled = false, hardwareFreshWritesEnabled = false, bindSelectedIdentity = false, candidate = false, onState = () => {} } = {}) {
+  #diagnostics;
+  constructor(driver, release, { hardwareWritesEnabled = false, hardwareFreshWritesEnabled = false, bindSelectedIdentity = false, candidate = false, diagnostics, onState = () => {} } = {}) {
+    this.#diagnostics=diagnostics;
     requireSafe(!(hardwareWritesEnabled && hardwareFreshWritesEnabled), 'BUILD_SCOPE');
     requireSafe(!(candidate && (hardwareWritesEnabled || hardwareFreshWritesEnabled)), 'BUILD_SCOPE');
     this.#candidate = candidate;
@@ -25,8 +27,8 @@ export class InstallSession {
   get plan() { return this.#plan; }
   get selectedIdentity() { return this.#mac; } // Display only, never included in receipts.
   get backupVerified() { return this.#backupMd5 !== undefined; }
-  receipt() { return structuredClone(this.#receipt); }
-  #set(status) { this.#state = status; this.#receipt.status = status; this.#emit(status, this.receipt()); }
+  receipt() { return structuredClone({...this.#receipt,...(this.#diagnostics?{diagnostics:this.#diagnostics.snapshot()}:{})}); }
+  #set(status) { this.#state = status; this.#receipt.status = status; this.#diagnostics?.stage(status);this.#emit(status, this.receipt()); }
   #alive() { requireSafe(!this.#cancelled, 'CANCELLED'); }
   async #run(fn) {
     // A second click never creates a second writer or changes the active state.
@@ -35,6 +37,7 @@ export class InstallSession {
     catch (error) {
       const code = this.#cancelled ? (this.#receipt.error || 'CANCELLED') : (error instanceof Stop ? error.code : 'IO');
       this.#receipt.error = code;
+      this.#diagnostics?.error(new Stop(code));
       if (this.#receipt.writeStarted || this.#receipt.eraseStarted) this.#receipt.flashOutcome = 'POSSIBLY_PARTIAL';
       this.#set('STOP'); throw new Stop(code);
     } finally { this.#busy = false; }
@@ -48,17 +51,20 @@ export class InstallSession {
     const actual = normalizeMac(info.mac);
     if (this.#mac === undefined && this.#bindSelectedIdentity) this.#mac = actual;
     requireSafe(actual === this.#mac, 'IDENTITY');
+    this.#diagnostics?.check('originalIdentityMatch',true);
     return info;
   }
   async #metadata() {
     this.#alive();
     const table = await this.#driver.readFlash(0x8000, 0x1000);
+    this.#diagnostics?.check('partitionRead',true);
     this.#alive();
     const ota = await this.#driver.readFlash(0xe000, 0x2000);
+    this.#diagnostics?.check('otaRead',true);
     requireSafe(table.length === 4096 && ota.length === 8192, 'READBACK');
     // Independent ROM digest validates slow-read transport before trusting metadata.
-    requireSafe(await this.#driver.flashMd5(0x8000, 0x1000) === md5(table), 'READBACK');
-    requireSafe(await this.#driver.flashMd5(0xe000, 0x2000) === md5(ota), 'READBACK');
+    const tableMatch=await this.#driver.flashMd5(0x8000,0x1000)===md5(table);this.#diagnostics?.check('partitionMd5Match',tableMatch);requireSafe(tableMatch,'READBACK');
+    const otaMatch=await this.#driver.flashMd5(0xe000,0x2000)===md5(ota);this.#diagnostics?.check('otaMd5Match',otaMatch);requireSafe(otaMatch,'READBACK');
     this.#alive();
     return { table, ota, fingerprint: `${await sha256(table)}:${await sha256(ota)}` };
   }
@@ -108,6 +114,7 @@ export class InstallSession {
         ...(this.#candidate ? { candidateOnly: true, publicApproval: 'PENDING', backupSavedFileReimportRequired: true, supportedUpdate: 'exact alpha.3 app0 same-version only', blankHardwareQualification: 'UNVERIFIED_LOCKED' } : {}),
         deviceQualification: 'DEVICE_PENDING', tfResources: 'NOT_CHECKED' });
       this.#receipt.plan = this.#plan;
+      this.#diagnostics?.check('plan',this.#plan);this.#diagnostics?.check('writeLock',!this.#plan.hardwareWriteAllowed);
       this.#set('PLAN_READY'); return this.#plan;
     });
   }
@@ -226,6 +233,7 @@ export class InstallSession {
       return this.receipt();
     });
   }
-  cancel(code = 'CANCELLED') { this.#cancelled = true; this.#driver.cancel?.(); this.#receipt.error = code; if (this.#receipt.writeStarted || this.#receipt.eraseStarted) this.#receipt.flashOutcome = 'POSSIBLY_PARTIAL'; this.#set('STOP'); }
-  async close() { this.#mac = undefined; this.#backupMd5 = undefined; this.#capturedSha256 = undefined; await this.#driver.disconnect(); }
+  cancel(code = 'CANCELLED') { this.#cancelled = true;this.#mac=undefined;this.#backupMd5=undefined;this.#capturedSha256=undefined;this.#fingerprint=undefined; this.#driver.cancel?.(); this.#receipt.error = code; if (this.#receipt.writeStarted || this.#receipt.eraseStarted) this.#receipt.flashOutcome = 'POSSIBLY_PARTIAL'; this.#set('STOP'); }
+  async close() { this.#mac = undefined; this.#backupMd5 = undefined; this.#capturedSha256 = undefined;this.#fingerprint=undefined;
+    try {await this.#driver.disconnect();} finally {this.#diagnostics?.check('cleanup',{sessionPrivateReferencesCleared:true,physicalMemoryErasureGuaranteed:false});} }
 }

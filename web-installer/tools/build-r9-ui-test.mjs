@@ -1,0 +1,8 @@
+import {build} from 'esbuild';import {readFile,writeFile,mkdir,cp} from 'node:fs/promises';import path from 'node:path';import {createHash} from 'node:crypto';import {execFileSync} from 'node:child_process';
+const out=process.argv[2];if(!/^dist-r9-(locked|recovery)-dev\d+$/.test(out))throw Error('Only unfrozen test build allowed');await readFile(`${out}/UNFROZEN.txt`);
+const dir=`${out}/mock`;await mkdir(dir);let html=await readFile('recovery.html','utf8');
+const code=await build({entryPoints:['tests/r9-ui-main.mjs'],bundle:true,write:false,format:'iife',target:['chrome120'],loader:{'.bin':'binary'},define:{__R9_SOURCE__:JSON.stringify(execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim())},alias:{'node:assert/strict':path.resolve('tests/browser-assert.mjs'),'node:crypto':path.resolve('tests/browser-crypto.mjs')}});
+const js=code.outputFiles[0].text.replace(/<\/script/gi,'<\\/script'),css=await readFile('public/style.css','utf8')+await readFile('public/recovery.css','utf8');const sha=x=>createHash('sha256').update(x).digest('base64');
+html=html.replace('<title>Draftor · 备份与恢复 / Backup & Recovery</title>','<title>R9 SOFTWARE TEST ONLY · 无 USB</title>').replace(/<link rel="stylesheet"[^>]*>/g,'').replace('<script src="assets/recovery.js"></script>',`<script>${js}</script>`).replace('</head>',`<style>${css}</style></head>`).replace("script-src 'self'",`script-src 'sha256-${sha(js)}'`).replace("style-src 'self'",`style-src 'sha256-${sha(css)}'`).replace('href="index.html"','href="#"');
+await writeFile(`${dir}/index.html`,html);await writeFile(`${dir}/R9_SOFTWARE_TEST_ONLY.html`,html);
+console.log(JSON.stringify({out:`${dir}/index.html`,bytes:Buffer.byteLength(html),realDeviceAccess:false}));

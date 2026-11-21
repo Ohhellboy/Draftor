@@ -115,7 +115,7 @@ const errors = {
   BACKUP_STALE: ['设备内容已不再匹配已验证的备份；停止。', 'Device contents no longer match the verified backup. Stopped.'],
 };
 
-export function startUI({ requestDriver, simulation = false, scenario, expectedMac = '', hardwareWritesEnabled = false, hardwareFreshWritesEnabled = false, publicRelease = false, bindSelectedIdentity = false, candidate = false, sessionFactory = (driver, release, options) => new InstallSession(driver, release, options) }) {
+export function startUI({ requestDriver, diagnosticsFactory, recoveryLink=false, simulation = false, scenario, expectedMac = '', hardwareWritesEnabled = false, hardwareFreshWritesEnabled = false, publicRelease = false, bindSelectedIdentity = false, candidate = false, sessionFactory = (driver, release, options) => new InstallSession(driver, release, options) }) {
   Object.assign(dict.zh, copy.zh); Object.assign(dict.en, copy.en);
   if (publicRelease) { Object.assign(dict.zh, publicCopy.zh); Object.assign(dict.en, publicCopy.en); }
   if (candidate) {
@@ -127,13 +127,21 @@ export function startUI({ requestDriver, simulation = false, scenario, expectedM
   for (const lang of ['zh', 'en']) {
     dict[lang].dialogs.advanced = { title: lang === 'zh' ? '高级选项' : 'Advanced', body: `<p>${lang === 'zh' ? '锁定发行' : 'Pinned release'}: <strong>${PINS.version}</strong><br>WAVESHARE_RLCD42 · ST7305 · 16 MiB</p><p>App: 4,021,152 bytes<br><code>${PINS.files['app.bin'].sha256}</code></p><p>${lang === 'zh' ? '固定 B 分区；只接受唯一活动槽。无强刷、改槽或全片擦除开关。设备信息仅在本页内存中比对；回执不含 MAC 或私有 Flash 内容。' : 'Fixed B layout; one unambiguous active slot only. No force, slot override or full erase switch. Device identity stays in page memory; receipts exclude MAC and private Flash content.'}</p><p><a href="simulation.html?scenario=app0">${lang === 'zh' ? '运行软件模拟（不连接设备）' : 'Run software simulation (no device)'}</a> · <a href="simulation.html?scenario=app1">app1</a> · <a href="simulation.html?scenario=fresh">fresh</a></p><p><a href="docs/CAPABILITY_AUDIT.md">${lang === 'zh' ? '底层能力审计' : 'Capability audit'}</a> · <a href="docs/SOURCE.html">${lang === 'zh' ? '源码与许可' : 'Source and licenses'}</a></p>` };
   }
-  let language = 'zh', modalKey, release, session, busy = false, chooserOpen = false, lastPhase = '', errorCode = '', dialogEpoch = 0;
+  let language = 'zh', modalKey, release, session, diagnostics, lastReceipt, busy = false, chooserOpen = false, lastPhase = '', errorCode = '', dialogEpoch = 0;
+  const objectUrls=new Set();let seenOpened=false;
   if (publicRelease) for (const lang of ['zh', 'en']) {
     const c = dict[lang];
     c.dialogs.help.body = `<p>${c.intro}</p><p>${c.preflight}</p><p>${c.publicScope}</p><p>${c.tfGuide}</p><p><a href="docs/TF_GUIDE.html">TF 资源 / TF resources</a> · <a href="docs/PUBLIC_STATUS.html">公开范围 / Public scope</a></p>`;
     c.dialogs.advanced.body = `<p>${c.publicScope}</p><p>App SHA-256: <code>${PINS.files['app.bin'].sha256}</code></p><p><a href="BUILD.json">Build</a> · <a href="SITE_SHA256SUMS">SHA-256</a> · <a href="docs/SOURCE.html">源码与许可 / Source and licenses</a></p>`;
   }
   const $ = id => document.getElementById(id), t = key => dict[language][key] || key;
+  if(recoveryLink)for(const lang of ['zh','en']) {
+    dict[lang].recoveryLink=lang==='zh'?'设备无法启动？恢复设备 / 保存备份':'Device will not boot? Recovery / save a backup';
+    dict[lang].closedReceipt=lang==='zh'?'保存已关闭会话回执':'Save closed-session receipt';
+    dict[lang].dialogs.help.body+=`<p><a href="recovery.html">${dict[lang].recoveryLink}</a></p>`;
+  }
+  const closedReceiptButton=document.createElement('button');closedReceiptButton.type='button';closedReceiptButton.id='closed-receipt';closedReceiptButton.dataset.i18n='closedReceipt';closedReceiptButton.hidden=true;
+  if(diagnosticsFactory)document.querySelector('.footer nav').append(closedReceiptButton);
   const dialog = $('info-dialog');
   const workflow = document.createElement('dialog'); workflow.id = 'install-dialog'; workflow.setAttribute('aria-labelledby', 'install-heading');
   workflow.innerHTML = `<div class="dialog-inner">
@@ -141,6 +149,7 @@ export function startUI({ requestDriver, simulation = false, scenario, expectedM
     <div class="dialog-body">
       <p id="simulation-notice" class="notice" hidden></p>
       <p id="workflow-status" role="status" aria-live="polite"></p><p id="workflow-error" role="alert" hidden></p>
+      ${recoveryLink?'<p id="failure-recovery" hidden><a href="recovery.html" data-i18n="recoveryLink"></a></p>':''}
       <section id="connect-section">
         <p data-i18n="preflight"></p>
         <label class="confirm"><input type="checkbox" id="physical-board"><span data-i18n="boardConfirm"></span></label>
@@ -237,24 +246,36 @@ export function startUI({ requestDriver, simulation = false, scenario, expectedM
     errorCode = error instanceof Stop ? error.code : error?.name === 'NotFoundError' ? 'CONNECTION' : 'IO';
     if (session && session.state !== 'STOP') session.cancel(errorCode);
     lastPhase = 'phase_STOP'; $('workflow-error').hidden = false; updateLanguage();
+    diagnostics?.error(error);
+    for(const id of ['expected-mac','current-app','saved-backup'])$(id).value='';$('identity-display').textContent='';
+    for(const url of objectUrls)URL.revokeObjectURL(url);objectUrls.clear();
+    if(recoveryLink)$('failure-recovery').hidden=false;
   }
   function saveReceipt() {
-    if (!session) return;
-    const url = URL.createObjectURL(new Blob([JSON.stringify(session.receipt(), null, 2) + '\n'], { type: 'application/json' }));
+    const receipt=session?.receipt()||lastReceipt||(diagnostics?{diagnostics:diagnostics.snapshot()}:undefined);if(!receipt)return;
+    const url = URL.createObjectURL(new Blob([JSON.stringify(receipt, null, 2) + '\n'], { type: 'application/json' }));objectUrls.add(url);
     const link = document.createElement('a'); link.href = url; link.download = `Draftor-${simulation ? 'SIMULATION' : 'LOCAL'}-receipt.json`; link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setTimeout(() => {URL.revokeObjectURL(url);objectUrls.delete(url);}, 1000);
   }
   async function closeWorkflow() {
     if (busy) { session?.cancel(); return; }
     dialogEpoch++; // Discard any still-pending asset load from this dialog.
-    try { await session?.close(); } catch (error) { fail(error); return; }
-    $('expected-mac').value = ''; $('current-app').value = ''; $('saved-backup').value = ''; $('identity-display').textContent = ''; workflow.close(); $('install-btn').focus();
+    let closeFailed=false;
+    try { await session?.close(); } catch (error) { fail(error);closeFailed=true; }
+    finally {
+      $('expected-mac').value = ''; $('current-app').value = ''; $('saved-backup').value = ''; $('identity-display').textContent = '';
+      for(const url of objectUrls)URL.revokeObjectURL(url);objectUrls.clear();
+      diagnostics?.check('cleanup',{sessionPrivateReferencesCleared:true,domIdentityCleared:true,fileInputsCleared:true,objectUrlsRevoked:true,physicalMemoryErasureGuaranteed:false});
+      lastReceipt=session?.receipt()||(diagnostics?{diagnostics:diagnostics.snapshot()}:undefined);session=undefined;closedReceiptButton.hidden=!lastReceipt;
+    }
+    if(!closeFailed){workflow.close();$('install-btn').focus();}
   }
   $('install-btn').addEventListener('click', async () => {
     if (workflow.open || busy) return;
     const epoch = ++dialogEpoch;
     release = undefined;
     session = undefined; errorCode = ''; lastPhase = supported ? 'preparing' : 'unsupported';
+    if(recoveryLink)$('failure-recovery').hidden=true;
     $('workflow-error').hidden = true; $('plan-section').hidden = true; $('finished-note').hidden = true;
     $('connect-section').hidden = !supported; $('connect-read').disabled = true; $('save-receipt').disabled = true;
     $('expected-mac').value = expectedMac;
@@ -279,9 +300,10 @@ export function startUI({ requestDriver, simulation = false, scenario, expectedM
     busy = true; $('connect-read').disabled = true; errorCode = '';
     try {
       // requestPort is called synchronously from this user click before awaiting.
-      const driver = await requestDriver(release);
-      session = sessionFactory(driver, release, { hardwareWritesEnabled, hardwareFreshWritesEnabled, bindSelectedIdentity, candidate, onState: state });
-      await session.prepare({ boardConfirmed: $('physical-board').checked, expectedMac: $('expected-mac').value });
+      diagnostics=diagnosticsFactory?.();const driver = await requestDriver(release,diagnostics);
+      session = sessionFactory(driver, release, { hardwareWritesEnabled, hardwareFreshWritesEnabled, bindSelectedIdentity, candidate, diagnostics, onState: state });
+      try{await session.prepare({ boardConfirmed: $('physical-board').checked, expectedMac: $('expected-mac').value });}
+      finally{if(diagnostics?.snapshot().events.openSuccess>0){if(seenOpened)diagnostics.event('manualReconnects');seenOpened=true;}}
       $('connect-section').hidden = true;
     } catch (error) { fail(error); }
     finally { busy = false; updateLanguage(); enableExecution(); }
@@ -292,8 +314,9 @@ export function startUI({ requestDriver, simulation = false, scenario, expectedM
     try {
       const bytes = await session.captureBackup();
       const url = URL.createObjectURL(new Blob([bytes], { type: 'application/octet-stream' }));
+      objectUrls.add(url);bytes.fill(0);
       const link = document.createElement('a'); link.href = url; link.download = 'Draftor-private-full-flash.bin'; link.click();
-      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      setTimeout(() => {URL.revokeObjectURL(url);objectUrls.delete(url);}, 10000);
     } catch (error) { fail(error); }
     finally { busy = false; updateLanguage(); }
   });
@@ -301,27 +324,30 @@ export function startUI({ requestDriver, simulation = false, scenario, expectedM
     if (!candidate || busy || session?.state !== 'PLAN_READY') return;
     const file = $('saved-backup').files[0]; if (!file) return;
     busy = true; enableExecution();
+    let selectedBytes;
     try {
       if (file.size !== PINS.flashBytes) throw new Stop('BACKUP_FILE');
-      await session.verifySavedBackup(new Uint8Array(await file.arrayBuffer()));
+      selectedBytes=new Uint8Array(await file.arrayBuffer());await session.verifySavedBackup(selectedBytes);
     } catch (error) { fail(error); }
-    finally { busy = false; $('saved-backup').value = ''; updateLanguage(); }
+    finally { selectedBytes?.fill(0);busy = false; $('saved-backup').value = ''; updateLanguage(); }
   });
   $('execute-plan').addEventListener('click', async () => {
     if (busy || $('execute-plan').disabled) return;
     busy = true; errorCode = ''; $('confirm-section').hidden = true; enableExecution();
+    let currentApp;
     try {
       const file = $('current-app').files[0];
       if (file && (file.size < 24 || file.size > PINS.slotCapacity)) throw new Stop('CURRENT_APP');
-      const currentApp = file ? new Uint8Array(await file.arrayBuffer()) : undefined;
+      currentApp = file ? new Uint8Array(await file.arrayBuffer()) : undefined;
       await session.execute({ backupConfirmed: $('backup-confirmed').checked, tfRemoved: $('tf-removed').checked, planConfirmed: $('plan-confirmed').checked,
         eraseConfirmed: $('erase-confirmed').checked, currentApp });
       $('finished-note').hidden = false;
     } catch (error) { fail(error); }
-    finally { busy = false; $('current-app').value = ''; updateLanguage(); enableExecution(); }
+    finally { currentApp?.fill(0);busy = false; $('current-app').value = ''; updateLanguage(); enableExecution(); }
   });
   for (const id of ['backup-confirmed', 'tf-removed', 'plan-confirmed', 'erase-confirmed']) $(id).addEventListener('change', enableExecution);
   $('save-receipt').addEventListener('click', saveReceipt);
+  closedReceiptButton.addEventListener('click',saveReceipt);
   $('stop-close').addEventListener('click', closeWorkflow); $('install-close').addEventListener('click', closeWorkflow);
   workflow.addEventListener('cancel', event => { event.preventDefault(); closeWorkflow(); });
   workflow.addEventListener('close', () => { $('confirm-section').hidden = false; });

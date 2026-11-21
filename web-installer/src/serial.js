@@ -6,7 +6,9 @@ import { requireSafe, Stop } from './safety.js';
 
 export class StrictSerialTransport {
   #port; #codec; #reader; #writer; #pendingRead; #opened = false; #dead = false; #bytes = []; #inFrame = false; #escape = false; #packets = []; #writeTimeout; #closeTimeout;
-  constructor(port, { writeTimeout = 10000, closeTimeout = 2000 } = {}) {
+  #diagnostics;
+  constructor(port, { writeTimeout = 10000, closeTimeout = 2000, diagnostics } = {}) {
+    this.#diagnostics = diagnostics;
     this.#port = port; this.#codec = new Transport(port, false); this.#writeTimeout = writeTimeout; this.#closeTimeout = closeTimeout;
   }
   async #bounded(promise, ms) {
@@ -29,8 +31,10 @@ export class StrictSerialTransport {
   async connect() {
     requireSafe(!this.#opened && !this.#dead, 'STATE');
     try {
+      this.#diagnostics?.event('openAttempts');
       await this.#port.open({ baudRate: 115200, dataBits: 8, stopBits: 1, parity: 'none', flowControl: 'none', bufferSize: 65536 });
       this.#opened = true;
+      this.#diagnostics?.event('openSuccess');
       requireSafe(this.#port.readable && this.#port.writable, 'IO');
       this.#reader = this.#port.readable.getReader();
       // Drain a bounded ROM boot banner before sending the ONE SYNC. There is
@@ -43,7 +47,7 @@ export class StrictSerialTransport {
         requireSafe(!chunk.done && chunk.value, 'DISCONNECTED');
         discarded += chunk.value.length; requireSafe(discarded <= 4096, 'PROTOCOL');
       }
-    } catch { this.#dead = true; throw new Stop('CONNECTION'); }
+    } catch { if (!this.#opened) this.#diagnostics?.event('openErrors'); this.#dead = true; throw new Stop('CONNECTION'); }
   }
   async write(packet) {
     requireSafe(this.#opened && !this.#dead && this.#port.writable, 'IO');
@@ -92,16 +96,26 @@ export class StrictSerialTransport {
       throw error instanceof Stop ? error : new Stop('IO');
     }
   }
-  cancel() { this.#dead = true; this.#reader?.cancel().catch(() => {}); this.#writer?.abort().catch(() => {}); }
+  cancel() { this.#diagnostics?.event('cancelRequests'); this.#dead = true; this.#reader?.cancel().catch(() => {}); this.#writer?.abort().catch(() => {}); }
   async disconnect() {
     this.#dead = true;
+    try {
     if (this.#reader) {
       // An errored stream rejects cancel with its original I/O error. It is
       // already terminal; still release its lock and close the selected port.
       await this.#bounded(this.#reader.cancel().catch(() => {}), this.#closeTimeout);
       this.#reader.releaseLock(); this.#reader = undefined;
     }
-    if (this.#opened) { await this.#bounded(this.#port.close(), this.#closeTimeout); this.#opened = false; }
+    if (this.#opened) {
+      this.#diagnostics?.event('closeAttempts');
+      try { await this.#bounded(this.#port.close(), this.#closeTimeout); this.#opened = false; this.#diagnostics?.event('closeSuccess'); }
+      catch(error) { this.#diagnostics?.event('closeErrors'); throw error; }
+    }
+    this.#pendingRead = undefined; this.#bytes.fill(0); this.#bytes=[];
+    for (const packet of this.#packets) packet.fill(0);
+    this.#packets=[]; this.#codec=undefined; this.#port=undefined;
+    this.#diagnostics?.closed(true);
+    } catch(error) { this.#diagnostics?.closed(false); this.#diagnostics?.error(error); throw error; }
     // Never setSignals, reset, reconnect or send another protocol command.
   }
 }

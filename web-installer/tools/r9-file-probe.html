@@ -1,0 +1,6 @@
+<!doctype html><meta charset="utf-8"><title>R9 file origin capability probe</title><h1>R9 离线文件能力检查</h1><p>只测试文件读取与浏览器串口选择窗口。不会打开串口、不会发送任何设备命令。</p><label>选择本机任意非私人测试文本 <input type="file" id="file"></label><button id="serial">测试串口选择窗口（出现后请取消）</button><pre id="result"></pre><script>
+const result={originType:location.protocol,secureContext:isSecureContext,serialExposed:!!navigator.serial,fileRead:'NOT_RUN',requestPort:'NOT_RUN',portOpenAttempts:0,commandsSent:0};
+const show=()=>document.getElementById('result').textContent=JSON.stringify(result,null,2);show();
+document.getElementById('file').onchange=async e=>{const f=e.target.files[0];if(!f)return;const b=await f.arrayBuffer();result.fileRead=b.byteLength>0?'PASS':'EMPTY';e.target.value='';show();};
+document.getElementById('serial').onclick=async()=>{try{await navigator.serial.requestPort({filters:[{usbVendorId:0x303a,usbProductId:0x1001}]});result.requestPort='CHOOSER_GRANTED_NO_OPEN';}catch(e){result.requestPort=e.name;result.reason=e.message;}show();};
+</script>

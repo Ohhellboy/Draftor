@@ -7,6 +7,7 @@
 import { PINS } from './pins.js';
 import { Stop, requireSafe, u32, le32, concat, sha256, normalizeMac, md5, activeSlot, checkPartitions } from './safety.js';
 import { FIRST_FILES, verifyInitialFlash } from './first-install.js';
+import { recoverySnapshot, recoverySummary, sameOriginalIdentity } from './recovery-package.js';
 
 export const OP = Object.freeze({ FLASH_BEGIN: 0x02, FLASH_DATA: 0x03, SYNC: 0x08, WRITE_REG: 0x09, READ_REG: 0x0a, SPI_PARAMS: 0x0b, SPI_ATTACH: 0x0d, READ_FLASH_SLOW: 0x0e, MD5: 0x13, SECURITY: 0x14 });
 export function parseSecurity(data) {
@@ -16,7 +17,8 @@ export function parseSecurity(data) {
   requireSafe((flags & ~0x7ff) === 0 && count <= 7, 'SECURITY');
   const encryption = (count.toString(2).split('1').length - 1) % 2 === 1;
   requireSafe((flags & 5) === 0 && !encryption, 'SECURITY');
-  return { chip: 'ESP32-S3', securityKnown: true, secureBoot: false, flashEncryption: false };
+  return { chip: 'ESP32-S3', securityKnown: true, secureBoot: false, flashEncryption: false,
+    securityRule: 'ESP32S3_ROM20_ESPt531_V1', securityFlags: flags, cryptCount: count, romChipId: u32(data,12) };
 }
 
 export class S3Rom {
@@ -24,9 +26,14 @@ export class S3Rom {
   #wire; #fatal = false; #connected = false; #inFlight = false; #writesAllowed; #writeUsed = false;
   #firstAllowed; #firstStage = 'IDLE'; #firstNext = 0;
   #candidate; #candidateMode;
-  constructor(wire, { allowUpdate = false, allowFirstInstall = false, candidate = false } = {}) {
+  #recoveryAllowed; #recoveryStage='IDLE'; #recoveryHandle; #recoveryImage; #recoveryManifest;
+  #diagnostics;
+  constructor(wire, { allowUpdate = false, allowFirstInstall = false, candidate = false, allowRecovery = false, diagnostics } = {}) {
+    this.#diagnostics=diagnostics;
     requireSafe(!(allowUpdate && allowFirstInstall), 'BUILD_SCOPE');
     requireSafe(!(candidate && (allowUpdate || allowFirstInstall)), 'BUILD_SCOPE');
+    requireSafe(!(allowRecovery && (candidate || allowUpdate || allowFirstInstall)), 'BUILD_SCOPE');
+    this.#recoveryAllowed=allowRecovery;
     this.#candidate = candidate;
     this.#wire = wire; this.#writesAllowed = allowUpdate; this.#firstAllowed = allowFirstInstall;
   }
@@ -38,24 +45,28 @@ export class S3Rom {
     // bytes. Only a nonzero status byte signals failure; the reason is only
     // meaningful on failure. Keep the exact S3 frame/length checks above.
     requireSafe(packet[8 + dataBytes] === 0, 'ROM_STATUS');
+    this.#diagnostics?.command(op,'acceptedReplies');
     return { value: u32(packet, 4), data: packet.slice(8, 8 + dataBytes) };
   }
   async #command(op, payload = new Uint8Array(), { dataBytes = 0, checksum = 0, timeout = 10000, responses = 1 } = {}) {
     this.#alive(); requireSafe(!this.#inFlight, 'BUSY'); this.#inFlight = true;
+    this.#diagnostics?.pending(1);
     try {
       requireSafe(Object.values(OP).includes(op) && payload.length <= 1040, 'PROTOCOL');
       const header = new Uint8Array(8); header[1] = op;
       new DataView(header.buffer).setUint16(2, payload.length, true);
       new DataView(header.buffer).setUint32(4, checksum, true);
+      this.#diagnostics?.command(op,'attempted');
       await this.#wire.write(concat(header, payload));
+      this.#diagnostics?.command(op,'sent');
       let reply;
       for (let i = 0; i < responses; i++) {
         reply = await this.#reply(op, dataBytes, timeout);
         if (op === OP.SYNC) requireSafe(reply.value !== 0, 'STUB');
       }
       return reply;
-    } catch (error) { this.#fatal = true; throw error instanceof Stop ? error : new Stop('IO'); }
-    finally { this.#inFlight = false; }
+    } catch (error) { this.#fatal = true; this.#diagnostics?.error(error); throw error instanceof Stop ? error : new Stop('IO'); }
+    finally { this.#inFlight = false; this.#diagnostics?.pending(-1); }
   }
   async #readReg(address) { return (await this.#command(OP.READ_REG, le32(address))).value; }
   async #writeReg(address, value) {
@@ -111,6 +122,9 @@ export class S3Rom {
       const flashBytes = await this.#flashId();
       const lo = await this.#readReg(0x60007044), hi = await this.#readReg(0x60007048);
       const mac = [hi >>> 8 & 255, hi & 255, lo >>> 24, lo >>> 16 & 255, lo >>> 8 & 255, lo & 255].map(v => v.toString(16).padStart(2, '0')).join(':');
+      this.#diagnostics?.check('chip',security.chip);
+      this.#diagnostics?.check('flashBytes',flashBytes);
+      this.#diagnostics?.check('security',{known:security.securityKnown,secureBoot:security.secureBoot,flashEncryption:security.flashEncryption,rule:security.securityRule,flags:security.securityFlags,cryptCount:security.cryptCount,romChipId:security.romChipId});
       return { ...security, flashBytes, mac };
     } catch (error) { this.#fatal = true; throw error; }
   }
@@ -162,6 +176,60 @@ export class S3Rom {
       this.#candidateMode = mode;
     } catch (error) { this.#fatal = true; throw error; }
   }
+  async grantRecovery(handle,{boardConfirmed,tfRemoved,restoreConfirmed}={}) {
+    this.#alive();
+    requireSafe(this.#recoveryAllowed&&!this.#candidate&&!this.#writesAllowed&&!this.#firstAllowed&&this.#connected&&!this.#writeUsed&&this.#recoveryStage==='IDLE','DEVICE_WRITES_LOCKED');
+    this.#recoveryStage='RESERVING';
+    try {
+      requireSafe(boardConfirmed===true&&tfRemoved===true&&restoreConfirmed===true,'RESTORE_CONFIRM');
+      const {manifest,image}=recoverySnapshot(handle);this.#recoveryImage=image;this.#recoveryManifest=manifest;this.#recoveryHandle=handle;
+      requireSafe(image.length===PINS.flashBytes&&await sha256(image)===manifest.image.sha256,'PACKAGE_HASH');
+      sameOriginalIdentity(await this.identity(),manifest.device);
+      this.#diagnostics?.check('originalIdentityMatch',true);
+      this.#recoveryStage='READY_FOR_CONFIRMATION';
+    } catch(error) { this.#fatal=true;this.#clearRecovery();throw error; }
+  }
+  async restoreRecovery({progress=()=>{}}={}) {
+    this.#alive();
+    requireSafe(this.#recoveryAllowed&&this.#recoveryStage==='READY_FOR_CONFIRMATION'&&!this.#writeUsed,'STATE');
+    this.#writeUsed=true;this.#recoveryStage='RESTORING';
+    try {
+      recoverySummary(this.#recoveryHandle); // Re-selection/destruction invalidates the grant.
+      const data=this.#recoveryImage,manifest=this.#recoveryManifest;
+      requireSafe(data?.length===PINS.flashBytes&&await sha256(data)===manifest.image.sha256,'PACKAGE_HASH');
+      // Read real security/capacity/MAC again immediately before the first
+      // destructive command. Current partitions, OTA and App may be damaged.
+      sameOriginalIdentity(await this.identity(),manifest.device);
+      this.#alive();this.#diagnostics?.stage('RESTORING');
+      await this.#command(OP.FLASH_BEGIN,le32(PINS.flashBytes,PINS.flashBytes/1024,1024,0,0),{timeout:480000});
+      for(let sequence=0;sequence<PINS.flashBytes/1024;sequence++) {
+        const block=data.subarray(sequence*1024,(sequence+1)*1024);
+        await this.#command(OP.FLASH_DATA,concat(le32(1024,sequence,0,0),block),{checksum:block.reduce((n,b)=>n^b,0xef)});
+        if(sequence%32===0||sequence===16383)progress((sequence+1)/16384);
+      }
+      this.#recoveryStage='VERIFYING';this.#diagnostics?.stage('VERIFYING');
+      const verification=await this.verifyRecoveryImage(this.#recoveryHandle);
+      this.#recoveryStage='VERIFIED_BOOT_PENDING';this.#diagnostics?.stage('VERIFIED_BOOT_PENDING');
+      return verification;
+    } catch(error) {this.#fatal=true;this.#recoveryStage='STOP';this.#diagnostics?.error(error);throw error;}
+    finally {this.#clearRecovery();}
+  }
+  async verifyRecoveryImage(handle) {
+    this.#alive();const {manifest,image}=recoverySnapshot(handle);
+    try {
+      sameOriginalIdentity(await this.identity(),manifest.device);this.#diagnostics?.check('originalIdentityMatch',true);
+      const full=await this.flashMd5(0,PINS.flashBytes)===manifest.image.md5;
+      this.#diagnostics?.check('fullFlashMd5Match',full);requireSafe(full,'RESTORE_VERIFY');
+      for(const [kind,range] of [['partition',manifest.original.partition],['ota',manifest.original.ota]]) {
+        if(range.applicable===false) {this.#diagnostics?.check('otaRead','NOT_APPLICABLE_FACTORY');this.#diagnostics?.check('otaMd5Match','NOT_APPLICABLE_FACTORY');continue;}
+        const read=await this.readFlash(range.offset,range.bytes);this.#diagnostics?.check(`${kind}Read`,true);
+        const match=md5(read)===await this.flashMd5(range.offset,range.bytes)&&await sha256(read)===range.sha256;
+        this.#diagnostics?.check(`${kind}Md5Match`,match);read.fill(0);requireSafe(match,'RESTORE_METADATA_VERIFY');
+      }
+      return {status:'VERIFIED_BOOT_PENDING',fullFlashMd5Match:true,metadataMatch:true,resetIssued:false};
+    } finally {image.fill(0);}
+  }
+  #clearRecovery() {this.#recoveryImage?.fill(0);this.#recoveryImage=undefined;this.#recoveryManifest=undefined;this.#recoveryHandle=undefined;}
   async writeImage(offset, image, { mode, slotOffset, progress = () => {} } = {}) {
     if (mode === 'fresh') return this.#writeFirstImage(offset, image, progress);
     const data = image.slice(); // Snapshot before any asynchronous validation.
@@ -225,6 +293,6 @@ export class S3Rom {
       this.#firstStage = this.#firstNext === FIRST_FILES.length ? 'COMPLETE' : 'ERASED_VERIFIED';
     } catch (error) { this.#fatal = true; throw error; }
   }
-  cancel() { this.#fatal = true; this.#wire.cancel(); }
-  async disconnect() { this.#fatal = true; await this.#wire.disconnect(); }
+  cancel() { this.#fatal = true; this.#clearRecovery(); this.#wire.cancel(); }
+  async disconnect() { this.#fatal = true; this.#clearRecovery(); await this.#wire.disconnect(); }
 }
