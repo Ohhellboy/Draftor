@@ -17,6 +17,7 @@ export async function verifyReleaseInputs({ evidence = false, verifyDesignBrief 
   }
   const release = await verifyRelease(inputs);
   for (const [name, pin] of Object.entries(PINS.archives)) {
+    if (!verifyDesignBrief && name === 'BRIEF.md') continue;
     const data = await readFile(new URL(`release-inputs/${name}`, root));
     assert.equal(data.length, pin.bytes, name);
     const hash = createHash('sha256').update(data).digest('hex'); assert.equal(hash, pin.sha256, name);

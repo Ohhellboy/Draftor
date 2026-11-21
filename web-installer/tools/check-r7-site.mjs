@@ -6,13 +6,14 @@ import { spawn } from 'node:child_process';
 import assert from 'node:assert/strict';
 const base=process.argv[2]||'http://localhost:4187/';
 const remote=base.startsWith('https:');
+const root=process.argv[3]||'dist-r7-locked-v2';
 const evidence=`evidence/R7_20261121/${remote?'remote':'local'}`;
 await mkdir(evidence,{recursive:true});
 let server,browser;
 try{
- if(!remote){server=spawn(process.execPath,['tools/serve.mjs','dist-r7-locked'],{env:{...process.env,DRAFTOR_PORT:'4187'},stdio:['ignore','pipe','pipe']});await new Promise((yes,no)=>{server.stdout.once('data',yes);server.once('error',no);server.once('exit',code=>no(Error(`Server ${code}`)));});}
+ if(!remote){server=spawn(process.execPath,['tools/serve.mjs',root],{env:{...process.env,DRAFTOR_PORT:'4187'},stdio:['ignore','pipe','pipe']});await new Promise((yes,no)=>{server.stdout.once('data',yes);server.once('error',no);server.once('exit',code=>no(Error(`Server ${code}`)));});}
  const sumResponse=await fetch(new URL('SITE_SHA256SUMS',base));assert.equal(sumResponse.status,200);const sums=await sumResponse.text();
- assert.equal(sums,await readFile('dist-r7-locked/SITE_SHA256SUMS','utf8'));
+ assert.equal(sums,await readFile(`${root}/SITE_SHA256SUMS`,'utf8'));
  const assets=[];
  for(const line of sums.trim().split('\n')){const[h,name]=line.split('  ');const r=await fetch(new URL(name,base),{redirect:'error',cache:'no-store'});assert.equal(r.status,200,name);const b=new Uint8Array(await r.arrayBuffer());assert.equal(createHash('sha256').update(b).digest('hex'),h,name);assets.push({name,status:r.status,bytes:b.length,sha256:h});}
  browser=await chromium.launch({channel:'chrome',headless:true});
