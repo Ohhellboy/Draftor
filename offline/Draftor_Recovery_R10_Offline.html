@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta name="color-scheme" content="light"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-lbg0ABUlona/ABswCBs8Vh+IFBNPgAjiah+OrAQtFd4='; style-src 'sha256-jz+6CUS7U/EZQsv3WWDLEQ7wY4MCO/9pOHdAGMfg+mE='; img-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><title>Draftor · 备份与恢复 / Backup & Recovery</title><link rel="icon" href="data:,"><style>    :root { --paper:#f7f5ef; --ink:#292924; --cinnabar:#a74539; --quiet:#766f64; --line:#d9d5c9; --focus:#815a50; }
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta name="color-scheme" content="light"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-J0Q6LghKzg/qe1dGupm6/BPDqzqHSUPYbAqEfSCO1sY='; style-src 'sha256-jz+6CUS7U/EZQsv3WWDLEQ7wY4MCO/9pOHdAGMfg+mE='; img-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><title>Draftor · 备份与恢复 / Backup & Recovery</title><link rel="icon" href="data:,"><style>    :root { --paper:#f7f5ef; --ink:#292924; --cinnabar:#a74539; --quiet:#766f64; --line:#d9d5c9; --focus:#815a50; }
     * { box-sizing:border-box; }
     html { background:var(--paper); scroll-behavior:smooth; }
     body { margin:0; min-height:100vh; color:var(--ink); background:var(--paper);
@@ -127,8 +127,47 @@ summary:focus-visible { outline:3px solid var(--focus); outline-offset:4px; }
 <section id="offline-section"><h2 data-t="offlineTitle"></h2><p id="offline-help"></p><a id="offline-download" download href="offline/Draftor_Recovery_R9_Offline.html" data-t="offlineDownload"></a><p data-t="privacy"></p></section>
 <div class="recovery-actions"><button id="close" type="button" data-t="close"></button><button id="save-receipt" type="button" data-t="receipt"></button></div>
 <details><summary data-t="diagnostics"></summary><p data-t="diagnosticHelp"></p><pre id="diagnostics"></pre></details>
-<footer class="footer"><p id="build-id"></p><a href="docs/RECOVERY_GUIDE.zh-CN.md" data-t="guide"></a> · <a href="docs/SOURCE.html">Source &amp; licenses</a></footer>
-<section id="offline-licenses"><h2>Source &amp; licenses</h2><p>Combined program: GPL-3.0. Corresponding source: Draftor_Web_R9_source.zip in this delivery. Build R9-locked-5c142f40d5b7; source 5c142f40d5b738998973c51fdc12ef89de19f842. No private package is included.</p><details><summary>GNU_GPL_v3.txt</summary><pre>                    GNU GENERAL PUBLIC LICENSE
+<footer class="footer"><p id="build-id"></p><a href="docs/RECOVERY_GUIDE.zh-CN.md" data-t="guide"></a> · <a href="#offline-licenses">Source &amp; licenses</a></footer>
+<section id="offline-guide"><h2>恢复说明 / Recovery guide</h2><article lang="zh-CN"><h1>Draftor 私人恢复包与离线恢复</h1>
+<p>设备操作支持 macOS 桌面 Google Chrome、原微雪 ESP32-S3-RLCD-4.2 / ST7305 和 16 MiB Flash。实测版本为 macOS 15.5 / arm64、Chrome 157.0.8103.50，不代表所有版本组合均实测。</p>
+<h2>安装前保存</h2>
+<p>1. 保存文稿并结束传输。彻底断电（含电池），取出 TF。只连接这块微雪，按住 BOOT 接 USB，约两秒后释放，关闭串口监视器。选 USB JTAG/serial debug unit。
+2. 正式首页“连接设备并安装”会自动识别准确厂家首装或 Alpha 3 app0 同版本重新安装。未知状态即停止，不可强刷。
+3. 没有旧文件时，点“读取完整 Flash（只读）”。完整 ROM 慢读需要较长时间，保持页面、USB、供电。保存生成的私人 ZIP，等浏览器下载完成，再回选实际文件。完整内容须匹配当前同一设备，才能继续。
+4. 下载离线恢复 HTML，确认已保存，与私人 ZIP 一起保管。网页会校验准确工具摘要；报告下载失败时不能继续。保存工具不替代私人 ZIP 回选。
+5. 阅读计划和影响，确认备份及 TF 条件。首装须单独确认清除全部内部 Flash；兼容重新安装只写活动 App。内容校验通过并释放串口后，按提示普通启动与检查。</p>
+<h2>原设备不能启动时</h2>
+<p>1. 关闭其他安装/恢复页面。打开 Chrome 的“文件 → 打开文件”（⌘O），选择已保存的 Draftor_Recovery_R10_Offline.html。断网也可用，无需 Python、终端、Codex、扩展、开发者工具或安全设置更改。
+2. 选择“恢复原设备”，选择原私人 ZIP，不要解压。包含原设备身份、精确 16 MiB 镜像、摘要和恢复说明。原设备和安全检查失败时停止，不修改包或换板绕过。
+3. 保存文稿并结束传输，彻底断电后取出 TF；按上述方式进 ROM。确认实物条件，选择 USB JTAG/serial debug unit。允许当前分区损坏，但仍必须匹配原设备身份、容量与安全条件。
+4. 阅读并明确确认整片覆盖：会覆盖全部 16 MiB，设置、配对及内部文稿回到备份时；备份之后的内部变化会丢失。TF 不在包内且不被工具操作。只点一次恢复，保持供电和连接。
+5. 成功提示“内容已校验”后，关闭连接并清除私人会话，保存脱敏回执。彻底断电，插回原 TF，松开 BOOT 普通启动。原键盘用原通道回连，不重置配对。检查原稿、新稿保存及重启读取。厂家包恢复后是厂家演示，不等于 Draftor 已安装。
+6. 任何通信、写入或校验错误即停止；不自动重试、换槽、复位或降级首装。保留原包和回执；已写入时设备可能不完整。排除具体原因后，用户日后主动开始的新会话仍须完整前检与确认，没有项目测试额度限制。</p>
+<h2>私人数据及证据边界</h2>
+<p>私人 ZIP 包含 MAC、设置、配对和可能的内部文稿，不能上传或公开。文件只在本机处理，无账号或上传服务。摘要和 MAC 防误选及意外损坏，不是数字签名。TF 文稿和学习目录需另行备份，下载 TF 资源不等于备份文稿。</p>
+<p>关闭会清除页面私人引用、文件选择和对象 URL，不承诺物理内存已擦除。诊断不含私人镜像、MAC、文件名或私人摘要；计数来自程序控制点，不是独立抓线。内容核验不等于普通启动、键盘和文稿已通过。</p>
+<p>Draftor 包完整恢复继承 R9 实机及独立用户验收；厂家包恢复为软件分支覆盖及共用通道继承，未另做厂家恢复实机测试。仅支持准确 Alpha 3 app0 或准确 FactoryOnly_20260120 原状态。完整包仍为严格四条目的 draftor-private-recovery/1；工具单独保存，不塞入私人包。
+</p></article>
+<article lang="en"><h1>Draftor private packages and offline recovery</h1>
+<p>Device operations support macOS desktop Google Chrome and the original Waveshare ESP32-S3-RLCD-4.2 / ST7305 with 16 MiB Flash. Tested baseline: macOS 15.5 / arm64, Chrome 157.0.8103.50. This does not qualify every version combination.</p>
+<h2>Save before installation</h2>
+<p>1. Save writing and finish transfers. Fully power off, including the battery, and remove TF. Connect only this board. Hold BOOT while plugging in USB, release after about two seconds and close serial monitors. Select USB JTAG/serial debug unit.
+2. Use Connect &amp; Install on the official homepage. Inspection selects the exact supported factory first installation or Alpha 3 app0 same-version reinstallation. Unknown states stop; there is no force option.
+3. Without old files, read complete Flash read-only. ROM slow reading takes time: keep the page, USB and power connected. Save the generated private ZIP, wait for the browser to finish, then reselect the actual saved file. Its complete contents must match this board's current Flash.
+4. Download the offline HTML, confirm saving finished, and keep it with your private ZIP. The page verifies the exact tool digest. Resolve download failures before installing. Saving the tool does not replace package reimport.
+5. Read the plan and impact and confirm backup/TF conditions. First installation separately requires erasing all internal Flash; reinstallation writes only the active App. After verification and port release, follow the normal boot checks.</p>
+<h2>Restore a board that cannot boot</h2>
+<p>1. Close other installation/recovery pages. In Chrome choose File → Open File (⌘O) and open your saved Draftor_Recovery_R10_Offline.html. It works without network, Python, terminal, Codex, extensions, developer tools or security setting changes.
+2. Choose Restore original board and select the private ZIP without extracting it. The package contains original-board identity, an exact 16 MiB image, hashes and instructions. Stop on identity or security failure; never edit the package or substitute a board.
+3. Save writing, finish transfers, fully power off and remove TF; enter ROM as above. Confirm physical conditions and select USB JTAG/serial debug unit. Current partitions may be damaged, but original identity, capacity and security checks remain mandatory.
+4. Confirm the full overwrite: all 16 MiB, settings, pairing and internal writing return to backup time. Later internal changes are lost. TF is separate and is never accessed. Click Restore once and keep power and USB connected.
+5. After Contents verified, close the connection, clear the private session and save a sanitized receipt. Fully power off, insert the original TF and boot normally with BOOT released. Reconnect the keyboard on its original channel without resetting pairing. Check old writing, saving new writing and reading after restart. A factory package restores the factory demo, not Draftor.
+6. Communication, writing or verification errors stop the session. There is no automatic retry, slot switch, reset or fallback to first installation. Retain the original package and receipt. Partial writing may prevent boot. After the specific cause is resolved, a user-initiated new session still requires all checks and consent; no project test quota applies.</p>
+<h2>Privacy and evidence</h2>
+<p>The private ZIP contains MAC, settings, pairing and possibly internal documents. Never upload or publish it. Files stay local; there is no account or upload service. Hashes and MAC prevent accidental corruption and mistakes, not malicious forgery. Back up TF writing and learning directories separately; downloading TF resources is not a writing backup.</p>
+<p>Closing clears page references, file inputs and object URLs, not guaranteed physical memory erasure. Diagnostics exclude private images, MAC, filenames and private hashes. Counters represent program control points, not independent wire capture. Content verification does not prove normal boot, keyboard or writing health.</p>
+<p>Draftor full recovery inherits R9 physical and independent-user qualification. Factory recovery has software coverage and shares the qualified writer; no separate factory-package restore hardware test is claimed. Only exact Alpha 3 app0 or FactoryOnly_20260120 original states are accepted. The private package remains the strict four-entry draftor-private-recovery/1 ZIP. Keep the tool separately.
+</p></article></section><section id="offline-licenses"><h2>Source &amp; licenses</h2><p>Combined program GPL-3.0. Corresponding source: Draftor_Web_R10_source.zip, distributed alongside this tool and at https://draftor.tcssn.org/sources/Draftor_Web_R10_source.zip. Build R10-public-52f5f8203326; source 52f5f8203326911d5f4de39b6360d013ed404b49. No private image is distributed.</p><details><summary>GNU_GPL_v3.txt</summary><pre>                    GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
  Copyright (C) 2007 Free Software Foundation, Inc. &lt;https://fsf.org/&gt;
@@ -2738,14 +2777,15 @@ Public License instead of this License.
   } };
 
   // src/recovery-ui.js
-  function startRecoveryUI({ build, sourceCommit, recoveryEnabled = false, simulation = false, requestDriver }) {
+  function startRecoveryUI({ build, sourceCommit, recoveryEnabled = false, simulation = false, requestDriver, copyOverrides = {}, supportedEnvironment, offlineHref, embeddedGuide = false }) {
     const $ = (id) => document.getElementById(id);
     let language = "zh", mode = recoveryEnabled ? "restore" : "backup", session, diagnostics, packageBytes, downloadBytes, summary, busy = false, activeTask, notice = "", error = "", closed = false;
+    const copy = Object.fromEntries(["zh", "en"].map((l) => [l, { ...recoveryCopy[l], ...copyOverrides[l] }]));
     const objectUrls = /* @__PURE__ */ new Set();
-    const t = (key) => recoveryCopy[language][key] || key;
+    const t = (key) => copy[language][key] || key;
     let seenOpened = false;
     const originType = location.protocol === "file:" ? "FILE" : location.protocol === "https:" ? "HTTPS" : "LOOPBACK";
-    const supported = simulation || isSecureContext && !!navigator.serial && !/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+    const supported = supportedEnvironment ?? (simulation || isSecureContext && !!navigator.serial && !/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent));
     const newDiagnostics = () => new Diagnostics({ build, sourceCommit, originType, origin: originType === "FILE" ? "LOCAL_FILE" : location.origin, mode, simulation });
     diagnostics = newDiagnostics();
     diagnostics.check("writeLock", !recoveryEnabled || mode !== "restore");
@@ -2787,7 +2827,8 @@ Public License instead of this License.
       $("boot-section").hidden = stage !== "VERIFIED_BOOT_PENDING";
       $("offline-help").textContent = t(originType === "FILE" ? "offlineLocal" : recoveryEnabled ? "offlineHelp" : "offlineLocked");
       $("offline-download").hidden = originType === "FILE";
-      document.querySelector('[data-t="guide"]').href = `docs/RECOVERY_GUIDE.${language === "zh" ? "zh-CN" : "en"}.md`;
+      document.querySelector('[data-t="guide"]').href = embeddedGuide ? "#offline-guide" : `docs/RECOVERY_GUIDE.${language === "zh" ? "zh-CN" : "en"}.md`;
+      if (offlineHref) $("offline-download").href = offlineHref;
       $("diagnostics").textContent = JSON.stringify(receipt(), null, 2);
     }
     function clearPrivateUI() {
@@ -4133,12 +4174,44 @@ Public License instead of this License.
     }
   };
 
-  // src/r9-recovery-locked.js
+  // src/release-platform.js
+  function qualifiedDesktopChrome(environment) {
+    const { userAgent = "", vendor = "", platform = "", brands, secureContext = false, serialAvailable = false, brave = false } = environment;
+    const mac = /Macintosh/.test(userAgent) && (/Mac/.test(platform) || platform === "macOS");
+    const chrome = /Chrome\/\d+/.test(userAgent) && vendor === "Google Inc." && !brave && !/(Edg|OPR|Opera|Android|Mobile|CriOS|FxiOS)/.test(userAgent);
+    const brandOk = !brands || brands.some((x) => x.brand === "Google Chrome");
+    return Boolean(mac && chrome && brandOk && secureContext && serialAvailable);
+  }
+  function browserIsQualified() {
+    return qualifiedDesktopChrome({
+      userAgent: navigator.userAgent,
+      vendor: navigator.vendor,
+      platform: navigator.userAgentData?.platform || navigator.platform,
+      brands: navigator.userAgentData?.brands,
+      secureContext: isSecureContext,
+      serialAvailable: !!navigator.serial?.requestPort,
+      brave: !!navigator.brave
+    });
+  }
+
+  // src/r10-copy.js
+  var publicRecoveryCopy = { zh: { locked: "\u5728\u7EBF\u5907\u4EFD\u4E0E\u53EA\u8BFB\u6838\u9A8C\uFF1A\u6B64\u9875\u4E0D\u6267\u884C\u6574\u7247\u6062\u590D\u3002\u8BF7\u4E0B\u8F7D\u79BB\u7EBF\u5DE5\u5177\uFF0C\u5728\u539F\u8BBE\u5907\u4E0A\u6062\u590D\u5DF2\u4FDD\u5B58\u7684\u79C1\u4EBA\u5305\u3002", candidate: "\u79BB\u7EBF\u6062\u590D\u5DE5\u5177 \xB7 \u9650 macOS \u684C\u9762 Chrome \u4E0E\u539F\u5FAE\u96EA ST7305\u3002\u6BCF\u6B21\u6062\u590D\u987B\u91CD\u65B0\u6838\u9A8C\u539F\u8BBE\u5907\u3001\u5B8C\u6574\u5305\u53CA\u8986\u76D6\u8303\u56F4\u3002", offlineLocked: "\u4E0B\u8F7D\u5177\u6709\u5B8C\u6574\u6062\u590D\u80FD\u529B\u7684\u79BB\u7EBF HTML\uFF0C\u4E0E\u79C1\u4EBA\u6062\u590D ZIP \u4E00\u8D77\u4FDD\u5B58\u3002\u5173\u95ED\u7F51\u9875\u540E\u5728 macOS Chrome \u7528\u201C\u6253\u5F00\u6587\u4EF6\u201D\u91CD\u5F00 HTML\uFF1B\u65E0\u9700\u7F51\u7EDC\u3001Python \u6216\u6D4F\u89C8\u5668\u6269\u5C55\u3002", supported: "macOS \u684C\u9762 Chrome \u73AF\u5883\u53EF\u7528\u3002\u5B9E\u6D4B\u57FA\u7EBF\u548C\u9650\u5B9A\u8303\u56F4\u89C1\u8BF4\u660E\uFF1B\u672A\u8FDE\u63A5\u524D\u4E0D\u4F1A\u8BBF\u95EE\u8BBE\u5907\u3002", unsupported: "\u8BBE\u5907\u64CD\u4F5C\u4EC5\u9762\u5411 macOS \u684C\u9762 Google Chrome \u7684\u5B89\u5168 Web Serial \u73AF\u5883\uFF1B\u4ECD\u53EF\u9605\u8BFB\u548C\u4E0B\u8F7D\u3002\u5176\u4ED6\u5E73\u53F0\u672A\u7EB3\u5165\u5DF2\u9A8C\u6536\u8303\u56F4\u3002" }, en: { locked: "Online backup and read-only verification. This page does not restore Flash. Download the offline tool to restore a saved private package to its original board.", candidate: "Offline recovery tool \xB7 macOS desktop Chrome and original Waveshare ST7305 only. Every restore rechecks the board, complete package and overwrite scope.", offlineLocked: "Download the writable offline HTML and keep it with the private ZIP. Close the page and reopen the HTML using Open File in macOS Chrome. No network, Python or extension required.", supported: "macOS desktop Chrome is available. See the guide for the tested baseline and limited scope. No device access before connection.", unsupported: "Device operations require macOS desktop Google Chrome with secure Web Serial. Reading and downloads remain available. Other platforms are unqualified." } };
+
+  // src/r10-recovery.js
+  var offline = true;
   startRecoveryUI({
-    build: "R9-locked-5c142f40d5b7",
-    sourceCommit: "5c142f40d5b738998973c51fdc12ef89de19f842",
-    recoveryEnabled: false,
-    requestDriver: async (_, diagnostics) => new ReadOnlyDriver(new StrictSerialTransport(await requestSerialPort(navigator.serial, diagnostics), { diagnostics }), { diagnostics })
+    build: "R10-public-52f5f8203326",
+    sourceCommit: "52f5f8203326911d5f4de39b6360d013ed404b49",
+    recoveryEnabled: offline,
+    copyOverrides: publicRecoveryCopy,
+    supportedEnvironment: browserIsQualified(),
+    embeddedGuide: offline,
+    offlineHref: "offline/Draftor_Recovery_R10_Offline.html",
+    requestDriver: async (mode, diagnostics) => {
+      requireSafe(browserIsQualified(), "PLATFORM");
+      const wire = new StrictSerialTransport(await requestSerialPort(navigator.serial, diagnostics), { diagnostics });
+      return offline && mode === "restore" ? new S3Rom(wire, { allowRecovery: true, diagnostics }) : new ReadOnlyDriver(wire, { diagnostics });
+    }
   });
 })();
 </script></body></html>

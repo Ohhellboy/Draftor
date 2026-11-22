@@ -1,39 +1,28 @@
-# Draftor backup and recovery
+# Draftor private packages and offline recovery
 
-Scope: Waveshare ESP32-S3-RLCD-4.2 / ST7305, 16 MiB, with qualified original Alpha 3 app0 or exact FactoryOnly 20260120 state. This recovery candidate is not approved for public writing. The locked diagnostic build cannot restore.
+Device operations support macOS desktop Google Chrome and the original Waveshare ESP32-S3-RLCD-4.2 / ST7305 with 16 MiB Flash. Tested baseline: macOS 15.5 / arm64, Chrome 157.0.8103.50. This does not qualify every version combination.
 
-## Save your package first
+## Save before installation
 
-1. Save writing and finish transfers. Fully power off including the battery, then remove TF. Connect only this board. Hold BOOT while plugging in USB, release after about two seconds, and close serial monitors.
-2. Open Backup & recovery, choose Save a private package, confirm the board and TF conditions, and select USB JTAG/serial debug unit. The inspection is read-only.
-3. If you have a full 16 MiB `.bin`, select it under the existing-backup option. The tool creates current credentials only after its contents match the device's full ROM digest. An App slice is insufficient. Keep any old mismatching backup and capture the current full Flash instead.
-4. Download the newly named private ZIP. Wait for actual saving, then reselect that ZIP from its saved location. A download click is not proof; wait for successful saved-file validation.
-5. Save the offline tool beside the private package. Do not rely on a page remaining open. The locked website distributes a locked diagnostic offline tool; the real recovery candidate is supplied separately for review.
-6. Close the connection, then save the sanitized diagnostic receipt.
+1. Save writing and finish transfers. Fully power off, including the battery, and remove TF. Connect only this board. Hold BOOT while plugging in USB, release after about two seconds and close serial monitors. Select USB JTAG/serial debug unit.
+2. Use Connect & Install on the official homepage. Inspection selects the exact supported factory first installation or Alpha 3 app0 same-version reinstallation. Unknown states stop; there is no force option.
+3. Without old files, read complete Flash read-only. ROM slow reading takes time: keep the page, USB and power connected. Save the generated private ZIP, wait for the browser to finish, then reselect the actual saved file. Its complete contents must match this board's current Flash.
+4. Download the offline HTML, confirm saving finished, and keep it with your private ZIP. The page verifies the exact tool digest. Resolve download failures before installing. Saving the tool does not replace package reimport.
+5. Read the plan and impact and confirm backup/TF conditions. First installation separately requires erasing all internal Flash; reinstallation writes only the active App. After verification and port release, follow the normal boot checks.
 
-The ZIP contains manifest.json, an exact 16,777,216-byte flash.bin and bilingual notes. It includes MAC, settings, pairing and possibly internal writing. Never upload it, publish it or put it in source/site packages. TF files are separate and must be retained independently; this tool never reads or modifies TF. No cloud account is needed.
+## Restore a board that cannot boot
 
-## Recover after a failure
+1. Close other installation/recovery pages. In Chrome choose File → Open File (⌘O) and open your saved Draftor_Recovery_R10_Offline.html. It works without network, Python, terminal, Codex, extensions, developer tools or security setting changes.
+2. Choose Restore original board and select the private ZIP without extracting it. The package contains original-board identity, an exact 16 MiB image, hashes and instructions. Stop on identity or security failure; never edit the package or substitute a board.
+3. Save writing, finish transfers, fully power off and remove TF; enter ROM as above. Confirm physical conditions and select USB JTAG/serial debug unit. Current partitions may be damaged, but original identity, capacity and security checks remain mandatory.
+4. Confirm the full overwrite: all 16 MiB, settings, pairing and internal writing return to backup time. Later internal changes are lost. TF is separate and is never accessed. Click Restore once and keep power and USB connected.
+5. After Contents verified, close the connection, clear the private session and save a sanitized receipt. Fully power off, insert the original TF and boot normally with BOOT released. Reconnect the keyboard on its original channel without resetting pairing. Check old writing, saving new writing and reading after restart. A factory package restores the factory demo, not Draftor.
+6. Communication, writing or verification errors stop the session. There is no automatic retry, slot switch, reset or fallback to first installation. Retain the original package and receipt. Partial writing may prevent boot. After the specific cause is resolved, a user-initiated new session still requires all checks and consent; no project test quota applies.
 
-1. Reopen the saved offline tool in a fresh session. Choose Restore original board and select the private ZIP without extracting or editing it. No addresses or baud settings are needed.
-2. Power off, remove TF and enter ROM as above. Select the original board's port. Current firmware, partitions and OTA may be damaged. Actual original identity, chip, capacity and security must still pass.
-3. Read the result. A factory backup restores the factory demo, not Draftor.
-4. Separately confirm overwriting all 16 MiB of internal Flash. Settings, pairing and internal documents revert to backup time. TF data is not in the package; deleted or damaged TF documents cannot be recovered by this tool.
-5. Click restore once. Keep USB and the page connected. The original ROM protocol writes the exact full image, then checks actual full ROM MD5 and metadata. It does not reset the board automatically.
-6. Verified contents still require normal boot. Close the connection and save the receipt. Fully power off, insert the original TF and boot normally. Reconnect the original keyboard channel; check old writing, a newly saved document and reading after restart. A factory package needs the corresponding factory-demo check.
+## Privacy and evidence
 
-This round's hardware recovery requires final confirmation of the frozen tool and specific private package. At most one attempt is allowed. A failure does not authorize another write.
+The private ZIP contains MAC, settings, pairing and possibly internal documents. Never upload or publish it. Files stay local; there is no account or upload service. Hashes and MAC prevent accidental corruption and mistakes, not malicious forgery. Back up TF writing and learning directories separately; downloading TF resources is not a writing backup.
 
-## Stops and corrections
+Closing clears page references, file inputs and object URLs, not guaranteed physical memory erasure. Diagnostics exclude private images, MAC, filenames and private hashes. Counters represent program control points, not independent wire capture. Content verification does not prove normal boot, keyboard or writing health.
 
-Missing/wrong files and cancelling the port chooser can be corrected normally. A chooser failure before opening a port is not device communication failure. Actual protocol, security or verification errors stop the session. Release any releasable port and save the receipt. An attempted command without acknowledgement may have changed Flash; cancellation does not guarantee unchanged contents. No automatic reconnect, alternate slot, erase fallback, reflash or background recovery occurs.
-
-If closure fails, the port may still be occupied. Save the sanitized receipt and close the tab; do not open the same port in two tools. New read-only verification requires an explicit new connection and checks actual contents without granting writes. Independent Python verification is engineering acceptance evidence, not an ordinary-user dependency.
-
-## Limits and privacy
-
-The strict ZIP v1 profile accepts exactly four stored entries generated by this tool. Compression, ZIP64, extras, duplicates, arbitrary JSON and third-party packages are rejected. Original firmware must meet finite public fingerprints. Identity and security originate from ROM/eFuse reads at creation and are checked again against the real board; they are not proven by the Flash image.
-
-MAC and hashes prevent mistakes and accidental corruption; they are not signatures or authenticity guarantees. Receipts exclude MAC, private hashes, filenames and contents. Counts are program control-point observations, not independent wire captures. Closure clears UI, references, controllable byte arrays and Blob URLs; JavaScript cannot guarantee immediate physical-memory erasure.
-
-Desktop macOS Chrome is this round's target. Windows, Edge and mobile hardware recovery remain unqualified. Mobile provides instructions and downloads only. See R9_REPORT for actual fresh-start/offline testing; download success alone is insufficient.
+Draftor full recovery inherits R9 physical and independent-user qualification. Factory recovery has software coverage and shares the qualified writer; no separate factory-package restore hardware test is claimed. Only exact Alpha 3 app0 or FactoryOnly_20260120 original states are accepted. The private package remains the strict four-entry draftor-private-recovery/1 ZIP. Keep the tool separately.

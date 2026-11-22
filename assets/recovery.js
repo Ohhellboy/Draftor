@@ -1381,14 +1381,15 @@
   } };
 
   // src/recovery-ui.js
-  function startRecoveryUI({ build, sourceCommit, recoveryEnabled = false, simulation = false, requestDriver }) {
+  function startRecoveryUI({ build, sourceCommit, recoveryEnabled = false, simulation = false, requestDriver, copyOverrides = {}, supportedEnvironment, offlineHref, embeddedGuide = false }) {
     const $ = (id) => document.getElementById(id);
     let language = "zh", mode = recoveryEnabled ? "restore" : "backup", session, diagnostics, packageBytes, downloadBytes, summary, busy = false, activeTask, notice = "", error = "", closed = false;
+    const copy = Object.fromEntries(["zh", "en"].map((l) => [l, { ...recoveryCopy[l], ...copyOverrides[l] }]));
     const objectUrls = /* @__PURE__ */ new Set();
-    const t = (key) => recoveryCopy[language][key] || key;
+    const t = (key) => copy[language][key] || key;
     let seenOpened = false;
     const originType = location.protocol === "file:" ? "FILE" : location.protocol === "https:" ? "HTTPS" : "LOOPBACK";
-    const supported = simulation || isSecureContext && !!navigator.serial && !/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+    const supported = supportedEnvironment ?? (simulation || isSecureContext && !!navigator.serial && !/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent));
     const newDiagnostics = () => new Diagnostics({ build, sourceCommit, originType, origin: originType === "FILE" ? "LOCAL_FILE" : location.origin, mode, simulation });
     diagnostics = newDiagnostics();
     diagnostics.check("writeLock", !recoveryEnabled || mode !== "restore");
@@ -1430,7 +1431,8 @@
       $("boot-section").hidden = stage !== "VERIFIED_BOOT_PENDING";
       $("offline-help").textContent = t(originType === "FILE" ? "offlineLocal" : recoveryEnabled ? "offlineHelp" : "offlineLocked");
       $("offline-download").hidden = originType === "FILE";
-      document.querySelector('[data-t="guide"]').href = `docs/RECOVERY_GUIDE.${language === "zh" ? "zh-CN" : "en"}.md`;
+      document.querySelector('[data-t="guide"]').href = embeddedGuide ? "#offline-guide" : `docs/RECOVERY_GUIDE.${language === "zh" ? "zh-CN" : "en"}.md`;
+      if (offlineHref) $("offline-download").href = offlineHref;
       $("diagnostics").textContent = JSON.stringify(receipt(), null, 2);
     }
     function clearPrivateUI() {
@@ -2776,12 +2778,44 @@
     }
   };
 
-  // src/r9-recovery-locked.js
+  // src/release-platform.js
+  function qualifiedDesktopChrome(environment) {
+    const { userAgent = "", vendor = "", platform = "", brands, secureContext = false, serialAvailable = false, brave = false } = environment;
+    const mac = /Macintosh/.test(userAgent) && (/Mac/.test(platform) || platform === "macOS");
+    const chrome = /Chrome\/\d+/.test(userAgent) && vendor === "Google Inc." && !brave && !/(Edg|OPR|Opera|Android|Mobile|CriOS|FxiOS)/.test(userAgent);
+    const brandOk = !brands || brands.some((x) => x.brand === "Google Chrome");
+    return Boolean(mac && chrome && brandOk && secureContext && serialAvailable);
+  }
+  function browserIsQualified() {
+    return qualifiedDesktopChrome({
+      userAgent: navigator.userAgent,
+      vendor: navigator.vendor,
+      platform: navigator.userAgentData?.platform || navigator.platform,
+      brands: navigator.userAgentData?.brands,
+      secureContext: isSecureContext,
+      serialAvailable: !!navigator.serial?.requestPort,
+      brave: !!navigator.brave
+    });
+  }
+
+  // src/r10-copy.js
+  var publicRecoveryCopy = { zh: { locked: "\u5728\u7EBF\u5907\u4EFD\u4E0E\u53EA\u8BFB\u6838\u9A8C\uFF1A\u6B64\u9875\u4E0D\u6267\u884C\u6574\u7247\u6062\u590D\u3002\u8BF7\u4E0B\u8F7D\u79BB\u7EBF\u5DE5\u5177\uFF0C\u5728\u539F\u8BBE\u5907\u4E0A\u6062\u590D\u5DF2\u4FDD\u5B58\u7684\u79C1\u4EBA\u5305\u3002", candidate: "\u79BB\u7EBF\u6062\u590D\u5DE5\u5177 \xB7 \u9650 macOS \u684C\u9762 Chrome \u4E0E\u539F\u5FAE\u96EA ST7305\u3002\u6BCF\u6B21\u6062\u590D\u987B\u91CD\u65B0\u6838\u9A8C\u539F\u8BBE\u5907\u3001\u5B8C\u6574\u5305\u53CA\u8986\u76D6\u8303\u56F4\u3002", offlineLocked: "\u4E0B\u8F7D\u5177\u6709\u5B8C\u6574\u6062\u590D\u80FD\u529B\u7684\u79BB\u7EBF HTML\uFF0C\u4E0E\u79C1\u4EBA\u6062\u590D ZIP \u4E00\u8D77\u4FDD\u5B58\u3002\u5173\u95ED\u7F51\u9875\u540E\u5728 macOS Chrome \u7528\u201C\u6253\u5F00\u6587\u4EF6\u201D\u91CD\u5F00 HTML\uFF1B\u65E0\u9700\u7F51\u7EDC\u3001Python \u6216\u6D4F\u89C8\u5668\u6269\u5C55\u3002", supported: "macOS \u684C\u9762 Chrome \u73AF\u5883\u53EF\u7528\u3002\u5B9E\u6D4B\u57FA\u7EBF\u548C\u9650\u5B9A\u8303\u56F4\u89C1\u8BF4\u660E\uFF1B\u672A\u8FDE\u63A5\u524D\u4E0D\u4F1A\u8BBF\u95EE\u8BBE\u5907\u3002", unsupported: "\u8BBE\u5907\u64CD\u4F5C\u4EC5\u9762\u5411 macOS \u684C\u9762 Google Chrome \u7684\u5B89\u5168 Web Serial \u73AF\u5883\uFF1B\u4ECD\u53EF\u9605\u8BFB\u548C\u4E0B\u8F7D\u3002\u5176\u4ED6\u5E73\u53F0\u672A\u7EB3\u5165\u5DF2\u9A8C\u6536\u8303\u56F4\u3002" }, en: { locked: "Online backup and read-only verification. This page does not restore Flash. Download the offline tool to restore a saved private package to its original board.", candidate: "Offline recovery tool \xB7 macOS desktop Chrome and original Waveshare ST7305 only. Every restore rechecks the board, complete package and overwrite scope.", offlineLocked: "Download the writable offline HTML and keep it with the private ZIP. Close the page and reopen the HTML using Open File in macOS Chrome. No network, Python or extension required.", supported: "macOS desktop Chrome is available. See the guide for the tested baseline and limited scope. No device access before connection.", unsupported: "Device operations require macOS desktop Google Chrome with secure Web Serial. Reading and downloads remain available. Other platforms are unqualified." } };
+
+  // src/r10-online-recovery.js
+  var offline = false;
   startRecoveryUI({
-    build: "R9-locked-5c142f40d5b7",
-    sourceCommit: "5c142f40d5b738998973c51fdc12ef89de19f842",
-    recoveryEnabled: false,
-    requestDriver: async (_, diagnostics) => new ReadOnlyDriver(new StrictSerialTransport(await requestSerialPort(navigator.serial, diagnostics), { diagnostics }), { diagnostics })
+    build: "R10-public-52f5f8203326",
+    sourceCommit: "52f5f8203326911d5f4de39b6360d013ed404b49",
+    recoveryEnabled: offline,
+    copyOverrides: publicRecoveryCopy,
+    supportedEnvironment: browserIsQualified(),
+    embeddedGuide: offline,
+    offlineHref: "offline/Draftor_Recovery_R10_Offline.html",
+    requestDriver: async (mode, diagnostics) => {
+      requireSafe(browserIsQualified(), "PLATFORM");
+      const wire = new StrictSerialTransport(await requestSerialPort(navigator.serial, diagnostics), { diagnostics });
+      return new ReadOnlyDriver(wire, { diagnostics });
+    }
   });
 })();
 //# sourceMappingURL=recovery.js.map

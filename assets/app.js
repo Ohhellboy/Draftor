@@ -549,6 +549,105 @@ var dict = {
   }
 };
 
+// src/r10-copy.js
+var installationCopy = { zh: {
+  browserHint: "\u8BBE\u5907\u64CD\u4F5C\uFF1AmacOS \u684C\u9762 Google Chrome\uFF1B\u5176\u4ED6\u73AF\u5883\u53EF\u6D4F\u89C8\u548C\u4E0B\u8F7D\u3002",
+  wrongOriginal: "\u6062\u590D\u5305\u5185\u7684\u539F\u59CB\u56FA\u4EF6\u72B6\u6001\u4E0D\u7B26\u5408\u672C\u6B21\u8BA1\u5212\uFF0C\u53EF\u80FD\u9009\u5230\u4E86\u53E6\u4E00\u539F\u72B6\u6001\u7684\u5907\u4EFD\u3002\u5C1A\u672A\u56E0\u672C\u6B21\u5BFC\u5165\u5F00\u59CB\u5B89\u88C5\uFF1B\u8BF7\u4FDD\u7559\u539F\u6587\u4EF6\uFF0C\u5173\u95ED\u540E\u7528\u6B63\u786E\u6587\u4EF6\u91CD\u65B0\u68C0\u67E5\u3002",
+  badPackage: "\u6062\u590D ZIP \u7684\u5185\u5BB9\u3001\u683C\u5F0F\u6216\u6458\u8981\u672A\u901A\u8FC7\u68C0\u67E5\uFF0C\u672A\u6388\u4E88\u5B89\u88C5\u6743\u9650\u3002\u8BF7\u4FDD\u7559\u539F\u6587\u4EF6\u5E76\u6838\u5BF9\u672C\u6B21\u751F\u6210\u7684\u5B8C\u6574\u5305\u3002",
+  stoppedHelp: "\u5DF2\u505C\u6B62\uFF0C\u4E0D\u81EA\u52A8\u91CD\u8BD5\u3002\u8BF7\u4FDD\u7559\u56DE\u6267\uFF1B\u82E5\u5DF2\u5F00\u59CB\u5199\u5165\uFF0C\u4F7F\u7528\u5DF2\u4FDD\u5B58\u7684\u79BB\u7EBF\u5DE5\u5177\u6062\u590D\u539F\u8BBE\u5907\u3002",
+  previewHint: "v0.1.0-alpha.3 \xB7 \u5FAE\u96EA ST7305 \xB7 macOS \u684C\u9762 Chrome",
+  intro: "\u8FDE\u63A5\u8BBE\u5907\u540E\u81EA\u52A8\u8BC6\u522B\u5B89\u88C5\u65B9\u5F0F\u3002\u5148\u4FDD\u5B58\u5E76\u56DE\u9009\u5B8C\u6574\u6062\u590D\u5305\uFF0C\u518D\u786E\u8BA4\u5B89\u88C5\u3002",
+  publicScope: "\u9650\u5B9A\u5F00\u653E\uFF1A16 MiB \u5FAE\u96EA ST7305\uFF0C\u51C6\u786E FactoryOnly 20260120 \u5382\u5BB6\u9996\u88C5\uFF0C\u6216\u51C6\u786E Alpha 3 app0 \u540C\u7248\u672C\u91CD\u65B0\u5B89\u88C5\u3002\u672A\u77E5\u72B6\u6001\u3001\u5168\u7A7A\u767D\u677F\u548C app1 \u62D2\u7EDD\u5B89\u88C5\u3002",
+  heading: "\u8FDE\u63A5\u8BBE\u5907\u5E76\u5B89\u88C5",
+  prepare: "\u4FDD\u5B58\u6587\u7A3F\u5E76\u7ED3\u675F\u4F20\u8F93\u3002\u5F7B\u5E95\u65AD\u7535\uFF08\u542B\u7535\u6C60\uFF09\u540E\u53D6\u51FA TF\uFF0C\u53EA\u8FDE\u63A5\u8FD9\u5757\u5FAE\u96EA\u3002\u6309\u4F4F BOOT \u63A5 USB\uFF0C\u7EA6\u4E24\u79D2\u540E\u91CA\u653E\uFF0C\u4FDD\u6301 ROM \u4E0B\u8F7D\u6A21\u5F0F\u5E76\u5173\u95ED\u4E32\u53E3\u76D1\u89C6\u5668\u3002\u8FDE\u63A5\u65F6\u9009\u62E9 USB JTAG/serial debug unit\u3002",
+  board: "\u6211\u5DF2\u6838\u5BF9\u5B9E\u7269\u662F\u5FAE\u96EA ESP32-S3-RLCD-4.2 / ST7305\uFF0C\u4E14\u4EC5\u8BE5\u677F\u8FDE\u63A5\u3002",
+  tf: "\u6587\u7A3F\u5DF2\u4FDD\u5B58\u3001\u4F20\u8F93\u5DF2\u7ED3\u675F\uFF0CTF \u5DF2\u5728\u5F7B\u5E95\u65AD\u7535\u540E\u53D6\u51FA\u3002",
+  connect: "\u9009\u62E9\u4E32\u53E3\u5E76\u53EA\u8BFB\u68C0\u67E5",
+  unsupported: "\u8BBE\u5907\u64CD\u4F5C\u4EC5\u652F\u6301 macOS \u684C\u9762 Google Chrome\uFF0C\u5E76\u9700\u5B89\u5168 Web Serial \u73AF\u5883\u3002\u5176\u4ED6\u73AF\u5883\u4ECD\u53EF\u9605\u8BFB\u5E2E\u52A9\u3001\u4E0B\u8F7D TF \u8D44\u6E90\u4E0E\u79BB\u7EBF\u5DE5\u5177\u3002\u6CA1\u6709\u8FDE\u63A5\u8BBE\u5907\u3002",
+  loading: "\u6B63\u5728\u6838\u9A8C\u56DB\u4EFD\u56FA\u5B9A\u53D1\u884C\u56FA\u4EF6\u2026",
+  ready: "\u56FA\u4EF6\u6587\u4EF6\u5DF2\u6838\u9A8C\uFF0C\u53EF\u4EE5\u9009\u62E9\u4E32\u53E3\u3002",
+  update: "\u91CD\u65B0\u5B89\u88C5\u5F53\u524D\u7248\u672C",
+  fresh: "\u9996\u6B21\u5B89\u88C5 Draftor",
+  updateImpact: "\u53EA\u5199\u5DF2\u786E\u8BA4\u7684\u6D3B\u52A8 App \u53CA\u5176\u8986\u76D6\u6247\u533A\uFF0C\u4FDD\u7559\u5176\u4ED6 App\u3001\u5206\u533A\u3001OTA\u3001\u8BBE\u7F6E\u548C\u914D\u5BF9\u3002\u4E2D\u65AD\u53EF\u80FD\u65E0\u6CD5\u542F\u52A8\uFF1B\u4E0D\u4F1A\u81EA\u52A8\u91CD\u8BD5\u3002",
+  freshImpact: "\u5C06\u6E05\u9664\u5168\u90E8 16 MiB \u5185\u90E8 Flash\uFF0C\u5305\u62EC\u5382\u5BB6\u7A0B\u5E8F\u3001\u8BBE\u7F6E\u3001\u914D\u5BF9\u53CA\u5185\u90E8\u6587\u4EF6\uFF0C\u518D\u5199\u5165\u56FA\u5B9A\u56DB\u4EFD Draftor \u56FA\u4EF6\u3002\u5FC5\u987B\u5148\u4FDD\u5B58\u5F53\u524D\u5382\u5BB6\u72B6\u6001\u3002TF \u4E0D\u4F1A\u88AB\u64CD\u4F5C\u3002",
+  plan: "\u5B8C\u6574\u8BA1\u5212\u4E0E\u68C0\u67E5\u8303\u56F4",
+  backupHelp: "\u6CA1\u6709\u65E7\u6587\u4EF6\u4E5F\u53EF\u7EE7\u7EED\uFF1A\u53EA\u8BFB\u6355\u83B7\u5B8C\u6574 16 MiB\uFF0C\u4FDD\u5B58\u751F\u6210\u7684\u79C1\u4EBA ZIP\uFF0C\u518D\u56DE\u9009\u5B9E\u9645\u4FDD\u5B58\u7684\u6587\u4EF6\u3002ROM \u6162\u8BFB\u9700\u8981\u8F83\u957F\u65F6\u95F4\uFF0C\u8BF7\u4FDD\u6301\u4F9B\u7535\u3001USB \u548C\u6B64\u9875\u3002\u5B8C\u6574 Flash \u5305\u542B\u8BBE\u7F6E\u3001\u914D\u5BF9\u53CA\u53EF\u80FD\u7684\u5185\u90E8\u6587\u7A3F\uFF1BTF \u6587\u7A3F\u4E0D\u5728\u5305\u5185\uFF0C\u987B\u5355\u72EC\u4FDD\u7BA1\u3002\u6587\u4EF6\u53EA\u5728\u672C\u673A\u5904\u7406\uFF0C\u4E0D\u4E0A\u4F20\u3002",
+  capture: "\u8BFB\u53D6\u5B8C\u6574 Flash\uFF08\u53EA\u8BFB\uFF09",
+  save: "\u4FDD\u5B58\u79C1\u4EBA\u6062\u590D ZIP",
+  raw: "\u53EF\u9009\uFF1A\u6211\u5DF2\u6709\u5B8C\u6574 16 MiB Flash .bin",
+  reselect: "\u56DE\u9009\u5DF2\u4FDD\u5B58\u7684\u79C1\u4EBA\u6062\u590D ZIP",
+  saved: "\u4FDD\u5B58\u6587\u4EF6\u56DE\u9009\u901A\u8FC7\uFF0C\u4E0E\u5F53\u524D\u540C\u4E00\u8BBE\u5907\u5B8C\u6574 Flash \u4E00\u81F4\u3002",
+  saveWarning: "\u70B9\u51FB\u4FDD\u5B58\u4E0D\u4EE3\u8868\u6587\u4EF6\u5DF2\u843D\u76D8\uFF1B\u5FC5\u987B\u7B49\u5F85\u4E0B\u8F7D\u5B8C\u6210\uFF0C\u518D\u56DE\u9009\u8BE5 ZIP\u3002\u8BF7\u52FF\u89E3\u538B\u3001\u4FEE\u6539\u6216\u516C\u5F00\u79C1\u4EBA\u5305\u3002",
+  tool: "\u4E0B\u8F7D\u79BB\u7EBF\u6062\u590D\u5DE5\u5177\uFF08HTML\uFF09",
+  toolKeep: "\u79BB\u7EBF HTML \u5DF2\u4FDD\u5B58\u5B8C\u6210\uFF0C\u6211\u4F1A\u5C06\u5B83\u4E0E\u79C1\u4EBA ZIP \u4E00\u8D77\u4FDD\u7BA1\u3002",
+  toolHelp: "\u5B89\u88C5\u524D\u4FDD\u5B58\u51C6\u786E\u7684\u79BB\u7EBF\u5DE5\u5177\u3002\u4EE5\u540E\u5173\u95ED\u7F51\u9875\uFF0C\u5728 macOS Chrome \u7528\u201C\u6253\u5F00\u6587\u4EF6\u201D\u91CD\u5F00 HTML\uFF1B\u65E0\u9700\u7F51\u7EDC\u3001Python \u6216\u6269\u5C55\u3002\u5DE5\u5177\u4E0B\u8F7D\u5931\u8D25\u65F6\u4E0D\u8981\u7EE7\u7EED\u5B89\u88C5\u3002",
+  toolReady: "\u79BB\u7EBF\u5DE5\u5177\u5185\u5BB9\u6458\u8981\u5DF2\u6838\u9A8C\uFF1B\u8BF7\u786E\u8BA4\u6D4F\u89C8\u5668\u4FDD\u5B58\u5B8C\u6210\u3002",
+  toolProblem: "\u5DE5\u5177\u672A\u4FDD\u5B58\uFF0F\u4E0B\u8F7D\u6709\u95EE\u9898",
+  backupConsent: "\u6211\u5DF2\u4FDD\u5B58\u5E76\u56DE\u9009\u6709\u6548\u5B8C\u6574\u6062\u590D\u5305\uFF0C\u4E14\u5DF2\u53E6\u884C\u4FDD\u7BA1 TF \u6587\u7A3F\u548C\u5B66\u4E60\u76EE\u5F55\u3002",
+  planConsent: "\u6211\u5DF2\u9605\u8BFB\u672C\u6B21\u8BA1\u5212\u53CA\u5F71\u54CD\uFF0C\u540C\u610F\u6307\u5B9A\u8303\u56F4\u7684\u5B89\u88C5\u3002",
+  eraseConsent: "\u5355\u72EC\u786E\u8BA4\uFF1A\u9996\u6B21\u5B89\u88C5\u4F1A\u6E05\u9664\u5168\u90E8 16 MiB \u5185\u90E8 Flash\uFF0C\u65E7\u56FA\u4EF6\u3001\u8BBE\u7F6E\u548C\u914D\u5BF9\u5C06\u4E22\u5931\u3002",
+  oldApp: "\u53EF\u9009\uFF1A\u51C6\u786E\u65E7 App .bin\uFF08\u672C\u5730\u6BD4\u5BF9\uFF0C\u4E0D\u4E0A\u4F20\uFF09",
+  execute: "\u6309\u5DF2\u6838\u9A8C\u8BA1\u5212\u5B89\u88C5",
+  close: "\u5173\u95ED\u8FDE\u63A5",
+  stop: "\u505C\u6B62\u64CD\u4F5C",
+  receipt: "\u4FDD\u5B58\u8131\u654F\u56DE\u6267",
+  finished: "Flash \u5185\u5BB9\u5DF2\u6821\u9A8C\uFF0C\u4E32\u53E3\u5DF2\u91CA\u653E\u3002\u8BF7\u5F7B\u5E95\u65AD\u7535\uFF08\u542B\u7535\u6C60\uFF09\uFF0C\u63D2\u56DE\u5DF2\u51C6\u5907\u597D\u7684 TF\uFF0C\u677E\u5F00 BOOT \u666E\u901A\u542F\u52A8\u3002\u9996\u88C5\u6309\u63D0\u793A\u914D\u5BF9\u952E\u76D8\uFF1B\u91CD\u65B0\u5B89\u88C5\u7528\u539F\u901A\u9053\u56DE\u8FDE\u3002\u68C0\u67E5\u663E\u793A\u3001\u8F93\u5165\u3001\u65E7\u7A3F\u4EE5\u53CA\u65B0\u7A3F\u4FDD\u5B58\u4E0E\u91CD\u542F\u8BFB\u53D6\u3002\u5185\u5BB9\u6821\u9A8C\u4E0D\u7B49\u4E8E\u6B63\u5E38\u542F\u52A8\u5DF2\u901A\u8FC7\u3002",
+  phases: { IDLE: "\u5C1A\u672A\u8FDE\u63A5", CONNECTING: "\u6B63\u5728\u8FDE\u63A5 ROM\u2026", CHECKING: "\u6B63\u5728\u53EA\u8BFB\u6838\u5BF9\u8EAB\u4EFD\u3001Flash\u3001\u5206\u533A\u548C OTA\u2026", PLAN_READY: "\u53EA\u8BFB\u8BA1\u5212\u5DF2\u5C31\u7EEA\uFF0C\u5C1A\u672A\u5199\u5165\u3002", BACKUP_READING: "\u6B63\u5728\u53EA\u8BFB\u6355\u83B7\u5B8C\u6574 Flash\u2026", BACKUP_VERIFYING: "\u6B63\u5728\u6838\u9A8C\u5B9E\u9645\u56DE\u9009\u6587\u4EF6\u4E0E\u5F53\u524D\u8BBE\u5907\u2026", RECHECKING: "\u5199\u5165\u524D\u91CD\u65B0\u6838\u5BF9\u539F\u8BBE\u5907\u4E0E\u8BA1\u5212\u2026", ERASING: "\u6B63\u5728\u6E05\u9664\u5DF2\u786E\u8BA4\u7684\u5185\u90E8 Flash\u2026", WRITING: "\u6B63\u5728\u5199\u5165\u8BA1\u5212\u6307\u5B9A\u533A\u57DF\u2026", VERIFYING: "\u6B63\u5728\u6838\u9A8C\u5B9E\u9645 Flash \u5185\u5BB9\u548C\u4FDD\u62A4\u533A\u2026", VERIFIED_BOOT_PENDING: "\u5185\u5BB9\u5DF2\u6821\u9A8C\uFF0C\u666E\u901A\u542F\u52A8\u5F85\u786E\u8BA4\u3002", STOP: "\u5DF2\u505C\u6B62\uFF0C\u4E0D\u81EA\u52A8\u91CD\u8BD5\u3002\u8BF7\u4FDD\u7559\u56DE\u6267\uFF1B\u82E5\u5DF2\u5F00\u59CB\u5199\u5165\uFF0C\u8BF7\u4F7F\u7528\u5DF2\u4FDD\u5B58\u7684\u79BB\u7EBF\u5DE5\u5177\u6062\u590D\u539F\u8BBE\u5907\u3002" },
+  helpTitle: "\u5B89\u88C5\u5E2E\u52A9",
+  advancedTitle: "\u53D1\u884C\u4FE1\u606F",
+  scopeLink: "\u652F\u6301\u8303\u56F4",
+  recoveryLink: "\u5907\u4EFD\u4E0E\u6062\u590D",
+  sourceLink: "\u6E90\u7801\u4E0E\u8BB8\u53EF"
+}, en: {
+  browserHint: "Device operations: macOS desktop Google Chrome. Reading and downloads remain available elsewhere.",
+  wrongOriginal: "The package original firmware state does not match this plan. It may be a backup of another original state. This import did not start installation. Keep the file, close this session and inspect again with the correct package.",
+  badPackage: "Recovery ZIP contents, format or hashes failed validation. No installation permission granted. Keep the file and check the complete package created for this session.",
+  stoppedHelp: "Stopped without automatic retry. Keep the receipt. If writing began, use the saved offline tool to restore the original board.",
+  previewHint: "v0.1.0-alpha.3 \xB7 Waveshare ST7305 \xB7 macOS desktop Chrome",
+  intro: "The device selects one supported installation path. Save and reselect a complete recovery package before confirming installation.",
+  publicScope: "Limited release: 16 MiB Waveshare ST7305, exact FactoryOnly 20260120 first installation or exact Alpha 3 app0 same-version reinstallation. Unknown states, blank boards and app1 are refused.",
+  heading: "Connect & Install",
+  prepare: "Save writing and finish transfers. Fully power off including the battery, remove TF and connect only this Waveshare. Hold BOOT while connecting USB, release after about two seconds, and stay in ROM mode. Close serial monitors. Select USB JTAG/serial debug unit.",
+  board: "I checked the physical Waveshare ESP32-S3-RLCD-4.2 / ST7305; only this board is connected.",
+  tf: "Writing is saved, transfers ended, and TF was removed after full power-off.",
+  connect: "Select port & inspect read-only",
+  unsupported: "Device operations require macOS desktop Google Chrome with secure Web Serial. Other environments can read help and download TF resources or the offline tool. No device connected.",
+  loading: "Verifying the four pinned release images\u2026",
+  ready: "Firmware files verified. Ready to select a port.",
+  update: "Reinstall the current version",
+  fresh: "First installation of Draftor",
+  updateImpact: "Write only the confirmed active App and its covered sectors. Preserve the other App, partitions, OTA, settings and pairing. Interruption may prevent boot. No automatic retry.",
+  freshImpact: "Erase all 16 MiB of internal Flash, including the factory demo, settings, pairing and internal files, then write the four pinned Draftor images. Save the current factory state first. TF is untouched.",
+  plan: "Complete plan and checked ranges",
+  backupHelp: "No old files needed: capture all 16 MiB read-only, save the private ZIP, then reselect the actual saved file. ROM slow reading takes time; keep power, USB and this page connected. Full Flash includes settings, pairing and possibly internal writing. TF documents are separate: keep them independently. Files stay local and are never uploaded.",
+  capture: "Read complete Flash (read-only)",
+  save: "Save private recovery ZIP",
+  raw: "Optional: I have a complete 16 MiB Flash .bin",
+  reselect: "Reselect saved private recovery ZIP",
+  saved: "Saved file verified against the same device\u2019s entire current Flash.",
+  saveWarning: "Clicking Save does not prove the file reached disk. Wait for download completion, then reselect that ZIP. Do not extract, modify or publish the private package.",
+  tool: "Download offline recovery tool (HTML)",
+  toolKeep: "The offline HTML has finished saving; I will keep it with my private ZIP.",
+  toolHelp: "Save the exact offline tool before installation. Later close the page and reopen the HTML using Open File in macOS Chrome. No network, Python or extension required. Resolve download failures before installing.",
+  toolReady: "Offline tool contents verified. Confirm the browser finished saving.",
+  toolProblem: "Tool was not saved / download problem",
+  backupConsent: "I saved and reselected a valid full recovery package, and separately retained TF writing and learning directories.",
+  planConsent: "I reviewed this plan and its impact and approve the specified installation ranges.",
+  eraseConsent: "Separate confirmation: first installation erases all 16 MiB of internal Flash, removing firmware, settings and pairing.",
+  oldApp: "Optional: exact old App .bin (local comparison, never uploaded)",
+  execute: "Install the verified plan",
+  close: "Close connection",
+  stop: "Stop operation",
+  receipt: "Save sanitized receipt",
+  finished: "Flash contents verified and port released. Fully power off including the battery, insert the prepared TF and boot normally with BOOT released. Pair a keyboard after first installation; use the original channel after reinstallation. Check display, input, old writing, saving a new document and reading it after restart. Content verification does not prove normal boot.",
+  phases: { IDLE: "Not connected", CONNECTING: "Connecting to ROM\u2026", CHECKING: "Checking identity, Flash, partitions and OTA read-only\u2026", PLAN_READY: "Read-only plan ready. No write performed.", BACKUP_READING: "Capturing complete Flash read-only\u2026", BACKUP_VERIFYING: "Checking the reselected file against the current device\u2026", RECHECKING: "Rechecking the original device and plan\u2026", ERASING: "Erasing the confirmed internal Flash\u2026", WRITING: "Writing the planned ranges\u2026", VERIFYING: "Verifying actual Flash and protected regions\u2026", VERIFIED_BOOT_PENDING: "Contents verified; normal boot pending.", STOP: "Stopped. No automatic retry. Keep the receipt. If writing began, use the saved offline tool to restore the original device." },
+  helpTitle: "Installation help",
+  advancedTitle: "Release information",
+  scopeLink: "Supported scope",
+  recoveryLink: "Backup & recovery",
+  sourceLink: "Source & licenses"
+} };
+
 // src/pins.js
 var PINS = {
   "version": "v0.1.0-alpha.3",
@@ -737,11 +836,11 @@ async function verifyRelease(inputs) {
   for (const [name, pin] of Object.entries({ ...PINS.documents, ...PINS.files })) {
     const bytes = inputs[name];
     requireSafe(bytes instanceof Uint8Array && bytes.length === pin.bytes, "ASSET");
-    const copy2 = bytes.slice();
-    requireSafe(await sha256(copy2) === pin.sha256, "ASSET");
+    const copy = bytes.slice();
+    requireSafe(await sha256(copy) === pin.sha256, "ASSET");
     if (PINS.files[name]) {
-      requireSafe(md5(copy2) === pin.md5, "ASSET");
-      files[name] = copy2;
+      requireSafe(md5(copy) === pin.md5, "ASSET");
+      files[name] = copy;
     }
   }
   const manifest = JSON.parse(new TextDecoder().decode(inputs["FIRMWARE_MANIFEST.json"]));
@@ -804,6 +903,107 @@ async function loadRelease(base = new URL("../firmware/", import.meta.url), fetc
 function tableMatchesRelease(release, actual) {
   checkPartitions(actual);
   requireSafe(bytesEqual(actual.slice(0, 3072), releaseFile(release, "partitions.bin")), "PARTITIONS");
+}
+
+// src/recovery-zip.js
+var PACKAGE_NAMES = Object.freeze(["manifest.json", "flash.bin", "README.zh-CN.txt", "README.en.txt"]);
+var MAX_PACKAGE_BYTES = 16777216 + 32768;
+var te = new TextEncoder();
+var td = new TextDecoder("utf-8", { fatal: true });
+var crcTable = Uint32Array.from({ length: 256 }, (_, n) => {
+  for (let i = 0; i < 8; i++) n = n >>> 1 ^ (n & 1 ? 3988292384 : 0);
+  return n >>> 0;
+});
+function zipCrc(bytes) {
+  let n = 4294967295;
+  for (const b of bytes) n = n >>> 8 ^ crcTable[(n ^ b) & 255];
+  return (n ^ 4294967295) >>> 0;
+}
+var limit = (name, n) => requireSafe(name === "flash.bin" ? n === 16777216 : n > 0 && n <= (name === "manifest.json" ? 12288 : 4096), "PACKAGE_SIZE");
+function storePackage(entries) {
+  const local = [], central = [];
+  let at = 0;
+  for (const name of PACKAGE_NAMES) {
+    const data = entries[name];
+    requireSafe(data instanceof Uint8Array, "PACKAGE_FORMAT");
+    limit(name, data.length);
+    const n = te.encode(name), crc = zipCrc(data), h = new Uint8Array(30 + n.length), v2 = new DataView(h.buffer);
+    v2.setUint32(0, 67324752, true);
+    v2.setUint16(4, 20, true);
+    v2.setUint16(12, 33, true);
+    v2.setUint32(14, crc, true);
+    v2.setUint32(18, data.length, true);
+    v2.setUint32(22, data.length, true);
+    v2.setUint16(26, n.length, true);
+    h.set(n, 30);
+    const c = new Uint8Array(46 + n.length), w = new DataView(c.buffer);
+    w.setUint32(0, 33639248, true);
+    w.setUint16(4, 20, true);
+    w.setUint16(6, 20, true);
+    w.setUint16(14, 33, true);
+    w.setUint32(16, crc, true);
+    w.setUint32(20, data.length, true);
+    w.setUint32(24, data.length, true);
+    w.setUint16(28, n.length, true);
+    w.setUint32(42, at, true);
+    c.set(n, 46);
+    local.push(h, data);
+    central.push(c);
+    at += h.length + data.length;
+  }
+  const dir = concat(...central), end = new Uint8Array(22), v = new DataView(end.buffer);
+  v.setUint32(0, 101010256, true);
+  v.setUint16(8, 4, true);
+  v.setUint16(10, 4, true);
+  v.setUint32(12, dir.length, true);
+  v.setUint32(16, at, true);
+  return concat(...local, dir, end);
+}
+function readPackageArchive(input) {
+  requireSafe(input instanceof Uint8Array && input.length > 16777216 && input.length <= MAX_PACKAGE_BYTES, "PACKAGE_SIZE");
+  const b = input, v = new DataView(b.buffer, b.byteOffset, b.byteLength), end = b.length - 22;
+  const u16 = (p) => v.getUint16(p, true), u322 = (p) => v.getUint32(p, true);
+  requireSafe(u322(end) === 101010256 && u16(end + 4) === 0 && u16(end + 6) === 0 && u16(end + 8) === 4 && u16(end + 10) === 4 && u16(end + 20) === 0, "PACKAGE_FORMAT");
+  const dir = u322(end + 16), dirSize = u322(end + 12);
+  requireSafe(dir > 0 && dir + dirSize === end && dirSize < 1024, "PACKAGE_FORMAT");
+  let c = dir, at = 0;
+  const entries = {};
+  for (const expected of PACKAGE_NAMES) {
+    requireSafe(c + 46 <= end && u322(c) === 33639248, "PACKAGE_FORMAT");
+    requireSafe(u16(c + 4) === 20 && u16(c + 6) === 20 && u16(c + 8) === 0 && u16(c + 10) === 0 && u16(c + 12) === 0 && u16(c + 14) === 33 && u16(c + 30) === 0 && u16(c + 32) === 0 && u16(c + 34) === 0 && u16(c + 36) === 0 && u322(c + 38) === 0, "PACKAGE_FORMAT");
+    const size = u322(c + 24), crc = u322(c + 16), n = u16(c + 28), off = u322(c + 42);
+    requireSafe(n === expected.length && c + 46 + n <= end && td.decode(b.subarray(c + 46, c + 46 + n)) === expected && off === at, "PACKAGE_PATH");
+    limit(expected, size);
+    requireSafe(u322(c + 20) === size && at + 30 + n + size <= dir, "PACKAGE_SIZE");
+    requireSafe(u322(at) === 67324752 && u16(at + 4) === 20 && u16(at + 6) === 0 && u16(at + 8) === 0 && u16(at + 10) === 0 && u16(at + 12) === 33 && u322(at + 14) === crc && u322(at + 18) === size && u322(at + 22) === size && u16(at + 26) === n && u16(at + 28) === 0 && bytesEqual(b.subarray(at + 30, at + 30 + n), te.encode(expected)), "PACKAGE_FORMAT");
+    const data = b.slice(at + 30 + n, at + 30 + n + size);
+    requireSafe(zipCrc(data) === crc, "PACKAGE_CRC");
+    entries[expected] = data;
+    at += 30 + n + size;
+    c += 46 + n;
+  }
+  requireSafe(at === dir && c === end, "PACKAGE_FORMAT");
+  return entries;
+}
+
+// src/release-platform.js
+function qualifiedDesktopChrome(environment) {
+  const { userAgent = "", vendor = "", platform = "", brands, secureContext = false, serialAvailable = false, brave = false } = environment;
+  const mac = /Macintosh/.test(userAgent) && (/Mac/.test(platform) || platform === "macOS");
+  const chrome = /Chrome\/\d+/.test(userAgent) && vendor === "Google Inc." && !brave && !/(Edg|OPR|Opera|Android|Mobile|CriOS|FxiOS)/.test(userAgent);
+  const brandOk = !brands || brands.some((x) => x.brand === "Google Chrome");
+  return Boolean(mac && chrome && brandOk && secureContext && serialAvailable);
+}
+function browserIsQualified() {
+  return qualifiedDesktopChrome({
+    userAgent: navigator.userAgent,
+    vendor: navigator.vendor,
+    platform: navigator.userAgentData?.platform || navigator.platform,
+    brands: navigator.userAgentData?.brands,
+    secureContext: isSecureContext,
+    serialAvailable: !!navigator.serial?.requestPort,
+    brave: !!navigator.brave
+  });
 }
 
 // src/factory-pins.js
@@ -1218,541 +1418,1028 @@ var InstallSession = class {
   }
 };
 
-// src/public-copy.js
-var publicCopy = {
-  zh: {
-    previewHint: "v0.1.0-alpha.3 \xB7 \u6B63\u5F0F\u7F51\u7AD9 \xB7 \u771F\u5B9E\u5B89\u88C5\u6682\u672A\u516C\u5F00\u5F00\u653E",
-    intro: "\u6B64\u7248\u672C\u63D0\u4F9B USB \u53EA\u8BFB\u68C0\u67E5\u4E0E\u5B89\u88C5\u8BA1\u5212\u3002\u771F\u5B9E\u5199\u5165\u5DF2\u9501\u5B9A\uFF1BTF \u8D44\u6E90\u53EF\u76F4\u63A5\u4E0B\u8F7D\u3002",
-    locked: "\u5F53\u524D\u6B63\u5F0F\u7F51\u7AD9\u4EC5\u63D0\u4F9B\u53EA\u8BFB\u68C0\u67E5\u4E0E\u5B89\u88C5\u8BA1\u5212\uFF0C\u4E0D\u80FD\u6267\u884C\u771F\u5B9E\u5199\u5165\u3002\u8BF7\u4FDD\u5B58\u56DE\u6267\u540E\u5173\u95ED\u8FDE\u63A5\u3002",
-    freshLocked: "\u5DF2\u8BC6\u522B\u9996\u88C5\u72B6\u6001\uFF0C\u4F46\u5F53\u524D\u6B63\u5F0F\u7F51\u7AD9\u9501\u5B9A\u5168\u7247\u64E6\u9664\u4E0E\u56FA\u4EF6\u5199\u5165\u3002",
-    identityBound: "\u5F53\u524D USB \u8BBE\u5907\u8EAB\u4EFD\uFF08\u53EA\u4FDD\u5B58\u5728\u672C\u9875\u5185\u5B58\u4E2D\uFF1B\u5173\u95ED\u5373\u6E05\u9664\uFF09\uFF1A",
-    publicScope: "\u5DF2\u9A8C\u6536\u8303\u56F4\uFF1A\u5FAE\u96EA ST7305\uFF0C\u51C6\u786E Alpha 3 app0 \u540C\u7248\u672C\u517C\u5BB9\u66F4\u65B0\uFF0C\u4EE5\u53CA FactoryOnly 20260120 \u51C6\u786E\u6307\u7EB9\u9996\u88C5\u3002\u516C\u5F00\u5B89\u88C5\u4ECD\u5F85\u5BA1\u6838\uFF1Bapp1\u3001\u5176\u4ED6\u5382\u5BB6\u6279\u6B21\u3001Windows/Edge \u5B9E\u673A\u3001\u65B0 TF \u5361\u548C\u5883\u5185\u4E0B\u8F7D\u672A\u9A8C\u6536\u3002"
-  },
-  en: {
-    previewHint: "v0.1.0-alpha.3 \xB7 Official site \xB7 Hardware installation not yet public",
-    intro: "USB read-only checks and installation plans are available. Hardware writes are locked. TF resources can be downloaded now.",
-    locked: "This public site provides read-only checks and plans only. Hardware writing is locked. Save the receipt and close the connection.",
-    freshLocked: "First-install state recognized. Full erasure and firmware writing are locked on this public site.",
-    identityBound: "Selected USB identity (page memory only; cleared on close):",
-    publicScope: "Qualified scope: Waveshare ST7305, exact Alpha 3 app0 same-version rewrite and the exact FactoryOnly 20260120 fingerprint. Public installation awaits review. app1, other factory batches, Windows/Edge hardware, new TF cards and mainland China downloads remain unverified."
+// src/recovery-package.js
+var RECOVERY_SCHEMA = "draftor-private-recovery/1";
+var te2 = new TextEncoder();
+var td2 = new TextDecoder("utf-8", { fatal: true });
+var validated = /* @__PURE__ */ new WeakMap();
+var json = (v) => JSON.stringify(v, null, 2) + "\n";
+var keys = (v, expected) => requireSafe(v && typeof v === "object" && !Array.isArray(v) && Object.keys(v).sort().join(",") === expected.split(",").sort().join(","), "PACKAGE_SCHEMA");
+var text = (v, n = 128) => requireSafe(typeof v === "string" && v.length > 0 && v.length <= n && !/[\u0000-\u001f]/.test(v), "PACKAGE_SCHEMA");
+function checkedIdentity(info) {
+  requireSafe(info?.chip === "ESP32-S3" && info.flashBytes === PINS.flashBytes, "CHIP");
+  requireSafe(info.securityKnown === true && info.secureBoot === false && info.flashEncryption === false && info.securityRule === "ESP32S3_ROM20_ESPt531_V1" && info.romChipId === 9, "SECURITY");
+  const flags = info.securityFlags, count = info.cryptCount;
+  requireSafe(Number.isInteger(flags) && flags >= 0 && (flags & ~2047) === 0 && (flags & 5) === 0 && Number.isInteger(count) && count >= 0 && count <= 7 && count.toString(2).split("1").length % 2 === 1, "SECURITY");
+  return { chip: info.chip, flashBytes: info.flashBytes, mac: normalizeMac(info.mac), security: { rule: info.securityRule, flags, cryptCount: count, romChipId: 9, secureBoot: false, flashEncryption: false } };
+}
+function sameOriginalIdentity(info, original) {
+  const actual = checkedIdentity(info);
+  requireSafe(actual.mac === original.mac, "IDENTITY");
+  requireSafe(JSON.stringify(actual) === JSON.stringify(original), "SECURITY_CHANGED");
+  return actual;
+}
+async function classifyRecoveryImage(bytes) {
+  requireSafe(bytes instanceof Uint8Array && bytes.length === PINS.flashBytes, "PACKAGE_SIZE");
+  const table = bytes.subarray(32768, 36864), tableSha = await sha256(table);
+  if (tableSha === FACTORY.tableSha256) {
+    for (const pin of FACTORY.fingerprint) requireSafe(md5(bytes.subarray(pin.offset, pin.offset + pin.bytes)) === pin.md5, "FACTORY_FINGERPRINT");
+    return { firmware: "waveshare-factory-20260120", rule: "FACTORY_FIXED_THREE_RANGES_V1", partition: { offset: 32768, bytes: 4096, sha256: tableSha, md5: md5(table), rows: FACTORY.partitions }, ota: { applicable: false }, activeApp: "factory" };
+  }
+  const rows = checkPartitions(table);
+  requireSafe(await sha256(table.subarray(0, 3072)) === PINS.files["partitions.bin"].sha256, "PARTITIONS");
+  const ota = bytes.subarray(57344, 65536);
+  requireSafe(activeSlot(ota) === 0, "UNQUALIFIED_SLOT");
+  for (const name of ["bootloader.bin", "app.bin"]) {
+    const p = PINS.files[name];
+    requireSafe(await sha256(bytes.subarray(p.offset, p.offset + p.bytes)) === p.sha256, "UNQUALIFIED_FIRMWARE");
+  }
+  return {
+    firmware: "draftor-alpha3-app0",
+    rule: "ALPHA3_BOOT_APP0_B_TABLE_V1",
+    partition: { offset: 32768, bytes: 4096, sha256: tableSha, md5: md5(table), rows },
+    ota: { applicable: true, offset: 57344, bytes: 8192, sha256: await sha256(ota), md5: md5(ota), entries: [0, 4096].map((at) => ({ sequence: u32(ota, at), state: u32(ota, at + 24), crc: u32(ota, at + 28) })) },
+    activeApp: "app0"
+  };
+}
+var readmes = {
+  "README.zh-CN.txt": "\u79C1\u4EBA\u5B8C\u6574 Flash \u6062\u590D\u5305\u3002\u4E0D\u8981\u4E0A\u4F20\u3001\u516C\u5F00\u6216\u53D1\u9001\u7ED9\u4ED6\u4EBA\u3002\u4EC5\u9002\u7528\u4E8E\u521B\u5EFA\u65F6\u7684\u539F\u5FAE\u96EA ESP32-S3-RLCD-4.2 / ST7305\u3002\u6062\u590D\u8986\u76D6\u5168\u90E8 16 MiB \u5185\u90E8 Flash\uFF0C\u8BBE\u7F6E\u3001\u914D\u5BF9\u53CA\u5185\u90E8\u6587\u7A3F\u56DE\u5230\u5907\u4EFD\u65F6\uFF1BTF \u6587\u4EF6\u4E0D\u5728\u672C\u5305\u4E2D\uFF0C\u5FC5\u987B\u72EC\u7ACB\u4FDD\u7559\u3002\u6062\u590D\u5382\u5BB6\u5907\u4EFD\u4F1A\u56DE\u5230\u5382\u5BB6\u6F14\u793A\uFF0C\u4E0D\u4F1A\u5B89\u88C5 Draftor\u3002\u4F7F\u7528\u968F\u9644\u79BB\u7EBF\u5DE5\u5177\uFF0C\u9009\u62E9\u672C ZIP \u5E76\u8FDE\u63A5\u539F\u8BBE\u5907\uFF1B\u6821\u9A8C\u901A\u8FC7\u540E\u624D\u786E\u8BA4\u6062\u590D\u3002\u5B8C\u6210\u540E\u5FC5\u987B\u65AD\u7535\u3001\u63D2\u56DE TF\u3001\u666E\u901A\u542F\u52A8\u9A8C\u6536\u3002\u6458\u8981\u548C MAC \u53EA\u9632\u8BEF\u9009\u53CA\u610F\u5916\u635F\u574F\uFF0C\u4E0D\u662F\u6570\u5B57\u7B7E\u540D\u6216\u8EAB\u4EFD\u8BA4\u8BC1\u3002\n",
+  "README.en.txt": "PRIVATE full Flash recovery package. Do not upload, publish or share. Only for the original Waveshare ESP32-S3-RLCD-4.2 / ST7305. Recovery overwrites all 16 MiB of internal Flash and rolls settings, pairing and internal documents back to backup time. TF files are NOT included; preserve TF separately. Restoring a factory backup returns the factory demo, not Draftor. Open the offline recovery tool, select this ZIP, connect the original board and confirm only after checks pass. After verification, power off, insert TF and validate normal boot. Hashes and MAC are accidental-corruption / wrong-device safeguards, not signatures or authentication.\n"
+};
+async function createRecoveryPackage(bytes, info, { boardConfirmed, romMd5Before, romMd5After, method, build, sourceCommit, createdAt = (/* @__PURE__ */ new Date()).toISOString(), id = crypto.randomUUID() } = {}) {
+  requireSafe(boardConfirmed === true, "BOARD_CONFIRM");
+  const image = bytes.slice(), device = checkedIdentity(info), digest = md5(image);
+  requireSafe(romMd5Before === digest && romMd5After === digest, "BACKUP_STALE");
+  requireSafe(["ROM_READ_SLOW_MD5_V1", "ROM_MD5_MATCH_EXISTING_V1"].includes(method), "PACKAGE_PROOF");
+  const original = await classifyRecoveryImage(image);
+  const manifest = {
+    schema: RECOVERY_SCHEMA,
+    id,
+    createdAt,
+    tool: { name: "Draftor Recovery", build, sourceCommit },
+    board: { model: "ESP32-S3-RLCD-4.2", controller: "ST7305", confirmation: "USER_PHYSICAL_CONFIRMATION" },
+    device,
+    image: { file: "flash.bin", offset: 0, bytes: PINS.flashBytes, sha256: await sha256(image), md5: digest },
+    creationProof: { method, romMd5Before, romMd5After, romMd5Match: true, identitySource: "ROM_READ_REG_EFUSE", securitySource: "ROM_GET_SECURITY_INFO", capacitySource: "JEDEC_RDID" },
+    original
+  };
+  const entries = { "manifest.json": te2.encode(json(manifest)), "flash.bin": image, ...Object.fromEntries(Object.entries(readmes).map(([k, v]) => [k, te2.encode(v)])) };
+  const archive = storePackage(entries);
+  const checked = await validateRecoveryPackage(archive);
+  destroyRecoveryPackage(checked);
+  image.fill(0);
+  return archive;
+}
+async function validateRecoveryPackage(input) {
+  const entries = readPackageArchive(input), raw = td2.decode(entries["manifest.json"]);
+  let m;
+  try {
+    m = JSON.parse(raw);
+  } catch {
+    requireSafe(false, "PACKAGE_JSON");
+  }
+  requireSafe(json(m) === raw, "PACKAGE_JSON");
+  keys(m, "schema,id,createdAt,tool,board,device,image,creationProof,original");
+  requireSafe(m.schema === RECOVERY_SCHEMA, "PACKAGE_SCHEMA");
+  requireSafe(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(m.id), "PACKAGE_SCHEMA");
+  requireSafe(typeof m.createdAt === "string" && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(m.createdAt) && Number.isFinite(Date.parse(m.createdAt)), "PACKAGE_SCHEMA");
+  keys(m.tool, "name,build,sourceCommit");
+  requireSafe(m.tool.name === "Draftor Recovery", "PACKAGE_SCHEMA");
+  text(m.tool.build);
+  requireSafe(/^[0-9a-f]{40}$/.test(m.tool.sourceCommit), "PACKAGE_SCHEMA");
+  requireSafe(JSON.stringify(m.board) === JSON.stringify({ model: "ESP32-S3-RLCD-4.2", controller: "ST7305", confirmation: "USER_PHYSICAL_CONFIRMATION" }), "BOARD_CONFIRM");
+  keys(m.device, "chip,flashBytes,mac,security");
+  keys(m.device.security, "rule,flags,cryptCount,romChipId,secureBoot,flashEncryption");
+  const s = m.device.security, normalized = checkedIdentity({ ...m.device, securityKnown: true, secureBoot: s.secureBoot, flashEncryption: s.flashEncryption, securityRule: s.rule, securityFlags: s.flags, cryptCount: s.cryptCount, romChipId: s.romChipId });
+  requireSafe(JSON.stringify(normalized) === JSON.stringify(m.device), "PACKAGE_SCHEMA");
+  keys(m.image, "file,offset,bytes,sha256,md5");
+  const image = entries["flash.bin"];
+  requireSafe(m.image.file === "flash.bin" && m.image.offset === 0 && m.image.bytes === PINS.flashBytes && m.image.sha256 === await sha256(image) && m.image.md5 === md5(image), "PACKAGE_HASH");
+  keys(m.creationProof, "method,romMd5Before,romMd5After,romMd5Match,identitySource,securitySource,capacitySource");
+  requireSafe(m.creationProof.identitySource === "ROM_READ_REG_EFUSE" && m.creationProof.securitySource === "ROM_GET_SECURITY_INFO" && m.creationProof.capacitySource === "JEDEC_RDID", "PACKAGE_PROOF");
+  requireSafe(["ROM_READ_SLOW_MD5_V1", "ROM_MD5_MATCH_EXISTING_V1"].includes(m.creationProof.method) && m.creationProof.romMd5Match === true && m.creationProof.romMd5Before === m.image.md5 && m.creationProof.romMd5After === m.image.md5, "PACKAGE_PROOF");
+  requireSafe(JSON.stringify(await classifyRecoveryImage(image)) === JSON.stringify(m.original), "PACKAGE_METADATA");
+  for (const [name, content] of Object.entries(readmes)) requireSafe(td2.decode(entries[name]) === content, "PACKAGE_FORMAT");
+  const handle = Object.freeze({});
+  validated.set(handle, { manifest: deepFreeze(m), image });
+  return handle;
+}
+function recoverySnapshot(handle) {
+  const p = validated.get(handle);
+  requireSafe(p, "PACKAGE_REQUIRED");
+  return { manifest: structuredClone(p.manifest), image: p.image.slice() };
+}
+function recoverySummary(handle) {
+  const p = validated.get(handle);
+  requireSafe(p, "PACKAGE_REQUIRED");
+  return { createdAt: p.manifest.createdAt, firmware: p.manifest.original.firmware, bytes: PINS.flashBytes, activeApp: p.manifest.original.activeApp };
+}
+function destroyRecoveryPackage(handle) {
+  const p = validated.get(handle);
+  if (p) {
+    p.image.fill(0);
+    validated.delete(handle);
+  }
+}
+
+// src/recovery-session.js
+async function inspectSupportedOriginal(driver, diagnostics) {
+  const table = await driver.readFlash(32768, 4096);
+  diagnostics?.check("partitionRead", true);
+  const tableMatch = md5(table) === await driver.flashMd5(32768, 4096);
+  diagnostics?.check("partitionMd5Match", tableMatch);
+  requireSafe(tableMatch, "READBACK");
+  if (await sha256(table) === FACTORY.tableSha256) {
+    for (const p of FACTORY.fingerprint) requireSafe(await driver.flashMd5(p.offset, p.bytes) === p.md5, "FACTORY_FINGERPRINT");
+    diagnostics?.check("otaRead", "NOT_APPLICABLE_FACTORY");
+    diagnostics?.check("otaMd5Match", "NOT_APPLICABLE_FACTORY");
+    table.fill(0);
+    return { firmware: "waveshare-factory-20260120", activeApp: "factory" };
+  }
+  checkPartitions(table);
+  requireSafe(await sha256(table.subarray(0, 3072)) === PINS.files["partitions.bin"].sha256, "PARTITIONS");
+  table.fill(0);
+  const ota = await driver.readFlash(57344, 8192);
+  diagnostics?.check("otaRead", true);
+  const otaMatch = md5(ota) === await driver.flashMd5(57344, 8192);
+  diagnostics?.check("otaMd5Match", otaMatch);
+  requireSafe(otaMatch, "READBACK");
+  requireSafe(activeSlot(ota) === 0, "UNQUALIFIED_SLOT");
+  ota.fill(0);
+  for (const name of ["bootloader.bin", "app.bin"]) {
+    const p = PINS.files[name];
+    requireSafe(await driver.flashMd5(p.offset, p.bytes) === p.md5, "UNQUALIFIED_FIRMWARE");
+  }
+  return { firmware: "draftor-alpha3-app0", activeApp: "app0" };
+}
+var RecoverySession = class {
+  #driver;
+  #diagnostics;
+  #build;
+  #source;
+  #handle;
+  #identity;
+  #romInfo;
+  #beforeMd5;
+  #capture;
+  #busy = false;
+  #closed = false;
+  #consent;
+  #mode;
+  state = "IDLE";
+  constructor(driver, { diagnostics, build, sourceCommit, mode = "backup" } = {}) {
+    requireSafe(["backup", "restore", "verify"].includes(mode), "STATE");
+    this.#driver = driver;
+    this.#diagnostics = diagnostics;
+    this.#build = build;
+    this.#source = sourceCommit;
+    this.#mode = mode;
+  }
+  #stage(s) {
+    this.state = s;
+    this.#diagnostics?.stage(s);
+  }
+  #available() {
+    requireSafe(!this.#closed && !this.#busy && this.state !== "STOP", "STATE");
+  }
+  async selectPackage(input) {
+    this.#available();
+    if (!["IDLE", "PACKAGE_VALIDATED"].includes(this.state)) {
+      this.cancel("PACKAGE_CHANGED");
+      destroyRecoveryPackage(this.#handle);
+      this.#handle = void 0;
+      throw new Stop("STATE");
+    }
+    this.#busy = true;
+    destroyRecoveryPackage(this.#handle);
+    this.#handle = void 0;
+    this.#stage("IDLE");
+    try {
+      this.#handle = await validateRecoveryPackage(input);
+      requireSafe(!this.#closed, "CANCELLED");
+      this.#diagnostics?.check("packageValidated", true);
+      this.#stage("PACKAGE_VALIDATED");
+      return recoverySummary(this.#handle);
+    } finally {
+      this.#busy = false;
+      if (this.#closed) {
+        destroyRecoveryPackage(this.#handle);
+        this.#handle = void 0;
+      }
+    }
+  }
+  async prepare({ boardConfirmed, tfRemoved } = {}) {
+    this.#available();
+    requireSafe(boardConfirmed === true && tfRemoved === true, "BOARD_CONFIRM");
+    requireSafe(this.#mode === "backup" ? this.state === "IDLE" : this.state === "PACKAGE_VALIDATED", "STATE");
+    this.#busy = true;
+    this.#consent = { boardConfirmed, tfRemoved };
+    try {
+      this.#stage("CONNECTING");
+      await this.#driver.connect();
+      this.#romInfo = await this.#driver.identity();
+      this.#identity = checkedIdentity(this.#romInfo);
+      if (this.#mode === "backup") {
+        this.#beforeMd5 = await this.#driver.flashMd5(0, PINS.flashBytes);
+        const original = await inspectSupportedOriginal(this.#driver, this.#diagnostics);
+        this.#diagnostics?.check("originalState", original);
+        this.#stage("DEVICE_VERIFIED");
+        return original;
+      }
+      const { manifest, image } = recoverySnapshot(this.#handle);
+      image.fill(0);
+      sameOriginalIdentity(this.#romInfo, manifest.device);
+      this.#diagnostics?.check("originalIdentityMatch", true);
+      const plan = { mode: this.#mode, offset: 0, bytes: PINS.flashBytes, original: manifest.original.firmware, currentImageMayDiffer: true, noReset: true, noStub: true };
+      this.#diagnostics?.check("plan", plan);
+      this.#diagnostics?.check("originalState", { firmware: manifest.original.firmware, activeApp: manifest.original.activeApp });
+      this.#stage(this.#mode === "restore" ? "READY_FOR_CONFIRMATION" : "DEVICE_VERIFIED");
+      return plan;
+    } catch (error) {
+      this.#stop(error);
+      throw error;
+    } finally {
+      this.#busy = false;
+    }
+  }
+  async #package(bytes, method) {
+    sameOriginalIdentity(await this.#driver.identity(), this.#identity);
+    const after = await this.#driver.flashMd5(0, PINS.flashBytes);
+    const equal = after === this.#beforeMd5 && md5(bytes) === after;
+    this.#diagnostics?.check("fullFlashMd5Match", equal);
+    requireSafe(equal, "BACKUP_STALE");
+    const result = await createRecoveryPackage(bytes, this.#romInfo, { ...this.#consent, romMd5Before: this.#beforeMd5, romMd5After: after, method, build: this.#build, sourceCommit: this.#source });
+    requireSafe(!this.#closed && this.state !== "STOP", "CANCELLED");
+    this.#stage("SAVED_FILE_REIMPORT_REQUIRED");
+    return result;
+  }
+  async useExistingRaw(input) {
+    this.#available();
+    requireSafe(this.#mode === "backup" && this.state === "DEVICE_VERIFIED", "STATE");
+    requireSafe(input instanceof Uint8Array && input.length === PINS.flashBytes && md5(input) === this.#beforeMd5, "BACKUP_STALE");
+    this.#busy = true;
+    this.#capture = input.slice();
+    try {
+      return await this.#package(this.#capture, "ROM_MD5_MATCH_EXISTING_V1");
+    } catch (error) {
+      this.#stop(error);
+      throw error;
+    } finally {
+      this.#capture?.fill(0);
+      this.#capture = void 0;
+      this.#busy = false;
+    }
+  }
+  async capture({ progress = () => {
+  } } = {}) {
+    this.#available();
+    requireSafe(this.#mode === "backup" && this.state === "DEVICE_VERIFIED", "STATE");
+    this.#busy = true;
+    this.#stage("READING_BACKUP");
+    this.#capture = new Uint8Array(PINS.flashBytes);
+    try {
+      requireSafe(await this.#driver.flashMd5(0, PINS.flashBytes) === this.#beforeMd5, "BACKUP_STALE");
+      for (let at = 0; at < PINS.flashBytes; at += 65536) {
+        const part = await this.#driver.readFlash(at, 65536);
+        requireSafe(part.length === 65536, "READBACK");
+        requireSafe(!this.#closed && this.state !== "STOP", "CANCELLED");
+        this.#capture.set(part, at);
+        part.fill(0);
+        progress((at + 65536) / PINS.flashBytes);
+      }
+      return await this.#package(this.#capture, "ROM_READ_SLOW_MD5_V1");
+    } catch (error) {
+      this.#stop(error);
+      throw error;
+    } finally {
+      this.#capture?.fill(0);
+      this.#capture = void 0;
+      this.#busy = false;
+    }
+  }
+  async verifySavedPackage(input) {
+    this.#available();
+    requireSafe(this.#mode === "backup" && ["SAVED_FILE_REIMPORT_REQUIRED", "DEVICE_VERIFIED"].includes(this.state), "STATE");
+    this.#busy = true;
+    let handle, communicating = false;
+    try {
+      handle = await validateRecoveryPackage(input);
+      const { manifest, image } = recoverySnapshot(handle);
+      image.fill(0);
+      communicating = true;
+      sameOriginalIdentity(await this.#driver.identity(), manifest.device);
+      sameOriginalIdentity(this.#romInfo, manifest.device);
+      requireSafe(await this.#driver.flashMd5(0, PINS.flashBytes) === manifest.image.md5 && manifest.image.md5 === this.#beforeMd5, "BACKUP_STALE");
+      this.#diagnostics?.check("packageValidated", true);
+      this.#diagnostics?.check("savedPackageReimported", true);
+      this.#diagnostics?.check("fullFlashMd5Match", true);
+      this.#stage("BACKUP_SAVED_VERIFIED");
+      return recoverySummary(handle);
+    } catch (error) {
+      if (communicating) this.#stop(error);
+      throw error;
+    } finally {
+      destroyRecoveryPackage(handle);
+      this.#busy = false;
+    }
+  }
+  async restore({ restoreConfirmed, progress } = {}) {
+    this.#available();
+    requireSafe(this.#mode === "restore" && this.state === "READY_FOR_CONFIRMATION", "STATE");
+    requireSafe(restoreConfirmed === true, "RESTORE_CONFIRM");
+    this.#busy = true;
+    try {
+      this.#stage("RECHECKING");
+      await this.#driver.grantRecovery(this.#handle, { ...this.#consent, restoreConfirmed });
+      const result = await this.#driver.restoreRecovery({ progress });
+      this.#stage("VERIFIED_BOOT_PENDING");
+      return result;
+    } catch (error) {
+      this.#stop(error);
+      throw error;
+    } finally {
+      this.#busy = false;
+    }
+  }
+  async verifyAgain() {
+    this.#available();
+    requireSafe(this.#mode === "verify" && this.state === "DEVICE_VERIFIED", "STATE");
+    this.#busy = true;
+    try {
+      this.#stage("VERIFYING");
+      const result = await this.#driver.verifyRecoveryImage(this.#handle);
+      this.#stage("VERIFIED_BOOT_PENDING");
+      return result;
+    } catch (error) {
+      this.#stop(error);
+      throw error;
+    } finally {
+      this.#busy = false;
+    }
+  }
+  #stop(error) {
+    this.#diagnostics?.error(error);
+    this.#stage("STOP");
+    this.#driver.cancel();
+  }
+  cancel(code = "CANCELLED") {
+    if (!this.#closed && this.state !== "STOP") this.#stop(new Stop(code));
+  }
+  async close() {
+    if (this.#busy) this.cancel();
+    this.#closed = true;
+    try {
+      await this.#driver.disconnect();
+    } finally {
+      destroyRecoveryPackage(this.#handle);
+      this.#handle = void 0;
+      this.#capture?.fill(0);
+      this.#capture = void 0;
+      this.#identity = void 0;
+      this.#romInfo = void 0;
+      this.#beforeMd5 = void 0;
+      this.#consent = void 0;
+      this.#diagnostics?.check("cleanup", { sessionPrivateReferencesCleared: true, physicalMemoryErasureGuaranteed: false });
+    }
   }
 };
 
-// src/ui.js
-var copy = {
-  zh: {
-    previewHint: "v0.1.0-alpha.3 \xB7 \u8F6F\u4EF6\u9A8C\u6536\u7248 \xB7 \u5B9E\u673A\u5199\u5165\u9501\u5B9A",
-    testHint: "v0.1.0-alpha.3 \xB7 \u4E13\u7528\u5B9E\u673A\u6D4B\u8BD5\u6784\u5EFA \xB7 \u4EC5\u517C\u5BB9\u66F4\u65B0",
-    firstHint: "v0.1.0-alpha.3 \xB7 R6 \u9996\u88C5\u4E13\u9879\u6D4B\u8BD5 \xB7 \u5C06\u6E05\u9664\u5185\u90E8 Flash",
-    factory: "\u5DF2\u8BC6\u522B\u5FAE\u96EA\u5382\u5BB6\u6F14\u793A\u7A0B\u5E8F\uFF1A\u521D\u59CB\u5316\u5B89\u88C5",
-    intro: "\u901A\u8FC7 USB \u8FDE\u63A5\u8BBE\u5907\uFF0C\u5148\u68C0\u67E5\u517C\u5BB9\u6027\uFF0C\u518D\u786E\u8BA4\u5B89\u88C5\u3002",
-    installHeading: "\u8FDE\u63A5\u8BBE\u5907\u5E76\u5B89\u88C5",
-    preparing: "\u6B63\u5728\u6838\u9A8C\u672C\u5730\u53D1\u884C\u6587\u4EF6\u2026",
-    preflight: "\u5148\u4FDD\u5B58\u6587\u7A3F\u5E76\u6B63\u5E38\u7ED3\u675F\u4F20\u8F93\uFF0C\u5B8C\u5168\u65AD\u7535\u540E\u53D6\u51FA TF\u3002\u65AD\u5F00\u5176\u4ED6\u5F00\u53D1\u677F\uFF0C\u6309\u4F4F BOOT \u63A5\u5165 USB\uFF0C\u7EA6\u4E24\u79D2\u540E\u677E\u5F00\u3002\u8BF7\u4FDD\u6301\u5F53\u524D\u7A97\u53E3\u6253\u5F00\u3002",
-    boardConfirm: "\u6211\u5DF2\u6838\u5BF9\u5B9E\u7269\u662F\u5FAE\u96EA ESP32-S3-RLCD-4.2\uFF08ST7305\uFF09\uFF0C\u4E0D\u662F\u5176\u4ED6 ESP32-S3 \u677F\u3002",
-    macLabel: "\u672C\u673A\u5907\u4EFD\u6216\u4E4B\u524D\u6838\u9A8C\u8BB0\u5F55\u4E2D\u7684\u8BBE\u5907 MAC",
-    macHint: "\u53EA\u5728\u672C\u9875\u5185\u5B58\u4E2D\u6BD4\u5BF9\uFF1B\u4E0D\u4E0A\u4F20\u3001\u4E0D\u5199\u5165\u56DE\u6267\u3002\u8BF7\u52FF\u51ED\u82AF\u7247\u578B\u53F7\u731C\u6D4B\u677F\u578B\u3002",
-    connectRead: "\u9009\u62E9\u4E32\u53E3\u5E76\u53EA\u8BFB\u68C0\u67E5",
-    ready: "\u56DB\u4EFD\u56FA\u4EF6\u4E0E\u53D1\u884C\u6E05\u5355\u5DF2\u6838\u9A8C\uFF0C\u53EF\u4EE5\u8FDE\u63A5\u3002",
-    unsupported: "\u5F53\u524D\u73AF\u5883\u4E0D\u652F\u6301\u5B89\u5168\u7684 Web Serial\u3002\u8BF7\u7528\u652F\u6301 Web Serial \u7684\u7535\u8111\u7AEF\u6D4F\u89C8\u5668\uFF0C\u4ECE localhost \u6216 HTTPS \u6253\u5F00\u672C\u9875\u3002\u5F53\u524D\u6CA1\u6709\u8FDE\u63A5\u8BBE\u5907\u3002",
-    backup: "\u6211\u5DF2\u79C1\u4E0B\u4FDD\u5B58\u5E76\u6838\u9A8C\u53EF\u6062\u590D\u7684\u5B8C\u6574 Flash\uFF08\u542B\u8BBE\u7F6E\u3001\u914D\u5BF9\uFF09\u3001\u539F\u56FA\u4EF6\uFF0C\u4EE5\u53CA TF \u6587\u7A3F\u548C\u5B66\u4E60\u76EE\u5F55\u5907\u4EFD\u3002",
-    tfRemoved: "TF \u5361\u5DF2\u5728\u5B8C\u5168\u65AD\u7535\u540E\u53D6\u51FA\uFF0C\u91CD\u8981\u6587\u7A3F\u5DF2\u4FDD\u5B58\u3002",
-    approve: "\u6211\u5DF2\u9605\u8BFB\u4E0B\u65B9\u5B8C\u6574\u8BA1\u5212\uFF0C\u540C\u610F\u6267\u884C\u5176\u4E2D\u7684\u5199\u5165\u8303\u56F4\u3002",
-    erase: "\u6211\u5355\u72EC\u786E\u8BA4\uFF1A\u5168\u65B0\u5B89\u88C5\u5C06\u64E6\u9664\u6574\u7247 16 MiB \u5185\u90E8 Flash\uFF0C\u6E05\u9664\u65E7\u56FA\u4EF6\u3001\u8BBE\u7F6E\u548C\u914D\u5BF9\u3002",
-    currentApp: "\u53EF\u9009\uFF1A\u51C6\u786E\u7684\u65E7 App \u6587\u4EF6\uFF08\u4EC5\u672C\u5730\u6BD4\u5BF9\uFF0C\u4E0D\u4E0A\u4F20\uFF09",
-    run: "\u6309\u5DF2\u6838\u9A8C\u8BA1\u5212\u5B89\u88C5",
-    export: "\u4FDD\u5B58\u672C\u5730\u56DE\u6267",
-    close: "\u5173\u95ED",
-    stop: "\u505C\u6B62\u5E76\u4FDD\u7559\u56DE\u6267",
-    update: "\u517C\u5BB9\u66F4\u65B0",
-    fresh: "\u5DF2\u8BC1\u660E\u6574\u7247\u7A7A\u767D\uFF1A\u5168\u65B0\u5B89\u88C5",
-    plan: "\u5B8C\u6574\u53EA\u8BFB\u8BA1\u5212",
-    updateSummary: "\u53EA\u5199\u6D3B\u52A8 App\uFF1B\u64E6\u9664\u8303\u56F4\u4EC5\u4E3A\u8BE5 App \u8986\u76D6\u7684\u6247\u533A\u3002\u4FDD\u7559\u5176\u4ED6 App\u3001\u5206\u533A\u3001OTA\u3001NVS \u548C\u914D\u5BF9\uFF0C\u4E0D\u64CD\u4F5C TF\u3002\u66F4\u65B0\u4E2D\u65AD\u53EF\u80FD\u4F7F\u8BBE\u5907\u65E0\u6CD5\u542F\u52A8\uFF0C\u987B\u4FDD\u7559\u53EF\u6062\u590D\u5907\u4EFD\u3002",
-    freshSummary: "\u5C06\u6E05\u9664\u6574\u7247 16 MiB \u5185\u90E8 Flash\uFF0C\u5305\u62EC\u65E7\u56FA\u4EF6\u3001\u8BBE\u7F6E\u3001\u914D\u5BF9\u53CA\u5185\u90E8\u6587\u4EF6\uFF0C\u518D\u5199\u5165\u51C6\u786E\u7684\u56DB\u4EFD Draftor \u56FA\u4EF6\u3002TF \u4E0D\u53D7\u64CD\u4F5C\u3002\u5FC5\u987B\u4FDD\u7559\u5DF2\u9A8C\u8BC1\u7684\u5B8C\u6574\u6062\u590D\u5907\u4EFD\u5E76\u5355\u72EC\u786E\u8BA4\u6E05\u9664\uFF1B\u4F20\u8F93\u4E2D\u65AD\u53EF\u80FD\u65E0\u6CD5\u5F00\u673A\uFF0C\u4E0D\u81EA\u52A8\u91CD\u8BD5\u6216\u6062\u590D\u3002",
-    locked: "\u6B64\u4EA4\u4ED8\u6784\u5EFA\u53EA\u5141\u8BB8\u771F\u5B9E\u8BBE\u5907\u53EA\u8BFB\u8BA1\u5212\uFF0C\u771F\u5B9E\u5199\u5165\u5DF2\u9501\u5B9A\u3002\u540E\u7EED\u7ECF\u6388\u6743\u4F7F\u7528\u4E13\u7528\u6D4B\u8BD5\u6784\u5EFA\u9A8C\u8BC1\u517C\u5BB9\u66F4\u65B0\u3002",
-    freshLocked: "\u6B64\u6784\u5EFA\u9501\u5B9A\u771F\u5B9E\u9996\u88C5\u3002\u4EC5\u72EC\u7ACB\u7684 R6 \u9996\u88C5\u6D4B\u8BD5\u6784\u5EFA\u53EF\u5728\u5B8C\u6574\u524D\u68C0\u3001\u6062\u590D\u51C6\u5907\u548C\u5355\u72EC\u6E05\u9664\u786E\u8BA4\u540E\u6267\u884C\u3002",
-    sim: "\u8F6F\u4EF6\u6A21\u62DF \xB7 \u5408\u6210 Flash \xB7 \u4E0D\u8BBF\u95EE USB / TF",
-    simHint: "\u4EE5\u4E0B\u7ED3\u679C\u4EC5\u6765\u81EA\u8F6F\u4EF6\u5939\u5177\uFF0C\u4E0D\u80FD\u8BC1\u660E\u771F\u5B9E\u8BBE\u5907\u5B89\u88C5\u6216\u542F\u52A8\u901A\u8FC7\u3002",
-    tfGuide: "\u56FA\u4EF6\u6821\u9A8C\u5B8C\u6210\u4ECD\u9700\u666E\u901A\u542F\u52A8\u9A8C\u6536\u3002TF \u8BCD\u5E93\u3001\u5B57\u4F53\u53CA\u72EC\u7ACB LearningIndex \u5FC5\u987B\u53E6\u884C\u51C6\u5907\uFF1B\u672C\u9875\u4E0D\u68C0\u67E5 TF\uFF0C\u4E5F\u4E0D\u5BA3\u79F0\u6574\u673A\u5DF2\u53EF\u5199\u4F5C\u3002",
-    finished: "\u56FA\u4EF6\u5185\u5BB9\u5DF2\u72EC\u7ACB\u6821\u9A8C\uFF0C\u7B49\u5F85\u666E\u901A\u542F\u52A8\u4E0E TF \u9A8C\u6536\u3002\u6CA1\u6709\u81EA\u52A8\u590D\u4F4D\u3002",
-    phase_CONNECTING: "\u6B63\u5728\u8FDE\u63A5 ROM \u4E0B\u8F7D\u6A21\u5F0F\u2026",
-    phase_CHECKING: "\u6B63\u5728\u53EA\u8BFB\u68C0\u67E5\u8BBE\u5907\u4E0E\u5B9E\u9645\u5206\u533A / OTA\u2026",
-    phase_PLAN_READY: "\u53EA\u8BFB\u8BA1\u5212\u5DF2\u5C31\u7EEA\uFF0C\u5C1A\u672A\u5199\u5165\u3002",
-    phase_RECHECKING: "\u5199\u5165\u524D\u91CD\u65B0\u6838\u5BF9\u540C\u4E00\u8BBE\u5907\u4E0E\u8BA1\u5212\u2026",
-    phase_ERASING: "\u6B63\u5728\u6E05\u9664\u5185\u90E8 Flash \u5E76\u6838\u9A8C\u5168\u7247\u7A7A\u767D\u2026",
-    phase_WRITING: "\u6B63\u5728\u5199\u5165\u8BA1\u5212\u6307\u5B9A\u7684\u533A\u57DF\u2026",
-    phase_VERIFYING: "\u6B63\u5728\u72EC\u7ACB\u6821\u9A8C Flash \u5185\u5BB9\u4E0E\u4FDD\u62A4\u533A\u57DF\u2026",
-    phase_VERIFIED_BOOT_PENDING: "VERIFIED_BOOT_PENDING \xB7 \u7B49\u5F85\u666E\u901A\u542F\u52A8\u9A8C\u6536",
-    phase_STOP: "STOP \xB7 \u5DF2\u505C\u6B62\uFF0C\u8BF7\u4FDD\u7559\u72B6\u6001\uFF1B\u4E0D\u91CD\u8BD5\u3001\u4E0D\u6362\u69FD\u3001\u4E0D\u6539\u4E3A\u6E05\u7A7A\u91CD\u5237\u3002"
-  },
-  en: {
-    previewHint: "v0.1.0-alpha.3 \xB7 Software qualification \xB7 Hardware writes locked",
-    testHint: "v0.1.0-alpha.3 \xB7 Dedicated device test build \xB7 Compatible updates only",
-    firstHint: "v0.1.0-alpha.3 \xB7 R6 first-install experiment \xB7 Internal Flash will be cleared",
-    factory: "Recognized Waveshare factory demo: initialization",
-    intro: "Connect by USB, check compatibility, then confirm installation.",
-    installHeading: "Connect & Install",
-    preparing: "Verifying local release files\u2026",
-    preflight: "Save writing and finish transfers. Fully power off and remove the TF card. Disconnect other boards, hold BOOT while connecting USB, then release after about two seconds. Keep this window open.",
-    boardConfirm: "I checked the physical board: Waveshare ESP32-S3-RLCD-4.2 (ST7305), not another ESP32-S3 board.",
-    macLabel: "Device MAC from your private backup or previously verified record",
-    macHint: "Compared only in this page\u2019s memory; never uploaded or included in receipts. A chip family does not identify a PCB.",
-    connectRead: "Select port & inspect",
-    ready: "All four firmware files and release manifests verified. Ready to connect.",
-    unsupported: "Secure Web Serial is unavailable here. Open this page on localhost or HTTPS in a desktop browser with Web Serial support. No device was connected.",
-    backup: "I privately retained and verified recoverable full Flash (settings and pairing), original firmware, TF document and learning-directory backups.",
-    tfRemoved: "The TF card was removed after complete power-off and important writing was saved.",
-    approve: "I reviewed the complete plan below and approve its write ranges.",
-    erase: "I separately confirm: fresh installation erases all 16 MiB of internal Flash, removing old firmware, settings and pairing.",
-    currentApp: "Optional: exact previous App file (local comparison only; never uploaded)",
-    run: "Install the verified plan",
-    export: "Save local receipt",
-    close: "Close",
-    stop: "Stop & keep receipt",
-    update: "Compatible update",
-    fresh: "Entire Flash proven blank: fresh installation",
-    plan: "Complete read-only plan",
-    updateSummary: "Write only the active App and erase only its covered sectors. Preserve the other App, partitions, OTA, NVS and pairing. Do not access TF. An interruption may prevent boot; retain recoverable backups.",
-    freshSummary: "Clear all 16 MiB of internal Flash, including firmware, settings, pairing and internal files, then write the four exact Draftor images. TF is untouched. Retain verified full recovery backups and separately approve erasure. An interruption may prevent boot; no automatic retry or recovery.",
-    locked: "This delivery build permits read-only hardware plans. Hardware writing is locked. Use the dedicated test build after authorization for compatible-update qualification.",
-    freshLocked: "First installation is locked in this build. Only the separate R6 experiment permits it after complete checks, recovery preparation and separate erase approval.",
-    sim: "Software simulation \xB7 Synthetic Flash \xB7 No USB / TF access",
-    simHint: "These are software fixture results, not proof of physical installation or boot.",
-    tfGuide: "Verified firmware still needs a normal boot check. TF dictionaries, body font and the separate LearningIndex must be prepared independently. This page does not inspect TF or certify writing readiness.",
-    finished: "Flash content independently verified; normal boot and TF qualification remain pending. No automatic reset.",
-    phase_CONNECTING: "Connecting to ROM download mode\u2026",
-    phase_CHECKING: "Inspecting device, actual partitions and OTA read-only\u2026",
-    phase_PLAN_READY: "Read-only plan ready. No write performed.",
-    phase_RECHECKING: "Rechecking the same device and approved plan\u2026",
-    phase_ERASING: "Clearing internal Flash and verifying it is entirely blank\u2026",
-    phase_WRITING: "Writing the ranges specified in the plan\u2026",
-    phase_VERIFYING: "Independently verifying Flash content and protected ranges\u2026",
-    phase_VERIFIED_BOOT_PENDING: "VERIFIED_BOOT_PENDING \xB7 Normal boot qualification pending",
-    phase_STOP: "STOP \xB7 Preserve the state. No retry, alternate slot, or erase-and-reinstall fallback."
-  }
-};
-var errors = {
-  BOARD: ["\u5FC5\u987B\u4EBA\u5DE5\u786E\u8BA4\u51C6\u786E\u7684\u5FAE\u96EA\u5B9E\u7269\u677F\u578B\u3002", "Confirm the exact physical Waveshare board."],
-  IDENTITY: ["\u8BBE\u5907\u8EAB\u4EFD\u7F3A\u5931\u6216\u4E0E\u9884\u671F MAC \u4E0D\u7B26\u3002\u6838\u5BF9\u79C1\u4EBA\u8BB0\u5F55\u4E0E\u6240\u9009\u4E32\u53E3\u3002", "Device identity is missing or does not match the expected MAC. Check your private record and selected port."],
-  ASSET: ["\u53D1\u884C\u6587\u4EF6\u7684\u5927\u5C0F\u6216 SHA-256 \u4E0D\u7B26\uFF1B\u7981\u6B62\u5199\u5165\u3002", "Release size or SHA-256 mismatch. Writing is forbidden."],
-  IMAGE: ["ESP32-S3 \u955C\u50CF\u5934\u6216\u53D1\u884C\u6807\u8BC6\u4E0D\u7B26\u3002", "ESP32-S3 image header or release identity mismatch."],
-  CAPACITY: ["App \u8D85\u51FA\u56FA\u5B9A\u69FD\u4F4D\u5BB9\u91CF\u3002", "App exceeds the fixed slot capacity."],
-  DOWNLOAD: ["\u53D1\u884C\u6587\u4EF6\u8BFB\u53D6\u4E2D\u65AD\u3002\u6CA1\u6709\u81EA\u52A8\u91CD\u8BD5\uFF0C\u8BF7\u68C0\u67E5\u672C\u5730\u7AD9\u70B9\u6587\u4EF6\u3002", "Release file loading failed. No automatic retry. Check the local site files."],
-  CHIP: ["\u4E0D\u662F\u53D7\u652F\u6301\u7684 ESP32-S3\u3002", "Not a supported ESP32-S3."],
-  FLASH: ["\u672A\u786E\u8BA4\u662F 16 MiB Flash\u3002", "16 MiB Flash could not be confirmed."],
-  SECURITY: ["\u5B89\u5168\u72B6\u6001\u672A\u77E5\u3001\u53D7\u9650\u6216\u5DF2\u542F\u7528 Secure Boot / Flash Encryption\u3002", "Security state is unknown, restricted, or Secure Boot / Flash Encryption is enabled."],
-  PARTITIONS: ["\u5B9E\u9645\u5206\u533A\u8868\u4E0E\u56FA\u5B9A B \u5E03\u5C40\u5B57\u8282\u4E0D\u7B26\uFF1B\u7981\u6B62\u66F4\u65B0\u6216\u81EA\u52A8\u9996\u88C5\u3002", "Actual partition bytes differ from the fixed B layout. No update or automatic fresh installation."],
-  OTA: ["OTA \u72B6\u6001 pending\u3001rollback\u3001\u635F\u574F\u6216\u4E0D\u552F\u4E00\uFF1B\u7981\u6B62\u731C\u6D4B\u6D3B\u52A8\u69FD\u3002", "OTA is pending, rollback, corrupt or ambiguous. Never guess the active slot."],
-  UNKNOWN: ["\u5206\u533A\u7A7A\u767D\u4E0D\u8DB3\u4EE5\u8BC1\u660E\u6574\u7247\u4E3A\u7A7A\uFF1B\u8BE5\u8BBE\u5907\u72B6\u6001\u4E0D\u652F\u6301\u81EA\u52A8\u9996\u88C5\u3002", "Blank metadata does not prove blank Flash. This state cannot enter fresh installation."],
-  READBACK: ["\u53EA\u8BFB\u6570\u636E\u4E0E ROM \u72EC\u7ACB\u6458\u8981\u4E0D\u4E00\u81F4\u3002", "Read data does not match the independent ROM digest."],
-  VERIFY: ["\u5199\u540E\u5185\u5BB9\u6821\u9A8C\u4E0D\u4E00\u81F4\uFF0C\u8BBE\u5907\u53EF\u80FD\u53EA\u6709\u90E8\u5206 App\u3002\u8BF7\u4FDD\u7559\u73B0\u573A\u3002", "Post-write verification failed. The App may be partial. Preserve the device state."],
-  PROTECTED_CHANGED: ["\u4FDD\u62A4\u533A\u57DF\u53D1\u751F\u53D8\u5316\uFF1B\u4E0D\u80FD\u5BA3\u79F0\u5B89\u88C5\u6210\u529F\u3002", "A protected region changed. Installation cannot be reported as successful."],
-  STALE_PLAN: ["\u8BBE\u5907\u72B6\u6001\u5DF2\u53D8\u5316\uFF0C\u539F\u8BA1\u5212\u5931\u6548\u3002", "Device state changed; the approved plan is stale."],
-  BACKUP: ["\u5FC5\u987B\u786E\u8BA4\u53EF\u6062\u590D\u5907\u4EFD\u3001TF \u5DF2\u53D6\u51FA\u4EE5\u53CA\u5B8C\u6574\u5199\u5165\u8BA1\u5212\u3002", "Confirm recoverable backups, TF removal and the complete write plan."],
-  CURRENT_APP: ["\u51C6\u786E\u65E7 App \u6BD4\u5BF9\u5931\u8D25\uFF0C\u672A\u5F00\u59CB\u5199\u5165\u3002", "Exact previous App comparison failed. No write started."],
-  USB_TRANSPORT: ["R1 \u53EA\u8986\u76D6 Espressif USB Serial/JTAG\uFF08303a:1001\uFF09\u3002\u5176\u4ED6\u4E32\u53E3\u8DEF\u5F84\u5C1A\u672A\u9A8C\u6536\u3002", "R1 covers only Espressif USB Serial/JTAG (303a:1001). Other serial paths are unqualified."],
-  STUB: ["\u8BBE\u5907\u4F3C\u4E4E\u5DF2\u8FD0\u884C stub\uFF1B\u8BF7\u624B\u52A8\u91CD\u65B0\u8FDB\u5165 ROM\uFF0C\u4FDD\u7559\u539F\u73B0\u573A\u3002", "A stub appears to be running. Preserve the state and manually re-enter ROM mode."],
-  CONNECTION: ["\u672A\u80FD\u8FDE\u63A5 ROM\u3002\u6838\u5BF9\u4E32\u53E3\u3001BOOT \u64CD\u4F5C\u53CA\u5360\u7528\u8BE5\u4E32\u53E3\u7684\u5E94\u7528\u3002", "Could not connect to ROM. Check the port, BOOT procedure and other serial applications."],
-  DISCONNECTED: ["\u8FDE\u63A5\u4E2D\u65AD\uFF1B\u505C\u6B62\u540E\u7EED\u547D\u4EE4\uFF0C\u4E0D\u81EA\u52A8\u91CD\u8FDE\u3002", "Disconnected. Further commands stopped; no automatic reconnect."],
-  IO: ["\u4E32\u53E3\u8BFB\u5199\u5931\u8D25\uFF1B\u8BBE\u5907\u72B6\u6001\u53EF\u80FD\u4E0D\u5B8C\u6574\uFF0C\u8BF7\u4FDD\u7559\u56DE\u6267\u3002", "Serial I/O failed. Device state may be incomplete; keep the receipt."],
-  TIMEOUT: ["\u8BBE\u5907\u5E94\u7B54\u8D85\u65F6\uFF0C\u5DF2\u505C\u6B62\u3002", "Device response timed out. Stopped."],
-  PROTOCOL: ["ROM \u5E94\u7B54\u7ED3\u6784\u6216\u957F\u5EA6\u4E0D\u7B26\uFF0C\u5DF2\u505C\u6B62\u3002", "ROM response structure or length is invalid. Stopped."],
-  ROM_STATUS: ["ROM \u8FD4\u56DE\u9519\u8BEF\u72B6\u6001\uFF0C\u5DF2\u505C\u6B62\u3002", "ROM reported an error. Stopped."],
-  CANCELLED: ["\u7528\u6237\u5DF2\u505C\u6B62\uFF1B\u82E5\u5199\u5165\u5DF2\u7ECF\u5F00\u59CB\uFF0CApp \u53EF\u80FD\u4E0D\u5B8C\u6574\u3002", "Stopped by the user. If writing had begun, the App may be incomplete."],
-  ERASE_CONFIRM: ["\u5168\u7247\u64E6\u9664\u5FC5\u987B\u5355\u72EC\u786E\u8BA4\u3002", "Full Flash erasure requires separate confirmation."],
-  ERASE_FORBIDDEN: ["\u517C\u5BB9\u66F4\u65B0\u4E0D\u63A5\u53D7\u5168\u7247\u64E6\u9664\u6743\u9650\u3002", "Compatible updates never accept full erase permission."],
-  FRESH_DEVICE_PENDING: ["\u771F\u5B9E\u9996\u88C5\u5DF2\u9501\u5B9A\uFF0C\u7B49\u5F85\u72EC\u7ACB\u7A7A\u677F\u9A8C\u6536\u3002", "Real fresh installation is locked pending separate blank-board qualification."],
-  DEVICE_WRITES_LOCKED: ["\u6B64\u6784\u5EFA\u7684\u771F\u5B9E\u5199\u5165\u5DF2\u9501\u5B9A\u3002", "Hardware writing is locked in this build."],
-  FACTORY_FINGERPRINT: ["\u5382\u5BB6\u955C\u50CF\u6307\u7EB9\u4E0D\u7B26\uFF1B\u672A\u77E5\u65E7\u72B6\u6001\u7981\u6B62\u6E05\u9664\u3002", "Factory fingerprint mismatch. Unknown old state must not be erased."],
-  ERASE_VERIFY: ["\u5168\u7247\u64E6\u540E\u6821\u9A8C\u5931\u8D25\uFF1B\u505C\u6B62\uFF0C\u4E0D\u5199\u4EFB\u4F55\u56FA\u4EF6\u3002", "Full erase verification failed. Stopped before firmware writes."],
-  INITIALIZATION_VERIFY: ["\u521D\u59CB\u5316\u5B8C\u6574\u955C\u50CF\u6821\u9A8C\u5931\u8D25\uFF1B\u505C\u6B62\u5E76\u4FDD\u7559\u73B0\u573A\u3002", "Complete initialized Flash verification failed. Preserve the state."],
-  BUILD_SCOPE: ["\u6784\u5EFA\u6743\u9650\u51B2\u7A81\uFF1B\u505C\u6B62\u3002", "Conflicting build permissions. Stopped."],
-  UNQUALIFIED_SLOT: ["app1 \u5C1A\u672A\u5B9E\u673A\u9A8C\u6536\uFF0C\u5F53\u524D\u5019\u9009\u62D2\u7EDD\u5199\u5165\u3002", "app1 is unqualified and is refused by this candidate."],
-  UNQUALIFIED_FIRMWARE: ["\u53EA\u63A5\u53D7\u51C6\u786E Alpha 3 app0 \u540C\u7248\u672C\uFF1B\u5176\u4ED6\u65E7\u56FA\u4EF6\u5C1A\u672A\u9A8C\u6536\u3002", "Only the exact Alpha 3 app0 same-version image is qualified."],
-  UNQUALIFIED_BLANK: ["\u5168\u7A7A\u767D\u677F\u4EC5\u6709\u8F6F\u4EF6\u9A8C\u8BC1\uFF0C\u771F\u5B9E\u5199\u5165\u4ECD\u9501\u5B9A\u3002", "Blank boards have software tests only; hardware writes remain locked."],
-  BACKUP_FILE: ["\u8BF7\u9009\u62E9\u5DF2\u4FDD\u5B58\u7684\u5B8C\u6574 16 MiB Flash \u6587\u4EF6\uFF1B\u5FC5\u987B\u4E0E\u5F53\u524D\u8BBE\u5907\u6458\u8981\u4E00\u81F4\u3002", "Select the saved complete 16 MiB Flash file; it must match this device."],
-  BACKUP_STALE: ["\u8BBE\u5907\u5185\u5BB9\u5DF2\u4E0D\u518D\u5339\u914D\u5DF2\u9A8C\u8BC1\u7684\u5907\u4EFD\uFF1B\u505C\u6B62\u3002", "Device contents no longer match the verified backup. Stopped."]
-};
-function startUI({ requestDriver, diagnosticsFactory, recoveryLink = false, simulation = false, scenario, expectedMac = "", hardwareWritesEnabled = false, hardwareFreshWritesEnabled = false, publicRelease = false, bindSelectedIdentity = false, candidate = false, sessionFactory = (driver, release, options) => new InstallSession(driver, release, options) }) {
-  Object.assign(dict.zh, copy.zh);
-  Object.assign(dict.en, copy.en);
-  if (publicRelease) {
-    Object.assign(dict.zh, publicCopy.zh);
-    Object.assign(dict.en, publicCopy.en);
-  }
-  if (candidate) {
-    Object.assign(dict.zh, { previewHint: "R7 \u5F85\u5BA1\u5019\u9009 \xB7 \u672A\u516C\u5F00\u53D1\u5E03 \xB7 \u53EF\u64E6\u5199\u5185\u90E8 Flash", intro: "USB \u53EA\u8BFB\u8BC6\u522B\u540E\uFF0C\u53EA\u5F00\u653E\u5DF2\u9A8C\u6536\u7684 app0 \u540C\u7248\u672C\u66F4\u65B0\u6216\u51C6\u786E\u5382\u5BB6\u9996\u88C5\u3002\u5148\u4FDD\u5B58\u3001\u91CD\u65B0\u9009\u62E9\u5E76\u6821\u9A8C\u5B8C\u6574\u5907\u4EFD\u3002", backupRead: "\u53EA\u8BFB\u5907\u4EFD\u5B8C\u6574 Flash \u5E76\u4FDD\u5B58\u5230\u672C\u673A", backupSelect: "\u91CD\u65B0\u9009\u62E9\u5DF2\u4FDD\u5B58\u7684\u5B8C\u6574 Flash .bin\uFF0816 MiB\uFF09", backupHelp: "\u5907\u4EFD\u542B\u6587\u7A3F\u3001\u8BBE\u7F6E\u548C\u914D\u5BF9\u51ED\u636E\uFF0C\u8BF7\u79C1\u4E0B\u4FDD\u7BA1\u3002\u5148\u4FDD\u5B58\u6587\u4EF6\uFF0C\u518D\u7528\u6587\u4EF6\u9009\u62E9\u6846\u91CD\u65B0\u6253\u5F00\u5B83\uFF1B\u5DF2\u6709\u5B8C\u6574\u5907\u4EFD\u4E5F\u53EF\u76F4\u63A5\u9009\u62E9\u3002\u5FC5\u987B\u4E0E\u5F53\u524D\u8BBE\u5907\u5B8C\u6574\u6458\u8981\u4E00\u81F4\uFF0C\u52FE\u9009\u5907\u4EFD\u58F0\u660E\u672C\u8EAB\u4E0D\u80FD\u89E3\u9501\u3002TF \u6587\u7A3F\u548C\u5B66\u4E60\u76EE\u5F55\u987B\u53E6\u884C\u5907\u4EFD\u3002", backupReady: "\u672C\u673A\u5DF2\u4FDD\u5B58\u6587\u4EF6\u4E0E\u5F53\u524D\u8BBE\u5907\u5B8C\u6574\u6458\u8981\u76F8\u7B26\u3002\u8BF7\u4FDD\u7559\u6587\u4EF6\u53CA\u6062\u590D\u8BF4\u660E\u3002", phase_BACKUP_READING: "\u6B63\u5728\u901A\u8FC7 ROM \u53EA\u8BFB\u5907\u4EFD 16 MiB Flash\uFF1B\u8BF7\u52FF\u65AD\u7EBF\u2026", phase_BACKUP_VERIFYING: "\u6B63\u5728\u6821\u9A8C\u91CD\u65B0\u9009\u62E9\u7684\u672C\u673A\u5907\u4EFD\u4E0E\u540C\u4E00\u8BBE\u5907\u2026" });
-    Object.assign(dict.en, { previewHint: "R7 review candidate \xB7 Not published \xB7 Can erase/write internal Flash", intro: "USB inspection selects only qualified app0 same-version updates or the exact factory installation. Save, reopen and verify a complete backup first.", backupRead: "Read-only full Flash backup and save locally", backupSelect: "Reopen saved complete Flash .bin (16 MiB)", backupHelp: "Backups contain writing, settings and pairing credentials. Keep them private. Save the file, then reopen it using the file chooser; an existing full backup can also be selected. It must match the complete current device digest. A checkbox alone cannot unlock writing. Back up TF writing and learning directories separately.", backupReady: "The saved local file matches the complete current device digest. Keep it and the recovery instructions.", phase_BACKUP_READING: "Reading a 16 MiB ROM backup; keep the connection\u2026", phase_BACKUP_VERIFYING: "Verifying the reopened local backup against the same device\u2026" });
-  }
-  dict.zh.dialogs.help = { title: "\u5B89\u88C5\u5E2E\u52A9", body: '<p>\u4F7F\u7528\u7535\u8111\u7AEF Web Serial \u6D4F\u89C8\u5668\u3001USB \u6570\u636E\u7EBF\u548C\u51C6\u786E\u7684\u5FAE\u96EA ST7305 \u8BBE\u5907\u3002R1 \u53EA\u8986\u76D6 USB Serial/JTAG\uFF1B\u6309\u4F4F BOOT \u63A5\u5165 USB\uFF0C\u4FDD\u6301 ROM \u4E0B\u8F7D\u6A21\u5F0F\u3002</p><p>\u5199\u5165\u524D\u987B\u5728\u672C\u673A\u6838\u9A8C\u53EF\u6062\u590D\u7684\u5B8C\u6574 Flash\uFF0F\u914D\u5BF9\u5907\u4EFD\uFF0C\u5E76\u5355\u72EC\u5907\u4EFD TF \u6587\u7A3F\u4E0E\u5B66\u4E60\u76EE\u5F55\u3002\u7F51\u9875\u4E0D\u521B\u5EFA\u3001\u6536\u96C6\u6216\u4E0A\u4F20\u79C1\u4EBA\u5907\u4EFD\u3002</p><p>\u517C\u5BB9\u66F4\u65B0\u53EA\u5199\u5DF2\u786E\u8BA4\u7684\u6D3B\u52A8 App\u3002\u672A\u77E5\u5206\u533A\u3001OTA pending\uFF0Frollback\u3001\u5B89\u5168\u72B6\u6001\u4E0D\u660E\u5747\u505C\u6B62\u3002\u771F\u5B9E\u9996\u88C5\u5C1A\u672A\u9A8C\u6536\uFF0C\u672C\u8F6E\u9501\u5B9A\u3002</p><p>TF \u987B\u53E6\u5907\uFF1AAlpha 2.1 \u8D44\u6E90\u5305\u4E2D\u7684 <code>HANIME/IME/B_SHORT_TEXT_20261018/</code> \u8BCD\u5E93\u53CA <code>HANIME/IME/R1_API080/matched28.hbf1</code> \u5B57\u4F53\uFF1BAlpha 3 \u72EC\u7ACB\u5305\u4E2D\u7684 <code>WAVESHARE_R7_L1_AREV1_RES_20261112/relations.bgr</code> \u548C <code>relations.hnv</code>\u3002\u4E0D\u8981\u683C\u5F0F\u5316 TF\uFF0C\u4E0D\u8986\u76D6\u4E0D\u5339\u914D\u7684\u539F\u6587\u4EF6\u3002</p><p><a href="docs/TF_GUIDE.html" target="_blank" rel="noopener">\u51C6\u786E\u4E0B\u8F7D\u3001\u8DEF\u5F84\u53CA SHA-256 \u6E05\u5355</a> \xB7 <a href="docs/INSTALL.zh-CN.md" target="_blank" rel="noopener">\u53D1\u884C\u5B89\u88C5\u6307\u5357</a></p><div class="notice">\u56FA\u4EF6\u6821\u9A8C\u6210\u529F \u2260 \u6574\u673A\u5DF2\u5177\u5907\u5168\u90E8\u5199\u4F5C\u8D44\u6E90\u3002\u666E\u901A\u542F\u52A8\u3001\u952E\u76D8\u914D\u5BF9\u3001\u4FDD\u5B58\u72B6\u6001\u4ECD\u9700\u5B9E\u673A\u9A8C\u6536\u3002</div>' };
-  dict.en.dialogs.help = { title: "Installation help", body: '<p>Use desktop Web Serial, a USB data cable and the exact Waveshare ST7305 board. R1 covers USB Serial/JTAG only. Hold BOOT while connecting USB and remain in ROM download mode.</p><p>Verify recoverable full Flash/settings/pairing backups and separate TF document and learning backups privately before a write. This page never creates, collects or uploads private backups.</p><p>Compatible updates write only the confirmed active App. Unknown partitions, pending/rollback OTA or unknown security stop installation. Physical fresh installation is locked and unqualified.</p><p>Prepare TF separately: dictionaries under <code>HANIME/IME/B_SHORT_TEXT_20261018/</code> and <code>HANIME/IME/R1_API080/matched28.hbf1</code> from Alpha 2.1 Resources; both <code>WAVESHARE_R7_L1_AREV1_RES_20261112/relations.bgr</code> and <code>relations.hnv</code> from the separate Alpha 3 LearningIndex. Never format TF or overwrite mismatching originals.</p><p><a href="docs/TF_GUIDE.html" target="_blank" rel="noopener">Exact downloads, paths and SHA-256 list</a> \xB7 <a href="docs/INSTALL.md" target="_blank" rel="noopener">Release installation guide</a></p><div class="notice">Verified firmware does not certify writing readiness. Normal boot, keyboard pairing and saved writing still need physical qualification.</div>' };
-  for (const lang of ["zh", "en"]) {
-    dict[lang].dialogs.advanced = { title: lang === "zh" ? "\u9AD8\u7EA7\u9009\u9879" : "Advanced", body: `<p>${lang === "zh" ? "\u9501\u5B9A\u53D1\u884C" : "Pinned release"}: <strong>${PINS.version}</strong><br>WAVESHARE_RLCD42 \xB7 ST7305 \xB7 16 MiB</p><p>App: 4,021,152 bytes<br><code>${PINS.files["app.bin"].sha256}</code></p><p>${lang === "zh" ? "\u56FA\u5B9A B \u5206\u533A\uFF1B\u53EA\u63A5\u53D7\u552F\u4E00\u6D3B\u52A8\u69FD\u3002\u65E0\u5F3A\u5237\u3001\u6539\u69FD\u6216\u5168\u7247\u64E6\u9664\u5F00\u5173\u3002\u8BBE\u5907\u4FE1\u606F\u4EC5\u5728\u672C\u9875\u5185\u5B58\u4E2D\u6BD4\u5BF9\uFF1B\u56DE\u6267\u4E0D\u542B MAC \u6216\u79C1\u6709 Flash \u5185\u5BB9\u3002" : "Fixed B layout; one unambiguous active slot only. No force, slot override or full erase switch. Device identity stays in page memory; receipts exclude MAC and private Flash content."}</p><p><a href="simulation.html?scenario=app0">${lang === "zh" ? "\u8FD0\u884C\u8F6F\u4EF6\u6A21\u62DF\uFF08\u4E0D\u8FDE\u63A5\u8BBE\u5907\uFF09" : "Run software simulation (no device)"}</a> \xB7 <a href="simulation.html?scenario=app1">app1</a> \xB7 <a href="simulation.html?scenario=fresh">fresh</a></p><p><a href="docs/CAPABILITY_AUDIT.md">${lang === "zh" ? "\u5E95\u5C42\u80FD\u529B\u5BA1\u8BA1" : "Capability audit"}</a> \xB7 <a href="docs/SOURCE.html">${lang === "zh" ? "\u6E90\u7801\u4E0E\u8BB8\u53EF" : "Source and licenses"}</a></p>` };
-  }
-  let language = "zh", modalKey, release, session, diagnostics, lastReceipt, busy = false, chooserOpen = false, lastPhase = "", errorCode = "", dialogEpoch = 0;
-  const objectUrls = /* @__PURE__ */ new Set();
-  let seenOpened = false;
-  if (publicRelease) for (const lang of ["zh", "en"]) {
-    const c = dict[lang];
-    c.dialogs.help.body = `<p>${c.intro}</p><p>${c.preflight}</p><p>${c.publicScope}</p><p>${c.tfGuide}</p><p><a href="docs/TF_GUIDE.html">TF \u8D44\u6E90 / TF resources</a> \xB7 <a href="docs/PUBLIC_STATUS.html">\u516C\u5F00\u8303\u56F4 / Public scope</a></p>`;
-    c.dialogs.advanced.body = `<p>${c.publicScope}</p><p>App SHA-256: <code>${PINS.files["app.bin"].sha256}</code></p><p><a href="BUILD.json">Build</a> \xB7 <a href="SITE_SHA256SUMS">SHA-256</a> \xB7 <a href="docs/SOURCE.html">\u6E90\u7801\u4E0E\u8BB8\u53EF / Source and licenses</a></p>`;
-  }
-  const $ = (id) => document.getElementById(id), t = (key) => dict[language][key] || key;
-  if (recoveryLink) for (const lang of ["zh", "en"]) {
-    dict[lang].recoveryLink = lang === "zh" ? "\u8BBE\u5907\u65E0\u6CD5\u542F\u52A8\uFF1F\u6062\u590D\u8BBE\u5907 / \u4FDD\u5B58\u5907\u4EFD" : "Device will not boot? Recovery / save a backup";
-    dict[lang].closedReceipt = lang === "zh" ? "\u4FDD\u5B58\u5DF2\u5173\u95ED\u4F1A\u8BDD\u56DE\u6267" : "Save closed-session receipt";
-    dict[lang].dialogs.help.body += `<p><a href="recovery.html">${dict[lang].recoveryLink}</a></p>`;
-  }
-  const closedReceiptButton = document.createElement("button");
-  closedReceiptButton.type = "button";
-  closedReceiptButton.id = "closed-receipt";
-  closedReceiptButton.dataset.i18n = "closedReceipt";
-  closedReceiptButton.hidden = true;
-  if (diagnosticsFactory) document.querySelector(".footer nav").append(closedReceiptButton);
-  const dialog = $("info-dialog");
-  const workflow = document.createElement("dialog");
-  workflow.id = "install-dialog";
-  workflow.setAttribute("aria-labelledby", "install-heading");
-  workflow.innerHTML = `<div class="dialog-inner">
-    <div class="dialog-title"><h3 id="install-heading" data-i18n="installHeading"></h3><button class="close" id="install-close" type="button" aria-label="\u5173\u95ED">\xD7</button></div>
-    <div class="dialog-body">
-      <p id="simulation-notice" class="notice" hidden></p>
-      <p id="workflow-status" role="status" aria-live="polite"></p><p id="workflow-error" role="alert" hidden></p>
-      ${recoveryLink ? '<p id="failure-recovery" hidden><a href="recovery.html" data-i18n="recoveryLink"></a></p>' : ""}
-      <section id="connect-section">
-        <p data-i18n="preflight"></p>
-        <label class="confirm"><input type="checkbox" id="physical-board"><span data-i18n="boardConfirm"></span></label>
-        <label class="field" for="expected-mac" data-i18n="macLabel"></label>
-        <input id="expected-mac" type="text" placeholder="aa:bb:cc:dd:ee:ff" autocomplete="off" spellcheck="false" maxlength="17" aria-describedby="mac-hint">
-        <p class="field-hint" id="mac-hint" data-i18n="macHint"></p>
-        <button id="connect-read" class="install-primary" type="button" data-i18n="connectRead" disabled></button>
-      </section>
-      <section id="plan-section" hidden>
-        <h4 id="plan-title"></h4><p id="identity-display"></p><p id="plan-summary"></p>
-        <details id="plan-details" open><summary data-i18n="plan"></summary><pre id="plan-json"></pre></details>
-        <p id="write-lock" class="notice" hidden></p>
-        <section id="backup-workflow" hidden>
-          <p data-i18n="backupHelp"></p>
-          <button type="button" id="capture-backup" data-i18n="backupRead"></button>
-          <label class="field"><span data-i18n="backupSelect"></span><input type="file" id="saved-backup" accept=".bin"></label>
-          <p id="backup-ready" class="notice" data-i18n="backupReady" hidden></p>
-          <a href="docs/RECOVERY_R7.html" target="_blank" rel="noopener">\u5907\u4EFD\u4E0E\u6062\u590D\u8BF4\u660E / Backup and recovery</a>
-        </section>
-        <div id="confirm-section">
-          <label class="confirm"><input type="checkbox" id="backup-confirmed"><span data-i18n="backup"></span></label>
-          <label class="confirm"><input type="checkbox" id="tf-removed"><span data-i18n="tfRemoved"></span></label>
-          <label class="confirm"><input type="checkbox" id="plan-confirmed"><span data-i18n="approve"></span></label>
-          <label class="confirm notice" id="erase-label" hidden><input type="checkbox" id="erase-confirmed"><span data-i18n="erase"></span></label>
-          <label class="field" id="current-app-label"><span data-i18n="currentApp"></span><input type="file" id="current-app" accept=".bin"></label>
-          <button id="execute-plan" class="install-primary" type="button" data-i18n="run" disabled></button>
-        </div>
-        <progress id="write-progress" max="1" value="0" aria-label="Installation progress" hidden></progress>
-        <p data-i18n="tfGuide"></p>
-      </section>
-      <p id="finished-note" class="notice" hidden></p>
-      <div class="workflow-actions"><button type="button" id="save-receipt" data-i18n="export" disabled></button><button type="button" id="stop-close" data-i18n="close"></button></div>
-    </div></div>`;
-  document.body.append(workflow);
-  if (bindSelectedIdentity) {
-    for (const el of [document.querySelector('label[for="expected-mac"]'), $("expected-mac"), $("mac-hint")]) el.hidden = true;
-  }
-  const supported = simulation || isSecureContext && !!navigator.serial?.requestPort;
-  function updateLanguage() {
-    document.documentElement.lang = language === "zh" ? "zh-CN" : "en";
-    document.title = language === "zh" ? "Draftor \u8349\u7A3F\u673A \xB7 \u56FA\u4EF6\u5B89\u88C5" : "Draftor \xB7 Firmware Installer";
-    document.querySelectorAll("[data-i18n]").forEach((el) => {
-      el.textContent = t(el.dataset.i18n);
+// src/public-install-session.js
+function publicPlan(plan) {
+  if (!plan) return void 0;
+  const { candidateOnly, publicApproval, blankHardwareQualification, deviceQualification, ...p } = structuredClone(plan);
+  p.releaseScope = "WAVESHARE_ST7305_MACOS_CHROME_ALPHA3_APP0_OR_EXACT_FACTORY_20260120";
+  p.qualificationEvidence = p.mode === "fresh" ? "R6_FIRST_INSTALL_INHERITED" : "R4_APP0_SAME_VERSION_INHERITED";
+  p.runtimeWritePermission = "NOT_GRANTED_BY_PLAN";
+  if (p.mode === "fresh") p.requires = p.requires.map((x) => x === "proven blank or exact pinned factory fingerprint" ? "exact pinned factory fingerprint" : x);
+  return deepFreeze(p);
+}
+var PublicInstallSession = class {
+  #driver;
+  #install;
+  #backup;
+  #identity;
+  #diag;
+  #emit;
+  #build;
+  #source;
+  #toolHash;
+  #busy = false;
+  #closed = false;
+  #stopped = false;
+  #phase;
+  #saved = false;
+  #tool = false;
+  constructor(driver, release, { diagnostics, onState = () => {
+  }, build, sourceCommit, offlineToolSha256, platformQualified = false } = {}) {
+    requireSafe(platformQualified === true, "PLATFORM");
+    requireSafe(/^[0-9a-f]{64}$/.test(offlineToolSha256), "ASSET");
+    this.#driver = driver;
+    this.#diag = diagnostics;
+    this.#emit = onState;
+    this.#build = build;
+    this.#source = sourceCommit;
+    this.#toolHash = offlineToolSha256;
+    this.#diag?.check("writeLock", true);
+    this.#install = new InstallSession(driver, release, {
+      candidate: true,
+      bindSelectedIdentity: true,
+      diagnostics,
+      onState: (phase, receipt) => {
+        this.#diag?.check("writeLock", !["ERASING", "WRITING", "VERIFYING"].includes(phase));
+        if (this.#install?.plan) this.#diag?.check("plan", this.plan);
+        this.#emit(phase, this.receipt(receipt));
+      }
     });
-    document.querySelector('[data-i18n="previewHint"]').textContent = simulation ? `${t("sim")} \xB7 ${scenario}` : t(hardwareFreshWritesEnabled ? "firstHint" : hardwareWritesEnabled ? "testHint" : "previewHint");
-    $("board-name").textContent = language === "zh" ? "\u5FAE\u96EA ESP32-S3-RLCD-4.2" : "Waveshare ESP32-S3-RLCD-4.2";
-    $("board-change").textContent = t(chooserOpen ? "hide" : "change");
-    $("lang-toggle").setAttribute("aria-label", language === "zh" ? "Switch language to English" : "\u5207\u6362\u4E3A\u4E2D\u6587");
-    for (const id of ["dialog-close", "install-close"]) $(id).setAttribute("aria-label", t("close"));
-    $("simulation-notice").textContent = `${t("sim")} \xB7 ${scenario || ""}. ${t("simHint")}`;
-    $("simulation-notice").hidden = !simulation;
-    $("stop-close").textContent = t(busy ? "stop" : "close");
-    $("workflow-status").textContent = t(lastPhase);
-    if (errorCode) $("workflow-error").textContent = `${errorCode}: ${(errors[errorCode] || errors.IO)[language === "zh" ? 0 : 1]}`;
-    if (session?.plan) renderPlan();
-    if (modalKey && dialog.open) renderInfo();
-    if (session?.state === "VERIFIED_BOOT_PENDING") $("finished-note").textContent = `${simulation ? t("simHint") + " " : ""}${t("finished")}`;
   }
+  get state() {
+    return this.#stopped ? "STOP" : this.#phase || this.#install.state;
+  }
+  get plan() {
+    return publicPlan(this.#install.plan);
+  }
+  get selectedIdentity() {
+    return this.#closed ? void 0 : this.#install.selectedIdentity;
+  }
+  get backupVerified() {
+    return !this.#closed && !this.#stopped && this.#saved && this.#install.backupVerified;
+  }
+  get offlineToolVerified() {
+    return !this.#closed && !this.#stopped && this.#tool;
+  }
+  receipt(existing) {
+    const r = existing || this.#install?.receipt() || {};
+    return structuredClone({
+      ...r,
+      plan: this.plan,
+      backup: this.#saved ? "R9_SAVED_PACKAGE_REIMPORTED_AND_CURRENT_FLASH_MATCHED" : r.backup,
+      offlineTool: this.#tool ? "EXACT_DISTRIBUTED_HTML_HASH_VERIFIED" : "NOT_VERIFIED",
+      qualificationEvidence: this.plan?.qualificationEvidence,
+      deviceQualification: "INHERITED_WITH_R10_SOFTWARE_INTEGRATION",
+      ...this.#diag ? { diagnostics: this.#diag.snapshot() } : {},
+      status: this.state
+    });
+  }
+  #ready() {
+    requireSafe(!this.#closed && !this.#stopped, "STATE");
+    requireSafe(!this.#busy, "BUSY");
+  }
+  #phaseChanged(phase, progress) {
+    this.#phase = phase;
+    this.#diag?.stage(phase);
+    this.#emit(phase, { ...this.receipt(), ...progress === void 0 ? {} : { backupProgress: progress } });
+  }
+  async prepare({ boardConfirmed, tfRemoved } = {}) {
+    this.#ready();
+    requireSafe(tfRemoved === true, "BACKUP");
+    this.#busy = true;
+    try {
+      const p = await this.#install.prepare({ boardConfirmed });
+      requireSafe(p.hardwareWriteAllowed && p.initialState !== "blank", "UNQUALIFIED_BLANK");
+      this.#identity = checkedIdentity(await this.#driver.identity());
+      const original = this.#identity, driver = this.#driver, owner = this.#install;
+      const borrowedReads = {
+        kind: driver.kind,
+        connect: async () => requireSafe(owner.state === "PLAN_READY", "STATE"),
+        identity: async () => {
+          const info = await driver.identity();
+          sameOriginalIdentity(info, original);
+          return info;
+        },
+        readFlash: (...args) => driver.readFlash(...args),
+        flashMd5: (...args) => driver.flashMd5(...args),
+        cancel: () => driver.cancel(),
+        disconnect: async () => {
+        }
+      };
+      this.#backup = new RecoverySession(borrowedReads, { mode: "backup", diagnostics: this.#diag, build: this.#build, sourceCommit: this.#source });
+      const state = await this.#backup.prepare({ boardConfirmed, tfRemoved });
+      requireSafe(state.firmware === (p.mode === "fresh" ? "waveshare-factory-20260120" : "draftor-alpha3-app0"), "STALE_PLAN");
+      this.#diag?.check("originalIdentityMatch", true);
+      this.#diag?.check("plan", this.plan);
+      this.#diag?.check("writeLock", true);
+      this.#phaseChanged("PLAN_READY");
+      return this.plan;
+    } catch (e) {
+      this.cancel(e.code || "IO");
+      throw e;
+    } finally {
+      this.#busy = false;
+    }
+  }
+  async captureBackup() {
+    this.#ready();
+    requireSafe(this.state === "PLAN_READY" && !this.#saved, "STATE");
+    this.#busy = true;
+    try {
+      this.#phaseChanged("BACKUP_READING");
+      const bytes = await this.#backup.capture({ progress: (p) => this.#phaseChanged("BACKUP_READING", p) });
+      this.#phaseChanged("PLAN_READY");
+      return bytes;
+    } catch (e) {
+      this.cancel(e.code || "IO");
+      throw e;
+    } finally {
+      this.#busy = false;
+    }
+  }
+  async importExistingRaw(input) {
+    this.#ready();
+    requireSafe(this.state === "PLAN_READY" && !this.#saved, "STATE");
+    this.#busy = true;
+    try {
+      const bytes = await this.#backup.useExistingRaw(input);
+      this.#phaseChanged("PLAN_READY");
+      return bytes;
+    } catch (e) {
+      if (this.#backup.state === "STOP") this.cancel(e.code || "IO");
+      throw e;
+    } finally {
+      this.#busy = false;
+    }
+  }
+  invalidateSavedPackage() {
+    this.#saved = false;
+    this.#diag?.check("savedPackageReimported", "NOT_RUN");
+    if (this.#busy || !["PLAN_READY", "BACKUP_VERIFYING"].includes(this.state)) this.cancel("PACKAGE_CHANGED");
+  }
+  async verifySavedBackup(input) {
+    this.invalidateSavedPackage();
+    this.#ready();
+    requireSafe(this.state === "PLAN_READY", "STATE");
+    this.#busy = true;
+    let h, image, communicating = false;
+    try {
+      h = await validateRecoveryPackage(input);
+      requireSafe(!this.#closed && !this.#stopped, "CANCELLED");
+      const snap = recoverySnapshot(h);
+      image = snap.image;
+      this.#phaseChanged("BACKUP_VERIFYING");
+      communicating = true;
+      const info = await this.#driver.identity();
+      sameOriginalIdentity(info, this.#identity);
+      sameOriginalIdentity(info, snap.manifest.device);
+      requireSafe(snap.manifest.original.firmware === (this.plan.mode === "fresh" ? "waveshare-factory-20260120" : "draftor-alpha3-app0"), "PACKAGE_METADATA");
+      await this.#install.verifySavedBackup(image);
+      sameOriginalIdentity(await this.#driver.identity(), snap.manifest.device);
+      this.#saved = true;
+      this.#diag?.check("packageValidated", true);
+      this.#diag?.check("savedPackageReimported", true);
+      this.#diag?.check("fullFlashMd5Match", true);
+      this.#diag?.check("originalIdentityMatch", true);
+      this.#phaseChanged("PLAN_READY");
+      return true;
+    } catch (e) {
+      if (communicating) this.cancel(e.code || "IO");
+      throw e;
+    } finally {
+      image?.fill(0);
+      destroyRecoveryPackage(h);
+      this.#busy = false;
+    }
+  }
+  async verifyOfflineTool(bytes) {
+    this.#ready();
+    this.#tool = false;
+    requireSafe(bytes instanceof Uint8Array && await sha256(bytes) === this.#toolHash, "RECOVERY_TOOL");
+    requireSafe(!this.#closed && !this.#stopped, "STATE");
+    this.#tool = true;
+    return true;
+  }
+  invalidateOfflineTool() {
+    this.#tool = false;
+  }
+  async execute({ offlineToolSaved, ...consent } = {}) {
+    this.#ready();
+    requireSafe(this.backupVerified, "BACKUP_FILE");
+    requireSafe(this.#tool && offlineToolSaved === true, "RECOVERY_TOOL");
+    this.#busy = true;
+    this.#phase = void 0;
+    try {
+      sameOriginalIdentity(await this.#driver.identity(), this.#identity);
+      const result = await this.#install.execute(consent);
+      return this.receipt(result);
+    } catch (e) {
+      this.cancel(e.code || "IO");
+      throw e;
+    } finally {
+      this.#busy = false;
+      this.#saved = false;
+      this.#tool = false;
+    }
+  }
+  cancel(code = "CANCELLED") {
+    this.#diag?.check("writeLock", true);
+    this.#stopped = true;
+    this.#saved = false;
+    this.#tool = false;
+    this.#install.cancel(code);
+  }
+  async close() {
+    if (this.#closed) return;
+    this.#diag?.check("writeLock", true);
+    this.#closed = true;
+    this.#saved = false;
+    this.#tool = false;
+    this.#identity = void 0;
+    try {
+      await this.#backup?.close();
+    } finally {
+      await this.#install.close();
+      this.#backup = void 0;
+    }
+  }
+};
+
+// src/diagnostics.js
+var OPS = { 2: "FLASH_BEGIN", 3: "FLASH_DATA", 8: "SYNC", 9: "WRITE_REG", 10: "READ_REG", 11: "SPI_PARAMS", 13: "SPI_ATTACH", 14: "READ_FLASH_SLOW", 19: "MD5", 20: "SECURITY" };
+var EVENTS = ["requestPortAttempts", "requestPortCancelled", "requestPortErrors", "openAttempts", "openSuccess", "openErrors", "closeAttempts", "closeSuccess", "closeErrors", "manualReconnects", "cancelRequests", "stubRequests", "resetRequests", "blockedWriteRequests"];
+var CHECKS = ["chip", "flashBytes", "security", "originalIdentityMatch", "partitionRead", "partitionMd5Match", "otaRead", "otaMd5Match", "fullFlashMd5Match", "packageValidated", "savedPackageReimported", "originalState", "plan", "writeLock", "cleanup"];
+var Diagnostics = class {
+  #data;
+  constructor({ build = "source-development", sourceCommit = "uncommitted", originType = "test", origin = "TEST", mode = "read-only", simulation = false } = {}) {
+    this.#data = {
+      schema: "draftor-diagnostics/1",
+      schemaVersion: 1,
+      build,
+      sourceCommit,
+      originType,
+      origin,
+      simulation,
+      mode,
+      stage: "IDLE",
+      startedAt: (/* @__PURE__ */ new Date()).toISOString(),
+      evidenceType: "PROGRAM_CONTROL_POINTS_NOT_INDEPENDENT_WIRE_CAPTURE",
+      events: Object.fromEntries(EVENTS.map((k) => [k, 0])),
+      commands: Object.fromEntries(Object.values(OPS).map((k) => [k, { attempted: 0, sent: 0, acceptedReplies: 0 }])),
+      pendingCommands: 0,
+      checks: Object.fromEntries(CHECKS.map((k) => [k, "NOT_RUN"])),
+      firstError: null,
+      lastError: null,
+      closeResult: "NOT_RUN"
+    };
+  }
+  event(name) {
+    if (!EVENTS.includes(name)) throw Error("Unknown diagnostic event");
+    this.#data.events[name]++;
+  }
+  stage(stage) {
+    if (!/^[A-Z_]{2,64}$/.test(stage)) throw Error("Invalid stage");
+    this.#data.stage = stage;
+  }
+  check(name, value) {
+    if (!CHECKS.includes(name)) throw Error("Unknown diagnostic check");
+    this.#data.checks[name] = structuredClone(value);
+  }
+  command(op, step) {
+    const row = this.#data.commands[OPS[op]];
+    if (!row || !["attempted", "sent", "acceptedReplies"].includes(step)) throw Error("Invalid counter");
+    row[step]++;
+  }
+  pending(delta) {
+    this.#data.pendingCommands += delta;
+  }
+  error(error) {
+    const entry = { code: /^[A-Z_0-9]{1,48}$/.test(error?.code || "") ? error.code : "IO", stage: this.#data.stage };
+    this.#data.firstError ??= entry;
+    this.#data.lastError = entry;
+  }
+  closed(ok) {
+    this.#data.closeResult = ok ? "CLOSED" : "FAILED_POSSIBLY_OPEN";
+  }
+  snapshot() {
+    const d = this.#data;
+    return structuredClone({ ...d, recordedAt: (/* @__PURE__ */ new Date()).toISOString(), nextStep: d.closeResult === "FAILED_POSSIBLY_OPEN" ? "SAVE_RECEIPT_CLOSE_TAB_CHECK_PORT_OWNER" : d.stage === "STOP" ? "PRESERVE_STATE_NO_AUTOMATIC_RETRY" : d.stage === "VERIFIED_BOOT_PENDING" ? "CLOSE_THEN_MANUAL_POWER_OFF_TF_AND_NORMAL_BOOT" : "FOLLOW_VISIBLE_READ_ONLY_OR_CONFIRMATION_STEP" });
+  }
+};
+async function requestSerialPort(serial, diagnostics) {
+  diagnostics.event("requestPortAttempts");
+  try {
+    return await serial.requestPort({ filters: [{ usbVendorId: 12346, usbProductId: 4097 }] });
+  } catch (error) {
+    diagnostics.event(error?.name === "NotFoundError" ? "requestPortCancelled" : "requestPortErrors");
+    throw error;
+  }
+}
+
+// src/public-ui.js
+function startPublicUI({ build, sourceCommit, offlineToolSha256, requestDriver }) {
+  const $ = (id) => document.getElementById(id);
+  let lang = "zh", phase = "IDLE", error = "", release, session, diagnostics, lastReceipt, busy = false, activeTask, zip, packageName = "", infoKey, closed = false;
+  const urls = /* @__PURE__ */ new Set(), t = (k) => installationCopy[lang][k] || dict[lang][k] || k;
+  const modal = document.createElement("dialog");
+  modal.id = "install-dialog";
+  modal.setAttribute("aria-labelledby", "install-heading");
+  const check = (id, key) => `<label class="confirm"><input type="checkbox" id="${id}"><span data-r10="${key}"></span></label>`;
+  const field = (id, key, accept) => `<label class="field"><span data-r10="${key}"></span><input type="file" id="${id}" accept="${accept}"></label>`;
+  modal.innerHTML = `<div class="dialog-inner"><div class="dialog-title"><h3 id="install-heading" data-r10="heading"></h3><button class="close" id="install-close" aria-label="Close">\xD7</button></div><div class="dialog-body">
+ <p id="workflow-status" role="status" aria-live="polite"></p><p id="workflow-error" class="notice" role="alert" hidden></p>
+ <section id="connect-section"><p data-r10="prepare"></p>${check("physical-board", "board")}${check("prepared-tf", "tf")}<button id="connect-read" class="install-primary" data-r10="connect" disabled></button></section>
+ <section id="plan-section" hidden><h4 id="plan-title"></h4><p id="plan-summary"></p><details id="plan-details"><summary data-r10="plan"></summary><pre id="plan-json"></pre></details>
+ <section id="backup-workflow"><p data-r10="backupHelp"></p><button id="capture-backup" data-r10="capture"></button><button id="save-backup" data-r10="save" disabled></button><p data-r10="saveWarning"></p><p id="package-name"></p><details><summary data-r10="raw"></summary>${field("existing-raw", "raw", ".bin")}</details>${field("saved-backup", "reselect", ".zip")}<p id="backup-ready" class="notice" data-r10="saved" hidden></p></section>
+ <section><p data-r10="toolHelp"></p><button id="download-tool" data-r10="tool"></button><button id="tool-problem" data-r10="toolProblem"></button><p id="tool-ready" data-r10="toolReady" hidden></p>${check("tool-saved", "toolKeep")}</section>
+ <section id="confirm-section">${check("backup-confirmed", "backupConsent")}${check("plan-confirmed", "planConsent")}<div id="erase-label">${check("erase-confirmed", "eraseConsent")}</div><div id="current-app-label">${field("current-app", "oldApp", ".bin")}</div><button id="execute-plan" class="install-primary" data-r10="execute" disabled></button></section></section>
+ <progress id="write-progress" max="1" value="0" hidden></progress><p id="finished-note" class="notice" data-r10="finished" hidden></p><p><a href="recovery.html" data-r10="recoveryLink"></a> \xB7 <a href="docs/TF_GUIDE.html">TF</a> \xB7 <a href="docs/PUBLIC_STATUS.html" data-r10="scopeLink"></a></p><div class="workflow-actions"><button id="save-receipt" data-r10="receipt" disabled></button><button id="stop-close" data-r10="close"></button></div></div></div>`;
+  document.body.append(modal);
+  const externalReceipt = document.createElement("button");
+  externalReceipt.id = "closed-receipt";
+  externalReceipt.dataset.r10 = "receipt";
+  externalReceipt.hidden = true;
+  document.querySelector(".footer nav").append(externalReceipt);
   function renderInfo() {
-    const c = dict[language].dialogs[modalKey];
-    $("dialog-heading").textContent = c.title;
-    $("dialog-body").innerHTML = c.body;
-  }
-  function state(phase, receipt = {}) {
-    lastPhase = `phase_${phase}`;
-    if (phase === "STOP" || phase === "VERIFIED_BOOT_PENDING") $("plan-details").open = false;
-    if (phase === "STOP" && receipt.error) errorCode = receipt.error;
-    $("workflow-error").hidden = !errorCode;
-    if (receipt.progress !== void 0) {
-      $("write-progress").hidden = false;
-      $("write-progress").value = receipt.progress;
+    const target = $("dialog-body");
+    if (infoKey === "help" || infoKey === "advanced") {
+      $("dialog-heading").textContent = t(infoKey === "help" ? "helpTitle" : "advancedTitle");
+      target.replaceChildren();
+      for (const text2 of [t("publicScope"), t("prepare"), t("backupHelp"), t("toolHelp")]) {
+        const p = document.createElement("p");
+        p.textContent = text2;
+        target.append(p);
+      }
+      const links = document.createElement("p");
+      links.innerHTML = '<a href="docs/PUBLIC_STATUS.html">\u8303\u56F4 / Scope</a> \xB7 <a href="docs/TF_GUIDE.html">TF</a> \xB7 <a href="recovery.html">\u5907\u4EFD\u4E0E\u6062\u590D / Recovery</a> \xB7 <a href="docs/SOURCE.html">Source & licenses</a>';
+      target.append(links);
+    } else {
+      const c = dict[lang].dialogs[infoKey];
+      $("dialog-heading").textContent = c.title;
+      target.innerHTML = c.body;
     }
-    if (receipt.backupProgress !== void 0) {
-      $("write-progress").hidden = false;
-      $("write-progress").value = receipt.backupProgress;
+  }
+  function render() {
+    document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+    document.title = lang === "zh" ? "Draftor \u8349\u7A3F\u673A \xB7 \u56FA\u4EF6\u5B89\u88C5" : "Draftor \xB7 Firmware Installer";
+    for (const e of document.querySelectorAll("[data-i18n]")) e.textContent = t(e.dataset.i18n);
+    for (const e of document.querySelectorAll("[data-r10]")) e.textContent = t(e.dataset.r10);
+    $("board-name").textContent = lang === "zh" ? "\u5FAE\u96EA ESP32-S3-RLCD-4.2" : "Waveshare ESP32-S3-RLCD-4.2";
+    $("workflow-status").textContent = installationCopy[lang].phases[phase] || t(phase);
+    $("workflow-error").hidden = !error;
+    $("workflow-error").textContent = error ? `${error} \xB7 ${t(error === "PACKAGE_METADATA" ? "wrongOriginal" : error.startsWith("PACKAGE_") ? "badPackage" : "stoppedHelp")}` : "";
+    $("connect-section").hidden = !!session || closed || !browserIsQualified();
+    $("connect-read").disabled = busy || !release || !$("physical-board").checked || !$("prepared-tf").checked;
+    const plan = session?.plan;
+    if (plan) {
+      $("plan-section").hidden = closed;
+      $("plan-title").textContent = t(plan.mode === "fresh" ? "fresh" : "update");
+      $("plan-summary").textContent = t(plan.mode === "fresh" ? "freshImpact" : "updateImpact");
+      $("plan-json").textContent = JSON.stringify(plan, null, 2);
+      $("erase-label").hidden = plan.mode !== "fresh";
+      $("current-app-label").hidden = plan.mode === "fresh";
     }
-    $("save-receipt").disabled = !session;
-    updateLanguage();
+    const prepared = session?.state === "PLAN_READY" && !closed;
+    for (const id of ["capture-backup", "existing-raw"]) $(id).disabled = busy || !prepared || !!zip || session?.backupVerified;
+    $("save-backup").disabled = busy || !zip || closed;
+    $("saved-backup").disabled = busy || !prepared;
+    $("backup-ready").hidden = !session?.backupVerified;
+    $("package-name").textContent = packageName;
+    $("download-tool").disabled = busy || !prepared;
+    $("tool-ready").hidden = !session?.offlineToolVerified;
+    $("tool-saved").disabled = busy || !session?.offlineToolVerified;
+    $("execute-plan").disabled = busy || !prepared || !session?.backupVerified || !session?.offlineToolVerified || !["tool-saved", "backup-confirmed", "plan-confirmed", "prepared-tf"].every((id) => $(id).checked) || plan?.mode === "fresh" && !$("erase-confirmed").checked;
+    $("save-receipt").disabled = !diagnostics;
+    $("stop-close").textContent = t(busy ? "stop" : "close");
+    if ($("info-dialog").open) renderInfo();
   }
-  function renderPlan() {
-    const p = session.plan;
-    $("plan-section").hidden = false;
-    $("plan-title").textContent = `${t(p.initialState === "waveshare-factory-20260120" ? "factory" : p.mode === "fresh" ? "fresh" : "update")} \xB7 ${p.appSlot} \xB7 ${p.appOffset}`;
-    $("plan-summary").textContent = t(p.mode === "fresh" ? "freshSummary" : "updateSummary");
-    $("plan-json").textContent = JSON.stringify(p, null, 2);
-    $("identity-display").textContent = bindSelectedIdentity ? `${t("identityBound")} ${session.selectedIdentity || ""}` : "";
-    $("erase-label").hidden = p.mode !== "fresh";
-    $("current-app-label").hidden = p.mode === "fresh";
-    $("write-lock").hidden = simulation || p.hardwareWriteAllowed;
-    $("write-lock").textContent = t(p.mode === "fresh" ? "freshLocked" : "locked");
-    $("backup-workflow").hidden = !candidate || !p.hardwareWriteAllowed;
-    $("backup-ready").hidden = !session.backupVerified;
-    $("capture-backup").disabled = busy || session.state !== "PLAN_READY";
-    $("saved-backup").disabled = busy || session.state !== "PLAN_READY";
-    enableExecution();
+  function clearPrivate() {
+    zip?.fill(0);
+    zip = void 0;
+    packageName = "";
+    for (const id of ["existing-raw", "saved-backup", "current-app"]) $(id).value = "";
+    for (const id of ["physical-board", "prepared-tf", "backup-confirmed", "plan-confirmed", "erase-confirmed", "tool-saved"]) $(id).checked = false;
+    for (const u of urls) URL.revokeObjectURL(u);
+    urls.clear();
   }
-  function enableExecution() {
-    const p = session?.plan;
-    $("execute-plan").disabled = busy || session?.state !== "PLAN_READY" || !p || !simulation && !p.hardwareWriteAllowed || candidate && !session.backupVerified || !["backup-confirmed", "tf-removed", "plan-confirmed"].every((id) => $(id).checked) || p.mode === "fresh" && !$("erase-confirmed").checked;
-  }
-  function fail(error) {
-    errorCode = error instanceof Stop ? error.code : error?.name === "NotFoundError" ? "CONNECTION" : "IO";
-    if (session && session.state !== "STOP") session.cancel(errorCode);
-    lastPhase = "phase_STOP";
-    $("workflow-error").hidden = false;
-    updateLanguage();
-    diagnostics?.error(error);
-    for (const id of ["expected-mac", "current-app", "saved-backup"]) $(id).value = "";
-    $("identity-display").textContent = "";
-    for (const url of objectUrls) URL.revokeObjectURL(url);
-    objectUrls.clear();
-    if (recoveryLink) $("failure-recovery").hidden = false;
-  }
-  function saveReceipt() {
-    const receipt = session?.receipt() || lastReceipt || (diagnostics ? { diagnostics: diagnostics.snapshot() } : void 0);
-    if (!receipt) return;
-    const url = URL.createObjectURL(new Blob([JSON.stringify(receipt, null, 2) + "\n"], { type: "application/json" }));
-    objectUrls.add(url);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `Draftor-${simulation ? "SIMULATION" : "LOCAL"}-receipt.json`;
-    link.click();
-    setTimeout(() => {
-      URL.revokeObjectURL(url);
-      objectUrls.delete(url);
-    }, 1e3);
-  }
-  async function closeWorkflow() {
-    if (busy) {
-      session?.cancel();
-      return;
-    }
-    dialogEpoch++;
-    let closeFailed = false;
+  async function releaseSession() {
+    if (closed) return;
     try {
       await session?.close();
-    } catch (error) {
-      fail(error);
-      closeFailed = true;
     } finally {
-      $("expected-mac").value = "";
-      $("current-app").value = "";
-      $("saved-backup").value = "";
-      $("identity-display").textContent = "";
-      for (const url of objectUrls) URL.revokeObjectURL(url);
-      objectUrls.clear();
+      closed = true;
+      clearPrivate();
       diagnostics?.check("cleanup", { sessionPrivateReferencesCleared: true, domIdentityCleared: true, fileInputsCleared: true, objectUrlsRevoked: true, physicalMemoryErasureGuaranteed: false });
-      lastReceipt = session?.receipt() || (diagnostics ? { diagnostics: diagnostics.snapshot() } : void 0);
+      lastReceipt = session?.receipt() || { diagnostics: diagnostics?.snapshot() };
       session = void 0;
-      closedReceiptButton.hidden = !lastReceipt;
-    }
-    if (!closeFailed) {
-      workflow.close();
-      $("install-btn").focus();
+      $("plan-section").hidden = true;
+      $("plan-json").textContent = "";
+      externalReceipt.hidden = !diagnostics;
     }
   }
-  $("install-btn").addEventListener("click", async () => {
-    if (workflow.open || busy) return;
-    const epoch = ++dialogEpoch;
+  function download(bytes, name, type) {
+    const u = URL.createObjectURL(new Blob([bytes], { type }));
+    urls.add(u);
+    const a = document.createElement("a");
+    a.href = u;
+    a.download = name;
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => {
+      URL.revokeObjectURL(u);
+      urls.delete(u);
+    }, 3e4);
+  }
+  async function run(fn) {
+    if (busy) return;
+    busy = true;
+    render();
+    activeTask = (async () => {
+      try {
+        await fn();
+      } catch (e) {
+        error = /^[A-Z_0-9]+$/.test(e.code || "") ? e.code : e.name === "NotFoundError" ? "PORT_SELECTION_CANCELLED" : "IO";
+        diagnostics?.error({ code: error });
+        session?.cancel(error);
+        try {
+          await releaseSession();
+        } catch {
+          error += " / CLOSE_FAILED";
+        }
+        phase = "STOP";
+      } finally {
+        busy = false;
+        render();
+      }
+    })();
+    return activeTask;
+  }
+  function onState(next, data = {}) {
+    phase = next;
+    if (data.progress !== void 0 || data.backupProgress !== void 0) {
+      $("write-progress").hidden = false;
+      $("write-progress").value = data.progress ?? data.backupProgress;
+    }
+    render();
+  }
+  $("install-btn").addEventListener("click", () => {
+    if (modal.open || busy) return;
+    closed = false;
+    phase = browserIsQualified() ? "loading" : "unsupported";
+    error = "";
     release = void 0;
-    session = void 0;
-    errorCode = "";
-    lastPhase = supported ? "preparing" : "unsupported";
-    if (recoveryLink) $("failure-recovery").hidden = true;
-    $("workflow-error").hidden = true;
+    diagnostics = void 0;
+    lastReceipt = void 0;
     $("plan-section").hidden = true;
     $("finished-note").hidden = true;
-    $("connect-section").hidden = !supported;
-    $("connect-read").disabled = true;
-    $("save-receipt").disabled = true;
-    $("expected-mac").value = expectedMac;
-    for (const id of ["physical-board", "backup-confirmed", "tf-removed", "plan-confirmed", "erase-confirmed"]) $(id).checked = false;
-    $("current-app").value = "";
-    $("saved-backup").value = "";
     $("write-progress").hidden = true;
-    $("plan-details").open = true;
-    updateLanguage();
-    workflow.showModal();
-    if (!supported) return;
-    try {
-      const loaded = await loadRelease(new URL("../firmware/", import.meta.url));
-      if (!workflow.open || epoch !== dialogEpoch) return;
-      release = loaded;
-      lastPhase = "ready";
-      $("connect-read").disabled = false;
-      updateLanguage();
-    } catch (error) {
-      if (workflow.open && epoch === dialogEpoch) fail(error);
-    }
+    clearPrivate();
+    modal.showModal();
+    render();
+    if (browserIsQualified()) run(async () => {
+      release = await loadRelease(new URL("../firmware/", import.meta.url));
+      phase = "ready";
+    });
   });
-  $("connect-read").addEventListener("click", async () => {
-    if (busy || !release) return;
-    try {
-      if (!$("physical-board").checked) throw new Stop("BOARD");
-      if (!bindSelectedIdentity) normalizeMac($("expected-mac").value);
-    } catch (error) {
-      fail(error);
-      return;
-    }
-    busy = true;
-    $("connect-read").disabled = true;
-    errorCode = "";
-    try {
-      diagnostics = diagnosticsFactory?.();
-      const driver = await requestDriver(release, diagnostics);
-      session = sessionFactory(driver, release, { hardwareWritesEnabled, hardwareFreshWritesEnabled, bindSelectedIdentity, candidate, diagnostics, onState: state });
+  $("connect-read").addEventListener("click", () => {
+    if ($("connect-read").disabled) return;
+    diagnostics = new Diagnostics({ build, sourceCommit, originType: location.protocol === "https:" ? "HTTPS" : "LOOPBACK", origin: location.origin, mode: "installation" });
+    run(async () => {
+      requireSafe(browserIsQualified(), "PLATFORM");
+      const driver = await requestDriver(diagnostics);
+      session = new PublicInstallSession(driver, release, { build, sourceCommit, offlineToolSha256, platformQualified: browserIsQualified(), diagnostics, onState });
+      await session.prepare({ boardConfirmed: $("physical-board").checked, tfRemoved: $("prepared-tf").checked });
+    });
+  });
+  $("capture-backup").addEventListener("click", () => {
+    if (!$("capture-backup").disabled) run(async () => {
+      zip = await session.captureBackup();
+      packageName = `Draftor-private-${session.plan.mode === "fresh" ? "factory-original" : "draftor-original"}-${(/* @__PURE__ */ new Date()).toISOString().replace(/[:.]/g, "-")}.zip`;
+    });
+  });
+  $("existing-raw").addEventListener("change", () => {
+    const f = $("existing-raw").files[0];
+    if (!f) return;
+    run(async () => {
+      requireSafe(f.size === PINS.flashBytes, "PACKAGE_SIZE");
+      let b;
       try {
-        await session.prepare({ boardConfirmed: $("physical-board").checked, expectedMac: $("expected-mac").value });
+        b = new Uint8Array(await f.arrayBuffer());
+        zip = await session.importExistingRaw(b);
+        packageName = `Draftor-private-${session.plan.mode === "fresh" ? "factory-original" : "draftor-original"}-${(/* @__PURE__ */ new Date()).toISOString().replace(/[:.]/g, "-")}.zip`;
       } finally {
-        if (diagnostics?.snapshot().events.openSuccess > 0) {
-          if (seenOpened) diagnostics.event("manualReconnects");
-          seenOpened = true;
-        }
+        b?.fill(0);
+        $("existing-raw").value = "";
       }
-      $("connect-section").hidden = true;
-    } catch (error) {
-      fail(error);
-    } finally {
-      busy = false;
-      updateLanguage();
-      enableExecution();
-    }
+    });
   });
-  $("capture-backup").addEventListener("click", async () => {
-    if (!candidate || busy || session?.state !== "PLAN_READY") return;
-    busy = true;
-    enableExecution();
+  $("save-backup").addEventListener("click", () => {
+    if (zip && !busy) download(zip, packageName, "application/zip");
+  });
+  $("saved-backup").addEventListener("change", () => {
+    session?.invalidateSavedPackage();
+    $("backup-confirmed").checked = false;
+    $("plan-confirmed").checked = false;
+    const f = $("saved-backup").files[0];
+    render();
+    if (!f) return;
+    run(async () => {
+      requireSafe(f.size > PINS.flashBytes && f.size <= MAX_PACKAGE_BYTES, "PACKAGE_SIZE");
+      let b;
+      try {
+        b = new Uint8Array(await f.arrayBuffer());
+        await session.verifySavedBackup(b);
+      } finally {
+        b?.fill(0);
+        $("saved-backup").value = "";
+      }
+    });
+  });
+  $("download-tool").addEventListener("click", () => {
+    if ($("download-tool").disabled) return;
+    session.invalidateOfflineTool();
+    $("tool-saved").checked = false;
+    run(async () => {
+      const r = await fetch(new URL("../offline/Draftor_Recovery_R10_Offline.html", import.meta.url), { cache: "no-store" });
+      requireSafe(r.ok, "RECOVERY_TOOL");
+      const b = new Uint8Array(await r.arrayBuffer());
+      requireSafe(b.length < 4e6, "RECOVERY_TOOL");
+      await session.verifyOfflineTool(b);
+      download(b, "Draftor_Recovery_R10_Offline.html", "text/html");
+    });
+  });
+  $("tool-problem").addEventListener("click", () => {
+    session?.invalidateOfflineTool();
+    $("tool-saved").checked = false;
+    render();
+  });
+  $("current-app").addEventListener("change", () => {
+    $("plan-confirmed").checked = false;
+    if (busy) session?.cancel("PACKAGE_CHANGED");
+    render();
+  });
+  $("execute-plan").addEventListener("click", () => {
+    if ($("execute-plan").disabled) return;
+    run(async () => {
+      const f = $("current-app").files[0];
+      let b;
+      try {
+        if (f) {
+          requireSafe(f.size >= 24 && f.size <= PINS.slotCapacity, "CURRENT_APP");
+          b = new Uint8Array(await f.arrayBuffer());
+        }
+        await session.execute({ backupConfirmed: $("backup-confirmed").checked, tfRemoved: $("prepared-tf").checked, planConfirmed: $("plan-confirmed").checked, eraseConfirmed: $("erase-confirmed").checked, offlineToolSaved: $("tool-saved").checked, currentApp: b });
+        await releaseSession();
+        $("finished-note").hidden = false;
+      } finally {
+        b?.fill(0);
+      }
+    });
+  });
+  for (const id of ["physical-board", "prepared-tf", "backup-confirmed", "plan-confirmed", "erase-confirmed", "tool-saved"]) $(id).addEventListener("change", () => {
+    if (busy) session?.cancel("CONSENT_CHANGED");
+    render();
+  });
+  async function close() {
+    if (busy) {
+      session?.cancel();
+      await activeTask;
+    }
     try {
-      const bytes = await session.captureBackup();
-      const url = URL.createObjectURL(new Blob([bytes], { type: "application/octet-stream" }));
-      objectUrls.add(url);
-      bytes.fill(0);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "Draftor-private-full-flash.bin";
-      link.click();
-      setTimeout(() => {
-        URL.revokeObjectURL(url);
-        objectUrls.delete(url);
-      }, 1e4);
-    } catch (error) {
-      fail(error);
-    } finally {
-      busy = false;
-      updateLanguage();
+      await releaseSession();
+      modal.close();
+    } catch {
+      error = "CLOSE_FAILED";
+      phase = "STOP";
+      render();
     }
+  }
+  $("install-close").addEventListener("click", close);
+  $("stop-close").addEventListener("click", close);
+  modal.addEventListener("cancel", (e) => {
+    e.preventDefault();
+    close();
   });
-  $("saved-backup").addEventListener("change", async () => {
-    if (!candidate || busy || session?.state !== "PLAN_READY") return;
-    const file = $("saved-backup").files[0];
-    if (!file) return;
-    busy = true;
-    enableExecution();
-    let selectedBytes;
-    try {
-      if (file.size !== PINS.flashBytes) throw new Stop("BACKUP_FILE");
-      selectedBytes = new Uint8Array(await file.arrayBuffer());
-      await session.verifySavedBackup(selectedBytes);
-    } catch (error) {
-      fail(error);
-    } finally {
-      selectedBytes?.fill(0);
-      busy = false;
-      $("saved-backup").value = "";
-      updateLanguage();
-    }
-  });
-  $("execute-plan").addEventListener("click", async () => {
-    if (busy || $("execute-plan").disabled) return;
-    busy = true;
-    errorCode = "";
-    $("confirm-section").hidden = true;
-    enableExecution();
-    let currentApp;
-    try {
-      const file = $("current-app").files[0];
-      if (file && (file.size < 24 || file.size > PINS.slotCapacity)) throw new Stop("CURRENT_APP");
-      currentApp = file ? new Uint8Array(await file.arrayBuffer()) : void 0;
-      await session.execute({
-        backupConfirmed: $("backup-confirmed").checked,
-        tfRemoved: $("tf-removed").checked,
-        planConfirmed: $("plan-confirmed").checked,
-        eraseConfirmed: $("erase-confirmed").checked,
-        currentApp
-      });
-      $("finished-note").hidden = false;
-    } catch (error) {
-      fail(error);
-    } finally {
-      currentApp?.fill(0);
-      busy = false;
-      $("current-app").value = "";
-      updateLanguage();
-      enableExecution();
-    }
-  });
-  for (const id of ["backup-confirmed", "tf-removed", "plan-confirmed", "erase-confirmed"]) $(id).addEventListener("change", enableExecution);
-  $("save-receipt").addEventListener("click", saveReceipt);
-  closedReceiptButton.addEventListener("click", saveReceipt);
-  $("stop-close").addEventListener("click", closeWorkflow);
-  $("install-close").addEventListener("click", closeWorkflow);
-  workflow.addEventListener("cancel", (event) => {
-    event.preventDefault();
-    closeWorkflow();
-  });
-  workflow.addEventListener("close", () => {
-    $("confirm-section").hidden = false;
-  });
+  function receipt() {
+    const r = session?.receipt() || lastReceipt;
+    if (r) download(new TextEncoder().encode(JSON.stringify(r, null, 2) + "\n"), "Draftor-R10-sanitized-receipt.json", "application/json");
+  }
+  $("save-receipt").addEventListener("click", receipt);
+  externalReceipt.addEventListener("click", receipt);
   $("lang-toggle").addEventListener("click", () => {
-    language = language === "zh" ? "en" : "zh";
-    updateLanguage();
+    lang = lang === "zh" ? "en" : "zh";
+    render();
   });
   $("board-change").addEventListener("click", () => {
-    chooserOpen = !chooserOpen;
-    $("board-chooser").hidden = !chooserOpen;
-    $("board-change").setAttribute("aria-expanded", String(chooserOpen));
-    updateLanguage();
+    $("board-chooser").hidden = !$("board-chooser").hidden;
+    $("board-change").setAttribute("aria-expanded", String(!$("board-chooser").hidden));
   });
-  document.querySelectorAll("[data-modal]").forEach((el) => el.addEventListener("click", () => {
-    modalKey = el.dataset.modal;
+  for (const e of document.querySelectorAll("[data-modal]")) e.addEventListener("click", () => {
+    infoKey = e.dataset.modal;
     renderInfo();
-    dialog.showModal();
-  }));
-  $("dialog-close").addEventListener("click", () => dialog.close());
-  dialog.addEventListener("click", (event) => {
-    if (event.target === dialog) dialog.close();
+    $("info-dialog").showModal();
   });
-  addEventListener("beforeunload", (event) => {
-    if (busy) {
-      event.preventDefault();
-      event.returnValue = "";
+  $("dialog-close").addEventListener("click", () => $("info-dialog").close());
+  addEventListener("beforeunload", (e) => {
+    if (busy || session) {
+      e.preventDefault();
+      e.returnValue = "";
     }
   });
-  updateLanguage();
+  addEventListener("pagehide", () => {
+    session?.cancel();
+    session?.close().catch(() => {
+    });
+    clearPrivate();
+  });
+  render();
 }
 
 // node_modules/esptool-js/lib/types/error.js
@@ -2404,44 +3091,6 @@ var StrictSerialTransport = class {
   }
 };
 
-// src/recovery-zip.js
-var PACKAGE_NAMES = Object.freeze(["manifest.json", "flash.bin", "README.zh-CN.txt", "README.en.txt"]);
-var MAX_PACKAGE_BYTES = 16777216 + 32768;
-var te = new TextEncoder();
-var td = new TextDecoder("utf-8", { fatal: true });
-var crcTable = Uint32Array.from({ length: 256 }, (_, n) => {
-  for (let i = 0; i < 8; i++) n = n >>> 1 ^ (n & 1 ? 3988292384 : 0);
-  return n >>> 0;
-});
-
-// src/recovery-package.js
-var te2 = new TextEncoder();
-var td2 = new TextDecoder("utf-8", { fatal: true });
-var validated = /* @__PURE__ */ new WeakMap();
-function checkedIdentity(info) {
-  requireSafe(info?.chip === "ESP32-S3" && info.flashBytes === PINS.flashBytes, "CHIP");
-  requireSafe(info.securityKnown === true && info.secureBoot === false && info.flashEncryption === false && info.securityRule === "ESP32S3_ROM20_ESPt531_V1" && info.romChipId === 9, "SECURITY");
-  const flags = info.securityFlags, count = info.cryptCount;
-  requireSafe(Number.isInteger(flags) && flags >= 0 && (flags & ~2047) === 0 && (flags & 5) === 0 && Number.isInteger(count) && count >= 0 && count <= 7 && count.toString(2).split("1").length % 2 === 1, "SECURITY");
-  return { chip: info.chip, flashBytes: info.flashBytes, mac: normalizeMac(info.mac), security: { rule: info.securityRule, flags, cryptCount: count, romChipId: 9, secureBoot: false, flashEncryption: false } };
-}
-function sameOriginalIdentity(info, original) {
-  const actual = checkedIdentity(info);
-  requireSafe(actual.mac === original.mac, "IDENTITY");
-  requireSafe(JSON.stringify(actual) === JSON.stringify(original), "SECURITY_CHANGED");
-  return actual;
-}
-function recoverySnapshot(handle) {
-  const p = validated.get(handle);
-  requireSafe(p, "PACKAGE_REQUIRED");
-  return { manifest: structuredClone(p.manifest), image: p.image.slice() };
-}
-function recoverySummary(handle) {
-  const p = validated.get(handle);
-  requireSafe(p, "PACKAGE_REQUIRED");
-  return { createdAt: p.manifest.createdAt, firmware: p.manifest.original.firmware, bytes: PINS.flashBytes, activeApp: p.manifest.original.activeApp };
-}
-
 // src/rom.js
 var OP = Object.freeze({ FLASH_BEGIN: 2, FLASH_DATA: 3, SYNC: 8, WRITE_REG: 9, READ_REG: 10, SPI_PARAMS: 11, SPI_ATTACH: 13, READ_FLASH_SLOW: 14, MD5: 19, SECURITY: 20 });
 function parseSecurity(data) {
@@ -2825,133 +3474,14 @@ var S3Rom = class {
   }
 };
 
-// src/read-only-driver.js
-var ReadOnlyDriver = class {
-  #rom;
-  #diagnostics;
-  kind = "hardware";
-  constructor(transport, { diagnostics } = {}) {
-    this.#diagnostics = diagnostics;
-    this.#rom = new S3Rom(transport, { diagnostics });
+// src/r10-main.js
+startPublicUI({
+  build: "R10-public-52f5f8203326",
+  sourceCommit: "52f5f8203326911d5f4de39b6360d013ed404b49",
+  offlineToolSha256: "cc9b19a541b8121ae756d1d6a74009bf9c926bd7c75c4ad8fafa93d7a76bac13",
+  requestDriver: async (diagnostics) => {
+    requireSafe(browserIsQualified(), "PLATFORM");
+    return new S3Rom(new StrictSerialTransport(await requestSerialPort(navigator.serial, diagnostics), { diagnostics }), { candidate: true, diagnostics });
   }
-  connect() {
-    return this.#rom.connect();
-  }
-  identity() {
-    return this.#rom.identity();
-  }
-  readFlash(offset, length) {
-    return this.#rom.readFlash(offset, length);
-  }
-  flashMd5(offset, length) {
-    return this.#rom.flashMd5(offset, length);
-  }
-  verifyRecoveryImage(handle) {
-    return this.#rom.verifyRecoveryImage(handle);
-  }
-  #locked() {
-    this.#diagnostics?.event("blockedWriteRequests");
-    throw new Stop("DEVICE_WRITES_LOCKED");
-  }
-  writeImage() {
-    this.#locked();
-  }
-  eraseAll() {
-    this.#locked();
-  }
-  grantRecovery() {
-    this.#locked();
-  }
-  restoreRecovery() {
-    this.#locked();
-  }
-  cancel() {
-    this.#rom.cancel();
-  }
-  disconnect() {
-    return this.#rom.disconnect();
-  }
-};
-
-// src/diagnostics.js
-var OPS = { 2: "FLASH_BEGIN", 3: "FLASH_DATA", 8: "SYNC", 9: "WRITE_REG", 10: "READ_REG", 11: "SPI_PARAMS", 13: "SPI_ATTACH", 14: "READ_FLASH_SLOW", 19: "MD5", 20: "SECURITY" };
-var EVENTS = ["requestPortAttempts", "requestPortCancelled", "requestPortErrors", "openAttempts", "openSuccess", "openErrors", "closeAttempts", "closeSuccess", "closeErrors", "manualReconnects", "cancelRequests", "stubRequests", "resetRequests", "blockedWriteRequests"];
-var CHECKS = ["chip", "flashBytes", "security", "originalIdentityMatch", "partitionRead", "partitionMd5Match", "otaRead", "otaMd5Match", "fullFlashMd5Match", "packageValidated", "savedPackageReimported", "originalState", "plan", "writeLock", "cleanup"];
-var Diagnostics = class {
-  #data;
-  constructor({ build: build2 = "source-development", sourceCommit: sourceCommit2 = "uncommitted", originType = "test", origin = "TEST", mode = "read-only", simulation = false } = {}) {
-    this.#data = {
-      schema: "draftor-diagnostics/1",
-      schemaVersion: 1,
-      build: build2,
-      sourceCommit: sourceCommit2,
-      originType,
-      origin,
-      simulation,
-      mode,
-      stage: "IDLE",
-      startedAt: (/* @__PURE__ */ new Date()).toISOString(),
-      evidenceType: "PROGRAM_CONTROL_POINTS_NOT_INDEPENDENT_WIRE_CAPTURE",
-      events: Object.fromEntries(EVENTS.map((k) => [k, 0])),
-      commands: Object.fromEntries(Object.values(OPS).map((k) => [k, { attempted: 0, sent: 0, acceptedReplies: 0 }])),
-      pendingCommands: 0,
-      checks: Object.fromEntries(CHECKS.map((k) => [k, "NOT_RUN"])),
-      firstError: null,
-      lastError: null,
-      closeResult: "NOT_RUN"
-    };
-  }
-  event(name) {
-    if (!EVENTS.includes(name)) throw Error("Unknown diagnostic event");
-    this.#data.events[name]++;
-  }
-  stage(stage) {
-    if (!/^[A-Z_]{2,64}$/.test(stage)) throw Error("Invalid stage");
-    this.#data.stage = stage;
-  }
-  check(name, value) {
-    if (!CHECKS.includes(name)) throw Error("Unknown diagnostic check");
-    this.#data.checks[name] = structuredClone(value);
-  }
-  command(op, step) {
-    const row = this.#data.commands[OPS[op]];
-    if (!row || !["attempted", "sent", "acceptedReplies"].includes(step)) throw Error("Invalid counter");
-    row[step]++;
-  }
-  pending(delta) {
-    this.#data.pendingCommands += delta;
-  }
-  error(error) {
-    const entry = { code: /^[A-Z_0-9]{1,48}$/.test(error?.code || "") ? error.code : "IO", stage: this.#data.stage };
-    this.#data.firstError ??= entry;
-    this.#data.lastError = entry;
-  }
-  closed(ok) {
-    this.#data.closeResult = ok ? "CLOSED" : "FAILED_POSSIBLY_OPEN";
-  }
-  snapshot() {
-    const d = this.#data;
-    return structuredClone({ ...d, recordedAt: (/* @__PURE__ */ new Date()).toISOString(), nextStep: d.closeResult === "FAILED_POSSIBLY_OPEN" ? "SAVE_RECEIPT_CLOSE_TAB_CHECK_PORT_OWNER" : d.stage === "STOP" ? "PRESERVE_STATE_NO_AUTOMATIC_RETRY" : d.stage === "VERIFIED_BOOT_PENDING" ? "CLOSE_THEN_MANUAL_POWER_OFF_TF_AND_NORMAL_BOOT" : "FOLLOW_VISIBLE_READ_ONLY_OR_CONFIRMATION_STEP" });
-  }
-};
-async function requestSerialPort(serial, diagnostics) {
-  diagnostics.event("requestPortAttempts");
-  try {
-    return await serial.requestPort({ filters: [{ usbVendorId: 12346, usbProductId: 4097 }] });
-  } catch (error) {
-    diagnostics.event(error?.name === "NotFoundError" ? "requestPortCancelled" : "requestPortErrors");
-    throw error;
-  }
-}
-
-// src/r9-locked-main.js
-var build = "R9-locked-5c142f40d5b7";
-var sourceCommit = "5c142f40d5b738998973c51fdc12ef89de19f842";
-startUI({
-  publicRelease: true,
-  bindSelectedIdentity: true,
-  recoveryLink: true,
-  diagnosticsFactory: () => new Diagnostics({ build, sourceCommit, originType: location.protocol === "https:" ? "HTTPS" : "LOOPBACK", origin: location.origin, mode: "installation-plan" }),
-  requestDriver: async (_, diagnostics) => new ReadOnlyDriver(new StrictSerialTransport(await requestSerialPort(navigator.serial, diagnostics), { diagnostics }), { diagnostics })
 });
 //# sourceMappingURL=app.js.map
