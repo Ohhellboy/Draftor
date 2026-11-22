@@ -14,7 +14,7 @@ let index=await readFile('index.html','utf8');index=index.replace('<details clas
 const banner=software?'':'<p class="notice">R12 本机审核版：真实设备连接锁定，未部署。 / Local review only; real device access locked, not deployed.</p>';
 await writeFile(`${out}/index.html`,index.replace('<body>','<body>'+banner));await cp('interrupted.html',`${out}/interrupted.html`);await cp('recovery.html',`${out}/recovery.html`);
 const hash=b=>createHash('sha256').update(b).digest('hex'),b64=b=>createHash('sha256').update(b).digest('base64');
-const aliases={'node:assert/strict':path.resolve('tests/browser-assert.mjs'),'node:crypto':path.resolve('tests/browser-crypto.mjs'),...(!software?{'../tests/r12-browser-environment.mjs':path.resolve('tests/r12-no-device.mjs')}:{})};
+const aliases={'node:assert/strict':path.resolve('tests/browser-assert.mjs'),'node:crypto':path.resolve('tests/browser-crypto.mjs'),'r12-driver-adapter':path.resolve(software?'tests/r12-browser-environment.mjs':'tests/r12-no-device.mjs')};
 const defines={__R12_BUILD__:JSON.stringify(version),__R12_SOURCE__:JSON.stringify(source),__R12_SOFTWARE__:String(software),__R12_OFFLINE__:'false'};
 const config={bundle:true,target:['chrome120'],legalComments:'inline',alias:aliases,loader:{'.bin':'binary'},define:defines};
 for(const [entry,file] of [['r12-entry','app'],['r12-interrupted-entry','interrupted'],['r12-recovery-entry','recovery']])await build({...config,entryPoints:[`src/${entry}.js`],format:file==='recovery'?'iife':'esm',outfile:`${out}/assets/${file}.js`});
