@@ -6,11 +6,12 @@ import { requireSafe } from './safety.js';
 import { Diagnostics } from './diagnostics.js';
 import { recoveryCopy } from './recovery-copy.js';
 
-export function startRecoveryUI({build,sourceCommit,recoveryEnabled=false,simulation=false,requestDriver}) {
+export function startRecoveryUI({build,sourceCommit,recoveryEnabled=false,simulation=false,requestDriver,copyOverrides={},supportedEnvironment,offlineHref,embeddedGuide=false}) {
   const $=id=>document.getElementById(id);let language='zh',mode=recoveryEnabled?'restore':'backup',session,diagnostics,packageBytes,downloadBytes,summary,busy=false,activeTask,notice='',error='',closed=false;
-  const objectUrls=new Set();const t=key=>recoveryCopy[language][key]||key;let seenOpened=false;
+  const copy=Object.fromEntries(['zh','en'].map(l=>[l,{...recoveryCopy[l],...copyOverrides[l]}]));
+  const objectUrls=new Set();const t=key=>copy[language][key]||key;let seenOpened=false;
   const originType=location.protocol==='file:'?'FILE':location.protocol==='https:'?'HTTPS':'LOOPBACK';
-  const supported=simulation||(isSecureContext&&!!navigator.serial&&!/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent));
+  const supported=supportedEnvironment??(simulation||(isSecureContext&&!!navigator.serial&&!/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)));
   const newDiagnostics=()=>new Diagnostics({build,sourceCommit,originType,origin:originType==='FILE'?'LOCAL_FILE':location.origin,mode,simulation});
   diagnostics=newDiagnostics();diagnostics.check('writeLock',!recoveryEnabled||mode!=='restore');
   function receipt() {
@@ -42,7 +43,8 @@ export function startRecoveryUI({build,sourceCommit,recoveryEnabled=false,simula
     $('boot-section').hidden=stage!=='VERIFIED_BOOT_PENDING';
     $('offline-help').textContent=t(originType==='FILE'?'offlineLocal':recoveryEnabled?'offlineHelp':'offlineLocked');
     $('offline-download').hidden=originType==='FILE';
-    document.querySelector('[data-t="guide"]').href=`docs/RECOVERY_GUIDE.${language==='zh'?'zh-CN':'en'}.md`;
+    document.querySelector('[data-t="guide"]').href=embeddedGuide?'#offline-guide':`docs/RECOVERY_GUIDE.${language==='zh'?'zh-CN':'en'}.md`;
+    if(offlineHref)$('offline-download').href=offlineHref;
     $('diagnostics').textContent=JSON.stringify(receipt(),null,2);
   }
   function clearPrivateUI() {

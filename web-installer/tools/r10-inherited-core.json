@@ -1,0 +1,13 @@
+{
+  "src/rom.js": "fa8eb3cf4e1c8158012af70f3043a5676d3aeb4a06ccb5ffc399fac8004871c0",
+  "src/serial.js": "ce9e9b29c23000bf51cb5689c63d19dfe31e9730c062a5fc351b65669a33fc60",
+  "src/session.js": "32a06b4c2fe6d375357271719f029ce0bb0c70b0941888238a592f046f614bcc",
+  "src/safety.js": "a4c55225576670ee41edc0379de23d5490c676d2d36f5386ab56e26518610c9e",
+  "src/first-install.js": "d46967bb7c6c841efa167c4b6bd9120efffba2ac62640e04ee2fa042204005b5",
+  "src/recovery-package.js": "d3b742d146a11ab99f62359eeb8720801091fae73f018e87ae623524dedc6bf4",
+  "src/recovery-zip.js": "a362c1c6d6caf0d8ab0a2ebe9e1946495c0a36647cefeacc87c9630d6c167728",
+  "src/recovery-session.js": "7949dfe22e5a44a6a0e2ef7f2c318c062ef01adb2b98daa0119532bf3b2ac867",
+  "src/read-only-driver.js": "ea370a59bbf68f4c579884a027bc89cf7e0de7232adda771f077adc1a4a38e85",
+  "src/pins.js": "6ced3594703c0762aaf5914d7c3458b7c2a01e1e877cc2b807b51a1648c4bec6",
+  "src/factory-pins.js": "1b134f05efbe1e2027e291fec8533cff5d0a3b2aae982056795f2281d7f7afb1"
+}
