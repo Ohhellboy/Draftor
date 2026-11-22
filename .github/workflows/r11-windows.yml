@@ -3,7 +3,7 @@ on:
   push:
     branches: [ci/web-r11-windows-20261122]
 env:
-  R11_PHASE: software
+  R11_PHASE: live
 permissions:
   contents: read
 jobs:
