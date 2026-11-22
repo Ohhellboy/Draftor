@@ -11,7 +11,7 @@ export class ProductInstallSession {
  }
  get state(){return this.#stopped?'STOP':this.#phase||this.#install.state;}
  get plan(){return this.#install.plan;}
- receipt(r){return {...(r||this.#install?.receipt()||{}),status:this.state,protection:this.#saved?'SMALL_FILE_SAVED_READBACK_VERIFIED':'NOT_SAVED',fullBackup:'NOT_REQUIRED_NOT_CAPTURED',deviceQualification:'R12_DEVICE_PENDING',...(this.#diag?{diagnostics:this.#diag.snapshot()}: {})};}
+ receipt(r){return {...(r||this.#install?.receipt()||{}),simulation:this.#diag?.snapshot().simulation??this.#driver.kind==='simulation',status:this.state,protection:this.#saved?'SMALL_FILE_SAVED_READBACK_VERIFIED':'NOT_SAVED',fullBackup:'NOT_REQUIRED_NOT_CAPTURED',deviceQualification:'R12_DEVICE_PENDING',...(this.#diag?{diagnostics:this.#diag.snapshot()}: {})};}
  #alive(){requireSafe(!this.#closed&&!this.#stopped,'CANCELLED');}
  async #run(fn){this.#alive();requireSafe(!this.#busy,'BUSY');this.#busy=true;try{return await fn();}catch(e){this.cancel(e.code||'IO');throw e;}finally{this.#busy=false;}}
  async prepare({boardConfirmed,tfRemoved,factory}={}){return this.#run(async()=>{

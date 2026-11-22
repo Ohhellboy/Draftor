@@ -24,7 +24,7 @@ for(const fresh of [true,false])test(`R12 ${fresh?'factory':'app0'} small actual
  if(!fresh){assert.deepEqual(f.flash.slice(0,65536),before.slice(0,65536));assert.deepEqual(f.flash.slice(APP_END),before.slice(APP_END));}
  assert.deepEqual(f.flash.slice(65536,65536+inputs['app.bin'].length),inputs['app.bin']);assert.equal(f.port.signalCount,0);
  await assert.rejects(f.s.execute(confirm(f)));assert.equal(f.port.counts.get(2),fresh?5:1);await f.s.close();assert.equal(f.port.closeCount,1);
- const receipt=JSON.stringify(f.s.receipt());assert(!receipt.includes('02:00:00:00:00:01'));assert(!receipt.includes(p.originalMd5));
+ assert.equal(f.s.receipt().simulation,true);const receipt=JSON.stringify(f.s.receipt());assert(!receipt.includes('02:00:00:00:00:01'));assert(!receipt.includes(p.originalMd5));
  console.log(JSON.stringify({synthetic:true,path:fresh?'factory':'app0',pointBytes:(await readFile(name)).length,slowReadCommands:f.port.counts.get(14),flashBegin:f.port.counts.get(2),flashData:f.port.counts.get(3),resets:f.port.signalCount,closed:f.port.closeCount}));
 });
 test('no save proof, fake handle, wrong point, corruption, truncation fail before writes',async()=>{
