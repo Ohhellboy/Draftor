@@ -2,6 +2,8 @@ name: Draftor R11 Windows software qualification
 on:
   push:
     branches: [ci/web-r11-windows-20261122]
+env:
+  R11_PHASE: software
 permissions:
   contents: read
 jobs:
@@ -41,10 +43,15 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node tools/build-r11-browser-test.mjs dist-r11-public dist-r11-test-dev1
       - name: Real Windows browser process; native cancel and independent synthetic device
+        if: env.R11_PHASE == 'software'
         working-directory: work
         run: node tests/r11-windows-browser.mjs ${{ matrix.browser }}
+      - name: HTTPS final deployed version in actual Windows browser
+        if: env.R11_PHASE == 'live'
+        working-directory: work
+        run: node ../live-smoke.mjs ${{ matrix.browser }}
       - name: Related platform and device-safety regression
-        if: ${{ !cancelled() && steps.build.conclusion == 'success' }}
+        if: ${{ !cancelled() && steps.build.conclusion == 'success' && env.R11_PHASE == 'software' }}
         working-directory: work
         run: node --test tests/r11-platform.test.mjs tests/r10-integration.test.mjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

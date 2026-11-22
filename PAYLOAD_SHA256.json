@@ -1,5 +1,6 @@
 {
-  "source.zip": "69efca1f1d41336c9fba7d6a075e0c077b8d85927f771fa5ac2e886faff639f8",
-  "site.zip": "a00e47a15730a0003a63b842e1287a16ee20ffbcaf0c0af867baff47ec8f23ba",
-  "verify-ci.py": "94822a3cb1169e2f1b9eba73836681b631a4a913e0babddf40dda1ebeb5d5284"
+  "source.zip": "3b560db3bb5a04a19612d20a96bdbc14b7c889ba6c188e173c71e7aba11b686c",
+  "site.zip": "8a48d8c8c18680e4485e8c6b91ff39daa750a89f80889df5537c6d34d4aa4e16",
+  "verify-ci.py": "94822a3cb1169e2f1b9eba73836681b631a4a913e0babddf40dda1ebeb5d5284",
+  "live-smoke.mjs": "96bee521816b3af712df027d389c7fec3ae3cb420048e1d8823f7646703cbbd7"
 }
