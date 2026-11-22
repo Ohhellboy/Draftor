@@ -21,12 +21,16 @@ jobs:
         shell: pwsh
         run: |
           python -c "import hashlib,json,pathlib; p=pathlib.Path('.'); h=json.loads((p/'PAYLOAD_SHA256.json').read_text()); assert all(hashlib.sha256((p/n).read_bytes()).hexdigest()==v for n,v in h.items())"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -m zipfile -e source.zip work
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -m zipfile -e site.zip frozen
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Install exact locked dependencies
         working-directory: work
         run: npm ci
-      - name: Rebuild and verify frozen runtime bytes
+      - id: build
+        name: Rebuild and verify frozen runtime bytes
         working-directory: work
         run: |
           node tools/build-r11.mjs dist-r11-public
@@ -40,7 +44,7 @@ jobs:
         working-directory: work
         run: node tests/r11-windows-browser.mjs ${{ matrix.browser }}
       - name: Related platform and device-safety regression
-        if: always()
+        if: ${{ !cancelled() && steps.build.conclusion == 'success' }}
         working-directory: work
         run: node --test tests/r11-platform.test.mjs tests/r10-integration.test.mjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
