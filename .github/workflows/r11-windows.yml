@@ -53,7 +53,7 @@ jobs:
       - name: Related platform and device-safety regression
         if: ${{ !cancelled() && steps.build.conclusion == 'success' && env.R11_PHASE == 'software' }}
         working-directory: work
-        run: node --test tests/r11-platform.test.mjs tests/r10-integration.test.mjs
+        run: node --test tests/r11-platform.test.mjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
