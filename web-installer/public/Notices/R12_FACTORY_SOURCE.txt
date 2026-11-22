@@ -1,0 +1,11 @@
+R12 local review asset: factory/FactoryOnly.bin
+Unmodified ESP32-S3-RLCD-4.2_FactoryOnly_20260120.bin from Waveshare.
+Repository: https://github.com/waveshareteam/ESP32-S3-RLCD-4.2
+Commit: d0644cf2c7a89459538935404ee04b76648e7dec
+Path: firmware/ESP32-S3-RLCD-4.2_FactoryOnly_20260120.bin
+SHA-256: d0591315a722d33f4a08931a0341ab840a6c15c56b289d621e8fc18bec8d55a8
+Copyright 2026 Waveshare. Repository LICENSE at the same commit is Apache-2.0.
+Exact license text is included as LICENSES/Waveshare-RLCD42-LICENSE.txt.
+Used only to reconstruct the exact original factory image together with the
+original board's private 28 KiB, never as a substitute for that private data.
+No private device image is included in this distribution.

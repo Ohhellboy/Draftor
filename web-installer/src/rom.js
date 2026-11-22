@@ -8,6 +8,7 @@ import { PINS } from './pins.js';
 import { Stop, requireSafe, u32, le32, concat, sha256, normalizeMac, md5, activeSlot, checkPartitions } from './safety.js';
 import { FIRST_FILES, verifyInitialFlash } from './first-install.js';
 import { recoverySnapshot, recoverySummary, sameOriginalIdentity } from './recovery-package.js';
+import { savedProtection } from './install-protection.js';
 
 export const OP = Object.freeze({ FLASH_BEGIN: 0x02, FLASH_DATA: 0x03, SYNC: 0x08, WRITE_REG: 0x09, READ_REG: 0x0a, SPI_PARAMS: 0x0b, SPI_ATTACH: 0x0d, READ_FLASH_SLOW: 0x0e, MD5: 0x13, SECURITY: 0x14 });
 export function parseSecurity(data) {
@@ -149,13 +150,15 @@ export class S3Rom {
     catch (error) { this.#fatal = true; throw error; }
     return digest;
   }
-  async grantExclusiveMode({ mode, initialState, expectedMac, metadataFingerprint, backupMd5 }) {
+  async grantExclusiveMode({ mode, initialState, expectedMac, metadataFingerprint, backupMd5, protection }) {
     this.#alive();
     requireSafe(this.#candidate && this.#connected && this.#candidateMode === undefined && !this.#writesAllowed && !this.#firstAllowed && !this.#writeUsed, 'BUILD_SCOPE');
     this.#candidateMode = 'RESERVING'; // One attempt; no mode switching after failure.
     try {
       requireSafe(['update', 'fresh'].includes(mode), 'BUILD_SCOPE');
-      requireSafe(normalizeMac((await this.identity()).mac) === normalizeMac(expectedMac), 'IDENTITY');
+      const identity=await this.identity();
+      requireSafe(normalizeMac(identity.mac) === normalizeMac(expectedMac), 'IDENTITY');
+      if(protection!==undefined){const p=savedProtection(protection,{mode,mac:normalizeMac(expectedMac)});sameOriginalIdentity(identity,p.device);backupMd5=p.originalMd5;}
       const table = await this.readFlash(0x8000, 4096), ota = await this.readFlash(0xe000, 8192);
       requireSafe(await this.flashMd5(0x8000, 4096) === md5(table) && await this.flashMd5(0xe000, 8192) === md5(ota), 'READBACK');
       requireSafe(`${await sha256(table)}:${await sha256(ota)}` === metadataFingerprint, 'STALE_PLAN');
@@ -251,11 +254,13 @@ export class S3Rom {
     }
     // No FLASH_END: in ROM it can run user code, violating --after no-reset.
   }
-  async eraseAll({ source, expectedMac, backupConfirmed, tfRemoved, planConfirmed, eraseConfirmed } = {}) {
+  async eraseAll({ source, expectedMac, backupConfirmed, tfRemoved, planConfirmed, eraseConfirmed, protection } = {}) {
     this.#range(0, PINS.flashBytes);
     requireSafe(this.#firstAllowed && !this.#writesAllowed, 'FRESH_DEVICE_PENDING');
     requireSafe(!this.#candidate || (this.#candidateMode === 'fresh' && source === 'waveshare-factory-20260120'), 'UNKNOWN');
-    requireSafe(backupConfirmed === true && tfRemoved === true && planConfirmed === true, 'BACKUP');
+    requireSafe(tfRemoved === true && planConfirmed === true, 'BACKUP');
+    if(protection!==undefined){requireSafe(this.#candidate,'BUILD_SCOPE');savedProtection(protection,{mode:'fresh',mac:normalizeMac(expectedMac)});}
+    else requireSafe(backupConfirmed === true, 'BACKUP');
     requireSafe(eraseConfirmed === true, 'ERASE_CONFIRM');
     requireSafe(this.#firstStage === 'IDLE' && !this.#writeUsed, 'STATE');
     this.#firstStage = 'RESERVED'; this.#writeUsed = true;

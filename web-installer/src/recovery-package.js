@@ -39,13 +39,20 @@ const readmes={
  'README.zh-CN.txt':'私人完整 Flash 恢复包。不要上传、公开或发送给他人。仅适用于创建时的原微雪 ESP32-S3-RLCD-4.2 / ST7305。恢复覆盖全部 16 MiB 内部 Flash，设置、配对及内部文稿回到备份时；TF 文件不在本包中，必须独立保留。恢复厂家备份会回到厂家演示，不会安装 Draftor。使用随附离线工具，选择本 ZIP 并连接原设备；校验通过后才确认恢复。完成后必须断电、插回 TF、普通启动验收。摘要和 MAC 只防误选及意外损坏，不是数字签名或身份认证。\n',
  'README.en.txt':'PRIVATE full Flash recovery package. Do not upload, publish or share. Only for the original Waveshare ESP32-S3-RLCD-4.2 / ST7305. Recovery overwrites all 16 MiB of internal Flash and rolls settings, pairing and internal documents back to backup time. TF files are NOT included; preserve TF separately. Restoring a factory backup returns the factory demo, not Draftor. Open the offline recovery tool, select this ZIP, connect the original board and confirm only after checks pass. After verification, power off, insert TF and validate normal boot. Hashes and MAC are accidental-corruption / wrong-device safeguards, not signatures or authentication.\n'
 };
-export async function createRecoveryPackage(bytes,info,{boardConfirmed,romMd5Before,romMd5After,method,build,sourceCommit,createdAt=new Date().toISOString(),id=crypto.randomUUID()}={}) {
+const proofMethods=['ROM_READ_SLOW_MD5_V1','ROM_MD5_MATCH_EXISTING_V1','ROM_ORIGINAL_RECONSTRUCTED_V1'];
+function checkReconstruction(p){
+  keys(p,'pointSha256,originalCheckedAt,mode,currentPrivateRangesUnchanged,currentFlashIsOriginal');
+  requireSafe(/^[0-9a-f]{64}$/.test(p.pointSha256)&&/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(p.originalCheckedAt)&&Number.isFinite(Date.parse(p.originalCheckedAt)),'PACKAGE_PROOF');
+  requireSafe(['fresh','update'].includes(p.mode)&&p.currentPrivateRangesUnchanged===(p.mode==='update')&&p.currentFlashIsOriginal===false,'PACKAGE_PROOF');
+}
+export async function createRecoveryPackage(bytes,info,{boardConfirmed,romMd5Before,romMd5After,method,build,sourceCommit,reconstruction,createdAt=new Date().toISOString(),id=crypto.randomUUID()}={}) {
   requireSafe(boardConfirmed===true,'BOARD_CONFIRM');const image=bytes.slice(),device=checkedIdentity(info),digest=md5(image);
   requireSafe(romMd5Before===digest&&romMd5After===digest,'BACKUP_STALE');
-  requireSafe(['ROM_READ_SLOW_MD5_V1','ROM_MD5_MATCH_EXISTING_V1'].includes(method),'PACKAGE_PROOF');
+  requireSafe(proofMethods.includes(method),'PACKAGE_PROOF');
+  if(method==='ROM_ORIGINAL_RECONSTRUCTED_V1')checkReconstruction(reconstruction);else requireSafe(reconstruction===undefined,'PACKAGE_PROOF');
   const original=await classifyRecoveryImage(image);
   const manifest={schema:RECOVERY_SCHEMA,id,createdAt,tool:{name:'Draftor Recovery',build,sourceCommit},board:{model:'ESP32-S3-RLCD-4.2',controller:'ST7305',confirmation:'USER_PHYSICAL_CONFIRMATION'},device,
-    image:{file:'flash.bin',offset:0,bytes:PINS.flashBytes,sha256:await sha256(image),md5:digest},creationProof:{method,romMd5Before,romMd5After,romMd5Match:true,identitySource:'ROM_READ_REG_EFUSE',securitySource:'ROM_GET_SECURITY_INFO',capacitySource:'JEDEC_RDID'},original};
+    image:{file:'flash.bin',offset:0,bytes:PINS.flashBytes,sha256:await sha256(image),md5:digest},creationProof:{method,romMd5Before,romMd5After,romMd5Match:true,identitySource:'ROM_READ_REG_EFUSE',securitySource:'ROM_GET_SECURITY_INFO',capacitySource:'JEDEC_RDID',...(reconstruction?{reconstruction}:{})},original};
   const entries={'manifest.json':te.encode(json(manifest)),'flash.bin':image,...Object.fromEntries(Object.entries(readmes).map(([k,v])=>[k,te.encode(v)]))};
   const archive=storePackage(entries);const checked=await validateRecoveryPackage(archive);destroyRecoveryPackage(checked);image.fill(0);return archive;
 }
@@ -63,9 +70,12 @@ export async function validateRecoveryPackage(input) {
   requireSafe(JSON.stringify(normalized)===JSON.stringify(m.device),'PACKAGE_SCHEMA');
   keys(m.image,'file,offset,bytes,sha256,md5');const image=entries['flash.bin'];
   requireSafe(m.image.file==='flash.bin'&&m.image.offset===0&&m.image.bytes===PINS.flashBytes&&m.image.sha256===await sha256(image)&&m.image.md5===md5(image),'PACKAGE_HASH');
-  keys(m.creationProof,'method,romMd5Before,romMd5After,romMd5Match,identitySource,securitySource,capacitySource');
+  const rebuilt=m.creationProof?.method==='ROM_ORIGINAL_RECONSTRUCTED_V1';
+  keys(m.creationProof,'method,romMd5Before,romMd5After,romMd5Match,identitySource,securitySource,capacitySource'+(rebuilt?',reconstruction':''));
+  if(rebuilt)checkReconstruction(m.creationProof.reconstruction);
   requireSafe(m.creationProof.identitySource==='ROM_READ_REG_EFUSE'&&m.creationProof.securitySource==='ROM_GET_SECURITY_INFO'&&m.creationProof.capacitySource==='JEDEC_RDID','PACKAGE_PROOF');
-  requireSafe(['ROM_READ_SLOW_MD5_V1','ROM_MD5_MATCH_EXISTING_V1'].includes(m.creationProof.method)&&m.creationProof.romMd5Match===true&&m.creationProof.romMd5Before===m.image.md5&&m.creationProof.romMd5After===m.image.md5,'PACKAGE_PROOF');
+  requireSafe(proofMethods.includes(m.creationProof.method)&&m.creationProof.romMd5Match===true&&m.creationProof.romMd5Before===m.image.md5&&m.creationProof.romMd5After===m.image.md5,'PACKAGE_PROOF');
+  if(rebuilt)requireSafe(m.original.firmware===(m.creationProof.reconstruction.mode==='fresh'?'waveshare-factory-20260120':'draftor-alpha3-app0'),'PACKAGE_PROOF');
   requireSafe(JSON.stringify(await classifyRecoveryImage(image))===JSON.stringify(m.original),'PACKAGE_METADATA');
   for(const [name,content]of Object.entries(readmes))requireSafe(td.decode(entries[name])===content,'PACKAGE_FORMAT');
   const handle=Object.freeze({});validated.set(handle,{manifest:deepFreeze(m),image});return handle;
