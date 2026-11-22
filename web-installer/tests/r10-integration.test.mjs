@@ -38,9 +38,10 @@ for(const factory of [true,false])test(`no old files: ${factory?'exact factory f
  await recovery.restore({restoreConfirmed:true});assert.deepEqual(other.flash,before);assert.equal(other.port.counts.get(2),1);assert.equal(other.port.counts.get(3),16384);assert.equal(other.port.signalCount,0);await recovery.close();assert.equal(other.port.closeCount,1);
  console.log(JSON.stringify({scenario:factory?'factory':'app0',synthetic:true,captureReadCommands:f.port.counts.get(14),installBegin:f.port.counts.get(2),installData:f.port.counts.get(3),restoreData:other.port.counts.get(3),wallSeconds:Math.round((performance.now()-started)/1000),diskRoundtrip:true}));
 });
-test('platform policy is finite; reading/downloads independent of this device gate',()=>{
- const env={userAgent:'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/157.0.0.0 Safari/537.36',vendor:'Google Inc.',platform:'MacIntel',secureContext:true,serialAvailable:true,brands:[{brand:'Google Chrome'}]};
- assert(qualifiedDesktopChrome(env));for(const patch of [{platform:'Windows',userAgent:'Windows Chrome/157.0.0.0'},{userAgent:env.userAgent+' Edg/157'},{brave:true},{secureContext:false},{serialAvailable:false},{brands:[{brand:'Chromium'}]},{userAgent:env.userAgent+' Mobile'},{vendor:'Apple Computer, Inc.'}])assert.equal(qualifiedDesktopChrome({...env,...patch}),false);
+test('desktop capability gate preserves original device authorization',()=>{
+ const env={userAgent:'Windows Chrome/157 Edg/157',platform:'Win32',secureContext:true,serialAvailable:true};
+ assert(qualifiedDesktopChrome(env));assert(qualifiedDesktopChrome({...env,vendor:'Microsoft',brands:[{brand:'Microsoft Edge'}]}));
+ for(const patch of [{secureContext:false},{serialAvailable:false},{userAgent:'Android Mobile'}])assert.equal(qualifiedDesktopChrome({...env,...patch}),false);
  assert.throws(()=>new PublicInstallSession({},release,{...options,platformQualified:false}),{code:'PLATFORM'});
 });
 test('unsupported states and physical preconditions never grant writes',async()=>{

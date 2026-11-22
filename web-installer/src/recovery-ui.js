@@ -6,7 +6,7 @@ import { requireSafe } from './safety.js';
 import { Diagnostics } from './diagnostics.js';
 import { recoveryCopy } from './recovery-copy.js';
 
-export function startRecoveryUI({build,sourceCommit,recoveryEnabled=false,simulation=false,requestDriver,copyOverrides={},supportedEnvironment,offlineHref,embeddedGuide=false}) {
+export function startRecoveryUI({build,sourceCommit,recoveryEnabled=false,simulation=false,requestDriver,copyOverrides={},supportedEnvironment,offlineHref,embeddedGuide=false,mapError,errorHelp}) {
   const $=id=>document.getElementById(id);let language='zh',mode=recoveryEnabled?'restore':'backup',session,diagnostics,packageBytes,downloadBytes,summary,busy=false,activeTask,notice='',error='',closed=false;
   const copy=Object.fromEntries(['zh','en'].map(l=>[l,{...recoveryCopy[l],...copyOverrides[l]}]));
   const objectUrls=new Set();const t=key=>copy[language][key]||key;let seenOpened=false;
@@ -68,12 +68,13 @@ export function startRecoveryUI({build,sourceCommit,recoveryEnabled=false,simula
     activeTask=(async()=>{
       try{await fn();}
       catch(e){
-        const code=/^[A-Z_0-9]{1,48}$/.test(e?.code||'')?e.code:e?.name==='NotFoundError'?'PORT_SELECTION_CANCELLED':'IO';diagnostics.error({code});
+        const code=mapError?mapError(e):(/^[A-Z_0-9]{1,48}$/.test(e?.code||'')?e.code:e?.name==='NotFoundError'?'PORT_SELECTION_CANCELLED':'IO');diagnostics.error({code});
         const chooserCancelled=code==='PORT_SELECTION_CANCELLED';
         const recoverable=(fileOnly&&session?.state!=='STOP')||chooserCancelled;
         error=`${t(code==='BACKUP_STALE'&&session?.state==='DEVICE_VERIFIED'?'errorStale':recoverable?'errorFile':'errorStop')} (${code})`;
         if(chooserCancelled){notice=mode==='backup'?'readyBackup':'choose';error=language==='zh'?'已取消串口选择，尚未连接；可以重新选择。':'Port selection cancelled; no connection. You may choose again.';}
         if(!recoverable){session?.cancel(code);try{await closeSession();}catch{}diagnostics.stage('STOP');}
+        if(errorHelp?.(code,language))error+=` ${errorHelp(code,language)}`;
         if(receipt().flashOutcome==='POSSIBLY_PARTIAL')error+=` ${t('partial')}`;
       }finally{clearInterval(ticker);busy=false;render();}
     })();return activeTask;
