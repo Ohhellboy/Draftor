@@ -1,8 +1,8 @@
 {
   "schema": "draftor-public-release/1",
-  "profile": "R10_MACOS_CHROME_WAVESHARE_ST7305_LIMITED",
-  "version": "R10-public-52f5f8203326",
-  "sourceCommit": "52f5f8203326911d5f4de39b6360d013ed404b49",
+  "profile": "R11_DESKTOP_WEB_SERIAL_WINDOWS_BETA",
+  "version": "R11-public-385a584bc24a",
+  "sourceCommit": "385a584bc24ac4f31c93526e1f327f8451437eb7",
   "frozen": true,
   "reviewOnly": false,
   "releaseCapabilities": [
@@ -15,15 +15,15 @@
     "onlineRecovery": "read-only",
     "offlineRecovery": "original-device-validated-full-image-single-use"
   },
-  "platform": "macOS desktop Google Chrome",
-  "testedBaseline": "macOS 15.5 arm64 / Chrome 157.0.8103.50",
+  "platform": "Desktop secure Web Serial; Windows Chrome/Edge beta, macOS Chrome inherited",
+  "testedBaseline": "R4/R6/R9 macOS hardware inherited; R11 Windows browser software evidence recorded separately",
   "privatePackageSchema": "draftor-private-recovery/1",
   "release": "v0.1.0-alpha.3",
   "appSha256": "165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd",
-  "offlineHtml": "offline/Draftor_Recovery_R10_Offline.html",
-  "offlineHtmlSha256": "cc9b19a541b8121ae756d1d6a74009bf9c926bd7c75c4ad8fafa93d7a76bac13",
-  "appBundleSha256": "eec30222b52640744eced42b3627d87e73e8f635ba0d1f12365f95652c92cec9",
-  "recoveryBundleSha256": "2e0a3ee88da7a0edbf327d46d6311af49ef9d4d8b7d58dd15085a788575b1f2d",
+  "offlineHtml": "offline/Draftor_Recovery_R11_Offline.html",
+  "offlineHtmlSha256": "5384f9fb9ad9979423f07f8eddb9d04b7dbaea3679da623181e7bb220a8571bf",
+  "appBundleSha256": "fce3dbb1df809d61af4c1748a89f5ea674812ff7eee90b924415c32e50466054",
+  "recoveryBundleSha256": "2e6d5ee35ad543894fc9ca2c6ee29fa606f622d727522cc5fd01eaff347861b2",
   "inheritedCore": {
     "src/rom.js": "fa8eb3cf4e1c8158012af70f3043a5676d3aeb4a06ccb5ffc399fac8004871c0",
     "src/serial.js": "ce9e9b29c23000bf51cb5689c63d19dfe31e9730c062a5fc351b65669a33fc60",
@@ -42,8 +42,8 @@
     "sameVersionApp0": "R4_DEVICE_INHERITED",
     "draftorRecovery": "R9_RECOVERY_USER_DEVICE_PASS_INHERITED",
     "factoryRecovery": "SOFTWARE_BRANCH_AND_SHARED_WRITER",
-    "r10DeviceOperations": "NONE",
-    "windows": "NOT_QUALIFIED",
+    "r11DeviceOperations": "NONE",
+    "windows": "WINDOWS_DEVICE_FIELD_TEST_PENDING",
     "mobileUsb": "NOT_QUALIFIED"
   },
   "dependencies": {

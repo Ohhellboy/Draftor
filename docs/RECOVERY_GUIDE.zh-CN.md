@@ -1,10 +1,10 @@
 # Draftor 私人恢复包与离线恢复
 
-设备操作支持 macOS 桌面 Google Chrome、原微雪 ESP32-S3-RLCD-4.2 / ST7305 和 16 MiB Flash。实测版本为 macOS 15.5 / arm64、Chrome 157.0.8103.50，不代表所有版本组合均实测。
+设备操作支持 Windows 10/11 桌面 Chrome / Edge（Windows 实机待验证）及 macOS Chrome、原微雪 ESP32-S3-RLCD-4.2 / ST7305 和 16 MiB Flash。实测版本为 macOS 15.5 / arm64、Chrome 157.0.8103.50，不代表所有版本组合均实测。
 
 ## 安装前保存
 
-1. 保存文稿并结束传输。彻底断电（含电池），取出 TF。只连接这块微雪，按住 BOOT 接 USB，约两秒后释放，关闭串口监视器。选 USB JTAG/serial debug unit。
+1. 保存文稿并结束传输。彻底断电（含电池），取出 TF。只连接这块微雪，按住 BOOT 接 USB，约两秒后释放，关闭串口监视器。选对应 USB Serial Device (COMx) 或 USB JTAG/serial debug unit，不按 COM 号码猜设备。
 2. 正式首页“连接设备并安装”会自动识别准确厂家首装或 Alpha 3 app0 同版本重新安装。未知状态即停止，不可强刷。
 3. 没有旧文件时，点“读取完整 Flash（只读）”。完整 ROM 慢读需要较长时间，保持页面、USB、供电。保存生成的私人 ZIP，等浏览器下载完成，再回选实际文件。完整内容须匹配当前同一设备，才能继续。
 4. 下载离线恢复 HTML，确认已保存，与私人 ZIP 一起保管。网页会校验准确工具摘要；报告下载失败时不能继续。保存工具不替代私人 ZIP 回选。
@@ -12,9 +12,9 @@
 
 ## 原设备不能启动时
 
-1. 关闭其他安装/恢复页面。打开 Chrome 的“文件 → 打开文件”（⌘O），选择已保存的 Draftor_Recovery_R10_Offline.html。断网也可用，无需 Python、终端、Codex、扩展、开发者工具或安全设置更改。
+1. 关闭其他安装/恢复页面。在 Windows Chrome/Edge 按 Ctrl+O（Mac Chrome 按 ⌘O），选择已保存的 Draftor_Recovery_R11_Offline.html。断网也可用，无需 Python、终端、Codex、扩展、开发者工具或安全设置更改。
 2. 选择“恢复原设备”，选择原私人 ZIP，不要解压。包含原设备身份、精确 16 MiB 镜像、摘要和恢复说明。原设备和安全检查失败时停止，不修改包或换板绕过。
-3. 保存文稿并结束传输，彻底断电后取出 TF；按上述方式进 ROM。确认实物条件，选择 USB JTAG/serial debug unit。允许当前分区损坏，但仍必须匹配原设备身份、容量与安全条件。
+3. 保存文稿并结束传输，彻底断电后取出 TF；按上述方式进 ROM。确认实物条件，选择对应 USB Serial Device (COMx) 或 USB JTAG/serial debug unit。允许当前分区损坏，但仍必须匹配原设备身份、容量与安全条件。
 4. 阅读并明确确认整片覆盖：会覆盖全部 16 MiB，设置、配对及内部文稿回到备份时；备份之后的内部变化会丢失。TF 不在包内且不被工具操作。只点一次恢复，保持供电和连接。
 5. 成功提示“内容已校验”后，关闭连接并清除私人会话，保存脱敏回执。彻底断电，插回原 TF，松开 BOOT 普通启动。原键盘用原通道回连，不重置配对。检查原稿、新稿保存及重启读取。厂家包恢复后是厂家演示，不等于 Draftor 已安装。
 6. 任何通信、写入或校验错误即停止；不自动重试、换槽、复位或降级首装。保留原包和回执；已写入时设备可能不完整。排除具体原因后，用户日后主动开始的新会话仍须完整前检与确认，没有项目测试额度限制。
@@ -26,3 +26,6 @@
 关闭会清除页面私人引用、文件选择和对象 URL，不承诺物理内存已擦除。诊断不含私人镜像、MAC、文件名或私人摘要；计数来自程序控制点，不是独立抓线。内容核验不等于普通启动、键盘和文稿已通过。
 
 Draftor 包完整恢复继承 R9 实机及独立用户验收；厂家包恢复为软件分支覆盖及共用通道继承，未另做厂家恢复实机测试。仅支持准确 Alpha 3 app0 或准确 FactoryOnly_20260120 原状态。完整包仍为严格四条目的 draftor-private-recovery/1；工具单独保存，不塞入私人包。
+
+
+Windows: WINDOWS_DEVICE_FIELD_TEST_PENDING. See WINDOWS_FIRST_USER_GUIDE.zh-CN.md / WINDOWS_FIRST_USER_GUIDE.en.md and WINDOWS_COMPAT_MATRIX.md.

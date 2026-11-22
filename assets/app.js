@@ -549,21 +549,21 @@ var dict = {
   }
 };
 
-// src/r10-copy.js
+// src/r11-copy.js
 var installationCopy = { zh: {
-  browserHint: "\u8BBE\u5907\u64CD\u4F5C\uFF1AmacOS \u684C\u9762 Google Chrome\uFF1B\u5176\u4ED6\u73AF\u5883\u53EF\u6D4F\u89C8\u548C\u4E0B\u8F7D\u3002",
+  browserHint: "Windows 10/11 \u684C\u9762 Chrome / Edge \u6D4B\u8BD5\u6027\u5F00\u653E\uFF1BmacOS Chrome \u4FDD\u7559\u652F\u6301\u3002",
   wrongOriginal: "\u6062\u590D\u5305\u5185\u7684\u539F\u59CB\u56FA\u4EF6\u72B6\u6001\u4E0D\u7B26\u5408\u672C\u6B21\u8BA1\u5212\uFF0C\u53EF\u80FD\u9009\u5230\u4E86\u53E6\u4E00\u539F\u72B6\u6001\u7684\u5907\u4EFD\u3002\u5C1A\u672A\u56E0\u672C\u6B21\u5BFC\u5165\u5F00\u59CB\u5B89\u88C5\uFF1B\u8BF7\u4FDD\u7559\u539F\u6587\u4EF6\uFF0C\u5173\u95ED\u540E\u7528\u6B63\u786E\u6587\u4EF6\u91CD\u65B0\u68C0\u67E5\u3002",
   badPackage: "\u6062\u590D ZIP \u7684\u5185\u5BB9\u3001\u683C\u5F0F\u6216\u6458\u8981\u672A\u901A\u8FC7\u68C0\u67E5\uFF0C\u672A\u6388\u4E88\u5B89\u88C5\u6743\u9650\u3002\u8BF7\u4FDD\u7559\u539F\u6587\u4EF6\u5E76\u6838\u5BF9\u672C\u6B21\u751F\u6210\u7684\u5B8C\u6574\u5305\u3002",
   stoppedHelp: "\u5DF2\u505C\u6B62\uFF0C\u4E0D\u81EA\u52A8\u91CD\u8BD5\u3002\u8BF7\u4FDD\u7559\u56DE\u6267\uFF1B\u82E5\u5DF2\u5F00\u59CB\u5199\u5165\uFF0C\u4F7F\u7528\u5DF2\u4FDD\u5B58\u7684\u79BB\u7EBF\u5DE5\u5177\u6062\u590D\u539F\u8BBE\u5907\u3002",
-  previewHint: "v0.1.0-alpha.3 \xB7 \u5FAE\u96EA ST7305 \xB7 macOS \u684C\u9762 Chrome",
+  previewHint: "v0.1.0-alpha.3 \xB7 \u5FAE\u96EA ST7305 \xB7 Windows Chrome / Edge \xB7 macOS Chrome",
   intro: "\u8FDE\u63A5\u8BBE\u5907\u540E\u81EA\u52A8\u8BC6\u522B\u5B89\u88C5\u65B9\u5F0F\u3002\u5148\u4FDD\u5B58\u5E76\u56DE\u9009\u5B8C\u6574\u6062\u590D\u5305\uFF0C\u518D\u786E\u8BA4\u5B89\u88C5\u3002",
   publicScope: "\u9650\u5B9A\u5F00\u653E\uFF1A16 MiB \u5FAE\u96EA ST7305\uFF0C\u51C6\u786E FactoryOnly 20260120 \u5382\u5BB6\u9996\u88C5\uFF0C\u6216\u51C6\u786E Alpha 3 app0 \u540C\u7248\u672C\u91CD\u65B0\u5B89\u88C5\u3002\u672A\u77E5\u72B6\u6001\u3001\u5168\u7A7A\u767D\u677F\u548C app1 \u62D2\u7EDD\u5B89\u88C5\u3002",
   heading: "\u8FDE\u63A5\u8BBE\u5907\u5E76\u5B89\u88C5",
-  prepare: "\u4FDD\u5B58\u6587\u7A3F\u5E76\u7ED3\u675F\u4F20\u8F93\u3002\u5F7B\u5E95\u65AD\u7535\uFF08\u542B\u7535\u6C60\uFF09\u540E\u53D6\u51FA TF\uFF0C\u53EA\u8FDE\u63A5\u8FD9\u5757\u5FAE\u96EA\u3002\u6309\u4F4F BOOT \u63A5 USB\uFF0C\u7EA6\u4E24\u79D2\u540E\u91CA\u653E\uFF0C\u4FDD\u6301 ROM \u4E0B\u8F7D\u6A21\u5F0F\u5E76\u5173\u95ED\u4E32\u53E3\u76D1\u89C6\u5668\u3002\u8FDE\u63A5\u65F6\u9009\u62E9 USB JTAG/serial debug unit\u3002",
+  prepare: "\u4FDD\u5B58\u6587\u7A3F\u5E76\u7ED3\u675F\u4F20\u8F93\u3002\u5F7B\u5E95\u65AD\u7535\uFF08\u542B\u7535\u6C60\uFF09\u540E\u53D6\u51FA TF\uFF0C\u53EA\u8FDE\u63A5\u8FD9\u5757\u5FAE\u96EA\u3002\u6309\u4F4F BOOT \u63A5 USB\uFF0C\u7EA6\u4E24\u79D2\u540E\u91CA\u653E\uFF0C\u4FDD\u6301 ROM \u4E0B\u8F7D\u6A21\u5F0F\u5E76\u5173\u95ED\u4E32\u53E3\u76D1\u89C6\u5668\u3002Windows \u5728\u9009\u62E9\u6846\u4E2D\u9009\u5BF9\u5E94\u7684 USB Serial Device (COMx) \u6216 USB JTAG/serial debug unit\uFF1B\u4E0D\u8981\u6309 COM \u53F7\u7801\u731C\u8BBE\u5907\u3002",
   board: "\u6211\u5DF2\u6838\u5BF9\u5B9E\u7269\u662F\u5FAE\u96EA ESP32-S3-RLCD-4.2 / ST7305\uFF0C\u4E14\u4EC5\u8BE5\u677F\u8FDE\u63A5\u3002",
   tf: "\u6587\u7A3F\u5DF2\u4FDD\u5B58\u3001\u4F20\u8F93\u5DF2\u7ED3\u675F\uFF0CTF \u5DF2\u5728\u5F7B\u5E95\u65AD\u7535\u540E\u53D6\u51FA\u3002",
   connect: "\u9009\u62E9\u4E32\u53E3\u5E76\u53EA\u8BFB\u68C0\u67E5",
-  unsupported: "\u8BBE\u5907\u64CD\u4F5C\u4EC5\u652F\u6301 macOS \u684C\u9762 Google Chrome\uFF0C\u5E76\u9700\u5B89\u5168 Web Serial \u73AF\u5883\u3002\u5176\u4ED6\u73AF\u5883\u4ECD\u53EF\u9605\u8BFB\u5E2E\u52A9\u3001\u4E0B\u8F7D TF \u8D44\u6E90\u4E0E\u79BB\u7EBF\u5DE5\u5177\u3002\u6CA1\u6709\u8FDE\u63A5\u8BBE\u5907\u3002",
+  unsupported: "\u9700\u8981\u684C\u9762\u5B89\u5168\u4E0A\u4E0B\u6587\u3001Web Serial \u4E0E\u7528\u6237\u6388\u6743\uFF1B\u8BF7\u67E5\u770B\u5F53\u524D\u80FD\u529B\u63D0\u793A\u3002\u672A\u8FDE\u63A5\u8BBE\u5907\u3002",
   loading: "\u6B63\u5728\u6838\u9A8C\u56DB\u4EFD\u56FA\u5B9A\u53D1\u884C\u56FA\u4EF6\u2026",
   ready: "\u56FA\u4EF6\u6587\u4EF6\u5DF2\u6838\u9A8C\uFF0C\u53EF\u4EE5\u9009\u62E9\u4E32\u53E3\u3002",
   update: "\u91CD\u65B0\u5B89\u88C5\u5F53\u524D\u7248\u672C",
@@ -580,7 +580,7 @@ var installationCopy = { zh: {
   saveWarning: "\u70B9\u51FB\u4FDD\u5B58\u4E0D\u4EE3\u8868\u6587\u4EF6\u5DF2\u843D\u76D8\uFF1B\u5FC5\u987B\u7B49\u5F85\u4E0B\u8F7D\u5B8C\u6210\uFF0C\u518D\u56DE\u9009\u8BE5 ZIP\u3002\u8BF7\u52FF\u89E3\u538B\u3001\u4FEE\u6539\u6216\u516C\u5F00\u79C1\u4EBA\u5305\u3002",
   tool: "\u4E0B\u8F7D\u79BB\u7EBF\u6062\u590D\u5DE5\u5177\uFF08HTML\uFF09",
   toolKeep: "\u79BB\u7EBF HTML \u5DF2\u4FDD\u5B58\u5B8C\u6210\uFF0C\u6211\u4F1A\u5C06\u5B83\u4E0E\u79C1\u4EBA ZIP \u4E00\u8D77\u4FDD\u7BA1\u3002",
-  toolHelp: "\u5B89\u88C5\u524D\u4FDD\u5B58\u51C6\u786E\u7684\u79BB\u7EBF\u5DE5\u5177\u3002\u4EE5\u540E\u5173\u95ED\u7F51\u9875\uFF0C\u5728 macOS Chrome \u7528\u201C\u6253\u5F00\u6587\u4EF6\u201D\u91CD\u5F00 HTML\uFF1B\u65E0\u9700\u7F51\u7EDC\u3001Python \u6216\u6269\u5C55\u3002\u5DE5\u5177\u4E0B\u8F7D\u5931\u8D25\u65F6\u4E0D\u8981\u7EE7\u7EED\u5B89\u88C5\u3002",
+  toolHelp: "\u5B89\u88C5\u524D\u4FDD\u5B58\u51C6\u786E\u7684\u79BB\u7EBF\u5DE5\u5177\u3002\u4EE5\u540E\u5173\u95ED\u7F51\u9875\uFF0C\u5728 Windows Chrome/Edge \u7528 Ctrl+O\uFF08Mac \u7528 \u2318O\uFF09\u91CD\u5F00 HTML\uFF1B\u65E0\u9700\u7F51\u7EDC\u3001Python \u6216\u6269\u5C55\u3002\u5DE5\u5177\u4E0B\u8F7D\u5931\u8D25\u65F6\u4E0D\u8981\u7EE7\u7EED\u5B89\u88C5\u3002",
   toolReady: "\u79BB\u7EBF\u5DE5\u5177\u5185\u5BB9\u6458\u8981\u5DF2\u6838\u9A8C\uFF1B\u8BF7\u786E\u8BA4\u6D4F\u89C8\u5668\u4FDD\u5B58\u5B8C\u6210\u3002",
   toolProblem: "\u5DE5\u5177\u672A\u4FDD\u5B58\uFF0F\u4E0B\u8F7D\u6709\u95EE\u9898",
   backupConsent: "\u6211\u5DF2\u4FDD\u5B58\u5E76\u56DE\u9009\u6709\u6548\u5B8C\u6574\u6062\u590D\u5305\uFF0C\u4E14\u5DF2\u53E6\u884C\u4FDD\u7BA1 TF \u6587\u7A3F\u548C\u5B66\u4E60\u76EE\u5F55\u3002",
@@ -599,19 +599,19 @@ var installationCopy = { zh: {
   recoveryLink: "\u5907\u4EFD\u4E0E\u6062\u590D",
   sourceLink: "\u6E90\u7801\u4E0E\u8BB8\u53EF"
 }, en: {
-  browserHint: "Device operations: macOS desktop Google Chrome. Reading and downloads remain available elsewhere.",
+  browserHint: "Windows 10/11 desktop Chrome / Edge beta; macOS Chrome remains supported.",
   wrongOriginal: "The package original firmware state does not match this plan. It may be a backup of another original state. This import did not start installation. Keep the file, close this session and inspect again with the correct package.",
   badPackage: "Recovery ZIP contents, format or hashes failed validation. No installation permission granted. Keep the file and check the complete package created for this session.",
   stoppedHelp: "Stopped without automatic retry. Keep the receipt. If writing began, use the saved offline tool to restore the original board.",
-  previewHint: "v0.1.0-alpha.3 \xB7 Waveshare ST7305 \xB7 macOS desktop Chrome",
+  previewHint: "v0.1.0-alpha.3 \xB7 Waveshare ST7305 \xB7 Windows Chrome / Edge \xB7 macOS Chrome",
   intro: "The device selects one supported installation path. Save and reselect a complete recovery package before confirming installation.",
   publicScope: "Limited release: 16 MiB Waveshare ST7305, exact FactoryOnly 20260120 first installation or exact Alpha 3 app0 same-version reinstallation. Unknown states, blank boards and app1 are refused.",
   heading: "Connect & Install",
-  prepare: "Save writing and finish transfers. Fully power off including the battery, remove TF and connect only this Waveshare. Hold BOOT while connecting USB, release after about two seconds, and stay in ROM mode. Close serial monitors. Select USB JTAG/serial debug unit.",
+  prepare: "Save writing and finish transfers. Fully power off including the battery, remove TF and connect only this Waveshare. Hold BOOT while connecting USB, release after about two seconds, and stay in ROM mode. Close serial monitors. On Windows select the corresponding USB Serial Device (COMx) or USB JTAG/serial debug unit. Never identify a board by COM number alone.",
   board: "I checked the physical Waveshare ESP32-S3-RLCD-4.2 / ST7305; only this board is connected.",
   tf: "Writing is saved, transfers ended, and TF was removed after full power-off.",
   connect: "Select port & inspect read-only",
-  unsupported: "Device operations require macOS desktop Google Chrome with secure Web Serial. Other environments can read help and download TF resources or the offline tool. No device connected.",
+  unsupported: "Desktop secure Web Serial and user permission are required. See the capability message. No device connected.",
   loading: "Verifying the four pinned release images\u2026",
   ready: "Firmware files verified. Ready to select a port.",
   update: "Reinstall the current version",
@@ -628,7 +628,7 @@ var installationCopy = { zh: {
   saveWarning: "Clicking Save does not prove the file reached disk. Wait for download completion, then reselect that ZIP. Do not extract, modify or publish the private package.",
   tool: "Download offline recovery tool (HTML)",
   toolKeep: "The offline HTML has finished saving; I will keep it with my private ZIP.",
-  toolHelp: "Save the exact offline tool before installation. Later close the page and reopen the HTML using Open File in macOS Chrome. No network, Python or extension required. Resolve download failures before installing.",
+  toolHelp: "Save the exact offline tool before installation. Later close the page and reopen the HTML using Ctrl+O in Windows Chrome/Edge (Command+O on Mac). No network, Python or extension required. Resolve download failures before installing.",
   toolReady: "Offline tool contents verified. Confirm the browser finished saving.",
   toolProblem: "Tool was not saved / download problem",
   backupConsent: "I saved and reselected a valid full recovery package, and separately retained TF writing and learning directories.",
@@ -647,6 +647,11 @@ var installationCopy = { zh: {
   recoveryLink: "Backup & recovery",
   sourceLink: "Source & licenses"
 } };
+var publicRecoveryCopy = { zh: { locked: "\u5728\u7EBF\u5907\u4EFD\u4E0E\u53EA\u8BFB\u6838\u9A8C\uFF1A\u6B64\u9875\u4E0D\u6267\u884C\u6574\u7247\u6062\u590D\u3002\u8BF7\u4E0B\u8F7D\u79BB\u7EBF\u5DE5\u5177\uFF0C\u5728\u539F\u8BBE\u5907\u4E0A\u6062\u590D\u5DF2\u4FDD\u5B58\u7684\u79C1\u4EBA\u5305\u3002", candidate: "\u79BB\u7EBF\u6062\u590D\u5DE5\u5177 \xB7 \u9650 Windows Chrome / Edge \xB7 macOS Chrome \u4E0E\u539F\u5FAE\u96EA ST7305\u3002\u6BCF\u6B21\u6062\u590D\u987B\u91CD\u65B0\u6838\u9A8C\u539F\u8BBE\u5907\u3001\u5B8C\u6574\u5305\u53CA\u8986\u76D6\u8303\u56F4\u3002", offlineLocked: "\u4E0B\u8F7D\u5177\u6709\u5B8C\u6574\u6062\u590D\u80FD\u529B\u7684\u79BB\u7EBF HTML\uFF0C\u4E0E\u79C1\u4EBA\u6062\u590D ZIP \u4E00\u8D77\u4FDD\u5B58\u3002\u5173\u95ED\u7F51\u9875\u540E\u5728 Windows Chrome/Edge \u7528 Ctrl+O\uFF08Mac \u7528 \u2318O\uFF09\u91CD\u5F00 HTML\uFF1B\u65E0\u9700\u7F51\u7EDC\u3001Python \u6216\u6D4F\u89C8\u5668\u6269\u5C55\u3002", supported: "Windows Chrome / Edge \xB7 macOS Chrome \u73AF\u5883\u53EF\u7528\u3002\u5B9E\u6D4B\u57FA\u7EBF\u548C\u9650\u5B9A\u8303\u56F4\u89C1\u8BF4\u660E\uFF1B\u672A\u8FDE\u63A5\u524D\u4E0D\u4F1A\u8BBF\u95EE\u8BBE\u5907\u3002", unsupported: "\u9700\u8981\u684C\u9762\u5B89\u5168 Web Serial \u4E0E\u7528\u6237\u6388\u6743\uFF1B\u8BF7\u67E5\u770B\u5F53\u524D\u80FD\u529B\u63D0\u793A\u3002" }, en: { locked: "Online backup and read-only verification. This page does not restore Flash. Download the offline tool to restore a saved private package to its original board.", candidate: "Offline recovery tool \xB7 Windows Chrome / Edge \xB7 macOS Chrome and original Waveshare ST7305 only. Every restore rechecks the board, complete package and overwrite scope.", offlineLocked: "Download the writable offline HTML and keep it with the private ZIP. Close the page and reopen the HTML using Ctrl+O in Windows Chrome/Edge (Command+O on Mac). No network, Python or extension required.", supported: "Windows Chrome / Edge \xB7 macOS Chrome is available. See the guide for the tested baseline and limited scope. No device access before connection.", unsupported: "Desktop secure Web Serial and user permission are required; see the capability message." } };
+for (const l of ["zh", "en"]) {
+  publicRecoveryCopy[l].prepare = installationCopy[l].prepare;
+  publicRecoveryCopy[l].offlineHelp = installationCopy[l].toolHelp;
+}
 
 // src/pins.js
 var PINS = {
@@ -987,23 +992,47 @@ function readPackageArchive(input) {
 }
 
 // src/release-platform.js
-function qualifiedDesktopChrome(environment) {
-  const { userAgent = "", vendor = "", platform = "", brands, secureContext = false, serialAvailable = false, brave = false } = environment;
-  const mac = /Macintosh/.test(userAgent) && (/Mac/.test(platform) || platform === "macOS");
-  const chrome = /Chrome\/\d+/.test(userAgent) && vendor === "Google Inc." && !brave && !/(Edg|OPR|Opera|Android|Mobile|CriOS|FxiOS)/.test(userAgent);
-  const brandOk = !brands || brands.some((x) => x.brand === "Google Chrome");
-  return Boolean(mac && chrome && brandOk && secureContext && serialAvailable);
+function desktopSerialStatus(environment) {
+  const { userAgent = "", platform = "", mobile = false, maxTouchPoints = 0, secureContext = false, serialAvailable = false, serialPolicyAllowed = true } = environment;
+  if (mobile || /Android|iPhone|iPad|iPod|Mobile/i.test(userAgent) || /Mac/i.test(platform) && maxTouchPoints > 1) return { qualified: false, reason: "MOBILE" };
+  if (!secureContext) return { qualified: false, reason: "INSECURE_CONTEXT" };
+  if (!serialPolicyAllowed) return { qualified: false, reason: "SERIAL_POLICY" };
+  if (!serialAvailable) return { qualified: false, reason: "SERIAL_UNAVAILABLE" };
+  return { qualified: true, reason: "CAPABLE_DESKTOP" };
 }
-function browserIsQualified() {
-  return qualifiedDesktopChrome({
-    userAgent: navigator.userAgent,
-    vendor: navigator.vendor,
-    platform: navigator.userAgentData?.platform || navigator.platform,
-    brands: navigator.userAgentData?.brands,
-    secureContext: isSecureContext,
-    serialAvailable: !!navigator.serial?.requestPort,
-    brave: !!navigator.brave
-  });
+function browserEnvironment() {
+  return { userAgent: navigator.userAgent, platform: navigator.userAgentData?.platform || navigator.platform, mobile: navigator.userAgentData?.mobile === true, maxTouchPoints: navigator.maxTouchPoints || 0, secureContext: isSecureContext, serialAvailable: typeof navigator.serial?.requestPort === "function", serialPolicyAllowed: (document.permissionsPolicy || document.featurePolicy)?.allowsFeature?.("serial") !== false };
+}
+var browserIsQualified = () => desktopSerialStatus(browserEnvironment()).qualified;
+function platformMessage(language, environment = browserEnvironment()) {
+  const reason = desktopSerialStatus(environment).reason;
+  const copy = { zh: {
+    MOBILE: "\u624B\u673A\u548C\u5E73\u677F\u4E0D\u5F00\u653E USB \u64CD\u4F5C\u3002\u8BF7\u4F7F\u7528 Windows 10/11 \u684C\u9762 Chrome \u6216 Edge\uFF1B\u6B64\u5904\u4ECD\u53EF\u6D4F\u89C8\u548C\u4E0B\u8F7D\u3002",
+    INSECURE_CONTEXT: "\u5F53\u524D\u9875\u9762\u4E0D\u662F\u5B89\u5168\u4E0A\u4E0B\u6587\uFF0C\u672A\u8FDE\u63A5\u8BBE\u5907\u3002\u8BF7\u6253\u5F00\u6B63\u5F0F HTTPS \u7F51\u7AD9\uFF1B\u79BB\u7EBF\u6062\u590D\u8BF7\u7528\u684C\u9762 Chrome/Edge \u76F4\u63A5\u6253\u5F00\u5DF2\u4FDD\u5B58\u7684 HTML\u3002\u4E0D\u8981\u5173\u95ED\u6D4F\u89C8\u5668\u5B89\u5168\u8BBE\u7F6E\u3002",
+    SERIAL_POLICY: "\u6B64\u9875\u9762\u7684\u4E32\u53E3\u6743\u9650\u88AB\u7B56\u7565\u9650\u5236\uFF0C\u672A\u8FDE\u63A5\u8BBE\u5907\u3002\u53EF\u5C1D\u8BD5\u684C\u9762 Chrome\uFF1B\u53D7\u7BA1\u7406\u7684\u7535\u8111\u8BF7\u8054\u7CFB\u7BA1\u7406\u5458\u5141\u8BB8 Serial API\uFF0C\u4E0D\u8981\u7ED5\u8FC7\u7EC4\u7EC7\u7B56\u7565\u3002",
+    SERIAL_UNAVAILABLE: "\u6D4F\u89C8\u5668\u6CA1\u6709\u63D0\u4F9B Web Serial\uFF0C\u672A\u8FDE\u63A5\u8BBE\u5907\u3002Windows \u8BF7\u7528\u6700\u65B0\u7248\u684C\u9762 Chrome \u6216 Edge\uFF1BEdge \u53D7\u7EC4\u7EC7\u7B56\u7565\u9650\u5236\u65F6\u53EF\u5C1D\u8BD5 Chrome\uFF0C\u6216\u8054\u7CFB\u7BA1\u7406\u5458\u3002\u79BB\u7EBF HTML \u5FC5\u987B\u76F4\u63A5\u5728\u8BE5\u6D4F\u89C8\u5668\u6253\u5F00\u3002",
+    CAPABLE_DESKTOP: "\u5F53\u524D\u684C\u9762\u73AF\u5883\u5177\u5907 Web Serial\u3002Windows Chrome/Edge \u6D4B\u8BD5\u6027\u5F00\u653E\uFF0C\u771F\u5B9E USB \u8DEF\u5F84\u4ECD\u5F85\u73B0\u573A\u9A8C\u8BC1\uFF08WINDOWS_DEVICE_FIELD_TEST_PENDING\uFF09\uFF1BmacOS Chrome \u7EE7\u627F\u65E2\u6709\u9A8C\u6536\u3002\u5B89\u88C5\u524D\u5FC5\u987B\u4FDD\u5B58\u5E76\u56DE\u9009\u5B8C\u6574 ZIP\uFF0C\u53E6\u5B58\u79BB\u7EBF HTML\u3002"
+  }, en: {
+    MOBILE: "USB operations are unavailable on phones/tablets. Use Windows 10/11 desktop Chrome or Edge. Reading and downloads remain available.",
+    INSECURE_CONTEXT: "This page is not a secure context; no device connected. Use the official HTTPS site, or open the saved offline HTML directly in desktop Chrome/Edge. Do not disable browser security.",
+    SERIAL_POLICY: "Serial access is restricted by policy; no device connected. Try desktop Chrome or ask your administrator to allow the Serial API. Do not bypass organizational policy.",
+    SERIAL_UNAVAILABLE: "Web Serial is unavailable; no device connected. On Windows use current desktop Chrome or Edge. If Edge is managed, try Chrome or ask your administrator. Open the offline HTML directly in that browser.",
+    CAPABLE_DESKTOP: "Web Serial is available. Windows Chrome/Edge is open for informed beta use; real USB field testing remains pending (WINDOWS_DEVICE_FIELD_TEST_PENDING). macOS Chrome inherits prior qualification. Save and reselect the complete ZIP and keep the offline HTML before installation."
+  } };
+  return copy[language === "en" ? "en" : "zh"][reason];
+}
+function publicErrorCode(error) {
+  if (typeof error?.code === "string" && /^[A-Z_0-9]{1,48}$/.test(error.code)) return error.code;
+  if (error?.name === "NotFoundError") return "PORT_SELECTION_CANCELLED";
+  if (["SecurityError", "NotAllowedError"].includes(error?.name)) return "SERIAL_PERMISSION_DENIED";
+  return "IO";
+}
+function serialErrorHelp(code, language) {
+  const en = language === "en";
+  if (code === "SERIAL_PERMISSION_DENIED") return en ? "Serial permission was denied or blocked by browser/organization policy. No automatic retry. Use site permissions, try desktop Chrome, or ask your administrator." : "\u4E32\u53E3\u6388\u6743\u88AB\u62D2\u7EDD\u6216\u88AB\u6D4F\u89C8\u5668\uFF0F\u7EC4\u7EC7\u7B56\u7565\u9650\u5236\uFF0C\u4E0D\u4F1A\u81EA\u52A8\u91CD\u8BD5\u3002\u8BF7\u68C0\u67E5\u7F51\u7AD9\u6743\u9650\uFF0C\u5C1D\u8BD5\u684C\u9762 Chrome\uFF0C\u6216\u8054\u7CFB\u7BA1\u7406\u5458\u3002";
+  if (code === "PORT_SELECTION_CANCELLED") return en ? "Port selection cancelled; no device connected. Close this session before starting again." : "\u5DF2\u53D6\u6D88\u4E32\u53E3\u9009\u62E9\uFF0C\u5C1A\u672A\u8FDE\u63A5\u8BBE\u5907\u3002\u5173\u95ED\u672C\u6B21\u4F1A\u8BDD\u540E\u53EF\u4E3B\u52A8\u91CD\u65B0\u5F00\u59CB\u3002";
+  if (code === "CONNECTION") return en ? "The port could not be opened. Close serial monitors/other installer tabs; check the data cable, BOOT download mode and Device Manager. Do not guess a COM port or keep retrying a communication fault." : "\u4E32\u53E3\u672A\u80FD\u6253\u5F00\u3002\u8BF7\u5173\u95ED\u4E32\u53E3\u76D1\u89C6\u5668\u6216\u5176\u4ED6\u5B89\u88C5\u9875\uFF0C\u68C0\u67E5\u6570\u636E\u7EBF\u3001BOOT \u4E0B\u8F7D\u6A21\u5F0F\u53CA\u8BBE\u5907\u7BA1\u7406\u5668\u3002\u4E0D\u8981\u731C\u6D4B COM \u7AEF\u53E3\uFF0C\u4E5F\u4E0D\u8981\u5BF9\u901A\u4FE1\u5F02\u5E38\u8FDE\u7EED\u91CD\u8BD5\u3002";
+  return "";
 }
 
 // src/factory-pins.js
@@ -2123,10 +2152,10 @@ async function requestSerialPort(serial, diagnostics) {
 }
 
 // src/public-ui.js
-function startPublicUI({ build, sourceCommit, offlineToolSha256, requestDriver }) {
+function startPublicUI({ build, sourceCommit, offlineToolSha256, requestDriver, offlineToolHref = "../offline/Draftor_Recovery_R10_Offline.html", offlineToolName = "Draftor_Recovery_R10_Offline.html" }) {
   const $ = (id) => document.getElementById(id);
   let lang = "zh", phase = "IDLE", error = "", release, session, diagnostics, lastReceipt, busy = false, activeTask, zip, packageName = "", infoKey, closed = false;
-  const urls = /* @__PURE__ */ new Set(), t = (k) => installationCopy[lang][k] || dict[lang][k] || k;
+  const urls = /* @__PURE__ */ new Set(), t = (k) => k === "unsupported" ? platformMessage(lang) : installationCopy[lang][k] || dict[lang][k] || k;
   const modal = document.createElement("dialog");
   modal.id = "install-dialog";
   modal.setAttribute("aria-labelledby", "install-heading");
@@ -2141,6 +2170,10 @@ function startPublicUI({ build, sourceCommit, offlineToolSha256, requestDriver }
  <section id="confirm-section">${check("backup-confirmed", "backupConsent")}${check("plan-confirmed", "planConsent")}<div id="erase-label">${check("erase-confirmed", "eraseConsent")}</div><div id="current-app-label">${field("current-app", "oldApp", ".bin")}</div><button id="execute-plan" class="install-primary" data-r10="execute" disabled></button></section></section>
  <progress id="write-progress" max="1" value="0" hidden></progress><p id="finished-note" class="notice" data-r10="finished" hidden></p><p><a href="recovery.html" data-r10="recoveryLink"></a> \xB7 <a href="docs/TF_GUIDE.html">TF</a> \xB7 <a href="docs/PUBLIC_STATUS.html" data-r10="scopeLink"></a></p><div class="workflow-actions"><button id="save-receipt" data-r10="receipt" disabled></button><button id="stop-close" data-r10="close"></button></div></div></div>`;
   document.body.append(modal);
+  const platformNotice = document.createElement("p");
+  platformNotice.id = "platform-notice";
+  platformNotice.className = "notice";
+  $("install-btn").after(platformNotice);
   const externalReceipt = document.createElement("button");
   externalReceipt.id = "closed-receipt";
   externalReceipt.dataset.r10 = "receipt";
@@ -2158,6 +2191,10 @@ function startPublicUI({ build, sourceCommit, offlineToolSha256, requestDriver }
       }
       const links = document.createElement("p");
       links.innerHTML = '<a href="docs/PUBLIC_STATUS.html">\u8303\u56F4 / Scope</a> \xB7 <a href="docs/TF_GUIDE.html">TF</a> \xB7 <a href="recovery.html">\u5907\u4EFD\u4E0E\u6062\u590D / Recovery</a> \xB7 <a href="docs/SOURCE.html">Source & licenses</a>';
+      const windowsLink = document.createElement("a");
+      windowsLink.href = `docs/WINDOWS_FIRST_USER_GUIDE.${lang === "zh" ? "zh-CN" : "en"}.md`;
+      windowsLink.textContent = lang === "zh" ? "Windows \u9996\u6B21\u4F7F\u7528" : "Windows first-use guide";
+      links.append(" \xB7 ", windowsLink);
       target.append(links);
     } else {
       const c = dict[lang].dialogs[infoKey];
@@ -2166,6 +2203,7 @@ function startPublicUI({ build, sourceCommit, offlineToolSha256, requestDriver }
     }
   }
   function render() {
+    platformNotice.textContent = platformMessage(lang);
     document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
     document.title = lang === "zh" ? "Draftor \u8349\u7A3F\u673A \xB7 \u56FA\u4EF6\u5B89\u88C5" : "Draftor \xB7 Firmware Installer";
     for (const e of document.querySelectorAll("[data-i18n]")) e.textContent = t(e.dataset.i18n);
@@ -2173,7 +2211,7 @@ function startPublicUI({ build, sourceCommit, offlineToolSha256, requestDriver }
     $("board-name").textContent = lang === "zh" ? "\u5FAE\u96EA ESP32-S3-RLCD-4.2" : "Waveshare ESP32-S3-RLCD-4.2";
     $("workflow-status").textContent = installationCopy[lang].phases[phase] || t(phase);
     $("workflow-error").hidden = !error;
-    $("workflow-error").textContent = error ? `${error} \xB7 ${t(error === "PACKAGE_METADATA" ? "wrongOriginal" : error.startsWith("PACKAGE_") ? "badPackage" : "stoppedHelp")}` : "";
+    $("workflow-error").textContent = error ? `${error} \xB7 ${serialErrorHelp(error, lang) || t(error === "PACKAGE_METADATA" ? "wrongOriginal" : error.startsWith("PACKAGE_") ? "badPackage" : "stoppedHelp")}` : "";
     $("connect-section").hidden = !!session || closed || !browserIsQualified();
     $("connect-read").disabled = busy || !release || !$("physical-board").checked || !$("prepared-tf").checked;
     const plan = session?.plan;
@@ -2245,7 +2283,7 @@ function startPublicUI({ build, sourceCommit, offlineToolSha256, requestDriver }
       try {
         await fn();
       } catch (e) {
-        error = /^[A-Z_0-9]+$/.test(e.code || "") ? e.code : e.name === "NotFoundError" ? "PORT_SELECTION_CANCELLED" : "IO";
+        error = publicErrorCode(e);
         diagnostics?.error({ code: error });
         session?.cancel(error);
         try {
@@ -2347,12 +2385,12 @@ function startPublicUI({ build, sourceCommit, offlineToolSha256, requestDriver }
     session.invalidateOfflineTool();
     $("tool-saved").checked = false;
     run(async () => {
-      const r = await fetch(new URL("../offline/Draftor_Recovery_R10_Offline.html", import.meta.url), { cache: "no-store" });
+      const r = await fetch(new URL(offlineToolHref, import.meta.url), { cache: "no-store" });
       requireSafe(r.ok, "RECOVERY_TOOL");
       const b = new Uint8Array(await r.arrayBuffer());
       requireSafe(b.length < 4e6, "RECOVERY_TOOL");
       await session.verifyOfflineTool(b);
-      download(b, "Draftor_Recovery_R10_Offline.html", "text/html");
+      download(b, offlineToolName, "text/html");
     });
   });
   $("tool-problem").addEventListener("click", () => {
@@ -2409,7 +2447,7 @@ function startPublicUI({ build, sourceCommit, offlineToolSha256, requestDriver }
   });
   function receipt() {
     const r = session?.receipt() || lastReceipt;
-    if (r) download(new TextEncoder().encode(JSON.stringify(r, null, 2) + "\n"), "Draftor-R10-sanitized-receipt.json", "application/json");
+    if (r) download(new TextEncoder().encode(JSON.stringify(r, null, 2) + "\n"), "Draftor-install-sanitized-receipt.json", "application/json");
   }
   $("save-receipt").addEventListener("click", receipt);
   externalReceipt.addEventListener("click", receipt);
@@ -3474,11 +3512,13 @@ var S3Rom = class {
   }
 };
 
-// src/r10-main.js
+// src/r11-main.js
 startPublicUI({
-  build: "R10-public-52f5f8203326",
-  sourceCommit: "52f5f8203326911d5f4de39b6360d013ed404b49",
-  offlineToolSha256: "cc9b19a541b8121ae756d1d6a74009bf9c926bd7c75c4ad8fafa93d7a76bac13",
+  build: "R11-public-385a584bc24a",
+  sourceCommit: "385a584bc24ac4f31c93526e1f327f8451437eb7",
+  offlineToolSha256: "5384f9fb9ad9979423f07f8eddb9d04b7dbaea3679da623181e7bb220a8571bf",
+  offlineToolHref: "../offline/Draftor_Recovery_R11_Offline.html",
+  offlineToolName: "Draftor_Recovery_R11_Offline.html",
   requestDriver: async (diagnostics) => {
     requireSafe(browserIsQualified(), "PLATFORM");
     return new S3Rom(new StrictSerialTransport(await requestSerialPort(navigator.serial, diagnostics), { diagnostics }), { candidate: true, diagnostics });

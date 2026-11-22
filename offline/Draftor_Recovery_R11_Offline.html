@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta name="color-scheme" content="light"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-J0Q6LghKzg/qe1dGupm6/BPDqzqHSUPYbAqEfSCO1sY='; style-src 'sha256-jz+6CUS7U/EZQsv3WWDLEQ7wY4MCO/9pOHdAGMfg+mE='; img-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><title>Draftor · 备份与恢复 / Backup & Recovery</title><link rel="icon" href="data:,"><style>    :root { --paper:#f7f5ef; --ink:#292924; --cinnabar:#a74539; --quiet:#766f64; --line:#d9d5c9; --focus:#815a50; }
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta name="color-scheme" content="light"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-RYXGg89zchXBC1xKe+k+CWL0pcoXjKlnbDAJh6Mxf9E='; style-src 'sha256-jz+6CUS7U/EZQsv3WWDLEQ7wY4MCO/9pOHdAGMfg+mE='; img-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><title>Draftor · 备份与恢复 / Backup & Recovery</title><link rel="icon" href="data:,"><style>    :root { --paper:#f7f5ef; --ink:#292924; --cinnabar:#a74539; --quiet:#766f64; --line:#d9d5c9; --focus:#815a50; }
     * { box-sizing:border-box; }
     html { background:var(--paper); scroll-behavior:smooth; }
     body { margin:0; min-height:100vh; color:var(--ink); background:var(--paper);
@@ -129,45 +129,78 @@ summary:focus-visible { outline:3px solid var(--focus); outline-offset:4px; }
 <details><summary data-t="diagnostics"></summary><p data-t="diagnosticHelp"></p><pre id="diagnostics"></pre></details>
 <footer class="footer"><p id="build-id"></p><a href="docs/RECOVERY_GUIDE.zh-CN.md" data-t="guide"></a> · <a href="#offline-licenses">Source &amp; licenses</a></footer>
 <section id="offline-guide"><h2>恢复说明 / Recovery guide</h2><article lang="zh-CN"><h1>Draftor 私人恢复包与离线恢复</h1>
-<p>设备操作支持 macOS 桌面 Google Chrome、原微雪 ESP32-S3-RLCD-4.2 / ST7305 和 16 MiB Flash。实测版本为 macOS 15.5 / arm64、Chrome 157.0.8103.50，不代表所有版本组合均实测。</p>
+<p>设备操作支持 Windows 10/11 桌面 Chrome / Edge（Windows 实机待验证）及 macOS Chrome、原微雪 ESP32-S3-RLCD-4.2 / ST7305 和 16 MiB Flash。实测版本为 macOS 15.5 / arm64、Chrome 157.0.8103.50，不代表所有版本组合均实测。</p>
 <h2>安装前保存</h2>
-<p>1. 保存文稿并结束传输。彻底断电（含电池），取出 TF。只连接这块微雪，按住 BOOT 接 USB，约两秒后释放，关闭串口监视器。选 USB JTAG/serial debug unit。
+<p>1. 保存文稿并结束传输。彻底断电（含电池），取出 TF。只连接这块微雪，按住 BOOT 接 USB，约两秒后释放，关闭串口监视器。选对应 USB Serial Device (COMx) 或 USB JTAG/serial debug unit，不按 COM 号码猜设备。
 2. 正式首页“连接设备并安装”会自动识别准确厂家首装或 Alpha 3 app0 同版本重新安装。未知状态即停止，不可强刷。
 3. 没有旧文件时，点“读取完整 Flash（只读）”。完整 ROM 慢读需要较长时间，保持页面、USB、供电。保存生成的私人 ZIP，等浏览器下载完成，再回选实际文件。完整内容须匹配当前同一设备，才能继续。
 4. 下载离线恢复 HTML，确认已保存，与私人 ZIP 一起保管。网页会校验准确工具摘要；报告下载失败时不能继续。保存工具不替代私人 ZIP 回选。
 5. 阅读计划和影响，确认备份及 TF 条件。首装须单独确认清除全部内部 Flash；兼容重新安装只写活动 App。内容校验通过并释放串口后，按提示普通启动与检查。</p>
 <h2>原设备不能启动时</h2>
-<p>1. 关闭其他安装/恢复页面。打开 Chrome 的“文件 → 打开文件”（⌘O），选择已保存的 Draftor_Recovery_R10_Offline.html。断网也可用，无需 Python、终端、Codex、扩展、开发者工具或安全设置更改。
+<p>1. 关闭其他安装/恢复页面。在 Windows Chrome/Edge 按 Ctrl+O（Mac Chrome 按 ⌘O），选择已保存的 Draftor_Recovery_R11_Offline.html。断网也可用，无需 Python、终端、Codex、扩展、开发者工具或安全设置更改。
 2. 选择“恢复原设备”，选择原私人 ZIP，不要解压。包含原设备身份、精确 16 MiB 镜像、摘要和恢复说明。原设备和安全检查失败时停止，不修改包或换板绕过。
-3. 保存文稿并结束传输，彻底断电后取出 TF；按上述方式进 ROM。确认实物条件，选择 USB JTAG/serial debug unit。允许当前分区损坏，但仍必须匹配原设备身份、容量与安全条件。
+3. 保存文稿并结束传输，彻底断电后取出 TF；按上述方式进 ROM。确认实物条件，选择对应 USB Serial Device (COMx) 或 USB JTAG/serial debug unit。允许当前分区损坏，但仍必须匹配原设备身份、容量与安全条件。
 4. 阅读并明确确认整片覆盖：会覆盖全部 16 MiB，设置、配对及内部文稿回到备份时；备份之后的内部变化会丢失。TF 不在包内且不被工具操作。只点一次恢复，保持供电和连接。
 5. 成功提示“内容已校验”后，关闭连接并清除私人会话，保存脱敏回执。彻底断电，插回原 TF，松开 BOOT 普通启动。原键盘用原通道回连，不重置配对。检查原稿、新稿保存及重启读取。厂家包恢复后是厂家演示，不等于 Draftor 已安装。
 6. 任何通信、写入或校验错误即停止；不自动重试、换槽、复位或降级首装。保留原包和回执；已写入时设备可能不完整。排除具体原因后，用户日后主动开始的新会话仍须完整前检与确认，没有项目测试额度限制。</p>
 <h2>私人数据及证据边界</h2>
 <p>私人 ZIP 包含 MAC、设置、配对和可能的内部文稿，不能上传或公开。文件只在本机处理，无账号或上传服务。摘要和 MAC 防误选及意外损坏，不是数字签名。TF 文稿和学习目录需另行备份，下载 TF 资源不等于备份文稿。</p>
 <p>关闭会清除页面私人引用、文件选择和对象 URL，不承诺物理内存已擦除。诊断不含私人镜像、MAC、文件名或私人摘要；计数来自程序控制点，不是独立抓线。内容核验不等于普通启动、键盘和文稿已通过。</p>
-<p>Draftor 包完整恢复继承 R9 实机及独立用户验收；厂家包恢复为软件分支覆盖及共用通道继承，未另做厂家恢复实机测试。仅支持准确 Alpha 3 app0 或准确 FactoryOnly_20260120 原状态。完整包仍为严格四条目的 draftor-private-recovery/1；工具单独保存，不塞入私人包。
+<p>Draftor 包完整恢复继承 R9 实机及独立用户验收；厂家包恢复为软件分支覆盖及共用通道继承，未另做厂家恢复实机测试。仅支持准确 Alpha 3 app0 或准确 FactoryOnly_20260120 原状态。完整包仍为严格四条目的 draftor-private-recovery/1；工具单独保存，不塞入私人包。</p>
+<p>
+Windows: WINDOWS_DEVICE_FIELD_TEST_PENDING. See WINDOWS_FIRST_USER_GUIDE.zh-CN.md / WINDOWS_FIRST_USER_GUIDE.en.md and WINDOWS_COMPAT_MATRIX.md.
+</p><h1>Windows 首位用户操作说明</h1>
+<p>Windows 10/11 桌面 Chrome 或 Microsoft Edge 现已测试性开放。Windows 真实 USB 路径仍待现场验证（WINDOWS_DEVICE_FIELD_TEST_PENDING）。页面会检查实际能力和设备状态；不要以按钮可点击当成设备已通过。无需 Python、命令行、Codex 或浏览器扩展。</p>
+<h2>准备</h2>
+<p>保存文稿并结束 USB 传输。彻底断电（含电池）后取出 TF；另行保管 TF 文稿和学习目录。只连接这块微雪 ESP32-S3-RLCD-4.2 / ST7305。用可靠的 USB 数据线，按住 BOOT 接电脑，约两秒后释放，保持 ROM 下载模式。关闭串口监视器及其他安装标签。</p>
+<h2>找到正确设备</h2>
+<p>在 Windows“设备管理器”的“端口（COM 和 LPT）”查看插入该板后出现的 USB 串行设备；浏览器中名称可能是 USB Serial Device (COMx)、USB 串行设备 (COMx) 或 USB JTAG/serial debug unit。COM 数字可能变化，不是板子身份。只选择这块板对应的 USB 项，不猜选蓝牙或其他串口。网站仍核验 USB VID/PID、ESP32-S3 身份和完整安全状态。</p>
+<p>没有出现设备时先检查数据线、USB 口、供电、BOOT 步骤，以及是否被其他程序占用。Windows 10 及以上的 USB Serial/JTAG 驱动一般可随联网自动安装；若有黄色警告，只按 Espressif 官方说明处理。不要随意把串行接口替换成 JTAG 的 WinUSB 驱动，也不需要安装整套开发工具。参考：[Espressif USB Serial/JTAG 官方说明](https://docs.espressif.com/projects/esp-iot-solution/en/latest/usb/usb_overview/usb_serial_jtag.html)。</p>
+<p>Edge 没有串口 API 或被公司策略阻止时，可尝试最新版桌面 Chrome；受管理的电脑请联系管理员允许 Serial API。不要关闭浏览器安全设置或绕过组织策略。参考：[Microsoft Edge 串口策略](https://learn.microsoft.com/en-us/deployedge/microsoft-edge-policies/defaultserialguardsetting)。</p>
+<h2>安装与自己的恢复包</h2>
+<p>打开 https://draftor.tcssn.org/，点“连接设备并安装”。阅读 Windows 测试提示，按实际条件勾选，再在浏览器串口选择框选对应 USB 设备。取消选择不会开始写入。</p>
+<p>只读检查通过后，页面会自动给出准确厂家首装或 Alpha 3 app0 同版本重装计划。陌生固件、app1、空白板或不合格状态应停止；不要寻找强刷入口。</p>
+<p>没有旧文件也能使用“读取完整 Flash（只读）”。等待全部读取结束，在电脑私人文件夹保存生成的 ZIP；等浏览器显示下载完成，再用“回选”选择同一个完整 ZIP，不要解压或改名混淆。只有页面显示与当前同板完整 Flash 一致才算通过。下载失败或中断不算保存；保留原文件，先解决下载问题。</p>
+<p>再下载离线恢复 HTML，确认保存到相同私人目录；显示扩展名，确保是 .html 而非 .html.txt。将 ZIP 和 HTML 一起备存。工具下载失败时不要安装。恢复包包含设置、配对和可能的内部文稿，不能上传；TF 文稿不在此包内。</p>
+<p>阅读计划、影响和覆盖范围后自主确认。首装会清除全部 16 MiB 内部 Flash；同版本重装只写已确认的活动 App。写入和校验时保持 USB、供电和页面。失败立即停止，保存脱敏回执，不自动再刷、改槽、擦除或复位。</p>
+<h2>真正离线的恢复</h2>
+<p>只有需要恢复时才操作。先关闭所有网站安装页。电脑断网后，在 Windows Chrome/Edge 按 Ctrl+O，打开已保存的 Draftor_Recovery_R11_Offline.html，再选择自己的完整私人 ZIP。无需启动本地服务或安装软件。页面会检查 FILE 安全上下文和 Web Serial；若提示能力缺失，尝试另一支持浏览器或联系支持，不要绕过检查。</p>
+<p>确认 TF 已取出、原板 ROM 模式和实际覆盖影响，再授权一次完整恢复。它会回到备份时状态，覆盖全部内部 Flash；备份后的内部修改会丢失。若备份是厂家状态，恢复后是厂家演示，不是自动装 Draftor。失败时保留现场和回执，不连续恢复。</p>
+<p>内容核验完成后先关闭连接；再彻底断电，插回已准备的 TF，松开 BOOT 普通启动。原 Draftor 备份使用键盘原通道回连，不重置配对；厂家首装按提示配对。检查显示、中英文输入、旧稿、新稿保存与重启读取。网页内容校验不能代替这些正常使用检查。</p>
+<h2>首位愿意配合的收件人反馈</h2>
+<p>依次反馈 Windows 版本和浏览器版本、USB/COM 显示、只读计划、恢复 ZIP 与 HTML 保存/回选、安装结果，以及 TF、键盘和写作结果。不要发送私人 ZIP、MAC 或文稿。真实离线恢复另由愿意配合者确认范围后验收，不为收集证据故意断电或破坏内容。真实故障保留回执，使用已保存工具或受控支持恢复。</p>
+<p>TF 两份资源和目录说明沿用官网；下载资源不等于备份 TF。不要格式化或覆盖含个人文稿的卡。大陆下载链路尚未因此获得验收。
 </p></article>
 <article lang="en"><h1>Draftor private packages and offline recovery</h1>
-<p>Device operations support macOS desktop Google Chrome and the original Waveshare ESP32-S3-RLCD-4.2 / ST7305 with 16 MiB Flash. Tested baseline: macOS 15.5 / arm64, Chrome 157.0.8103.50. This does not qualify every version combination.</p>
+<p>Device operations support Windows 10/11 desktop Chrome / Edge (physical-device validation pending) and macOS Chrome and the original Waveshare ESP32-S3-RLCD-4.2 / ST7305 with 16 MiB Flash. Tested baseline: macOS 15.5 / arm64, Chrome 157.0.8103.50. This does not qualify every version combination.</p>
 <h2>Save before installation</h2>
-<p>1. Save writing and finish transfers. Fully power off, including the battery, and remove TF. Connect only this board. Hold BOOT while plugging in USB, release after about two seconds and close serial monitors. Select USB JTAG/serial debug unit.
+<p>1. Save writing and finish transfers. Fully power off, including the battery, and remove TF. Connect only this board. Hold BOOT while plugging in USB, release after about two seconds and close serial monitors. Select the corresponding USB Serial Device (COMx) or USB JTAG/serial debug unit; do not identify a board by COM number.
 2. Use Connect &amp; Install on the official homepage. Inspection selects the exact supported factory first installation or Alpha 3 app0 same-version reinstallation. Unknown states stop; there is no force option.
 3. Without old files, read complete Flash read-only. ROM slow reading takes time: keep the page, USB and power connected. Save the generated private ZIP, wait for the browser to finish, then reselect the actual saved file. Its complete contents must match this board's current Flash.
 4. Download the offline HTML, confirm saving finished, and keep it with your private ZIP. The page verifies the exact tool digest. Resolve download failures before installing. Saving the tool does not replace package reimport.
 5. Read the plan and impact and confirm backup/TF conditions. First installation separately requires erasing all internal Flash; reinstallation writes only the active App. After verification and port release, follow the normal boot checks.</p>
 <h2>Restore a board that cannot boot</h2>
-<p>1. Close other installation/recovery pages. In Chrome choose File → Open File (⌘O) and open your saved Draftor_Recovery_R10_Offline.html. It works without network, Python, terminal, Codex, extensions, developer tools or security setting changes.
+<p>1. Close other installation/recovery pages. In Windows Chrome/Edge press Ctrl+O (Command+O in Mac Chrome) and open your saved Draftor_Recovery_R11_Offline.html. It works without network, Python, terminal, Codex, extensions, developer tools or security setting changes.
 2. Choose Restore original board and select the private ZIP without extracting it. The package contains original-board identity, an exact 16 MiB image, hashes and instructions. Stop on identity or security failure; never edit the package or substitute a board.
-3. Save writing, finish transfers, fully power off and remove TF; enter ROM as above. Confirm physical conditions and select USB JTAG/serial debug unit. Current partitions may be damaged, but original identity, capacity and security checks remain mandatory.
+3. Save writing, finish transfers, fully power off and remove TF; enter ROM as above. Confirm physical conditions and select the corresponding USB Serial Device (COMx) or USB JTAG/serial debug unit. Current partitions may be damaged, but original identity, capacity and security checks remain mandatory.
 4. Confirm the full overwrite: all 16 MiB, settings, pairing and internal writing return to backup time. Later internal changes are lost. TF is separate and is never accessed. Click Restore once and keep power and USB connected.
 5. After Contents verified, close the connection, clear the private session and save a sanitized receipt. Fully power off, insert the original TF and boot normally with BOOT released. Reconnect the keyboard on its original channel without resetting pairing. Check old writing, saving new writing and reading after restart. A factory package restores the factory demo, not Draftor.
 6. Communication, writing or verification errors stop the session. There is no automatic retry, slot switch, reset or fallback to first installation. Retain the original package and receipt. Partial writing may prevent boot. After the specific cause is resolved, a user-initiated new session still requires all checks and consent; no project test quota applies.</p>
 <h2>Privacy and evidence</h2>
 <p>The private ZIP contains MAC, settings, pairing and possibly internal documents. Never upload or publish it. Files stay local; there is no account or upload service. Hashes and MAC prevent accidental corruption and mistakes, not malicious forgery. Back up TF writing and learning directories separately; downloading TF resources is not a writing backup.</p>
 <p>Closing clears page references, file inputs and object URLs, not guaranteed physical memory erasure. Diagnostics exclude private images, MAC, filenames and private hashes. Counters represent program control points, not independent wire capture. Content verification does not prove normal boot, keyboard or writing health.</p>
-<p>Draftor full recovery inherits R9 physical and independent-user qualification. Factory recovery has software coverage and shares the qualified writer; no separate factory-package restore hardware test is claimed. Only exact Alpha 3 app0 or FactoryOnly_20260120 original states are accepted. The private package remains the strict four-entry draftor-private-recovery/1 ZIP. Keep the tool separately.
-</p></article></section><section id="offline-licenses"><h2>Source &amp; licenses</h2><p>Combined program GPL-3.0. Corresponding source: Draftor_Web_R10_source.zip, distributed alongside this tool and at https://draftor.tcssn.org/sources/Draftor_Web_R10_source.zip. Build R10-public-52f5f8203326; source 52f5f8203326911d5f4de39b6360d013ed404b49. No private image is distributed.</p><details><summary>GNU_GPL_v3.txt</summary><pre>                    GNU GENERAL PUBLIC LICENSE
+<p>Draftor full recovery inherits R9 physical and independent-user qualification. Factory recovery has software coverage and shares the qualified writer; no separate factory-package restore hardware test is claimed. Only exact Alpha 3 app0 or FactoryOnly_20260120 original states are accepted. The private package remains the strict four-entry draftor-private-recovery/1 ZIP. Keep the tool separately.</p>
+<p>
+Windows: WINDOWS_DEVICE_FIELD_TEST_PENDING. See WINDOWS_FIRST_USER_GUIDE.zh-CN.md / WINDOWS_FIRST_USER_GUIDE.en.md and WINDOWS_COMPAT_MATRIX.md.
+</p><h1>Windows first-user guide</h1>
+<p>Windows 10/11 desktop Chrome and Edge are open for informed beta use. Physical USB remains WINDOWS_DEVICE_FIELD_TEST_PENDING. No Python, command line, extension or developer tools are required.</p>
+<p>Save writing and end transfers. Fully power off including the battery; remove and retain TF separately. Connect only the Waveshare ST7305 with a data cable, hold BOOT while plugging in USB and release after about two seconds. Close serial monitors and other installer tabs.</p>
+<p>Use Device Manager to identify the USB Serial Device (COMx) / USB JTAG/serial debug unit corresponding to this board. Never identify the board by COM number alone. If absent, check cable, USB port, BOOT mode and port ownership. Use only [Espressif official USB Serial/JTAG driver guidance](https://docs.espressif.com/projects/esp-iot-solution/en/latest/usb/usb_overview/usb_serial_jtag.html). Do not randomly replace the serial interface driver with a JTAG driver. If Edge policy blocks Web Serial, try desktop Chrome or ask the administrator; never bypass policy.</p>
+<p>At https://draftor.tcssn.org/ choose Connect &amp; Install. Read the Windows beta notice and confirm physical conditions. Select the actual board in the browser picker. After read-only qualification, capture all 16 MiB, save the private ZIP to disk and reselect the actual saved file. An interrupted download is not a backup. Wait for verification against the current original board. Save the exact offline HTML alongside the ZIP before independently confirming installation. First installation erases all internal Flash; reinstallation writes only the qualified active App. Keep power/USB/page connected. Errors stop; do not automatically reflash.</p>
+<p>For recovery, close all installer tabs. With the computer offline, press Ctrl+O in desktop Chrome/Edge and open the saved Draftor_Recovery_R11_Offline.html. Select the saved private ZIP, prepare the original board in ROM with TF removed, check the full-Flash overwrite impact and confirm once. Restore returns to backup time, including settings and pairing. Factory packages restore the factory demo. If FILE Web Serial is unavailable, use the other supported browser or obtain support; do not disable safety checks.</p>
+<p>After content verification, close the connection, fully power off, insert TF and boot normally. Reconnect the original keyboard channel after restoring Draftor; pair as instructed after first installation. Check display, input, old writing, saving and reading after restart. Content verification is not normal-boot verification.</p>
+<p>The first willing recipient should report OS/browser, USB/COM display, read-only plan, actual ZIP/HTML saving and reimport, installation and TF/keyboard/writing results. Do not send a private ZIP, MAC or documents. Physical Windows offline recovery is a separate authorized field validation, not a reason for deliberate interruption. Preserve diagnostics and state on real errors.
+</p></article></section><section id="offline-licenses"><h2>Source &amp; licenses</h2><p>Combined program GPL-3.0. Corresponding source: Draftor_Web_R11_source.zip, distributed alongside this tool and at https://draftor.tcssn.org/sources/Draftor_Web_R11_source.zip. Build R11-public-385a584bc24a; source 385a584bc24ac4f31c93526e1f327f8451437eb7. No private image is distributed.</p><details><summary>GNU_GPL_v3.txt</summary><pre>                    GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
  Copyright (C) 2007 Free Software Foundation, Inc. &lt;https://fsf.org/&gt;
@@ -2777,7 +2810,7 @@ Public License instead of this License.
   } };
 
   // src/recovery-ui.js
-  function startRecoveryUI({ build, sourceCommit, recoveryEnabled = false, simulation = false, requestDriver, copyOverrides = {}, supportedEnvironment, offlineHref, embeddedGuide = false }) {
+  function startRecoveryUI({ build, sourceCommit, recoveryEnabled = false, simulation = false, requestDriver, copyOverrides = {}, supportedEnvironment, offlineHref, embeddedGuide = false, mapError, errorHelp }) {
     const $ = (id) => document.getElementById(id);
     let language = "zh", mode = recoveryEnabled ? "restore" : "backup", session, diagnostics, packageBytes, downloadBytes, summary, busy = false, activeTask, notice = "", error = "", closed = false;
     const copy = Object.fromEntries(["zh", "en"].map((l) => [l, { ...recoveryCopy[l], ...copyOverrides[l] }]));
@@ -2885,7 +2918,7 @@ Public License instead of this License.
         try {
           await fn();
         } catch (e) {
-          const code = /^[A-Z_0-9]{1,48}$/.test(e?.code || "") ? e.code : e?.name === "NotFoundError" ? "PORT_SELECTION_CANCELLED" : "IO";
+          const code = mapError ? mapError(e) : /^[A-Z_0-9]{1,48}$/.test(e?.code || "") ? e.code : e?.name === "NotFoundError" ? "PORT_SELECTION_CANCELLED" : "IO";
           diagnostics.error({ code });
           const chooserCancelled = code === "PORT_SELECTION_CANCELLED";
           const recoverable = fileOnly && session?.state !== "STOP" || chooserCancelled;
@@ -2902,6 +2935,7 @@ Public License instead of this License.
             }
             diagnostics.stage("STOP");
           }
+          if (errorHelp?.(code, language)) error += ` ${errorHelp(code, language)}`;
           if (receipt().flashOutcome === "POSSIBLY_PARTIAL") error += ` ${t("partial")}`;
         } finally {
           clearInterval(ticker);
@@ -4175,38 +4209,165 @@ Public License instead of this License.
   };
 
   // src/release-platform.js
-  function qualifiedDesktopChrome(environment) {
-    const { userAgent = "", vendor = "", platform = "", brands, secureContext = false, serialAvailable = false, brave = false } = environment;
-    const mac = /Macintosh/.test(userAgent) && (/Mac/.test(platform) || platform === "macOS");
-    const chrome = /Chrome\/\d+/.test(userAgent) && vendor === "Google Inc." && !brave && !/(Edg|OPR|Opera|Android|Mobile|CriOS|FxiOS)/.test(userAgent);
-    const brandOk = !brands || brands.some((x) => x.brand === "Google Chrome");
-    return Boolean(mac && chrome && brandOk && secureContext && serialAvailable);
+  function desktopSerialStatus(environment) {
+    const { userAgent = "", platform = "", mobile = false, maxTouchPoints = 0, secureContext = false, serialAvailable = false, serialPolicyAllowed = true } = environment;
+    if (mobile || /Android|iPhone|iPad|iPod|Mobile/i.test(userAgent) || /Mac/i.test(platform) && maxTouchPoints > 1) return { qualified: false, reason: "MOBILE" };
+    if (!secureContext) return { qualified: false, reason: "INSECURE_CONTEXT" };
+    if (!serialPolicyAllowed) return { qualified: false, reason: "SERIAL_POLICY" };
+    if (!serialAvailable) return { qualified: false, reason: "SERIAL_UNAVAILABLE" };
+    return { qualified: true, reason: "CAPABLE_DESKTOP" };
   }
-  function browserIsQualified() {
-    return qualifiedDesktopChrome({
-      userAgent: navigator.userAgent,
-      vendor: navigator.vendor,
-      platform: navigator.userAgentData?.platform || navigator.platform,
-      brands: navigator.userAgentData?.brands,
-      secureContext: isSecureContext,
-      serialAvailable: !!navigator.serial?.requestPort,
-      brave: !!navigator.brave
-    });
+  function browserEnvironment() {
+    return { userAgent: navigator.userAgent, platform: navigator.userAgentData?.platform || navigator.platform, mobile: navigator.userAgentData?.mobile === true, maxTouchPoints: navigator.maxTouchPoints || 0, secureContext: isSecureContext, serialAvailable: typeof navigator.serial?.requestPort === "function", serialPolicyAllowed: (document.permissionsPolicy || document.featurePolicy)?.allowsFeature?.("serial") !== false };
+  }
+  var browserIsQualified = () => desktopSerialStatus(browserEnvironment()).qualified;
+  function platformMessage(language, environment = browserEnvironment()) {
+    const reason = desktopSerialStatus(environment).reason;
+    const copy = { zh: {
+      MOBILE: "\u624B\u673A\u548C\u5E73\u677F\u4E0D\u5F00\u653E USB \u64CD\u4F5C\u3002\u8BF7\u4F7F\u7528 Windows 10/11 \u684C\u9762 Chrome \u6216 Edge\uFF1B\u6B64\u5904\u4ECD\u53EF\u6D4F\u89C8\u548C\u4E0B\u8F7D\u3002",
+      INSECURE_CONTEXT: "\u5F53\u524D\u9875\u9762\u4E0D\u662F\u5B89\u5168\u4E0A\u4E0B\u6587\uFF0C\u672A\u8FDE\u63A5\u8BBE\u5907\u3002\u8BF7\u6253\u5F00\u6B63\u5F0F HTTPS \u7F51\u7AD9\uFF1B\u79BB\u7EBF\u6062\u590D\u8BF7\u7528\u684C\u9762 Chrome/Edge \u76F4\u63A5\u6253\u5F00\u5DF2\u4FDD\u5B58\u7684 HTML\u3002\u4E0D\u8981\u5173\u95ED\u6D4F\u89C8\u5668\u5B89\u5168\u8BBE\u7F6E\u3002",
+      SERIAL_POLICY: "\u6B64\u9875\u9762\u7684\u4E32\u53E3\u6743\u9650\u88AB\u7B56\u7565\u9650\u5236\uFF0C\u672A\u8FDE\u63A5\u8BBE\u5907\u3002\u53EF\u5C1D\u8BD5\u684C\u9762 Chrome\uFF1B\u53D7\u7BA1\u7406\u7684\u7535\u8111\u8BF7\u8054\u7CFB\u7BA1\u7406\u5458\u5141\u8BB8 Serial API\uFF0C\u4E0D\u8981\u7ED5\u8FC7\u7EC4\u7EC7\u7B56\u7565\u3002",
+      SERIAL_UNAVAILABLE: "\u6D4F\u89C8\u5668\u6CA1\u6709\u63D0\u4F9B Web Serial\uFF0C\u672A\u8FDE\u63A5\u8BBE\u5907\u3002Windows \u8BF7\u7528\u6700\u65B0\u7248\u684C\u9762 Chrome \u6216 Edge\uFF1BEdge \u53D7\u7EC4\u7EC7\u7B56\u7565\u9650\u5236\u65F6\u53EF\u5C1D\u8BD5 Chrome\uFF0C\u6216\u8054\u7CFB\u7BA1\u7406\u5458\u3002\u79BB\u7EBF HTML \u5FC5\u987B\u76F4\u63A5\u5728\u8BE5\u6D4F\u89C8\u5668\u6253\u5F00\u3002",
+      CAPABLE_DESKTOP: "\u5F53\u524D\u684C\u9762\u73AF\u5883\u5177\u5907 Web Serial\u3002Windows Chrome/Edge \u6D4B\u8BD5\u6027\u5F00\u653E\uFF0C\u771F\u5B9E USB \u8DEF\u5F84\u4ECD\u5F85\u73B0\u573A\u9A8C\u8BC1\uFF08WINDOWS_DEVICE_FIELD_TEST_PENDING\uFF09\uFF1BmacOS Chrome \u7EE7\u627F\u65E2\u6709\u9A8C\u6536\u3002\u5B89\u88C5\u524D\u5FC5\u987B\u4FDD\u5B58\u5E76\u56DE\u9009\u5B8C\u6574 ZIP\uFF0C\u53E6\u5B58\u79BB\u7EBF HTML\u3002"
+    }, en: {
+      MOBILE: "USB operations are unavailable on phones/tablets. Use Windows 10/11 desktop Chrome or Edge. Reading and downloads remain available.",
+      INSECURE_CONTEXT: "This page is not a secure context; no device connected. Use the official HTTPS site, or open the saved offline HTML directly in desktop Chrome/Edge. Do not disable browser security.",
+      SERIAL_POLICY: "Serial access is restricted by policy; no device connected. Try desktop Chrome or ask your administrator to allow the Serial API. Do not bypass organizational policy.",
+      SERIAL_UNAVAILABLE: "Web Serial is unavailable; no device connected. On Windows use current desktop Chrome or Edge. If Edge is managed, try Chrome or ask your administrator. Open the offline HTML directly in that browser.",
+      CAPABLE_DESKTOP: "Web Serial is available. Windows Chrome/Edge is open for informed beta use; real USB field testing remains pending (WINDOWS_DEVICE_FIELD_TEST_PENDING). macOS Chrome inherits prior qualification. Save and reselect the complete ZIP and keep the offline HTML before installation."
+    } };
+    return copy[language === "en" ? "en" : "zh"][reason];
+  }
+  function publicErrorCode(error) {
+    if (typeof error?.code === "string" && /^[A-Z_0-9]{1,48}$/.test(error.code)) return error.code;
+    if (error?.name === "NotFoundError") return "PORT_SELECTION_CANCELLED";
+    if (["SecurityError", "NotAllowedError"].includes(error?.name)) return "SERIAL_PERMISSION_DENIED";
+    return "IO";
+  }
+  function serialErrorHelp(code, language) {
+    const en = language === "en";
+    if (code === "SERIAL_PERMISSION_DENIED") return en ? "Serial permission was denied or blocked by browser/organization policy. No automatic retry. Use site permissions, try desktop Chrome, or ask your administrator." : "\u4E32\u53E3\u6388\u6743\u88AB\u62D2\u7EDD\u6216\u88AB\u6D4F\u89C8\u5668\uFF0F\u7EC4\u7EC7\u7B56\u7565\u9650\u5236\uFF0C\u4E0D\u4F1A\u81EA\u52A8\u91CD\u8BD5\u3002\u8BF7\u68C0\u67E5\u7F51\u7AD9\u6743\u9650\uFF0C\u5C1D\u8BD5\u684C\u9762 Chrome\uFF0C\u6216\u8054\u7CFB\u7BA1\u7406\u5458\u3002";
+    if (code === "PORT_SELECTION_CANCELLED") return en ? "Port selection cancelled; no device connected. Close this session before starting again." : "\u5DF2\u53D6\u6D88\u4E32\u53E3\u9009\u62E9\uFF0C\u5C1A\u672A\u8FDE\u63A5\u8BBE\u5907\u3002\u5173\u95ED\u672C\u6B21\u4F1A\u8BDD\u540E\u53EF\u4E3B\u52A8\u91CD\u65B0\u5F00\u59CB\u3002";
+    if (code === "CONNECTION") return en ? "The port could not be opened. Close serial monitors/other installer tabs; check the data cable, BOOT download mode and Device Manager. Do not guess a COM port or keep retrying a communication fault." : "\u4E32\u53E3\u672A\u80FD\u6253\u5F00\u3002\u8BF7\u5173\u95ED\u4E32\u53E3\u76D1\u89C6\u5668\u6216\u5176\u4ED6\u5B89\u88C5\u9875\uFF0C\u68C0\u67E5\u6570\u636E\u7EBF\u3001BOOT \u4E0B\u8F7D\u6A21\u5F0F\u53CA\u8BBE\u5907\u7BA1\u7406\u5668\u3002\u4E0D\u8981\u731C\u6D4B COM \u7AEF\u53E3\uFF0C\u4E5F\u4E0D\u8981\u5BF9\u901A\u4FE1\u5F02\u5E38\u8FDE\u7EED\u91CD\u8BD5\u3002";
+    return "";
   }
 
-  // src/r10-copy.js
-  var publicRecoveryCopy = { zh: { locked: "\u5728\u7EBF\u5907\u4EFD\u4E0E\u53EA\u8BFB\u6838\u9A8C\uFF1A\u6B64\u9875\u4E0D\u6267\u884C\u6574\u7247\u6062\u590D\u3002\u8BF7\u4E0B\u8F7D\u79BB\u7EBF\u5DE5\u5177\uFF0C\u5728\u539F\u8BBE\u5907\u4E0A\u6062\u590D\u5DF2\u4FDD\u5B58\u7684\u79C1\u4EBA\u5305\u3002", candidate: "\u79BB\u7EBF\u6062\u590D\u5DE5\u5177 \xB7 \u9650 macOS \u684C\u9762 Chrome \u4E0E\u539F\u5FAE\u96EA ST7305\u3002\u6BCF\u6B21\u6062\u590D\u987B\u91CD\u65B0\u6838\u9A8C\u539F\u8BBE\u5907\u3001\u5B8C\u6574\u5305\u53CA\u8986\u76D6\u8303\u56F4\u3002", offlineLocked: "\u4E0B\u8F7D\u5177\u6709\u5B8C\u6574\u6062\u590D\u80FD\u529B\u7684\u79BB\u7EBF HTML\uFF0C\u4E0E\u79C1\u4EBA\u6062\u590D ZIP \u4E00\u8D77\u4FDD\u5B58\u3002\u5173\u95ED\u7F51\u9875\u540E\u5728 macOS Chrome \u7528\u201C\u6253\u5F00\u6587\u4EF6\u201D\u91CD\u5F00 HTML\uFF1B\u65E0\u9700\u7F51\u7EDC\u3001Python \u6216\u6D4F\u89C8\u5668\u6269\u5C55\u3002", supported: "macOS \u684C\u9762 Chrome \u73AF\u5883\u53EF\u7528\u3002\u5B9E\u6D4B\u57FA\u7EBF\u548C\u9650\u5B9A\u8303\u56F4\u89C1\u8BF4\u660E\uFF1B\u672A\u8FDE\u63A5\u524D\u4E0D\u4F1A\u8BBF\u95EE\u8BBE\u5907\u3002", unsupported: "\u8BBE\u5907\u64CD\u4F5C\u4EC5\u9762\u5411 macOS \u684C\u9762 Google Chrome \u7684\u5B89\u5168 Web Serial \u73AF\u5883\uFF1B\u4ECD\u53EF\u9605\u8BFB\u548C\u4E0B\u8F7D\u3002\u5176\u4ED6\u5E73\u53F0\u672A\u7EB3\u5165\u5DF2\u9A8C\u6536\u8303\u56F4\u3002" }, en: { locked: "Online backup and read-only verification. This page does not restore Flash. Download the offline tool to restore a saved private package to its original board.", candidate: "Offline recovery tool \xB7 macOS desktop Chrome and original Waveshare ST7305 only. Every restore rechecks the board, complete package and overwrite scope.", offlineLocked: "Download the writable offline HTML and keep it with the private ZIP. Close the page and reopen the HTML using Open File in macOS Chrome. No network, Python or extension required.", supported: "macOS desktop Chrome is available. See the guide for the tested baseline and limited scope. No device access before connection.", unsupported: "Device operations require macOS desktop Google Chrome with secure Web Serial. Reading and downloads remain available. Other platforms are unqualified." } };
+  // src/r11-copy.js
+  var installationCopy = { zh: {
+    browserHint: "Windows 10/11 \u684C\u9762 Chrome / Edge \u6D4B\u8BD5\u6027\u5F00\u653E\uFF1BmacOS Chrome \u4FDD\u7559\u652F\u6301\u3002",
+    wrongOriginal: "\u6062\u590D\u5305\u5185\u7684\u539F\u59CB\u56FA\u4EF6\u72B6\u6001\u4E0D\u7B26\u5408\u672C\u6B21\u8BA1\u5212\uFF0C\u53EF\u80FD\u9009\u5230\u4E86\u53E6\u4E00\u539F\u72B6\u6001\u7684\u5907\u4EFD\u3002\u5C1A\u672A\u56E0\u672C\u6B21\u5BFC\u5165\u5F00\u59CB\u5B89\u88C5\uFF1B\u8BF7\u4FDD\u7559\u539F\u6587\u4EF6\uFF0C\u5173\u95ED\u540E\u7528\u6B63\u786E\u6587\u4EF6\u91CD\u65B0\u68C0\u67E5\u3002",
+    badPackage: "\u6062\u590D ZIP \u7684\u5185\u5BB9\u3001\u683C\u5F0F\u6216\u6458\u8981\u672A\u901A\u8FC7\u68C0\u67E5\uFF0C\u672A\u6388\u4E88\u5B89\u88C5\u6743\u9650\u3002\u8BF7\u4FDD\u7559\u539F\u6587\u4EF6\u5E76\u6838\u5BF9\u672C\u6B21\u751F\u6210\u7684\u5B8C\u6574\u5305\u3002",
+    stoppedHelp: "\u5DF2\u505C\u6B62\uFF0C\u4E0D\u81EA\u52A8\u91CD\u8BD5\u3002\u8BF7\u4FDD\u7559\u56DE\u6267\uFF1B\u82E5\u5DF2\u5F00\u59CB\u5199\u5165\uFF0C\u4F7F\u7528\u5DF2\u4FDD\u5B58\u7684\u79BB\u7EBF\u5DE5\u5177\u6062\u590D\u539F\u8BBE\u5907\u3002",
+    previewHint: "v0.1.0-alpha.3 \xB7 \u5FAE\u96EA ST7305 \xB7 Windows Chrome / Edge \xB7 macOS Chrome",
+    intro: "\u8FDE\u63A5\u8BBE\u5907\u540E\u81EA\u52A8\u8BC6\u522B\u5B89\u88C5\u65B9\u5F0F\u3002\u5148\u4FDD\u5B58\u5E76\u56DE\u9009\u5B8C\u6574\u6062\u590D\u5305\uFF0C\u518D\u786E\u8BA4\u5B89\u88C5\u3002",
+    publicScope: "\u9650\u5B9A\u5F00\u653E\uFF1A16 MiB \u5FAE\u96EA ST7305\uFF0C\u51C6\u786E FactoryOnly 20260120 \u5382\u5BB6\u9996\u88C5\uFF0C\u6216\u51C6\u786E Alpha 3 app0 \u540C\u7248\u672C\u91CD\u65B0\u5B89\u88C5\u3002\u672A\u77E5\u72B6\u6001\u3001\u5168\u7A7A\u767D\u677F\u548C app1 \u62D2\u7EDD\u5B89\u88C5\u3002",
+    heading: "\u8FDE\u63A5\u8BBE\u5907\u5E76\u5B89\u88C5",
+    prepare: "\u4FDD\u5B58\u6587\u7A3F\u5E76\u7ED3\u675F\u4F20\u8F93\u3002\u5F7B\u5E95\u65AD\u7535\uFF08\u542B\u7535\u6C60\uFF09\u540E\u53D6\u51FA TF\uFF0C\u53EA\u8FDE\u63A5\u8FD9\u5757\u5FAE\u96EA\u3002\u6309\u4F4F BOOT \u63A5 USB\uFF0C\u7EA6\u4E24\u79D2\u540E\u91CA\u653E\uFF0C\u4FDD\u6301 ROM \u4E0B\u8F7D\u6A21\u5F0F\u5E76\u5173\u95ED\u4E32\u53E3\u76D1\u89C6\u5668\u3002Windows \u5728\u9009\u62E9\u6846\u4E2D\u9009\u5BF9\u5E94\u7684 USB Serial Device (COMx) \u6216 USB JTAG/serial debug unit\uFF1B\u4E0D\u8981\u6309 COM \u53F7\u7801\u731C\u8BBE\u5907\u3002",
+    board: "\u6211\u5DF2\u6838\u5BF9\u5B9E\u7269\u662F\u5FAE\u96EA ESP32-S3-RLCD-4.2 / ST7305\uFF0C\u4E14\u4EC5\u8BE5\u677F\u8FDE\u63A5\u3002",
+    tf: "\u6587\u7A3F\u5DF2\u4FDD\u5B58\u3001\u4F20\u8F93\u5DF2\u7ED3\u675F\uFF0CTF \u5DF2\u5728\u5F7B\u5E95\u65AD\u7535\u540E\u53D6\u51FA\u3002",
+    connect: "\u9009\u62E9\u4E32\u53E3\u5E76\u53EA\u8BFB\u68C0\u67E5",
+    unsupported: "\u9700\u8981\u684C\u9762\u5B89\u5168\u4E0A\u4E0B\u6587\u3001Web Serial \u4E0E\u7528\u6237\u6388\u6743\uFF1B\u8BF7\u67E5\u770B\u5F53\u524D\u80FD\u529B\u63D0\u793A\u3002\u672A\u8FDE\u63A5\u8BBE\u5907\u3002",
+    loading: "\u6B63\u5728\u6838\u9A8C\u56DB\u4EFD\u56FA\u5B9A\u53D1\u884C\u56FA\u4EF6\u2026",
+    ready: "\u56FA\u4EF6\u6587\u4EF6\u5DF2\u6838\u9A8C\uFF0C\u53EF\u4EE5\u9009\u62E9\u4E32\u53E3\u3002",
+    update: "\u91CD\u65B0\u5B89\u88C5\u5F53\u524D\u7248\u672C",
+    fresh: "\u9996\u6B21\u5B89\u88C5 Draftor",
+    updateImpact: "\u53EA\u5199\u5DF2\u786E\u8BA4\u7684\u6D3B\u52A8 App \u53CA\u5176\u8986\u76D6\u6247\u533A\uFF0C\u4FDD\u7559\u5176\u4ED6 App\u3001\u5206\u533A\u3001OTA\u3001\u8BBE\u7F6E\u548C\u914D\u5BF9\u3002\u4E2D\u65AD\u53EF\u80FD\u65E0\u6CD5\u542F\u52A8\uFF1B\u4E0D\u4F1A\u81EA\u52A8\u91CD\u8BD5\u3002",
+    freshImpact: "\u5C06\u6E05\u9664\u5168\u90E8 16 MiB \u5185\u90E8 Flash\uFF0C\u5305\u62EC\u5382\u5BB6\u7A0B\u5E8F\u3001\u8BBE\u7F6E\u3001\u914D\u5BF9\u53CA\u5185\u90E8\u6587\u4EF6\uFF0C\u518D\u5199\u5165\u56FA\u5B9A\u56DB\u4EFD Draftor \u56FA\u4EF6\u3002\u5FC5\u987B\u5148\u4FDD\u5B58\u5F53\u524D\u5382\u5BB6\u72B6\u6001\u3002TF \u4E0D\u4F1A\u88AB\u64CD\u4F5C\u3002",
+    plan: "\u5B8C\u6574\u8BA1\u5212\u4E0E\u68C0\u67E5\u8303\u56F4",
+    backupHelp: "\u6CA1\u6709\u65E7\u6587\u4EF6\u4E5F\u53EF\u7EE7\u7EED\uFF1A\u53EA\u8BFB\u6355\u83B7\u5B8C\u6574 16 MiB\uFF0C\u4FDD\u5B58\u751F\u6210\u7684\u79C1\u4EBA ZIP\uFF0C\u518D\u56DE\u9009\u5B9E\u9645\u4FDD\u5B58\u7684\u6587\u4EF6\u3002ROM \u6162\u8BFB\u9700\u8981\u8F83\u957F\u65F6\u95F4\uFF0C\u8BF7\u4FDD\u6301\u4F9B\u7535\u3001USB \u548C\u6B64\u9875\u3002\u5B8C\u6574 Flash \u5305\u542B\u8BBE\u7F6E\u3001\u914D\u5BF9\u53CA\u53EF\u80FD\u7684\u5185\u90E8\u6587\u7A3F\uFF1BTF \u6587\u7A3F\u4E0D\u5728\u5305\u5185\uFF0C\u987B\u5355\u72EC\u4FDD\u7BA1\u3002\u6587\u4EF6\u53EA\u5728\u672C\u673A\u5904\u7406\uFF0C\u4E0D\u4E0A\u4F20\u3002",
+    capture: "\u8BFB\u53D6\u5B8C\u6574 Flash\uFF08\u53EA\u8BFB\uFF09",
+    save: "\u4FDD\u5B58\u79C1\u4EBA\u6062\u590D ZIP",
+    raw: "\u53EF\u9009\uFF1A\u6211\u5DF2\u6709\u5B8C\u6574 16 MiB Flash .bin",
+    reselect: "\u56DE\u9009\u5DF2\u4FDD\u5B58\u7684\u79C1\u4EBA\u6062\u590D ZIP",
+    saved: "\u4FDD\u5B58\u6587\u4EF6\u56DE\u9009\u901A\u8FC7\uFF0C\u4E0E\u5F53\u524D\u540C\u4E00\u8BBE\u5907\u5B8C\u6574 Flash \u4E00\u81F4\u3002",
+    saveWarning: "\u70B9\u51FB\u4FDD\u5B58\u4E0D\u4EE3\u8868\u6587\u4EF6\u5DF2\u843D\u76D8\uFF1B\u5FC5\u987B\u7B49\u5F85\u4E0B\u8F7D\u5B8C\u6210\uFF0C\u518D\u56DE\u9009\u8BE5 ZIP\u3002\u8BF7\u52FF\u89E3\u538B\u3001\u4FEE\u6539\u6216\u516C\u5F00\u79C1\u4EBA\u5305\u3002",
+    tool: "\u4E0B\u8F7D\u79BB\u7EBF\u6062\u590D\u5DE5\u5177\uFF08HTML\uFF09",
+    toolKeep: "\u79BB\u7EBF HTML \u5DF2\u4FDD\u5B58\u5B8C\u6210\uFF0C\u6211\u4F1A\u5C06\u5B83\u4E0E\u79C1\u4EBA ZIP \u4E00\u8D77\u4FDD\u7BA1\u3002",
+    toolHelp: "\u5B89\u88C5\u524D\u4FDD\u5B58\u51C6\u786E\u7684\u79BB\u7EBF\u5DE5\u5177\u3002\u4EE5\u540E\u5173\u95ED\u7F51\u9875\uFF0C\u5728 Windows Chrome/Edge \u7528 Ctrl+O\uFF08Mac \u7528 \u2318O\uFF09\u91CD\u5F00 HTML\uFF1B\u65E0\u9700\u7F51\u7EDC\u3001Python \u6216\u6269\u5C55\u3002\u5DE5\u5177\u4E0B\u8F7D\u5931\u8D25\u65F6\u4E0D\u8981\u7EE7\u7EED\u5B89\u88C5\u3002",
+    toolReady: "\u79BB\u7EBF\u5DE5\u5177\u5185\u5BB9\u6458\u8981\u5DF2\u6838\u9A8C\uFF1B\u8BF7\u786E\u8BA4\u6D4F\u89C8\u5668\u4FDD\u5B58\u5B8C\u6210\u3002",
+    toolProblem: "\u5DE5\u5177\u672A\u4FDD\u5B58\uFF0F\u4E0B\u8F7D\u6709\u95EE\u9898",
+    backupConsent: "\u6211\u5DF2\u4FDD\u5B58\u5E76\u56DE\u9009\u6709\u6548\u5B8C\u6574\u6062\u590D\u5305\uFF0C\u4E14\u5DF2\u53E6\u884C\u4FDD\u7BA1 TF \u6587\u7A3F\u548C\u5B66\u4E60\u76EE\u5F55\u3002",
+    planConsent: "\u6211\u5DF2\u9605\u8BFB\u672C\u6B21\u8BA1\u5212\u53CA\u5F71\u54CD\uFF0C\u540C\u610F\u6307\u5B9A\u8303\u56F4\u7684\u5B89\u88C5\u3002",
+    eraseConsent: "\u5355\u72EC\u786E\u8BA4\uFF1A\u9996\u6B21\u5B89\u88C5\u4F1A\u6E05\u9664\u5168\u90E8 16 MiB \u5185\u90E8 Flash\uFF0C\u65E7\u56FA\u4EF6\u3001\u8BBE\u7F6E\u548C\u914D\u5BF9\u5C06\u4E22\u5931\u3002",
+    oldApp: "\u53EF\u9009\uFF1A\u51C6\u786E\u65E7 App .bin\uFF08\u672C\u5730\u6BD4\u5BF9\uFF0C\u4E0D\u4E0A\u4F20\uFF09",
+    execute: "\u6309\u5DF2\u6838\u9A8C\u8BA1\u5212\u5B89\u88C5",
+    close: "\u5173\u95ED\u8FDE\u63A5",
+    stop: "\u505C\u6B62\u64CD\u4F5C",
+    receipt: "\u4FDD\u5B58\u8131\u654F\u56DE\u6267",
+    finished: "Flash \u5185\u5BB9\u5DF2\u6821\u9A8C\uFF0C\u4E32\u53E3\u5DF2\u91CA\u653E\u3002\u8BF7\u5F7B\u5E95\u65AD\u7535\uFF08\u542B\u7535\u6C60\uFF09\uFF0C\u63D2\u56DE\u5DF2\u51C6\u5907\u597D\u7684 TF\uFF0C\u677E\u5F00 BOOT \u666E\u901A\u542F\u52A8\u3002\u9996\u88C5\u6309\u63D0\u793A\u914D\u5BF9\u952E\u76D8\uFF1B\u91CD\u65B0\u5B89\u88C5\u7528\u539F\u901A\u9053\u56DE\u8FDE\u3002\u68C0\u67E5\u663E\u793A\u3001\u8F93\u5165\u3001\u65E7\u7A3F\u4EE5\u53CA\u65B0\u7A3F\u4FDD\u5B58\u4E0E\u91CD\u542F\u8BFB\u53D6\u3002\u5185\u5BB9\u6821\u9A8C\u4E0D\u7B49\u4E8E\u6B63\u5E38\u542F\u52A8\u5DF2\u901A\u8FC7\u3002",
+    phases: { IDLE: "\u5C1A\u672A\u8FDE\u63A5", CONNECTING: "\u6B63\u5728\u8FDE\u63A5 ROM\u2026", CHECKING: "\u6B63\u5728\u53EA\u8BFB\u6838\u5BF9\u8EAB\u4EFD\u3001Flash\u3001\u5206\u533A\u548C OTA\u2026", PLAN_READY: "\u53EA\u8BFB\u8BA1\u5212\u5DF2\u5C31\u7EEA\uFF0C\u5C1A\u672A\u5199\u5165\u3002", BACKUP_READING: "\u6B63\u5728\u53EA\u8BFB\u6355\u83B7\u5B8C\u6574 Flash\u2026", BACKUP_VERIFYING: "\u6B63\u5728\u6838\u9A8C\u5B9E\u9645\u56DE\u9009\u6587\u4EF6\u4E0E\u5F53\u524D\u8BBE\u5907\u2026", RECHECKING: "\u5199\u5165\u524D\u91CD\u65B0\u6838\u5BF9\u539F\u8BBE\u5907\u4E0E\u8BA1\u5212\u2026", ERASING: "\u6B63\u5728\u6E05\u9664\u5DF2\u786E\u8BA4\u7684\u5185\u90E8 Flash\u2026", WRITING: "\u6B63\u5728\u5199\u5165\u8BA1\u5212\u6307\u5B9A\u533A\u57DF\u2026", VERIFYING: "\u6B63\u5728\u6838\u9A8C\u5B9E\u9645 Flash \u5185\u5BB9\u548C\u4FDD\u62A4\u533A\u2026", VERIFIED_BOOT_PENDING: "\u5185\u5BB9\u5DF2\u6821\u9A8C\uFF0C\u666E\u901A\u542F\u52A8\u5F85\u786E\u8BA4\u3002", STOP: "\u5DF2\u505C\u6B62\uFF0C\u4E0D\u81EA\u52A8\u91CD\u8BD5\u3002\u8BF7\u4FDD\u7559\u56DE\u6267\uFF1B\u82E5\u5DF2\u5F00\u59CB\u5199\u5165\uFF0C\u8BF7\u4F7F\u7528\u5DF2\u4FDD\u5B58\u7684\u79BB\u7EBF\u5DE5\u5177\u6062\u590D\u539F\u8BBE\u5907\u3002" },
+    helpTitle: "\u5B89\u88C5\u5E2E\u52A9",
+    advancedTitle: "\u53D1\u884C\u4FE1\u606F",
+    scopeLink: "\u652F\u6301\u8303\u56F4",
+    recoveryLink: "\u5907\u4EFD\u4E0E\u6062\u590D",
+    sourceLink: "\u6E90\u7801\u4E0E\u8BB8\u53EF"
+  }, en: {
+    browserHint: "Windows 10/11 desktop Chrome / Edge beta; macOS Chrome remains supported.",
+    wrongOriginal: "The package original firmware state does not match this plan. It may be a backup of another original state. This import did not start installation. Keep the file, close this session and inspect again with the correct package.",
+    badPackage: "Recovery ZIP contents, format or hashes failed validation. No installation permission granted. Keep the file and check the complete package created for this session.",
+    stoppedHelp: "Stopped without automatic retry. Keep the receipt. If writing began, use the saved offline tool to restore the original board.",
+    previewHint: "v0.1.0-alpha.3 \xB7 Waveshare ST7305 \xB7 Windows Chrome / Edge \xB7 macOS Chrome",
+    intro: "The device selects one supported installation path. Save and reselect a complete recovery package before confirming installation.",
+    publicScope: "Limited release: 16 MiB Waveshare ST7305, exact FactoryOnly 20260120 first installation or exact Alpha 3 app0 same-version reinstallation. Unknown states, blank boards and app1 are refused.",
+    heading: "Connect & Install",
+    prepare: "Save writing and finish transfers. Fully power off including the battery, remove TF and connect only this Waveshare. Hold BOOT while connecting USB, release after about two seconds, and stay in ROM mode. Close serial monitors. On Windows select the corresponding USB Serial Device (COMx) or USB JTAG/serial debug unit. Never identify a board by COM number alone.",
+    board: "I checked the physical Waveshare ESP32-S3-RLCD-4.2 / ST7305; only this board is connected.",
+    tf: "Writing is saved, transfers ended, and TF was removed after full power-off.",
+    connect: "Select port & inspect read-only",
+    unsupported: "Desktop secure Web Serial and user permission are required. See the capability message. No device connected.",
+    loading: "Verifying the four pinned release images\u2026",
+    ready: "Firmware files verified. Ready to select a port.",
+    update: "Reinstall the current version",
+    fresh: "First installation of Draftor",
+    updateImpact: "Write only the confirmed active App and its covered sectors. Preserve the other App, partitions, OTA, settings and pairing. Interruption may prevent boot. No automatic retry.",
+    freshImpact: "Erase all 16 MiB of internal Flash, including the factory demo, settings, pairing and internal files, then write the four pinned Draftor images. Save the current factory state first. TF is untouched.",
+    plan: "Complete plan and checked ranges",
+    backupHelp: "No old files needed: capture all 16 MiB read-only, save the private ZIP, then reselect the actual saved file. ROM slow reading takes time; keep power, USB and this page connected. Full Flash includes settings, pairing and possibly internal writing. TF documents are separate: keep them independently. Files stay local and are never uploaded.",
+    capture: "Read complete Flash (read-only)",
+    save: "Save private recovery ZIP",
+    raw: "Optional: I have a complete 16 MiB Flash .bin",
+    reselect: "Reselect saved private recovery ZIP",
+    saved: "Saved file verified against the same device\u2019s entire current Flash.",
+    saveWarning: "Clicking Save does not prove the file reached disk. Wait for download completion, then reselect that ZIP. Do not extract, modify or publish the private package.",
+    tool: "Download offline recovery tool (HTML)",
+    toolKeep: "The offline HTML has finished saving; I will keep it with my private ZIP.",
+    toolHelp: "Save the exact offline tool before installation. Later close the page and reopen the HTML using Ctrl+O in Windows Chrome/Edge (Command+O on Mac). No network, Python or extension required. Resolve download failures before installing.",
+    toolReady: "Offline tool contents verified. Confirm the browser finished saving.",
+    toolProblem: "Tool was not saved / download problem",
+    backupConsent: "I saved and reselected a valid full recovery package, and separately retained TF writing and learning directories.",
+    planConsent: "I reviewed this plan and its impact and approve the specified installation ranges.",
+    eraseConsent: "Separate confirmation: first installation erases all 16 MiB of internal Flash, removing firmware, settings and pairing.",
+    oldApp: "Optional: exact old App .bin (local comparison, never uploaded)",
+    execute: "Install the verified plan",
+    close: "Close connection",
+    stop: "Stop operation",
+    receipt: "Save sanitized receipt",
+    finished: "Flash contents verified and port released. Fully power off including the battery, insert the prepared TF and boot normally with BOOT released. Pair a keyboard after first installation; use the original channel after reinstallation. Check display, input, old writing, saving a new document and reading it after restart. Content verification does not prove normal boot.",
+    phases: { IDLE: "Not connected", CONNECTING: "Connecting to ROM\u2026", CHECKING: "Checking identity, Flash, partitions and OTA read-only\u2026", PLAN_READY: "Read-only plan ready. No write performed.", BACKUP_READING: "Capturing complete Flash read-only\u2026", BACKUP_VERIFYING: "Checking the reselected file against the current device\u2026", RECHECKING: "Rechecking the original device and plan\u2026", ERASING: "Erasing the confirmed internal Flash\u2026", WRITING: "Writing the planned ranges\u2026", VERIFYING: "Verifying actual Flash and protected regions\u2026", VERIFIED_BOOT_PENDING: "Contents verified; normal boot pending.", STOP: "Stopped. No automatic retry. Keep the receipt. If writing began, use the saved offline tool to restore the original device." },
+    helpTitle: "Installation help",
+    advancedTitle: "Release information",
+    scopeLink: "Supported scope",
+    recoveryLink: "Backup & recovery",
+    sourceLink: "Source & licenses"
+  } };
+  var publicRecoveryCopy = { zh: { locked: "\u5728\u7EBF\u5907\u4EFD\u4E0E\u53EA\u8BFB\u6838\u9A8C\uFF1A\u6B64\u9875\u4E0D\u6267\u884C\u6574\u7247\u6062\u590D\u3002\u8BF7\u4E0B\u8F7D\u79BB\u7EBF\u5DE5\u5177\uFF0C\u5728\u539F\u8BBE\u5907\u4E0A\u6062\u590D\u5DF2\u4FDD\u5B58\u7684\u79C1\u4EBA\u5305\u3002", candidate: "\u79BB\u7EBF\u6062\u590D\u5DE5\u5177 \xB7 \u9650 Windows Chrome / Edge \xB7 macOS Chrome \u4E0E\u539F\u5FAE\u96EA ST7305\u3002\u6BCF\u6B21\u6062\u590D\u987B\u91CD\u65B0\u6838\u9A8C\u539F\u8BBE\u5907\u3001\u5B8C\u6574\u5305\u53CA\u8986\u76D6\u8303\u56F4\u3002", offlineLocked: "\u4E0B\u8F7D\u5177\u6709\u5B8C\u6574\u6062\u590D\u80FD\u529B\u7684\u79BB\u7EBF HTML\uFF0C\u4E0E\u79C1\u4EBA\u6062\u590D ZIP \u4E00\u8D77\u4FDD\u5B58\u3002\u5173\u95ED\u7F51\u9875\u540E\u5728 Windows Chrome/Edge \u7528 Ctrl+O\uFF08Mac \u7528 \u2318O\uFF09\u91CD\u5F00 HTML\uFF1B\u65E0\u9700\u7F51\u7EDC\u3001Python \u6216\u6D4F\u89C8\u5668\u6269\u5C55\u3002", supported: "Windows Chrome / Edge \xB7 macOS Chrome \u73AF\u5883\u53EF\u7528\u3002\u5B9E\u6D4B\u57FA\u7EBF\u548C\u9650\u5B9A\u8303\u56F4\u89C1\u8BF4\u660E\uFF1B\u672A\u8FDE\u63A5\u524D\u4E0D\u4F1A\u8BBF\u95EE\u8BBE\u5907\u3002", unsupported: "\u9700\u8981\u684C\u9762\u5B89\u5168 Web Serial \u4E0E\u7528\u6237\u6388\u6743\uFF1B\u8BF7\u67E5\u770B\u5F53\u524D\u80FD\u529B\u63D0\u793A\u3002" }, en: { locked: "Online backup and read-only verification. This page does not restore Flash. Download the offline tool to restore a saved private package to its original board.", candidate: "Offline recovery tool \xB7 Windows Chrome / Edge \xB7 macOS Chrome and original Waveshare ST7305 only. Every restore rechecks the board, complete package and overwrite scope.", offlineLocked: "Download the writable offline HTML and keep it with the private ZIP. Close the page and reopen the HTML using Ctrl+O in Windows Chrome/Edge (Command+O on Mac). No network, Python or extension required.", supported: "Windows Chrome / Edge \xB7 macOS Chrome is available. See the guide for the tested baseline and limited scope. No device access before connection.", unsupported: "Desktop secure Web Serial and user permission are required; see the capability message." } };
+  for (const l of ["zh", "en"]) {
+    publicRecoveryCopy[l].prepare = installationCopy[l].prepare;
+    publicRecoveryCopy[l].offlineHelp = installationCopy[l].toolHelp;
+  }
 
-  // src/r10-recovery.js
+  // src/r11-recovery.js
   var offline = true;
   startRecoveryUI({
-    build: "R10-public-52f5f8203326",
-    sourceCommit: "52f5f8203326911d5f4de39b6360d013ed404b49",
+    build: "R11-public-385a584bc24a",
+    sourceCommit: "385a584bc24ac4f31c93526e1f327f8451437eb7",
     recoveryEnabled: offline,
-    copyOverrides: publicRecoveryCopy,
+    copyOverrides: Object.fromEntries(["zh", "en"].map((l) => [l, { ...publicRecoveryCopy[l], supported: platformMessage(l), unsupported: platformMessage(l) }])),
+    mapError: publicErrorCode,
+    errorHelp: serialErrorHelp,
     supportedEnvironment: browserIsQualified(),
     embeddedGuide: offline,
-    offlineHref: "offline/Draftor_Recovery_R10_Offline.html",
+    offlineHref: "offline/Draftor_Recovery_R11_Offline.html",
     requestDriver: async (mode, diagnostics) => {
       requireSafe(browserIsQualified(), "PLATFORM");
       const wire = new StrictSerialTransport(await requestSerialPort(navigator.serial, diagnostics), { diagnostics });
