@@ -23,9 +23,9 @@ export class PublicInstallSession {
   constructor(driver,release,{diagnostics,onState=()=>{},build,sourceCommit,offlineToolSha256,platformQualified=false}={}) {
     requireSafe(platformQualified===true,'PLATFORM');
     requireSafe(/^[0-9a-f]{64}$/.test(offlineToolSha256),'ASSET');
-    this.#driver=driver;this.#diag=diagnostics;this.#emit=onState;this.#build=build;this.#source=sourceCommit;this.#toolHash=offlineToolSha256;
+    this.#driver=driver;this.#diag=diagnostics;this.#emit=onState;this.#build=build;this.#source=sourceCommit;this.#toolHash=offlineToolSha256;this.#diag?.check('writeLock',true);
     this.#install=new InstallSession(driver,release,{candidate:true,bindSelectedIdentity:true,diagnostics,
-      onState:(phase,receipt)=>{if(this.#install?.plan)this.#diag?.check('plan',this.plan);this.#emit(phase,this.receipt(receipt));}});
+      onState:(phase,receipt)=>{this.#diag?.check('writeLock',!['ERASING','WRITING','VERIFYING'].includes(phase));if(this.#install?.plan)this.#diag?.check('plan',this.plan);this.#emit(phase,this.receipt(receipt));}});
   }
   get state(){return this.#stopped?'STOP':this.#phase||this.#install.state;}
   get plan(){return publicPlan(this.#install.plan);}
@@ -103,6 +103,6 @@ export class PublicInstallSession {
       const result=await this.#install.execute(consent);return this.receipt(result);
     } catch(e){this.cancel(e.code||'IO');throw e;}finally{this.#busy=false;this.#saved=false;this.#tool=false;}
   }
-  cancel(code='CANCELLED'){this.#stopped=true;this.#saved=false;this.#tool=false;this.#install.cancel(code);}
-  async close(){if(this.#closed)return;this.#closed=true;this.#saved=false;this.#tool=false;this.#identity=undefined;try{await this.#backup?.close();}finally{await this.#install.close();this.#backup=undefined;}}
+  cancel(code='CANCELLED'){this.#diag?.check('writeLock',true);this.#stopped=true;this.#saved=false;this.#tool=false;this.#install.cancel(code);}
+  async close(){if(this.#closed)return;this.#diag?.check('writeLock',true);this.#closed=true;this.#saved=false;this.#tool=false;this.#identity=undefined;try{await this.#backup?.close();}finally{await this.#install.close();this.#backup=undefined;}}
 }

@@ -16,7 +16,7 @@ for(const name of ['LICENSE','NOTICE','LICENSES','Notices','vendor','firmware','
 for(const name of ['TF_GUIDE.html','ALPHA3_VALIDATION.md','FONT_DISTRIBUTION.md','INSTALL.md','INSTALL.zh-CN.md','LICENSE_INVENTORY.md','RESOURCE_STATUS.md','THIRD_PARTY.md','VENDOR_MODIFICATIONS.md'])await cp(`public/docs/${name}`,`${out}/docs/${name}`);
 await cp('public/sources/Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_Source.zip',`${out}/sources/Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_Source.zip`);
 const esc=s=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
-const asHtml=md=>md.split('\n\n').map(p=>p.startsWith('# ')?`<h1>${esc(p.slice(2))}</h1>`:p.startsWith('## ')?`<h2>${esc(p.slice(3))}</h2>`:`<p style="white-space:pre-wrap">${esc(p)}</p>`).join('\n');
+const asHtml=md=>md.split('\n\n').map(p=>p.startsWith('# ')?`<h1>${esc(p.slice(2))}</h1>`:p.startsWith('## ')?`<h2>${esc(p.slice(3))}</h2>`:`<p>${esc(p)}</p>`).join('\n');
 const guides=await Promise.all(['zh-CN','en'].map(async lang=>{const content=await readFile(`docs/r10/RECOVERY_GUIDE.${lang}.md`,'utf8');await writeFile(`${out}/docs/RECOVERY_GUIDE.${lang}.md`,content);return `<article lang="${lang}">${asHtml(content)}</article>`;}));
 const scope=await readFile('docs/r10/R10_RELEASE_SCOPE.md','utf8');await writeFile(`${out}/docs/R10_RELEASE_SCOPE.md`,scope);
 await writeFile(`${out}/docs/PUBLIC_STATUS.html`,`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Draftor R10 · Scope</title><link rel="stylesheet" href="../style.css"><main class="wrap">${asHtml(scope)}<p><a href="../index.html">首页 / Home</a> · <a href="../recovery.html">Recovery</a> · <a href="SOURCE.html">Source & licenses</a></p></main>`);

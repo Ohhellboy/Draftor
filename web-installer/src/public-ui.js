@@ -10,7 +10,7 @@ import {PublicInstallSession} from './public-install-session.js';
 import {Diagnostics} from './diagnostics.js';
 
 export function startPublicUI({build,sourceCommit,offlineToolSha256,requestDriver}) {
- const $=id=>document.getElementById(id);let lang='zh',phase='IDLE',error='',release,session,diagnostics,lastReceipt,busy=false,activeTask,zip,infoKey,closed=false;
+ const $=id=>document.getElementById(id);let lang='zh',phase='IDLE',error='',release,session,diagnostics,lastReceipt,busy=false,activeTask,zip,packageName='',infoKey,closed=false;
  const urls=new Set(),t=k=>installationCopy[lang][k]||dict[lang][k]||k;
  const modal=document.createElement('dialog');modal.id='install-dialog';modal.setAttribute('aria-labelledby','install-heading');
  const check=(id,key)=>`<label class="confirm"><input type="checkbox" id="${id}"><span data-r10="${key}"></span></label>`;
@@ -19,7 +19,7 @@ export function startPublicUI({build,sourceCommit,offlineToolSha256,requestDrive
  <p id="workflow-status" role="status" aria-live="polite"></p><p id="workflow-error" class="notice" role="alert" hidden></p>
  <section id="connect-section"><p data-r10="prepare"></p>${check('physical-board','board')}${check('prepared-tf','tf')}<button id="connect-read" class="install-primary" data-r10="connect" disabled></button></section>
  <section id="plan-section" hidden><h4 id="plan-title"></h4><p id="plan-summary"></p><details id="plan-details"><summary data-r10="plan"></summary><pre id="plan-json"></pre></details>
- <section id="backup-workflow"><p data-r10="backupHelp"></p><button id="capture-backup" data-r10="capture"></button><button id="save-backup" data-r10="save" disabled></button><p data-r10="saveWarning"></p><details><summary data-r10="raw"></summary>${field('existing-raw','raw','.bin')}</details>${field('saved-backup','reselect','.zip')}<p id="backup-ready" class="notice" data-r10="saved" hidden></p></section>
+ <section id="backup-workflow"><p data-r10="backupHelp"></p><button id="capture-backup" data-r10="capture"></button><button id="save-backup" data-r10="save" disabled></button><p data-r10="saveWarning"></p><p id="package-name"></p><details><summary data-r10="raw"></summary>${field('existing-raw','raw','.bin')}</details>${field('saved-backup','reselect','.zip')}<p id="backup-ready" class="notice" data-r10="saved" hidden></p></section>
  <section><p data-r10="toolHelp"></p><button id="download-tool" data-r10="tool"></button><button id="tool-problem" data-r10="toolProblem"></button><p id="tool-ready" data-r10="toolReady" hidden></p>${check('tool-saved','toolKeep')}</section>
  <section id="confirm-section">${check('backup-confirmed','backupConsent')}${check('plan-confirmed','planConsent')}<div id="erase-label">${check('erase-confirmed','eraseConsent')}</div><div id="current-app-label">${field('current-app','oldApp','.bin')}</div><button id="execute-plan" class="install-primary" data-r10="execute" disabled></button></section></section>
  <progress id="write-progress" max="1" value="0" hidden></progress><p id="finished-note" class="notice" data-r10="finished" hidden></p><p><a href="recovery.html" data-r10="recoveryLink"></a> · <a href="docs/TF_GUIDE.html">TF</a> · <a href="docs/PUBLIC_STATUS.html" data-r10="scopeLink"></a></p><div class="workflow-actions"><button id="save-receipt" data-r10="receipt" disabled></button><button id="stop-close" data-r10="close"></button></div></div></div>`;
@@ -40,7 +40,7 @@ export function startPublicUI({build,sourceCommit,offlineToolSha256,requestDrive
   for(const e of document.querySelectorAll('[data-r10]'))e.textContent=t(e.dataset.r10);
   $('board-name').textContent=lang==='zh'?'微雪 ESP32-S3-RLCD-4.2':'Waveshare ESP32-S3-RLCD-4.2';
   $('workflow-status').textContent=installationCopy[lang].phases[phase]||t(phase);
-  $('workflow-error').hidden=!error;$('workflow-error').textContent=error?`${error} · ${installationCopy[lang].phases.STOP}`:'';
+  $('workflow-error').hidden=!error;$('workflow-error').textContent=error?`${error} · ${t(error==='PACKAGE_METADATA'?'wrongOriginal':error.startsWith('PACKAGE_')?'badPackage':'stoppedHelp')}`:'';
   $('connect-section').hidden=!!session||closed||!browserIsQualified();
   $('connect-read').disabled=busy||!release||!$('physical-board').checked||!$('prepared-tf').checked;
   const plan=session?.plan;
@@ -48,23 +48,23 @@ export function startPublicUI({build,sourceCommit,offlineToolSha256,requestDrive
   const prepared=session?.state==='PLAN_READY'&&!closed;
   for(const id of ['capture-backup','existing-raw'])$(id).disabled=busy||!prepared||!!zip||session?.backupVerified;
   $('save-backup').disabled=busy||!zip||closed;$('saved-backup').disabled=busy||!prepared;
-  $('backup-ready').hidden=!session?.backupVerified;
+  $('backup-ready').hidden=!session?.backupVerified;$('package-name').textContent=packageName;
   $('download-tool').disabled=busy||!prepared;$('tool-ready').hidden=!session?.offlineToolVerified;
   $('tool-saved').disabled=busy||!session?.offlineToolVerified;
   $('execute-plan').disabled=busy||!prepared||!session?.backupVerified||!session?.offlineToolVerified||!['tool-saved','backup-confirmed','plan-confirmed','prepared-tf'].every(id=>$(id).checked)||(plan?.mode==='fresh'&&!$('erase-confirmed').checked);
   $('save-receipt').disabled=!diagnostics;$('stop-close').textContent=t(busy?'stop':'close');
   if($('info-dialog').open)renderInfo();
  }
- function clearPrivate(){zip?.fill(0);zip=undefined;for(const id of ['existing-raw','saved-backup','current-app'])$(id).value='';for(const id of ['physical-board','prepared-tf','backup-confirmed','plan-confirmed','erase-confirmed','tool-saved'])$(id).checked=false;for(const u of urls)URL.revokeObjectURL(u);urls.clear();}
+ function clearPrivate(){zip?.fill(0);zip=undefined;packageName='';for(const id of ['existing-raw','saved-backup','current-app'])$(id).value='';for(const id of ['physical-board','prepared-tf','backup-confirmed','plan-confirmed','erase-confirmed','tool-saved'])$(id).checked=false;for(const u of urls)URL.revokeObjectURL(u);urls.clear();}
  async function releaseSession(){if(closed)return;try{await session?.close();}finally{closed=true;clearPrivate();diagnostics?.check('cleanup',{sessionPrivateReferencesCleared:true,domIdentityCleared:true,fileInputsCleared:true,objectUrlsRevoked:true,physicalMemoryErasureGuaranteed:false});lastReceipt=session?.receipt()||{diagnostics:diagnostics?.snapshot()};session=undefined;$('plan-section').hidden=true;$('plan-json').textContent='';externalReceipt.hidden=!diagnostics;}}
  function download(bytes,name,type){const u=URL.createObjectURL(new Blob([bytes],{type}));urls.add(u);const a=document.createElement('a');a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>{URL.revokeObjectURL(u);urls.delete(u);},30000);}
  async function run(fn){if(busy)return;busy=true;render();activeTask=(async()=>{try{await fn();}catch(e){error=/^[A-Z_0-9]+$/.test(e.code||'')?e.code:e.name==='NotFoundError'?'PORT_SELECTION_CANCELLED':'IO';diagnostics?.error({code:error});session?.cancel(error);try{await releaseSession();}catch{error+=' / CLOSE_FAILED';}phase='STOP';}finally{busy=false;render();}})();return activeTask;}
  function onState(next,data={}){phase=next;if(data.progress!==undefined||data.backupProgress!==undefined){$('write-progress').hidden=false;$('write-progress').value=data.progress??data.backupProgress;}render();}
  $('install-btn').addEventListener('click',()=>{if(modal.open||busy)return;closed=false;phase=browserIsQualified()?'loading':'unsupported';error='';release=undefined;diagnostics=undefined;lastReceipt=undefined;$('plan-section').hidden=true;$('finished-note').hidden=true;$('write-progress').hidden=true;clearPrivate();modal.showModal();render();if(browserIsQualified())run(async()=>{release=await loadRelease(new URL('../firmware/',import.meta.url));phase='ready';});});
  $('connect-read').addEventListener('click',()=>{if($('connect-read').disabled)return;diagnostics=new Diagnostics({build,sourceCommit,originType:location.protocol==='https:'?'HTTPS':'LOOPBACK',origin:location.origin,mode:'installation'});run(async()=>{requireSafe(browserIsQualified(),'PLATFORM');const driver=await requestDriver(diagnostics);session=new PublicInstallSession(driver,release,{build,sourceCommit,offlineToolSha256,platformQualified:browserIsQualified(),diagnostics,onState});await session.prepare({boardConfirmed:$('physical-board').checked,tfRemoved:$('prepared-tf').checked});});});
- $('capture-backup').addEventListener('click',()=>{if(!$('capture-backup').disabled)run(async()=>{zip=await session.captureBackup();});});
- $('existing-raw').addEventListener('change',()=>{const f=$('existing-raw').files[0];if(!f)return;run(async()=>{requireSafe(f.size===PINS.flashBytes,'PACKAGE_SIZE');let b;try{b=new Uint8Array(await f.arrayBuffer());zip=await session.importExistingRaw(b);}finally{b?.fill(0);$('existing-raw').value='';}});});
- $('save-backup').addEventListener('click',()=>{if(zip&&!busy)download(zip,`Draftor-private-recovery-${new Date().toISOString().replace(/[:.]/g,'-')}.zip`,'application/zip');});
+ $('capture-backup').addEventListener('click',()=>{if(!$('capture-backup').disabled)run(async()=>{zip=await session.captureBackup();packageName=`Draftor-private-${session.plan.mode==='fresh'?'factory-original':'draftor-original'}-${new Date().toISOString().replace(/[:.]/g,'-')}.zip`;});});
+ $('existing-raw').addEventListener('change',()=>{const f=$('existing-raw').files[0];if(!f)return;run(async()=>{requireSafe(f.size===PINS.flashBytes,'PACKAGE_SIZE');let b;try{b=new Uint8Array(await f.arrayBuffer());zip=await session.importExistingRaw(b);packageName=`Draftor-private-${session.plan.mode==='fresh'?'factory-original':'draftor-original'}-${new Date().toISOString().replace(/[:.]/g,'-')}.zip`;}finally{b?.fill(0);$('existing-raw').value='';}});});
+ $('save-backup').addEventListener('click',()=>{if(zip&&!busy)download(zip,packageName,'application/zip');});
  $('saved-backup').addEventListener('change',()=>{session?.invalidateSavedPackage();$('backup-confirmed').checked=false;$('plan-confirmed').checked=false;const f=$('saved-backup').files[0];render();if(!f)return;run(async()=>{requireSafe(f.size>PINS.flashBytes&&f.size<=MAX_PACKAGE_BYTES,'PACKAGE_SIZE');let b;try{b=new Uint8Array(await f.arrayBuffer());await session.verifySavedBackup(b);}finally{b?.fill(0);$('saved-backup').value='';}});});
  $('download-tool').addEventListener('click',()=>{if($('download-tool').disabled)return;session.invalidateOfflineTool();$('tool-saved').checked=false;run(async()=>{const r=await fetch(new URL('../offline/Draftor_Recovery_R10_Offline.html',import.meta.url),{cache:'no-store'});requireSafe(r.ok,'RECOVERY_TOOL');const b=new Uint8Array(await r.arrayBuffer());requireSafe(b.length<4000000,'RECOVERY_TOOL');await session.verifyOfflineTool(b);download(b,'Draftor_Recovery_R10_Offline.html','text/html');});});
  $('tool-problem').addEventListener('click',()=>{session?.invalidateOfflineTool();$('tool-saved').checked=false;render();});

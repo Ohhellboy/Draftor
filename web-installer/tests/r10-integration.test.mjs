@@ -11,7 +11,7 @@ import {SimulatedFlash} from '../src/simulator.js';
 const tool=new TextEncoder().encode('synthetic offline tool test pin'),toolHash=await sha256(tool);
 const confirm={backupConfirmed:true,tfRemoved:true,planConfirmed:true,offlineToolSaved:true};
 const options={platformQualified:true,build:'R10-SOFTWARE-TEST',sourceCommit:source,offlineToolSha256:toolHash};
-const make=(flash=draftorFlash(),portOpts={})=>{const f=realRomFixture(flash,{fullRecovery:false,...portOpts},{candidate:true});return {...f,session:new PublicInstallSession(f.rom,release,{...options,diagnostics:f.diagnostics})};};
+const make=(flash=draftorFlash(),portOpts={})=>{const f=realRomFixture(flash,{fullRecovery:false,...portOpts},{candidate:true});const phases=[];return {...f,phases,session:new PublicInstallSession(f.rom,release,{...options,diagnostics:f.diagnostics,onState:phase=>phases.push({phase,writeLock:f.diagnostics.snapshot().checks.writeLock})})};};
 const prepare=f=>f.session.prepare({boardConfirmed:true,tfRemoved:true});
 const writes=f=>(f.port.counts.get(2)||0)+(f.port.counts.get(3)||0);
 const old=async f=>{await prepare(f);await f.session.verifySavedBackup(await packageFor(f.flash));await f.session.verifyOfflineTool(tool);};
@@ -20,15 +20,15 @@ for(const factory of [true,false])test(`no old files: ${factory?'exact factory f
  const original=factory?await factoryFlash():draftorFlash(),before=original.slice(),f=make(original,{firstInstall:factory,yieldEvery:4096});
  const started=performance.now();let progress=0,fullProgress=false;
  // This wraps only the integration observer, not the protocol parser.
- const p=await prepare(f);assert.equal(p.mode,factory?'fresh':'update');assert.equal(writes(f),0);
+ const p=await prepare(f);assert.equal(p.mode,factory?'fresh':'update');assert.equal(writes(f),0);assert.equal(f.diagnostics.snapshot().checks.writeLock,true);
  const zip=await f.session.captureBackup();assert(f.port.counts.get(14)>=262144);
  const filename=`${disk}/${factory?'factory':'draftor'}-SYNTHETIC.zip`;await writeFile(filename,zip);zip.fill(0);
  const saved=new Uint8Array(await readFile(filename));const h=await validateRecoveryPackage(saved);assert.equal(recoverySummary(h).firmware,factory?'waveshare-factory-20260120':'draftor-alpha3-app0');destroyRecoveryPackage(h);
  assert.equal(f.session.backupVerified,false);await assert.rejects(f.session.execute(confirm),{code:'BACKUP_FILE'});
  await f.session.verifySavedBackup(saved);await assert.rejects(f.session.execute(confirm),{code:'RECOVERY_TOOL'});
  await f.session.verifyOfflineTool(tool);saved.fill(0);
- await f.session.execute({...confirm,eraseConfirmed:factory});assert.equal(f.session.state,'VERIFIED_BOOT_PENDING');
- assert.equal(f.port.counts.get(2),factory?5:1);assert.equal(f.port.counts.get(3),factory?3958:3927);assert.equal(f.port.signalCount,0);
+ await f.session.execute({...confirm,eraseConfirmed:factory});assert.equal(f.session.state,'VERIFIED_BOOT_PENDING');assert.equal(f.diagnostics.snapshot().checks.writeLock,true);
+ assert(f.phases.some(x=>x.phase==='WRITING'&&x.writeLock===false));assert(f.phases.every(x=>x.writeLock===!['ERASING','WRITING','VERIFYING'].includes(x.phase)));assert.equal(f.port.counts.get(2),factory?5:1);assert.equal(f.port.counts.get(3),factory?3958:3927);assert.equal(f.port.signalCount,0);
  for(const [name,offset] of [['app.bin',65536],...(factory?[['bootloader.bin',0],['partitions.bin',32768],['boot_app0.bin',57344]]:[])])assert.deepEqual(f.flash.slice(offset,offset+inputs[name].length),inputs[name]);
  if(!factory){assert.deepEqual(f.flash.slice(0,65536),before.slice(0,65536));assert.deepEqual(f.flash.slice(0x410000),before.slice(0x410000));}
  await assert.rejects(f.session.execute(confirm));await f.session.close();assert.equal(f.port.closeCount,1);
