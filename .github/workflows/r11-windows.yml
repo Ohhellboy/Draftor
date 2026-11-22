@@ -1,0 +1,52 @@
+name: Draftor R11 Windows software qualification
+on:
+  push:
+    branches: [ci/web-r11-windows-20261122]
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: windows-2022
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chrome, msedge]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Extract reviewed synthetic-only test payload
+        shell: pwsh
+        run: |
+          python -c "import hashlib,json,pathlib; p=pathlib.Path('.'); h=json.loads((p/'PAYLOAD_SHA256.json').read_text()); assert all(hashlib.sha256((p/n).read_bytes()).hexdigest()==v for n,v in h.items())"
+          python -m zipfile -e source.zip work
+          python -m zipfile -e site.zip frozen
+      - name: Install exact locked dependencies
+        working-directory: work
+        run: npm ci
+      - name: Rebuild and verify frozen runtime bytes
+        working-directory: work
+        run: |
+          node tools/build-r11.mjs dist-r11-public
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python ../verify-ci.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tools/validate-r11-pages.mjs dist-r11-public
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tools/build-r11-browser-test.mjs dist-r11-public dist-r11-test-dev1
+      - name: Real Windows browser process; native cancel and independent synthetic device
+        working-directory: work
+        run: node tests/r11-windows-browser.mjs ${{ matrix.browser }}
+      - name: Related platform and device-safety regression
+        if: always()
+        working-directory: work
+        run: node --test tests/r11-platform.test.mjs tests/r10-integration.test.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: r11-windows-${{ matrix.browser }}-${{ github.sha }}
+          path: work/test-results/
+          if-no-files-found: warn
+          retention-days: 30
