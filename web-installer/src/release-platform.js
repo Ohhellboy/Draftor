@@ -28,7 +28,7 @@ export function platformMessage(language,environment=browserEnvironment()){
  CAPABLE_DESKTOP:'Web Serial is available. Windows Chrome/Edge is open for informed beta use; real USB field testing remains pending (WINDOWS_DEVICE_FIELD_TEST_PENDING). macOS Chrome inherits prior qualification. Save and reselect the complete ZIP and keep the offline HTML before installation.'
  }};return copy[language==='en'?'en':'zh'][reason];
 }
-export function publicErrorCode(error){if(/^[A-Z_0-9]{1,48}$/.test(error?.code||''))return error.code;if(error?.name==='NotFoundError')return 'PORT_SELECTION_CANCELLED';if(['SecurityError','NotAllowedError'].includes(error?.name))return 'SERIAL_PERMISSION_DENIED';return 'IO';}
+export function publicErrorCode(error){if(typeof error?.code==='string'&&/^[A-Z_0-9]{1,48}$/.test(error.code))return error.code;if(error?.name==='NotFoundError')return 'PORT_SELECTION_CANCELLED';if(['SecurityError','NotAllowedError'].includes(error?.name))return 'SERIAL_PERMISSION_DENIED';return 'IO';}
 export function serialErrorHelp(code,language){const en=language==='en';
  if(code==='SERIAL_PERMISSION_DENIED')return en?'Serial permission was denied or blocked by browser/organization policy. No automatic retry. Use site permissions, try desktop Chrome, or ask your administrator.':'串口授权被拒绝或被浏览器／组织策略限制，不会自动重试。请检查网站权限，尝试桌面 Chrome，或联系管理员。';
  if(code==='PORT_SELECTION_CANCELLED')return en?'Port selection cancelled; no device connected. Close this session before starting again.':'已取消串口选择，尚未连接设备。关闭本次会话后可主动重新开始。';
