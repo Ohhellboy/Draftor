@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f7f5ef">
+  <meta name="description" content="Draftor 草稿机：无打扰口袋中文写作。开源，无网络，无 AI，无广告。官网固件安装入口。">
+  <title>Draftor 草稿机 · 固件安装</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:,">
+<link rel="stylesheet" href="install-navigation.css"></head>
+<body>
+<div class="wrap">
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="Draftor 首页"><span class="brand-seal" aria-hidden="true">稿</span><span class="brand-name">Draftor</span></a>
+    <button type="button" class="lang" id="lang-toggle" aria-label="Switch language to English">中文 / EN</button>
+  </header>
+  <main>
+    <section class="hero" id="hero" aria-labelledby="hero-title">
+      <!-- Reserved for an approved product photo; this release retains the title fallback. -->
+      <img class="hero-image" id="hero-image" alt="Draftor 草稿机设备照片">
+      <h1 id="hero-title" data-i18n="hero">草稿机</h1>
+      <p class="positioning" data-i18n="positioning">无打扰口袋中文写作</p>
+      <p class="values" data-i18n="values">开源，无网络，无 AI，无广告</p>
+    </section>
+    <section class="install" aria-labelledby="install-title">
+      <h2 id="install-title" data-i18n="installTitle">安装 Draftor 固件</h2>
+      <p class="install-intro" data-i18n="intro">通过 USB 连接设备，即可在浏览器中安装固件。无需额外下载软件。</p>
+      <div class="board-line">
+        <span data-i18n="boardLabel">适用设备：</span>
+        <strong id="board-name">微雪 ESP32-S3-RLCD-4.2</strong>
+        <span id="board-detail">（ST7305）</span>
+        <button type="button" class="inline-btn" id="board-change" aria-expanded="false" aria-controls="board-chooser" data-i18n="change">更换</button>
+      </div>
+      <div class="board-chooser" id="board-chooser" hidden>
+        <label class="board-choice">
+          <input type="radio" name="board" checked value="waveshare">
+          <span><strong data-i18n="wsName">微雪集成版</strong><small>ESP32-S3-RLCD-4.2 · ST7305 · SDMMC</small></span>
+        </label>
+        <label class="board-choice disabled">
+          <input type="radio" name="board" disabled value="prototype">
+          <span><strong data-i18n="protoName">Draftor S3 原型版（暂未开放）</strong><small>ESP32-S3 N16R8 · ST7306 · SPI TF</small></span>
+        </label>
+      </div>
+      <p class="factory-nav"><strong>第一次安装草稿机 / First-time installation</strong><br><a href="guide.html#first">查看首装步骤 / Instructions</a> · <a href="./#install-title">已经在用 Alpha 3？返回重装 / Reinstall</a></p><button class="install-primary" id="install-btn" type="button" aria-describedby="install-hint">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5M5 16v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/></svg>
+        <span data-i18n="installBtn">连接设备并安装</span>
+      </button>
+      <p class="install-hint" id="install-hint" data-i18n="browserHint">Windows Chrome / Edge 测试性开放；macOS Chrome 保留支持</p>
+      <p class="build-note" data-i18n="previewHint">限定公开：准确微雪厂家首装 / Alpha 3 app0 重新安装</p>
+      <p class="install-hint"><a href="recovery.html">备份与恢复 / Backup & recovery</a> · <a href="offline/Draftor_Recovery_R11_Offline.html" download>离线恢复工具 / Offline recovery tool</a> · <a href="docs/PUBLIC_STATUS.html">支持范围 / Scope</a></p>
+      <p class="build-note">R12-public-8fd64d46a864 · v0.1.0-alpha.3</p><details class="tf-downloads" id="tf-downloads">
+        <summary data-i18n="tfDownload">下载 TF 卡资源</summary>
+        <div class="tf-content">
+          <p class="tf-version" data-i18n="tfVersion">适用于微雪 ESP32-S3-RLCD-4.2 · 固件 v0.1.0-alpha.3</p>
+          <p data-i18n="tfIntro">首次准备 TF 卡，请下载下方两份资源包。已经备好对应资源的 TF 卡可继续使用。</p>
+          <p data-i18n="tfSizes">基础资源包约 60.5 MB，学习索引包约 1.8 MB；运行资源解压后共约 138.3 MB。</p>
+          <p data-i18n="tfPreserve">下载后按目录说明复制到 TF 卡，保留已有文稿和个人学习数据。</p>
+          <div class="tf-links">
+            <a id="tf-base-download" href="https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.1/Draftor_v0.1.0-alpha.2.1_Resources.zip" rel="noopener noreferrer" data-i18n="tfBase">下载基础资源包</a>
+            <a id="tf-index-download" href="https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.3/Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_LearningIndex.zip" rel="noopener noreferrer" data-i18n="tfIndex">下载学习索引包</a>
+          </div>
+          <details id="tf-instructions">
+            <summary data-i18n="tfDetails">安装说明与校验信息</summary>
+            <p data-i18n="tfVersions">基础包沿用 alpha.2.1，两包共同对应当前 alpha.3 固件。学习索引是公开通用资源，不是个人学习记录。下载来自 GitHub Release，速度和可用性取决于网络。</p>
+            <p data-i18n="tfMerge">仅合并需要的资源子目录；不替换整个 HANIME，不格式化、不清空卡。同名文件有差异时，先保留旧文件并核对版本，只处理发行清单中的资源。</p>
+            <ul>
+              <li><span data-i18n="tfBasePath">基础包：Resources/HANIME/ → 卡根 HANIME/</span><br><code>Draftor_v0.1.0-alpha.2.1_Resources.zip</code><br><span data-i18n="tfBaseBytes">60,546,074 字节</span><br>SHA-256: <code>460096846036bd01c941bc07ab98e6db4e130a247563e44fa3cb01d12a9c6636</code></li>
+              <li><span data-i18n="tfIndexPath">学习索引包：Resources/WAVESHARE_R7_L1_AREV1_RES_20261112/ → 卡根同名目录；relations.bgr 和 relations.hnv 均需要。</span><br><code>Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_LearningIndex.zip</code><br><span data-i18n="tfIndexBytes">1,831,828 字节</span><br>SHA-256: <code>05da4128d132c0673ae28bf9a1f35d3997a017cd1995d51d38051dc15f55c3eb</code></li>
+            </ul>
+            <p data-i18n="tfRoot">不要把 ZIP 外层文件夹或 Resources/ 复制成额外父目录。HANIME 是固件兼容路径，请保留原名。运行清单共 18 项、138,323,109 字节，不含文稿和个人学习数据。</p>
+            <p data-i18n="tfNoMigration">下载资源不会自动迁移旧文稿或学习记录，请保留旧命名空间及所有其他文件。网页不访问或改写 TF 卡。</p>
+            <p><a href="docs/TF_GUIDE.html" data-i18n="tfFullGuide">完整目录说明与 18 项文件清单</a> · <a href="firmware/TF_RESOURCES.json" data-i18n="tfManifest">发行资源清单</a></p>
+          </details>
+        </div>
+      </details>
+    </section>
+  </main>
+  <footer class="footer">
+    <nav aria-label="帮助与信息">
+      <button type="button" data-modal="draftor" data-i18n="whatDraftor">什么是草稿机</button>
+      <button type="button" data-modal="bgime" data-i18n="whatBgime">什么是大鹅输入法</button>
+      <button type="button" data-modal="help" data-i18n="help">安装帮助</button>
+      <button type="button" data-modal="advanced" data-i18n="advanced">高级选项</button>
+      <a href="https://github.com/Ohhellboy/Draftor" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </nav>
+  </footer>
+</div>
+<dialog id="info-dialog" aria-labelledby="dialog-heading">
+  <div class="dialog-inner">
+    <div class="dialog-title"><h3 id="dialog-heading"></h3><button class="close" id="dialog-close" aria-label="关闭">×</button></div>
+    <div class="dialog-body" id="dialog-body"></div>
+  </div>
+</dialog>
+<script type="module" src="assets/app.js"></script>
+</body>
+</html>

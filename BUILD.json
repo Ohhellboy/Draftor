@@ -1,53 +1,47 @@
 {
   "schema": "draftor-public-release/1",
-  "profile": "R11_DESKTOP_WEB_SERIAL_WINDOWS_BETA",
-  "version": "R11-public-385a584bc24a",
-  "sourceCommit": "385a584bc24ac4f31c93526e1f327f8451437eb7",
+  "profile": "R12_PUBLIC_APP0_WITH_R11_FIRST_INSTALL",
+  "version": "R12-public-8fd64d46a864",
+  "sourceCommit": "8fd64d46a8641f4a4858fcfe024b6e793b6a8b8a",
+  "testedSource": "197e5613df6a5a58d052c9fcce17beb168f8dd38",
+  "previousPages": "8ca75a4b71d104407098d54001bcbae8dd38e898",
   "frozen": true,
+  "productionDeployment": true,
   "reviewOnly": false,
+  "software": false,
+  "realUsbAvailable": true,
+  "windowsDevice": "PENDING",
+  "release": "v0.1.0-alpha.3",
+  "appSha256": "165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd",
   "releaseCapabilities": [
     "exact-factory-20260120-first-install",
     "exact-alpha3-app0-reinstall",
     "original-device-offline-recovery"
   ],
-  "runtimePermissions": {
-    "installation": "exclusive-update-or-fresh-after-package-reimport",
-    "onlineRecovery": "read-only",
-    "offlineRecovery": "original-device-validated-full-image-single-use"
+  "reinstall": {
+    "page": "index.html",
+    "script": "assets/reinstall-8fd64d46a864.js",
+    "sha256": "9bedf87ed182610b822996fbc8ca1491cb941bca898288ee42da889875ff1356",
+    "origin": "https://draftor.tcssn.org",
+    "writeScope": "EXACT_ALPHA3_APP0_REINSTALL",
+    "protection": "saved-and-read-back-small-original-board-file"
   },
-  "platform": "Desktop secure Web Serial; Windows Chrome/Edge beta, macOS Chrome inherited",
-  "testedBaseline": "R4/R6/R9 macOS hardware inherited; R11 Windows browser software evidence recorded separately",
-  "privatePackageSchema": "draftor-private-recovery/1",
-  "release": "v0.1.0-alpha.3",
-  "appSha256": "165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd",
-  "offlineHtml": "offline/Draftor_Recovery_R11_Offline.html",
-  "offlineHtmlSha256": "5384f9fb9ad9979423f07f8eddb9d04b7dbaea3679da623181e7bb220a8571bf",
-  "appBundleSha256": "fce3dbb1df809d61af4c1748a89f5ea674812ff7eee90b924415c32e50466054",
-  "recoveryBundleSha256": "2e6d5ee35ad543894fc9ca2c6ee29fa606f622d727522cc5fd01eaff347861b2",
-  "inheritedCore": {
-    "src/rom.js": "fa8eb3cf4e1c8158012af70f3043a5676d3aeb4a06ccb5ffc399fac8004871c0",
-    "src/serial.js": "ce9e9b29c23000bf51cb5689c63d19dfe31e9730c062a5fc351b65669a33fc60",
-    "src/session.js": "32a06b4c2fe6d375357271719f029ce0bb0c70b0941888238a592f046f614bcc",
-    "src/safety.js": "a4c55225576670ee41edc0379de23d5490c676d2d36f5386ab56e26518610c9e",
-    "src/first-install.js": "d46967bb7c6c841efa167c4b6bd9120efffba2ac62640e04ee2fa042204005b5",
-    "src/recovery-package.js": "d3b742d146a11ab99f62359eeb8720801091fae73f018e87ae623524dedc6bf4",
-    "src/recovery-zip.js": "a362c1c6d6caf0d8ab0a2ebe9e1946495c0a36647cefeacc87c9630d6c167728",
-    "src/recovery-session.js": "7949dfe22e5a44a6a0e2ef7f2c318c062ef01adb2b98daa0119532bf3b2ac867",
-    "src/read-only-driver.js": "ea370a59bbf68f4c579884a027bc89cf7e0de7232adda771f077adc1a4a38e85",
-    "src/pins.js": "6ced3594703c0762aaf5914d7c3458b7c2a01e1e877cc2b807b51a1648c4bec6",
-    "src/factory-pins.js": "1b134f05efbe1e2027e291fec8533cff5d0a3b2aae982056795f2281d7f7afb1"
+  "firstInstall": {
+    "page": "first-install.html",
+    "script": "assets/app.js",
+    "sha256": "fce3dbb1df809d61af4c1748a89f5ea674812ff7eee90b924415c32e50466054",
+    "sourceCommit": "385a584bc24ac4f31c93526e1f327f8451437eb7",
+    "fingerprint": "FactoryOnly_20260120",
+    "protection": "full-current-device-zip-reimport-and-saved-offline-tool"
   },
-  "qualification": {
-    "firstInstall": "R6_DEVICE_INHERITED",
-    "sameVersionApp0": "R4_DEVICE_INHERITED",
-    "draftorRecovery": "R9_RECOVERY_USER_DEVICE_PASS_INHERITED",
-    "factoryRecovery": "SOFTWARE_BRANCH_AND_SHARED_WRITER",
-    "r11DeviceOperations": "NONE",
-    "windows": "WINDOWS_DEVICE_FIELD_TEST_PENDING",
-    "mobileUsb": "NOT_QUALIFIED"
+  "recovery": {
+    "page": "recovery.html",
+    "online": "read-only",
+    "scriptSha256": "2e6d5ee35ad543894fc9ca2c6ee29fa606f622d727522cc5fd01eaff347861b2",
+    "offlineHtml": "offline/Draftor_Recovery_R11_Offline.html",
+    "offlineSha256": "5384f9fb9ad9979423f07f8eddb9d04b7dbaea3679da623181e7bb220a8571bf",
+    "restore": "same-original-device-full-ZIP"
   },
-  "dependencies": {
-    "esptool-js": "0.7.1",
-    "spark-md5": "3.0.2"
-  }
+  "guide": "guide.html",
+  "tf": "docs/TF_GUIDE.html"
 }

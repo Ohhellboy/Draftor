@@ -1,3 +1,5 @@
+[当前安装步骤与故障处理](https://draftor.tcssn.org/guide.html)
+
 # Windows 首位用户操作说明
 
 Windows 10/11 桌面 Chrome 或 Microsoft Edge 现已测试性开放。Windows 真实 USB 路径仍待现场验证（WINDOWS_DEVICE_FIELD_TEST_PENDING）。页面会检查实际能力和设备状态；不要以按钮可点击当成设备已通过。无需 Python、命令行、Codex 或浏览器扩展。
@@ -16,7 +18,7 @@ Edge 没有串口 API 或被公司策略阻止时，可尝试最新版桌面 Chr
 
 ## 安装与自己的恢复包
 
-打开 https://draftor.tcssn.org/，点“连接设备并安装”。阅读 Windows 测试提示，按实际条件勾选，再在浏览器串口选择框选对应 USB 设备。取消选择不会开始写入。
+打开 https://draftor.tcssn.org/first-install.html，点“连接设备并安装”。阅读 Windows 测试提示，按实际条件勾选，再在浏览器串口选择框选对应 USB 设备。取消选择不会开始写入。
 
 只读检查通过后，页面会自动给出准确厂家首装或 Alpha 3 app0 同版本重装计划。陌生固件、app1、空白板或不合格状态应停止；不要寻找强刷入口。
 
