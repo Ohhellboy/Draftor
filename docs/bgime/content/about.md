@@ -1,6 +1,6 @@
 # 版本、许可与参与开发
 
-本文档适用于 **Draftor Alpha 3 中使用的 bgIME**。版本依据是发布标签 `v0.1.0-alpha.3`，对应提交 `f18939f8880e2278c231739d553fbf983c19e0f6`。教程和接口链接都指向这个提交，不会随仓库主分支变化而悄悄改指其他实现。
+本文档适用于 **Draftor Alpha 3 中使用的 bgIME**。版本依据是发布标签 `v0.1.0-alpha.3`，对应提交 `f18939f8880e2278c231739d553fbf983c19e0f6`。教程和接口中的源码引用固定到这个提交。
 
 ## 保留模块原有版本
 
@@ -35,7 +35,7 @@ bgIME 自有源码采用 **Apache License 2.0**，见 [LICENSE](@source/LICENSE)
 | 正文与部分界面字体 | 霞鹜文楷、Ysabeau 相关材料采用 OFL；另有 Jigmo2 的 CC0 生僻字贡献 | [字体分发说明](@source/docs/FONT_DISTRIBUTION.md)及原始许可 |
 | MiSans 菜单字形 | 使用小米自己的字体许可；项目记录了独立生成表分发依据尚待确认的事项 | [字体分发说明](@source/docs/FONT_DISTRIBUTION.md)，不能推定为 OFL 或 Apache-2.0 |
 
-项目还记录了部分历史混合词库的文件级许可适用范围、生成材料和字体独立分发问题尚待确认。这些记录对准备重新分发正式资源的开发者有直接影响：取得文件不等于取得一个覆盖所有材料的统一授权，应逐项保留来源、署名、许可和修改说明。完整记录见 [RESOURCE_STATUS.md](@source/docs/RESOURCE_STATUS.md)、[LICENSE_INVENTORY.md](@source/docs/LICENSE_INVENTORY.md)和[资源文件清单](@source/docs/RESOURCE_FILES.json)。
+部分历史混合词库的文件级许可适用范围、生成材料和字体独立分发问题尚待确认。准备重新分发正式资源时，请逐项核对适用许可，并保留来源、署名、许可和修改说明。完整记录见 [RESOURCE_STATUS.md](@source/docs/RESOURCE_STATUS.md)、[LICENSE_INVENTORY.md](@source/docs/LICENSE_INVENTORY.md)和[资源文件清单](@source/docs/RESOURCE_FILES.json)。
 
 Host 示例不依赖 Draftor 的屏幕字体。你的界面可以采用自己的合法字体，不需要为了使用 Core 而引入草稿机的菜单字形资源。
 
@@ -49,4 +49,4 @@ Host 示例不依赖 Draftor 的屏幕字体。你的界面可以采用自己的
 
 先运行相关 Host 示例，再提出范围清楚的修改。文档改进适合补充首次接入者容易遗漏的调用顺序、缓冲区有效期和失败处理；新平台适配需要说明目标系统、文件接口、调度方式及验证范围。
 
-完整独立学习示例是一个明确的后续方向，但应先讨论可公开的选词资格入口和责任边界。不要把产品私有接口直接包装成未经约定的稳定 SDK，也不要用不同记录规则的演示声称等同于 Alpha 3 学习。
+补充完整独立学习示例前，需要先讨论可公开的选词资格入口及宿主的调用责任。示例应使用与 Alpha 3 一致的记录规则，并覆盖跨方案共享、关闭重开和保存失败处理；当前接入范围见[选词学习](@doc/learning)。

@@ -36,7 +36,7 @@ submission: Preparing -> Ready -> Accepted; UTF-8="原型机原型机" sink_call
 
 每个场景使用新的内存文档。整个示例共完成四个场景：两种方案各自的单词和两词组合。它还检查取消、退格后重新输入、活动操作期间的 `Busy` 和旧选择的 `Stale` 状态。
 
-接入时替换示例中逐字构造输入的脚本、候选输出和文本接收器。全拼与小鹤要绑定各自的资源索引，不能只更改枚举而继续使用另一方案的文件。小鹤的奇数长度前缀会被识别为尚未完整；这个测试不等于验证了所有小鹤编码、歧义句或多词组合。
+接入时替换示例中逐字构造输入的脚本、候选输出和文本接收器。全拼与小鹤要绑定各自的资源索引，不能只更改枚举而继续使用另一方案的文件。示例还检查小鹤的奇数长度前缀被识别为尚未完整；更多编码、歧义句和多词组合需要结合实际词库另行测试。
 
 源码：[main.cpp](@source/ime/bgime/examples/host_composition/main.cpp) · [CMakeLists.txt](@source/ime/bgime/examples/host_composition/CMakeLists.txt) · [组合接口](@doc/api/composition)。
 
@@ -68,7 +68,7 @@ ctest --test-dir build/host_wubi86 --output-on-failure
 
 当 `abcd` 的当前第一页只有一个可输出候选且没有更多候选时，绑定层产生 `AutoUniqueFullCode` 请求。此时 `sink_calls=0`，文字还没有写入应用。示例中的宿主随后确认这个请求，才发生一次提交。你的应用也应先检查当前输入和编辑目标，不能把请求直接当作已提交结果。
 
-Draftor 的五笔接入还检查正式资源中的自动提交条件、候选窗口和输入事件上下文；这些产品条件见 [wubi_product.cpp](@source/integration/product/src/wubi_product.cpp)。它在产品中使用 `DirectExact` 组合路径，不能把 Host 的 `DirectQueryBinding` 演示当作产品调用链的逐行复刻。
+Draftor 的五笔接入还检查正式资源中的自动提交条件、候选窗口和输入事件上下文；这些产品条件见 [wubi_product.cpp](@source/integration/product/src/wubi_product.cpp)。产品使用 `DirectExact` 组合路径，Host 示例使用 `DirectQueryBinding`，两者的调用入口不同。
 
 源码：[main.cpp](@source/ime/bgime/examples/host_wubi86/main.cpp) · [人工资源生成](@source/ime/bgime/examples/host_wubi86/fixture.cpp) · [CMakeLists.txt](@source/ime/bgime/examples/host_wubi86/CMakeLists.txt) · [五笔接口](@doc/api/wubi)。
 
@@ -76,4 +76,4 @@ Draftor 的五笔接入还检查正式资源中的自动提交条件、候选窗
 
 先保持小型资源不变，替换输入来源和文本接收器，确认事件顺序与生命周期正确；再接入正式词库，验证资源身份、内存容量和显示字体。需要学习时，还要提供个人状态存储、后台调度和符合产品语义的事件资格。
 
-更换词库后，示例中对「原型机」或人工五笔编码的断言自然不再适用。不要只替换 `fixture` 路径就把它当成可浏览完整正式词库的工具。
+更换词库后，需要同时调整示例中的固定输入和结果断言，使它们与新词库匹配。若要交互式浏览正式词库，还需要补充终端或界面的输入事件处理。

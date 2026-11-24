@@ -4,7 +4,7 @@
 
 ## 准备环境
 
-需要 Git、CMake 3.20 或更新版本，以及支持 C++17 的编译器。现有 Host 文件适配器使用 POSIX 文件接口，示例在 macOS 15.5、Apple Silicon、Apple Clang 17 和 CMake 4.3.2 下有运行记录。其他 POSIX 环境需要自行验证；示例的 CMake 配置会拒绝非 UNIX 平台，不能直接把命令当作 Windows 原生构建步骤。
+需要 Git、CMake 3.20 或更新版本，以及支持 C++17 的编译器。现有 Host 文件适配器使用 POSIX 文件接口，示例在 macOS 15.5、Apple Silicon、Apple Clang 17 和 CMake 4.3.2 下有运行记录。其他 POSIX 环境需要自行验证。示例的 CMake 配置会拒绝非 UNIX 平台；在 Windows 原生环境运行前，需要适配文件接口和构建配置。
 
 不需要 ESP32 SDK、开发板、字体或完整的正式词库。请在终端中运行命令，并使用 UTF-8 显示中文输出。
 
@@ -67,7 +67,7 @@ demo checks: OK
 
 `candidate[0]` 是第一页第一个候选。两个方案取得相同的稳定词条身份；`paths` 表示命中该身份的映射路径数，不是同文候选的数量。`sink_calls=2` 表示应用的文字接收器被成功调用了两次。
 
-`learning: unavailable` 描述的是**这个示例的适配器**：它使用 `NoLearning` 和 `ScoringMode::BaseOnly`，不读个人次数，也不保存用户状态。Alpha 3 产品已启用共享选词学习，不能据此判断引擎没有学习能力。
+`learning: unavailable` 表示本示例禁用了学习：它使用 `NoLearning` 和 `ScoringMode::BaseOnly`，不读个人次数，也不保存用户状态。Alpha 3 产品已启用共享选词学习；记录条件和所需接入工作见[选词学习](@doc/learning)。
 
 ## 沿着示例读代码
 
@@ -87,7 +87,7 @@ demo checks: OK
 
 这个最小示例接收的是完整编码，不解析全拼音节，也不处理逐键组合输入。要查看这些过程，继续运行[全拼、小鹤双拼与五笔86示例](@doc/schemes)。
 
-> 小型测试词库只包含程序演示所需的条目。它能证明接口如何工作，不能验证真实词库覆盖率、任意句子的切分质量或正式学习效果。实际输入需要[匹配版本的正式资源](@doc/resources)。
+> 小型测试词库只包含程序演示所需的条目，用于观察接口调用和输出。实际输入需要[匹配版本的正式资源](@doc/resources)，并另行测试词库覆盖、句子切分和学习效果。
 
 ## 遇到问题
 

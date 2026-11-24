@@ -1,6 +1,6 @@
 # 接口导览
 
-先按需要完成的任务找到入口，再查看相应的参数与调用顺序。这里整理的是 Alpha 3 对应头文件和实际示例中的推荐路径，不将每个实现类都列为宿主必须调用的接口。
+先按需要完成的任务找到入口，再查看相应的参数与调用顺序。本页按 Alpha 3 的公开头文件和实际示例整理推荐接入路径。
 
 所有源码链接固定到 `f18939f8880e2278c231739d553fbf983c19e0f6`。公开类型仍使用 `hanime`、`hanime_extension` 和 `hanime::wubi` 命名空间。
 
@@ -52,4 +52,4 @@
 | [state_v3.hpp](@source/integration/product/dependencies/core/include/hanime/state_v3.hpp) | 个人状态文件端口与分步持久化 |
 | [composition_commit.hpp](@source/integration/product/dependencies/core/include/hanime/composition_commit.hpp) | 组合事务、学习通知与结果观察 |
 
-模块没有承诺跨版本二进制 ABI。使用这一版源码时，按相同的配置重新编译模块和使用方；保留 Core、Extension 各自真实的版本号，见[版本说明](@doc/about)。
+使用这一版源码时，按相同的配置重新编译模块和使用方；跨版本的二进制兼容性需要另行确认。Core、Extension 各自的版本号见[版本说明](@doc/about)。

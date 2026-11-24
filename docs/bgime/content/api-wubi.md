@@ -4,7 +4,7 @@
 
 ## 编码规则与生命周期
 
-`wubi86_profile` 的方案名为 `wubi86`，字母表为 `a`–`y`，普通编码上限为四码，并启用满码唯一候选的提交请求。这是当前参考配置的规则，不应推广为所有五笔输入方案的固定规则。
+`wubi86_profile` 的方案名为 `wubi86`，字母表为 `a`–`y`，普通编码上限为四码，并启用满码唯一候选的提交请求。使用其他五笔配置时，需要核对其字母表、编码长度和提交规则。
 
 `Decoder::plan()` 返回 `DirectQueryPlan`，包含借用的编码 `code`、修订号 `revision` 和是否满码 `full_code`。编码视图只在下一次成功编辑前有效。若使用绑定层，应通过绑定层编辑，不要绕过它直接修改解码器或会话输入。
 
@@ -28,7 +28,7 @@
 
 ## 显示、翻页与选择
 
-从共享 `CandidateSession` 取得候选，使用 `request_text()` 请求文字，在 `present()` 回调内复制显示内容。翻页直接调用共享会话的 `request_range()`；不要为翻页偷偷发起一条不同编码的新输入。
+从共享 `CandidateSession` 取得候选，使用 `request_text()` 请求文字，在 `present()` 回调内复制显示内容。翻页直接调用共享会话的 `request_range()`，保持当前编码与逻辑输入不变。
 
 用户确认当前候选时调用 `binding.confirm(selection, CommitReason::Explicit)`。接下来观察提交结果；需要重试时使用返回的 `RetryPermit` 调用绑定的 `retry()`。状态语义与 [Core 提交](@doc/api/core)相同。接受成功后绑定清空编码；重复确认已接受事务不会再次交付文字。
 
@@ -38,10 +38,10 @@
 
 收到请求时，使用当次 `Step::selection` 和 `code_revision` 关联当前输入。由应用决定是否允许提交，允许后再调用 `confirm(selection, CommitReason::AutoUniqueFullCode)`。请求本身不会调用文本接收器。
 
-实际 Draftor 还会检查自动提交资源、显示窗口、当前输入事件和编辑目标。它的产品入口见 [wubi_product.cpp](@source/integration/product/src/wubi_product.cpp) 和 [device_ime.cpp](@source/integration/product/src/device_ime.cpp)，不能用 Host 的最小条件替代全部产品检查。
+Draftor 在这些条件之外，还会检查自动提交资源、显示窗口、当前输入事件和编辑目标。完整的产品处理见 [wubi_product.cpp](@source/integration/product/src/wubi_product.cpp) 和 [device_ime.cpp](@source/integration/product/src/device_ime.cpp)。
 
 ## 学习范围
 
 绑定只把提交和学习通知委托给 Core，不拥有第二份个人计数。`host_wubi86` 明确使用基础排序和禁用的学习通知源，没有个人状态文件。
 
-Alpha 3 产品的五笔共享学习走 Draftor 的组合与选词资格路径。它不是单纯给这个绑定更换一个计数源就能完整复现的功能。相关责任和当前公开入口限制见[选词学习](@doc/learning)。
+Alpha 3 产品的五笔共享学习走 Draftor 的组合与选词资格路径。接入这套学习行为时，除计数源外还需要处理选词资格和共享状态的生命周期，详见[选词学习](@doc/learning)。

@@ -6,14 +6,14 @@
 
 三个 Host 示例在构建时自动生成小型测试资源。Core 与组合示例使用已有 `small_fixture.cpp`，五笔示例有自己的人工条目。它们使用隔离的命名空间，既不代表真实词库覆盖，也不应与用户个人记录混用。
 
-正式资源保存更多词条及实际方案编码。Alpha 3 沿用 format4 的共享词库和三种方案索引，并增加通用学习位置索引。引擎提供资源构建与读取能力，但并未提供一个已经覆盖全部正式资源生成和授权问题的独立 SDK 安装器。
+正式资源保存更多词条及实际方案编码。Alpha 3 沿用 format4 的共享词库和三种方案索引，并增加通用学习位置索引。首次接入正式资源时，先下载配套文件，再核对身份和许可；资源构建工具与原始材料的范围见下文。
 
 ## 下载对应文件
 
 | 材料 | 获取方式 | 用途 |
 | --- | --- | --- |
 | Alpha 3 源码 | [发布页](https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.3) 或快速开始中的固定标签 | 引擎、产品集成、示例与生成工具 |
-| format4 运行词库与既有正文字体 | [Alpha 2.1 Resources.zip](https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.1/Draftor_v0.1.0-alpha.2.1_Resources.zip) | Alpha 3 继续使用的历史资源文件，不是误链到旧词库 |
+| format4 运行词库与既有正文字体 | [Alpha 2.1 Resources.zip](https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.1/Draftor_v0.1.0-alpha.2.1_Resources.zip) | Alpha 3 继续使用这套共享词库、方案索引和正文字体 |
 | Alpha 3 通用学习索引 | [Alpha 3 LearningIndex.zip](https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.3/Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_LearningIndex.zip) | format 301 位置索引与验证文件 |
 | 精确文件身份与 TF 相对路径 | [TF_RESOURCES.json](@source/release/alpha3/TF_RESOURCES.json) | 按文件核对字节大小、SHA-256、角色和来源 |
 | Alpha 3 下载包摘要 | [SHA256SUMS](https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.3/SHA256SUMS) | 核对 Alpha 3 发布附件 |
@@ -47,9 +47,9 @@ format4 目录中还有 `CANDIDATE_READY.json` 安装标记。完整安装应按
 
 小型示例走 `open()` 加 `advance_validation()` 的完整校验路径，并明确检查命名空间与包 ID。它不演示正式发布认证。
 
-产品使用固定的 `ResourceReleaseSpec`、`VerifiedResourceReader` 与验证页，对正式资源建立受约束的读取路径，再调用 `open_verified()`。换用自己的资源时，需要相应的可信描述与配套验证材料，不能只把 `open()` 换成 `open_verified()` 来跳过验证。
+产品使用固定的 `ResourceReleaseSpec`、`VerifiedResourceReader` 与验证页，对正式资源建立受约束的读取路径，再调用 `open_verified()`。换用自己的资源时，先准备相应的可信描述与配套验证材料，再使用这条读取路径。
 
-参考：[verified_resource.hpp](@source/integration/product/dependencies/core/include/hanime/verified_resource.hpp)、[产品固定资源身份](@source/integration/product/src/resource_release.cpp)、[产品资源加载](@source/integration/product/src/tf_resources.cpp)、[通用学习索引生成器](@source/tools/generate_learning_index.py)。生成器的存在不意味着所有历史混合词库和字体都能从现有原始材料逐字节重建。
+参考：[verified_resource.hpp](@source/integration/product/dependencies/core/include/hanime/verified_resource.hpp)、[产品固定资源身份](@source/integration/product/src/resource_release.cpp)、[产品资源加载](@source/integration/product/src/tf_resources.cpp)、[通用学习索引生成器](@source/tools/generate_learning_index.py)。重新生成历史混合词库或字体前，还需核对[资源来源与原始材料的缺口](@source/docs/RESOURCE_STATUS.md)；现有材料未覆盖全部资源的逐字节重建。
 
 ## 个人状态单独存放
 

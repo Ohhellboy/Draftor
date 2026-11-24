@@ -6,7 +6,7 @@
 
 `Composition(index, shared, rules, config)` 借用已打开且校验完成的方案索引和共享资源。全拼选择 `SchemeRules::FullPinyin`，小鹤双拼选择 `SchemeRules::R1Xiaohe`。索引的方案名必须与规则匹配。
 
-另一个构造形式接受 `SchemePolicy`，用于明确给出规则和资源方案名。`DirectExact` 代表直接编码查询，不运行拼音切分规划；Draftor 的五笔产品集成使用这个入口。它不意味着任意输入方案已经具有通用插件接口。
+另一个构造形式接受 `SchemePolicy`，用于明确给出规则和资源方案名。`DirectExact` 代表直接编码查询，不运行拼音切分规划；Draftor 的五笔产品集成使用这个入口。当前可选规则为全拼、小鹤双拼和直接编码查询。
 
 `Config` 中的 `raw_bytes`、`members`、`page_items` 分别约束原始编码字节数、已选词数量和页内候选数量。`word_bytes`、`name_bytes`、`text_bytes` 与 `request_bytes` 约束输出及请求缓冲区。容量超限会返回错误，不会替你截断中文。`learning_counts` 是借用的计数源，`apply_learning` 控制是否用它参与排序；设置方法与产品边界见[选词学习](@doc/learning)。
 
@@ -44,7 +44,7 @@
 
 `request_page(direction)` 翻阅当前范围的候选，`retract_last()` 撤回最后一个已选词，`reopen_segment(index)` 重新打开指定成员，`revalidate()` 重新检查已选意图。活动操作之间需要遵守同样的串行和句柄约定。`ranking_is_current()` 可在延后的 UI 选择前检查排序依赖是否仍有效。
 
-公开的 `select()` 完成选择，但不会签发 Alpha 3 产品的显式非首选学习资格。不要把“已选中”理解为“必定记录一次学习”。
+公开的 `select()` 完成选择，但不会签发 Alpha 3 产品的显式非首选学习资格。记录学习还需要满足[选词学习](@doc/learning)中的资格与提交条件。
 
 ## 准备并提交整个组合
 
