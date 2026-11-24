@@ -9,8 +9,8 @@ to its own `TextCommitSink`.
 fixture codes. [host_composition](../host_composition/README.md) uses Extension
 for Full Pinyin and Xiaohe composition. This example uses the Wubi module's
 direct query plan; it does not build Extension or use a Pinyin syllable table or
-SegmentPlanner. Core remains **0.13.1-rc.1**, public API **0.13.0**, from the
-Draftor Alpha **v0.1.0-alpha.1** source baseline.
+SegmentPlanner. Draftor Alpha 3 (**v0.1.0-alpha.3**) retains Core
+**0.13.1-rc.1** and public API **0.13.0**.
 
 ## Build and run
 
@@ -109,13 +109,18 @@ This Host does not reproduce those product checks or replace their conditions.
 
 ## Learning and limits
 
-Learning is unfinished and disabled here. The public binding starts an Exact
+Draftor Alpha 3 uses shared selection learning; this example disables it and
+does not demonstrate the complete product learning path. The public binding starts an Exact
 query. After its initialization tick, the Host calls Core's existing
 `restart_first(..., ScoringMode::BaseOnly)` on the same logical input, before
 any count lookup. The example-local disabled count source supplies an isolated
 owner/namespace, never a fabricated learned count. Core's post-acceptance
 notification still runs and returns `PausedUnavailable`; nothing is learned
 or persisted. The program checks that frequency lookups remain zero.
+
+See the [Alpha 3 learning guide](../../../../docs/bgime/content/learning.md)
+for the engine facilities, Draftor's event qualification and the missing
+standalone demonstration.
 
 This demonstrates the public Wubi module with small valid resources. It does
 not validate real dictionary coverage, production `open_verified` authentication,

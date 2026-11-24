@@ -1,5 +1,7 @@
 # Draftor Web Installer R1
 
+bgIME 开发者文档位于 [`../docs/bgime/`](../docs/bgime/README.md)，发布路径为 `/bgime/`。文档构建与合并预览方法见该目录说明；发布文档时保留现有 `gh-pages` 安装站，不能用文档专用 `dist/` 替换站点根目录。
+
 本地隔离的软件实现。沿用附件 v0.1 的素纸朱印单页、内容层级、黑体标题回退和单一「连接设备并安装」入口。准确固件为 `v0.1.0-alpha.3`，只适用微雪 ESP32-S3-RLCD-4.2 / ST7305。
 
 历史软件结论为 **SOFTWARE_READY_FOR_DEVICE_TEST**；R3 已完成同一微雪设备的 **READ_ONLY_DEVICE_PASS**。R4 的真实更新／普通启动结果以独立交付报告为准，不能从只读结果推断。默认构建继续锁写，真实 fresh 未验收。

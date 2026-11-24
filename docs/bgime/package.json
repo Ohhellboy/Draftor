@@ -1,0 +1,16 @@
+{
+  "name": "bgime-developer-docs",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "check": "node tools/check.mjs",
+    "preview": "node tools/serve.mjs",
+    "prepare:pages": "node tools/prepare-pages.mjs"
+  },
+  "devDependencies": {
+    "markdown-it": "15.0.3",
+    "highlight.js": "11.12.0"
+  }
+}

@@ -11,7 +11,7 @@ Core owns resource access, ranking, text resolution and the commit transaction.
 `Submission` connects the selected composition to that transaction.
 
 The example uses Core **0.13.1-rc.1** (API **0.13.0**) and Extension
-**0.8.4-rc.1**, from the Draftor Alpha **v0.1.0-alpha.1** source baseline.
+**0.8.4-rc.1**, as included in Draftor Alpha 3 (**v0.1.0-alpha.3**).
 It does not build or run the Draftor application, editor or firmware.
 
 ## Build and run
@@ -110,9 +110,12 @@ not validate a complete Xiaohe spelling table, arbitrary multi-word sentences,
 ambiguous segmentation or production dictionary coverage. The current Xiaohe
 interface is not a general Shuangpin plugin API.
 
-Learning remains unfinished. The example uses Extension's existing disabled
-count source and disabled composition learning policy; count lookups stay at
-zero. It does not create or test user state or persistence.
+Draftor Alpha 3 uses shared selection learning. This example uses Extension's
+disabled count source and disabled composition learning policy; count lookups
+stay at zero. It does not create or test user state or persistence, and is not
+a complete Alpha 3 learning integration example. See the
+[learning guide](../../../../docs/bgime/content/learning.md) for the distinction
+between public state facilities and product-specific event qualification.
 
 This is a scripted Host demo, not an installable macOS system input method.
 It does not exercise Wubi, candidate pagination, alternate output forms,

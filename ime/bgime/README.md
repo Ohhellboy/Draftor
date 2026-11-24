@@ -4,6 +4,8 @@
 
 **简体中文** | [English](README.en.md) · [Draftor 草稿机](../../README.md)
 
+[开发者文档源文件与本地预览](../../docs/bgime/README.md)：按 Draftor Alpha 3 的实际实现介绍快速开始、接入、API、共享选词学习与资源。
+
 bgIME（大鹅中文输入法引擎，Big Goose Input Method Engine）是一套为资源有限的嵌入式设备开发的中文输入引擎。
 
 它支持全拼、小鹤双拼和五笔86。不同输入方案使用各自的编码规则，同时共用词条资源、候选查询和文本提交机制。词库可以存放在TF卡中，按需读取，从而在内存有限的单片机上实现中文输入。
