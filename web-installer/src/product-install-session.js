@@ -14,8 +14,9 @@ export class ProductInstallSession {
  receipt(r){return {...(r||this.#install?.receipt()||{}),simulation:this.#diag?.snapshot().simulation??this.#driver.kind==='simulation',status:this.state,protection:this.#saved?'SMALL_FILE_SAVED_READBACK_VERIFIED':'NOT_SAVED',fullBackup:'NOT_REQUIRED_NOT_CAPTURED',deviceQualification:'R12_DEVICE_PENDING',...(this.#diag?{diagnostics:this.#diag.snapshot()}: {})};}
  #alive(){requireSafe(!this.#closed&&!this.#stopped,'CANCELLED');}
  async #run(fn){this.#alive();requireSafe(!this.#busy,'BUSY');this.#busy=true;try{return await fn();}catch(e){this.cancel(e.code||'IO');throw e;}finally{this.#busy=false;}}
- async prepare({boardConfirmed,tfRemoved,factory}={}){return this.#run(async()=>{
+ async prepare({boardConfirmed,tfRemoved,factory,app0Only=false}={}){return this.#run(async()=>{
   requireSafe(boardConfirmed===true&&tfRemoved===true,'BOARD_CONFIRM');await this.#install.prepare({boardConfirmed});
+  if(app0Only) requireSafe(this.plan.mode==='update' && this.plan.appSlot==='app0', 'BUILD_SCOPE');
   requireSafe(this.plan.initialState!=='blank','UNQUALIFIED_BLANK');this.#alive();this.#phase='PROTECTING';this.#emit(this.#phase,this.receipt());
   this.#point=await captureProtection(this.#driver,this.plan,{factory,alive:()=>this.#alive()});this.#alive();
   this.#phase=undefined;this.#diag?.check('writeLock',true);this.#emit('PLAN_READY',this.receipt());return this.plan;
