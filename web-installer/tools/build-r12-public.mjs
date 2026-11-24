@@ -75,6 +75,10 @@ first = replaceOnce(first, '</head>', navigationCss + '</head>');
 first = replaceOnce(first, '<button class="install-primary" id="install-btn"', '<p class="factory-nav"><strong>第一次安装草稿机 / First-time installation</strong><br><a href="guide.html#first">查看首装步骤 / Instructions</a> · <a href="./#install-title">已经在用 Alpha 3？返回重装 / Reinstall</a></p><button class="install-primary" id="install-btn"');
 first = replaceOnce(first, '<details class="tf-downloads"', versionLine + '<details class="tf-downloads"');
 await put('first-install.html', first);
+const tfGuide = await fromBaseline('docs/TF_GUIDE.html');
+await put('docs/TF_GUIDE.html', replaceOnce(tfGuide, 'href="TF_RESOURCES_GUIDE.md"', 'href="../guide.html#tf"'));
+const recoveryPage = await fromBaseline('recovery.html');
+await put('recovery.html', replaceOnce(recoveryPage, 'href="offline/Draftor_Recovery_R9_Offline.html"', 'href="' + legacy.offlineHtml + '"'));
 
 await put('docs/R11_PUBLIC_STATUS.html', await fromBaseline('docs/PUBLIC_STATUS.html'));
 await put('docs/PUBLIC_STATUS.html', (await readFile('public/docs/R12_PUBLIC_STATUS.html', 'utf8')).replace('{{VERSION}}', version));
