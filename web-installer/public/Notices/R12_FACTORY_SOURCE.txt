@@ -1,4 +1,4 @@
-R12 local review asset: factory/FactoryOnly.bin
+R12 factory reference asset: factory/FactoryOnly.bin
 Unmodified ESP32-S3-RLCD-4.2_FactoryOnly_20260120.bin from Waveshare.
 Repository: https://github.com/waveshareteam/ESP32-S3-RLCD-4.2
 Commit: d0644cf2c7a89459538935404ee04b76648e7dec

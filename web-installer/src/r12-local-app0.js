@@ -14,12 +14,17 @@ class App0ReinstallRom extends S3Rom {
   }
 }
 
+const publicSite = typeof __R12_PUBLIC__ !== 'undefined' && __R12_PUBLIC__;
 startProductUI({
   build: __R12_BUILD__,
   sourceCommit: __R12_SOURCE__,
   app0Only: true,
+  publicSite,
   async requestDriver(diagnostics) {
-    requireSafe(location.protocol === 'http:' && ['127.0.0.1', 'localhost'].includes(location.hostname), 'ORIGIN');
+    const allowedOrigin = publicSite
+      ? location.origin === 'https://draftor.tcssn.org'
+      : location.protocol === 'http:' && ['127.0.0.1', 'localhost'].includes(location.hostname);
+    requireSafe(allowedOrigin, 'ORIGIN');
     requireSafe(browserIsQualified(), 'PLATFORM');
     const port = await requestSerialPort(navigator.serial, diagnostics);
     const wire = new StrictSerialTransport(port, { diagnostics });

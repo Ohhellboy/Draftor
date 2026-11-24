@@ -1,0 +1,16 @@
+.install-links, .guide-routes { display:flex; flex-wrap:wrap; justify-content:center; gap:12px; margin:16px 0; }
+.install-links a, .guide-routes a { border:1px solid var(--line); border-radius:5px; color:var(--ink); font-weight:600; padding:10px 18px; text-decoration:none; }
+.install-links a:hover, .guide-routes a:hover, .install-links a:focus-visible, .guide-routes a:focus-visible { border-color:var(--cinnabar); text-decoration:underline; }
+.guide-wrap { max-width:830px; }
+.tester-guide { margin:32px auto 56px; line-height:1.75; }
+.tester-guide h1 { font-size:clamp(30px,5vw,42px); }
+.tester-guide section { border-top:1px solid var(--line); margin-top:32px; padding-top:8px; scroll-margin-top:12px; }
+.tester-guide h2 { font-size:24px; }
+.tester-guide li, .tester-guide dd { margin-bottom:12px; }
+.tester-guide dt { font-weight:700; }
+.tester-guide dd { margin-inline-start:0; }
+.tester-guide a, .factory-nav a { color:var(--ink); text-underline-offset:3px; }
+.tester-guide code { overflow-wrap:anywhere; }
+.tester-guide .guide-routes { justify-content:flex-start; }
+.tester-guide footer { margin-top:32px; }
+.factory-nav { text-align:center; line-height:1.8; }
