@@ -1,20 +1,20 @@
-# 拼音与组合输入
+# Composition / Submission
 
-`Composition` 管理原始编码、候选和已经选择的词；`Submission` 把这些词组成的完整文字交给应用。使用这组接口时不需要同时驱动一个 `CandidateSession`。可运行示例见 [host_composition/main.cpp](@source/ime/bgime/examples/host_composition/main.cpp)。
+`Composition` 管理原始编码、切分、候选和已选成员；`Submission` 准备组合事务，并通过 `TextCommitSink` 向宿主提交完整 UTF-8 文本。该路径不需要同时驱动 `CandidateSession`。可运行示例见 [host_composition/main.cpp](@source/ime/bgime/examples/host_composition/main.cpp)。
 
 `Composition`、`Status`、`Selection` 和 `Operation` 来自 `<hanime_extension/extension.hpp>`；`Submission`、`SubmissionResult` 和 `SubmissionHandle` 来自 `<hanime_extension/submission.hpp>`，都位于 `hanime_extension` 命名空间。预算、输出和组合提交状态使用 `hanime::` 类型。
 
-## 创建输入对象
+## 对象初始化
 
 `Composition(hanime::PagedSchemeIndex& index, hanime::PagedSharedResource& shared, SchemeRules rules, Config config = {})` 借用已打开且校验完成的方案索引和共享资源。全拼选择 `SchemeRules::FullPinyin`，小鹤双拼选择 `SchemeRules::R1Xiaohe`。索引的方案名必须与规则匹配。
 
 另一构造形式为 `Composition(hanime::PagedSchemeIndex&, hanime::PagedSharedResource&, SchemePolicy, Config = {}, StorageBackend = {})`，用 `SchemePolicy` 明确给出规则和资源方案名。`DirectExact` 代表直接编码查询，不运行拼音切分规划；Draftor 的五笔产品集成使用这个入口。五笔需要传入 `SchemePolicy{SchemeRules::DirectExact, "wubi86"}`，单独的 `SchemeRules::DirectExact` 不带资源方案名。它与直接绑定层的区别见[五笔路径选择](@doc/schemes#五笔的两条接入路径)。
 
-`Config` 中的 `raw_bytes`、`members`、`page_items` 分别约束原始编码字节数、已选词数量和页内候选数量。`word_bytes`、`name_bytes`、`text_bytes` 与 `request_bytes` 约束输出及请求缓冲区。容量超限会返回错误，不会替你截断中文。`learning_counts` 是借用的计数源，`apply_learning` 控制是否用它参与排序；设置方法与产品边界见[选词学习](@doc/learning)。
+`Config` 中的 `raw_bytes`、`members`、`page_items` 分别约束原始编码字节数、已选词数量和页内候选数量。`word_bytes`、`name_bytes`、`text_bytes` 与 `request_bytes` 约束输出及请求缓冲区。容量超限返回错误，不截断 UTF-8 文本。`learning_counts` 是借用的计数源，`apply_learning` 控制是否用它参与排序；设置方法与产品边界见[选词学习](@doc/learning)。
 
 构造之后检查 `valid()`。资源对象和借用的计数源要晚于输入对象销毁；若使用 `StorageBackend` 自定义分配器，其分配和释放约定也必须配对。公开声明见 [extension.hpp](@source/integration/product/dependencies/extension/include/hanime_extension/extension.hpp)。
 
-## 编辑编码并发起查询
+## 编码编辑与查询
 
 | 调用 | 参数及结果 |
 | --- | --- |
@@ -29,7 +29,7 @@
 
 输出上下文变化后，应取消当前操作，以新的 `context_revision` 重新发起查询。不要让仍引用旧上下文的规划结果授权一次新的选择。
 
-## 取得候选、文字与选择
+## 候选读取与选择
 
 | `Composition` 成员的完整类型签名 | 返回值与用途 |
 | --- | --- |
@@ -54,11 +54,11 @@
 | `NeedsRecheck` | 输入或资源等上下文发生变化，已选部分需要重新验证 |
 | `AllSelected` | 整个原始编码已被有效成员覆盖，可以准备组合提交 |
 
-`request_page(direction)` 翻阅当前范围的候选，`retract_last()` 撤回最后一个已选词，`reopen_segment(index)` 重新打开指定成员，`revalidate()` 重新检查已选意图。活动操作之间需要遵守同样的串行和句柄约定。`ranking_is_current()` 可在延后的 UI 选择前检查排序依赖是否仍有效。
+`request_page(direction)` 翻阅当前范围的候选，`retract_last()` 撤回最后一个已选词，`reopen_segment(index)` 重新打开指定成员，`revalidate()` 重新检查已选意图。`edit_raw()` 可能移除受影响成员或清除其学习资格；`rebind()` 清除保留成员的原有资格；`revalidate()` 保留现有选择凭据，不清空也不重新签发资格。具体区间行为见[选词资格与编辑](@doc/learning#选词资格与输入修改)。活动操作之间需要遵守同样的串行和句柄约定。`ranking_is_current()` 可在延后的 UI 选择前检查排序依赖是否仍有效。
 
 公开的 `select()` 完成选择，但不会签发 Alpha 3 产品的显式非首选学习资格。记录学习还需要满足[选词学习](@doc/learning)中的资格与提交条件。
 
-## 准备并提交整个组合
+## 组合提交
 
 主要构造签名为 `Submission(Composition& composition, hanime::PagedSharedResource& shared, hanime::TextCommitSink& sink, hanime::CompositionConfig config = {16, 128, 64, 512, hanime::CompositionLearningPolicy::Disabled}, hanime::CompositionCountSource* counts = nullptr)`。`counts` 是可选的组合学习通知源；默认配置禁用学习。`CompositionConfig` 限定最大成员数、形式名称、单词文字和总文字容量。`Submission` 必须先于其借用的输入对象、共享资源和最终接收器销毁。
 
@@ -71,7 +71,7 @@
 | `SubmissionResult retry(const SubmissionHandle& handle)` | 仅在可重试且确定没有文本效果时调用；成功开始重试后使用返回的新句柄，旧尝试的句柄不能继续控制新尝试 |
 | `SubmissionResult cancel(const SubmissionHandle& handle)`、`SubmissionResult close()` | 前者取消指定当前尝试，后者关闭整个适配器；都不能消除已经接受或效果不确定的历史事实 |
 
-<figure class="api-flow"><svg viewBox="0 0 370 370" role="img" aria-labelledby="submission-flow-title submission-flow-desc"><title id="submission-flow-title">组合文字的准备与确认</title><desc id="submission-flow-desc">已选完编码后 prepare 捕获组合，advance 分步准备文字，prepared 可预览，confirm 交给接收器，Accepted 后输入清空。</desc><defs><marker id="submission-flow-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6"/></marker></defs><rect class="state" x="35" y="10" width="300" height="57" rx="9"/><text class="node-label" x="185" y="34">AllSelected</text><text class="node-note" x="185" y="54">所有编码都已被选中词覆盖</text><path class="rail" d="M185 67 V105" marker-end="url(#submission-flow-arrow)"/><rect x="45" y="76" width="280" height="20" fill="var(--shell)"/><text class="action" x="185" y="91">prepare(target)</text><rect class="state" x="35" y="105" width="300" height="57" rx="9"/><text class="node-label" x="185" y="129">Preparing</text><text class="node-note" x="185" y="149">捕获组合，正在准备文字</text><path class="rail" d="M185 162 V200" marker-end="url(#submission-flow-arrow)"/><rect x="45" y="171" width="280" height="20" fill="var(--shell)"/><text class="action" x="185" y="186">advance(handle, budget)</text><rect class="state" x="35" y="200" width="300" height="57" rx="9"/><text class="node-label" x="185" y="224">Ready</text><text class="node-note" x="185" y="244">可以 prepared() 预览，还未写入</text><path class="rail" d="M185 257 V295" marker-end="url(#submission-flow-arrow)"/><rect x="45" y="266" width="280" height="20" fill="var(--shell)"/><text class="action" x="185" y="281">confirm(handle)</text><rect class="state" x="35" y="295" width="300" height="57" rx="9"/><text class="node-label" x="185" y="319">Accepted</text><text class="node-note" x="185" y="339">接收器已接受；输入被清空</text></svg><figcaption>框内第一项是 CompositionState，其余是 CompositionStatus；箭头是 Submission 的调用。发生错误时按返回状态处理，不继续沿成功路径提交。</figcaption></figure>
+<figure class="api-flow"><svg viewBox="0 0 370 370" role="img" aria-labelledby="submission-flow-title submission-flow-desc"><title id="submission-flow-title">组合文字的准备与确认</title><desc id="submission-flow-desc">已选完编码后 prepare 捕获组合，advance 分步准备文字，prepared 可预览，confirm 提交至接收器，Accepted 后输入清空。</desc><defs><marker id="submission-flow-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6"/></marker></defs><rect class="state" x="35" y="10" width="300" height="57" rx="9"/><text class="node-label" x="185" y="34">AllSelected</text><text class="node-note" x="185" y="54">所有编码都已被选中词覆盖</text><path class="rail" d="M185 67 V105" marker-end="url(#submission-flow-arrow)"/><rect x="45" y="76" width="280" height="20" fill="var(--shell)"/><text class="action" x="185" y="91">prepare(target)</text><rect class="state" x="35" y="105" width="300" height="57" rx="9"/><text class="node-label" x="185" y="129">Preparing</text><text class="node-note" x="185" y="149">捕获组合，正在准备文字</text><path class="rail" d="M185 162 V200" marker-end="url(#submission-flow-arrow)"/><rect x="45" y="171" width="280" height="20" fill="var(--shell)"/><text class="action" x="185" y="186">advance(handle, budget)</text><rect class="state" x="35" y="200" width="300" height="57" rx="9"/><text class="node-label" x="185" y="224">Ready</text><text class="node-note" x="185" y="244">可以 prepared() 预览，还未写入</text><path class="rail" d="M185 257 V295" marker-end="url(#submission-flow-arrow)"/><rect x="45" y="266" width="280" height="20" fill="var(--shell)"/><text class="action" x="185" y="281">confirm(handle)</text><rect class="state" x="35" y="295" width="300" height="57" rx="9"/><text class="node-label" x="185" y="319">Accepted</text><text class="node-note" x="185" y="339">接收器已接受；输入被清空</text></svg><figcaption>框内第一项是 CompositionState，其余是 CompositionStatus；箭头是 Submission 的调用。发生错误时按返回状态处理，不继续沿成功路径提交。</figcaption></figure>
 
 准备与就绪阶段会暂时占用输入对象，避免组合在提交期间被改动。正常接受后输入被清空。`UnknownOutcome` 会隔离这个输入会话，即使销毁适配器也不能把“可能已经写入”的事实变成可安全重放。
 
@@ -79,9 +79,9 @@
 
 源码：[submission.hpp](@source/integration/product/dependencies/extension/include/hanime_extension/submission.hpp) · [submission.cpp](@source/integration/product/dependencies/extension/src/submission.cpp) · [Core 组合结果类型](@source/integration/product/dependencies/core/include/hanime/composition_commit.hpp)。
 
-## 把输入、选词和提交连起来
+## 组合输入与提交示例
 
-下面保留 `host_composition` 的命令行推进方式。先按示例创建并校验 `Resources`，创建 `DemoDocument`，再构造 `Composition` 和 `Submission`，分别检查 `valid()`。全拼使用 `resources.full` 与 `FullPinyin`，小鹤使用 `resources.xiaohe` 与 `R1Xiaohe`；两个对象使用默认容量、关闭学习。下面的函数借用这些对象，不延长其生命期。
+以下示例采用 `host_composition` 的命令行调度方式。先按示例创建并校验 `Resources`，创建 `DemoDocument`，再构造 `Composition` 和 `Submission`，分别检查 `valid()`。全拼使用 `resources.full` 与 `FullPinyin`，小鹤使用 `resources.xiaohe` 与 `R1Xiaohe`；两个对象使用默认容量、关闭学习。下面的函数借用这些对象，不延长其生命期。
 
 ```cpp
 #include <hanime_extension/submission.hpp>
@@ -147,11 +147,11 @@ ex::SubmissionResult confirm(ex::Submission& submission, const Prepared& prepare
 } // namespace docs_composition
 ```
 
-按照全拼示例，逐个把 `yuanxingji` 的字符交给 `append_key()`。前缀可能返回 `NoPrefixMatch`、`NoMappingForPrefix` 或 `Unresolved`，继续接收编码；完整词到 `PageReady` 后调用 `read_first()`，得到「原型机」和对应选择。若查询被取消或资源失效，保留实际错误并停止使用该次候选。
+全拼输入逐字符调用 `append_key()` 追加 `yuanxingji`。前缀可能返回 `NoPrefixMatch`、`NoMappingForPrefix` 或 `Unresolved`，继续接收编码；完整词到 `PageReady` 后调用 `read_first()`，得到「原型机」和对应选择。若查询被取消或资源失效，保留实际错误并停止使用该次候选。
 
-显示后，由选词事件调用 `choose()`。返回 `Stale` 时丢弃那份帧并重新查询，返回 `Ready` 后检查 `snapshot().state`：`PartialSelected` 需要继续查询和选词，`AllSelected` 才进入 `prepare()`。检查返回的 `result.core.status == Ready`，再将同一份 `Prepared` 交给 `confirm()`；`Accepted` 表示整个文字只交付一次。输出预览已经复制，不能用它自行插入文字来代替确认事务。
+显示后，由选词事件调用 `choose()`。返回 `Stale` 时丢弃那份帧并重新查询，返回 `Ready` 后检查 `snapshot().state`：`PartialSelected` 需要继续查询和选词，`AllSelected` 才进入 `prepare()`。检查返回的 `result.core.status == Ready`，再向 `confirm()` 传入同一份 `Prepared`；`Accepted` 表示接收器已接受一次完整文本。输出预览已经复制，不能用它自行插入文字来代替确认事务。
 
-两个循环仅适合命令行示例；接入界面时，将 `tick()`、`advance()` 的单步调用放入调度器，保存操作或提交句柄，并在下一轮处理返回状态。达到示例的步数上限只表示宿主停止等待，不代表引擎自动取消：继续编辑前应显式取消当前操作或提交尝试。正常流程、重复确认与过期选择可对照 `host_composition`；`RetryableNoEffect` 和 `UnknownOutcome` 仍需按下表实现应用自己的恢复操作。
+两个循环仅适合命令行示例；接入界面时，将 `tick()`、`advance()` 的单步调用放入调度器，保存操作或提交句柄，并在下一轮处理返回状态。达到示例的步数上限只表示宿主停止等待，不代表引擎自动取消：继续编辑前应显式取消当前操作或提交尝试。正常流程、重复确认与过期选择可对照 `host_composition`；`RetryableNoEffect` 和 `UnknownOutcome` 仍需按下表实现宿主恢复操作。
 
 ## 错误与有效期
 

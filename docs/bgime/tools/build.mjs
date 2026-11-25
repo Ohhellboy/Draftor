@@ -7,7 +7,7 @@ import hljs from 'highlight.js/lib/core';
 import cpp from 'highlight.js/lib/languages/cpp';
 import bash from 'highlight.js/lib/languages/bash';
 import cmake from 'highlight.js/lib/languages/cmake';
-import { baseline, repository, pages, pageUrl } from '../site.config.mjs';
+import { baseline, repository, pages, pageUrl, headingAnchors } from '../site.config.mjs';
 import { codeLabel } from '../assets/reader-utils.js';
 
 export const root = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
@@ -26,6 +26,9 @@ md.renderer.rules.fence = (tokens, index, ...rest) => {
 md.renderer.rules.table_open = () => '<div class="table-scroll" tabindex="0" role="region" aria-label="可横向滚动的表格"><table>\n';
 md.renderer.rules.table_close = () => '</table></div>\n';
 const slugify = s => s.normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}_]+/gu, '-').replace(/^-|-$/g, '');
+md.renderer.rules.heading_open = (tokens, index, options, env, renderer) =>
+  renderer.renderToken(tokens, index, options) + (tokens[index].meta?.aliases || []).map(id =>
+    `<span id="${escape(id)}" data-legacy-anchor style="display:block;scroll-margin-top:var(--anchor-offset)" aria-hidden="true"></span>`).join('');
 
 function navigation(current) {
   let group = '';
@@ -78,14 +81,22 @@ export async function build() {
         return pageUrl(slug);
       });
     const tokens = md.parse(source, {}), headings = [], used = new Set();
+    const configured = headingAnchors[p.file] || {}, matched = new Set();
+    const reserved = new Set(Object.values(configured).flat());
     let section = { title: p.title, heading: p.title, url: pageUrl(p.slug), text: '' };
     for (let i = 0; i < tokens.length; i++) {
       const t = tokens[i];
       if (t.type === 'heading_open') {
         const text = plain(tokens[i + 1]), level = Number(t.tag.slice(1));
-        let id = slugify(text), serial = 1;
-        while (used.has(id)) id = `${slugify(text)}-${++serial}`;
-        used.add(id); t.attrSet('id', id); headings.push({ text, id, level });
+        const fixed = configured[text];
+        let id = fixed?.[0] || slugify(text), serial = 1;
+        if (!fixed) while (used.has(id) || reserved.has(id)) id = `${slugify(text)}-${++serial}`;
+        for (const anchor of fixed || [id]) {
+          if (used.has(anchor)) throw Error(`${p.file}: duplicate heading anchor ${anchor}`);
+          used.add(anchor);
+        }
+        if (fixed) matched.add(text);
+        t.attrSet('id', id); t.meta = { aliases: fixed?.slice(1) || [] }; headings.push({ text, id, level });
         if (level >= 2) {
           if (section.text.trim()) search.push(section);
           section = { title: p.title, heading: text, url: `${pageUrl(p.slug)}#${encodeURIComponent(id)}`, text: '' };
@@ -98,6 +109,7 @@ export async function build() {
       if (t.type === 'fence') section.text += t.content + ' ';
     }
     if (section.text.trim()) search.push(section);
+    for (const text of Object.keys(configured)) if (!matched.has(text)) throw Error(`${p.file}: configured heading missing: ${text}`);
     if (headings.filter(h => h.level === 1).length !== 1) throw Error(`${p.file}: expected one H1`);
     const target = path.join(output, p.slug);
     await mkdir(target, { recursive: true });

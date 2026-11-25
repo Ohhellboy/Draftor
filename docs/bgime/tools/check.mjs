@@ -6,7 +6,7 @@ import MarkdownIt from 'markdown-it';
 import { strict as nodeAssert } from 'node:assert';
 import { normalize, codeLanguage, codeLabel, searchExcerpt, activeHeadingIndex, shortcutLabel } from '../assets/reader-utils.js';
 import { root, output } from './build.mjs';
-import { baseline, repository, pages, pageUrl } from '../site.config.mjs';
+import { baseline, repository, pages, pageUrl, headingAnchors } from '../site.config.mjs';
 
 const repo = path.resolve(root, '../..');
 const sourcePaths = new Set(execFileSync('git', ['ls-tree', '-r', '--name-only', baseline], { cwd: repo, encoding: 'utf8' }).trim().split('\n'));
@@ -28,12 +28,18 @@ for (const p of pages) {
   assert(article, `${p.file}: article missing`);
   const tocStart = article.indexOf('<details class="mobile-toc">');
   if (p.slug === '') {
-    assert(/<h1[^>]*>bgIME 开发者文档<\/h1>/.test(article), 'Homepage H1');
+    assert(/<h1[^>]*>(?:<span[^>]*><\/span>)*bgIME 嵌入式中文输入引擎<\/h1>/.test(article), 'Homepage H1');
     assert(!article.includes('eyebrow') && !article.includes('route-number'), 'Decorative homepage labels remain');
-    assert(article.indexOf('class="flow"') < tocStart && tocStart < article.indexOf('<h2'), 'Homepage TOC must follow its introduction');
+    assert(article.indexOf('class="architecture"') < tocStart && tocStart < article.indexOf('<h2'), 'Homepage TOC must follow its introduction');
     assert(/<\/p>\s*<details class="mobile-toc">/.test(article), 'Homepage introduction must remain continuous');
     assert(/<\/details><h2/.test(article), 'Homepage TOC must precede first H2');
   } else assert(/<\/h1><details class="mobile-toc">/.test(article), `${p.file}: article TOC must follow H1`);
+
+  for (const [title, anchors] of Object.entries(headingAnchors[p.file] || {})) {
+    const heading = [...article.matchAll(/<h([1-6]) id="([^"]+)"[^>]*>([\s\S]*?)<\/h\1>/g)].find(h => h[2] === anchors[0]);
+    assert(heading && heading[3].replace(/<[^>]*>/g, '') === title, `${p.file}: stable heading target ${anchors[0]}`);
+    for (const alias of anchors.slice(1)) assert(attr(heading[3], 'id').includes(alias), `${p.file}: missing in-heading alias ${alias}`);
+  }
 
   assert(!/@(?:source|doc)\//.test(html), `${p.file}: unresolved link shorthand`);
   documents.set(pageUrl(p.slug), { html, ids: new Set(ids) });
@@ -64,6 +70,14 @@ for (const section of search) {
   const target = new URL(section.url, 'http://preview');
   assert(documents.has(target.pathname), `Missing search target ${section.url}`);
   if (target.hash) assert(documents.get(target.pathname).ids.has(decodeURIComponent(target.hash.slice(1))), `Missing search fragment ${section.url}`);
+}
+nodeAssert.equal(new Set(search.map(row => row.url)).size, search.length, 'Duplicate search sections');
+for (const p of pages) {
+  const canonical = new Set(Object.values(headingAnchors[p.file] || {}).map(ids => ids[0]));
+  for (const alias of Object.values(headingAnchors[p.file] || {}).flatMap(ids => ids.slice(1))) {
+    assert(!search.some(row => row.url === `${pageUrl(p.slug)}#${encodeURIComponent(alias)}`), `${p.file}: compatibility alias indexed`);
+    assert(!canonical.has(alias), `${p.file}: alias duplicates a canonical anchor`);
+  }
 }
 for (const term of ['共享选词', 'StateFilePort', 'UnknownOutcome', 'select_explicit', 'begin_input']) {
   assert(search.some(row => (row.title + row.heading + row.text).includes(term)), `Missing searchable topic ${term}`);
@@ -101,7 +115,7 @@ nodeAssert.equal(shortcutLabel('MacIntel'), '⌘ K');
 nodeAssert.equal(shortcutLabel('Win32'), 'Ctrl K');
 nodeAssert.equal(shortcutLabel('Linux x86_64'), 'Ctrl K');
 const terms = ['五笔', 'activate'];
-const activation = search.find(row => row.heading === '创建并激活绑定');
+const activation = search.find(row => row.heading === '绑定初始化与激活');
 assert(activation && terms.every(t => normalize(activation.title + activation.text).includes(t)), 'Missing 五笔 activate search result');
 assert(searchExcerpt(activation.text, terms).includes('activate'), 'Search excerpt lost body hit');
 assert(searchExcerpt('前言'.repeat(100) + ' activate 后文', terms).includes('activate'), 'Title-only first term must not mask a body hit');

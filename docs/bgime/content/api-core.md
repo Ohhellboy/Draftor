@@ -1,14 +1,14 @@
-# 资源、候选与提交
+# Core
 
-本页说明从打开资源到提交一个候选的 Core 路径。完整的可运行调用见 [host_minimal/main.cpp](@source/ime/bgime/examples/host_minimal/main.cpp)。需要逐键拼音或多个词组合时，在这些资源之上使用 [Composition 与 Submission](@doc/api/composition)。
+Core 通过 `CandidateSession` 完成完整编码查询、候选呈现和单候选提交。资源打开及运行示例见 [host_minimal/main.cpp](@source/ime/bgime/examples/host_minimal/main.cpp)。需要逐键拼音或多个词组合时，在这些资源之上使用 [Composition 与 Submission](@doc/api/composition)。
 
 Core 的下列类型均位于 `hanime` 命名空间。资源声明需要 `<hanime/core.hpp>` 和 `<hanime/paged_shared_resource.hpp>`；候选与提交声明需要 `<hanime/candidate_session.hpp>`。后者也引入本页使用的资源、预算和输出类型。
 
-## 资源读取与打开
+## 资源读取与挂载
 
 `ResourceReader` 的 `size()` 返回文件字节数，`read(offset, destination, byte_count)` 按偏移写入调用者提供的缓冲区，完整读取成功才返回 `true`。`healthy()` 是不进行 I/O 的有效性检查。更复杂的读者可以实现 `read_budgeted()`：它返回 `Pending`、`Ready` 或 `Error` 及实际 `WorkCost`；在 `Ready` 前，目标缓冲区要继续有效且不能展示给用户。
 
-电脑示例使用 [HostResourceFile](@source/integration/product/dependencies/core/include/hanime/host_resource_file.hpp)。构造时传入路径、单次读取上限及统计对象，并检查 `valid()`；统计对象也需要活得比文件读者更久。
+Host 示例使用 [HostResourceFile](@source/integration/product/dependencies/core/include/hanime/host_resource_file.hpp)。构造时传入路径、单次读取上限及统计对象，并检查 `valid()`；统计对象的生命周期也需覆盖文件读者。
 
 | 调用 | 参数含义 | 返回值与下一步 |
 | --- | --- | --- |
@@ -27,13 +27,13 @@ Core 的下列类型均位于 `hanime` 命名空间。资源声明需要 `<hanim
 
 源码：[ResourceReader 与 PagedSchemeIndex](@source/integration/product/dependencies/core/include/hanime/core.hpp) · [PagedSharedResource](@source/integration/product/dependencies/core/include/hanime/paged_shared_resource.hpp)。
 
-## 创建候选会话与文字准入
+## 候选会话与文字准入
 
-`CandidateSession(PagedSchemeIndex& index, PagedSharedResource& shared, CommitCountSource& counts, TextCommitSink& sink, const SessionConfig& config = {})` 借用方案索引、共享资源、计数及提交通知源、文本接收器。上述对象都必须比会话活得更久。创建后检查 `valid()`，再完成文字准入：`begin_text_access()` → 多次 `advance_text_access(budget)` → `TextAccessStatus::Ready`。
+`CandidateSession(PagedSchemeIndex& index, PagedSharedResource& shared, CommitCountSource& counts, TextCommitSink& sink, const SessionConfig& config = {})` 借用方案索引、共享资源、计数及提交通知源、文本接收器。上述对象的生命周期必须覆盖会话。创建后检查 `valid()`，再完成文字准入：`begin_text_access()` → 多次 `advance_text_access(budget)` → `TextAccessStatus::Ready`。
 
 `bool valid() const` 检查构造结果；`TextAccessStatus begin_text_access()` 发起准入，`TextAccessStep advance_text_access(const WorkBudget& budget)` 返回本步状态、成本和容量信息，`bool text_access_ready() const` 可检查是否完成。
 
-文字准入会检查资源中的输出是否能放入当前配置。返回 `Incompatible`、`ReadError` 或 `Stale` 时不要继续查询；`required_bytes` 和位置字段可帮助定位容量或资源问题。需要新容量时重新配置相应对象，而不是截断 UTF-8 文本。
+文字准入会检查资源中的输出是否能放入当前配置。返回 `Incompatible`、`ReadError` 或 `Stale` 时不要继续查询；`required_bytes` 和位置字段用于定位容量或资源问题。需要新容量时重新配置相应对象，而不是截断 UTF-8 文本。
 
 | `SessionConfig` 字段 | 用途 |
 | --- | --- |
@@ -46,7 +46,7 @@ Core 的下列类型均位于 `hanime` 命名空间。资源声明需要 `<hanim
 
 `set_output(OutputRequest)` 和 `bind_scheme(index)` 只在空闲会话中调用。空的 `OutputRequest::form` 表示默认输出；指定形式时仍需处理受限或回退输出，不能假设每个词都有该形式。
 
-## 查询、发布和取字
+## 查询、发布与取字
 
 以下成员都属于 `CandidateSession`，返回值不是布尔值，需要检查具体枚举状态。
 
@@ -68,7 +68,7 @@ Core 的下列类型均位于 `hanime` 命名空间。资源声明需要 `<hanim
 
 2. 返回 `Pending` 后反复调用 `tick(budget)`；到 `StagingReady` 时，调用 `publish(staging())` 发布这一页。
 3. 如需补取文字，调用 `request_text(published(), start, count)`，其中 `start` 是从零开始的页内位置。继续 `tick()`，直到文字准备完成。
-4. 用 `present(callback)` 读取当前页，并在回调中复制你需要保留的数据。返回 `Ready` 才表示此次展示使用了有效页面。
+4. 用 `present(callback)` 读取当前页，并在回调中复制需要保留的数据。返回 `Ready` 才表示此次展示使用了有效页面。
 
 <figure class="api-flow"><svg viewBox="0 0 370 370" role="img" aria-labelledby="core-flow-title core-flow-desc"><title id="core-flow-title">Core 候选页从查询到取字</title><desc id="core-flow-desc">输入事件发起查询，调度 tick 生成暂存页；publish 发布，再 request_text 和 tick 补取文字，最后 present 复制显示。</desc><defs><marker id="core-flow-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6"/></marker></defs><rect class="state" x="35" y="10" width="300" height="57" rx="9"/><text class="node-label" x="185" y="34">Pending</text><text class="node-note" x="185" y="54">begin_input 已接受查询</text><path class="rail" d="M185 67 V105" marker-end="url(#core-flow-arrow)"/><rect x="45" y="76" width="280" height="20" fill="var(--shell)"/><text class="action" x="185" y="91">tick(budget)</text><rect class="state" x="35" y="105" width="300" height="57" rx="9"/><text class="node-label" x="185" y="129">StagingReady</text><text class="node-note" x="185" y="149">候选身份已就绪</text><path class="rail" d="M185 162 V200" marker-end="url(#core-flow-arrow)"/><rect x="45" y="171" width="280" height="20" fill="var(--shell)"/><text class="action" x="185" y="186">publish(staging())</text><rect class="state" x="35" y="200" width="300" height="57" rx="9"/><text class="node-label" x="185" y="224">Ready</text><text class="node-note" x="185" y="244">publish 后的当前页</text><path class="rail" d="M185 257 V295" marker-end="url(#core-flow-arrow)"/><rect x="45" y="266" width="280" height="20" fill="var(--shell)"/><text class="action" x="185" y="281">request_text(...) → tick(budget)</text><rect class="state" x="35" y="295" width="300" height="57" rx="9"/><text class="node-label" x="185" y="319">StagingReady</text><text class="node-note" x="185" y="339">文字已补入当前页</text></svg><figcaption>框内为会话状态及其含义，箭头旁为宿主调用。最后用 present() 复制当前页；补取文字后不再次 publish。</figcaption></figure>
 
@@ -80,9 +80,9 @@ Core 的下列类型均位于 `hanime` 命名空间。资源声明需要 `<hanim
 
 源码：[candidate_session.hpp](@source/integration/product/dependencies/core/include/hanime/candidate_session.hpp) · [输出状态](@source/integration/product/dependencies/core/include/hanime/bounded_output.hpp)。
 
-## 从查询到提交的调用示例
+## 候选查询与提交示例
 
-下面从 `host_minimal` 提炼第一页的处理流程。先用该示例的 `Resources` 打开并校验文件，再创建 `NoLearning`、`DemoDocument` 和 `CandidateSession`，完成文字准入。会话配置至少允许一个候选，编码和文字容量需容纳资源中的数据；示例采用 `SessionConfig{4, 1, 1, 64, 64, 32}`。这些所有者必须晚于会话销毁，下面的控制对象又必须先于会话销毁。
+以下示例提取自 `host_minimal`，处理第一页候选。先用该示例的 `Resources` 打开并校验文件，再创建 `NoLearning`、`DemoDocument` 和 `CandidateSession`，完成文字准入。会话配置至少允许一个候选，编码和文字容量需容纳资源中的数据；示例采用 `SessionConfig{4, 1, 1, 64, 64, 32}`。这些所有者必须晚于会话销毁，下面的控制对象又必须先于会话销毁。
 
 ```cpp
 #include <hanime/candidate_session.hpp>
@@ -160,15 +160,15 @@ class FirstCandidate {
 } // namespace docs_core
 ```
 
-输入事件调用 `start("yuanxingji", 1)`；这里的 `1` 必须就是资源的挂载代次。调度器以 `WorkBudget{1, 17, 3}` 调用 `advance()`，仅在 `Pending` 或 `WaitingState` 时继续，`Ready` 后复制 `frame` 交给显示。没有可输出文字时，帧中没有可确认的选择，应显示相应输出状态。
+输入事件调用 `start("yuanxingji", 1)`；这里的 `1` 必须就是资源的挂载代次。调度器以 `WorkBudget{1, 17, 3}` 调用 `advance()`，仅在 `Pending` 或 `WaitingState` 时继续，`Ready` 后复制 `frame` 供渲染层读取。没有可输出文字时，帧中没有可确认的选择，应显示相应输出状态。
 
-用户选择时将那份帧交给 `choose()`。返回 `Preparing` 后调度 `advance_commit()`，直到 `Accepted` 或其他终态。若中途开始了新输入，再确认旧帧会得到 `Stale`：丢弃旧帧并刷新候选，不能自动确认新页。查询返回 `ReadError` 等错误时停止推进并处理资源问题；提交返回 `RetryableNoEffect` 或 `UnknownOutcome` 时按后面的规则处理，不自动重放。这个精简控制对象不处理翻页、输入取消或重试，完整调用可沿 `host_minimal` 的 `query()`、`display()`、`submit()` 阅读。
+选择事件向 `choose()` 传入对应的显示帧。返回 `Preparing` 后调度 `advance_commit()`，直到 `Accepted` 或其他终态。若中途开始了新输入，再确认旧帧会得到 `Stale`：丢弃旧帧并刷新候选，不能自动确认新页。查询返回 `ReadError` 等错误时停止推进并处理资源问题；提交返回 `RetryableNoEffect` 或 `UnknownOutcome` 时按后面的规则处理，不自动重放。这个精简控制对象不处理翻页、输入取消或重试，完整实现见 `host_minimal` 的 `query()`、`display()`、`submit()`。
 
 ## 翻页、取消与过期
 
 `request_range(direction, q, text_count)` 接受 `RangeDirection::First`、`After` 或 `Before`，继续使用当前逻辑输入。`restart_first(q, text_count, mode)` 重新从第一页排序；`resume_range()` 恢复被中断的那一个范围，不产生新的输入。操作同样通过 `tick()` 推进、再发布。
 
-保存 `input_handle()` 后可用 `cancel_input(handle)` 取消该次输入。句柄关联的是创建它的输入；它不会因为保存得更久就适用于新查询。
+`cancel_input(handle)` 使用此前保存的 `input_handle()` 取消对应输入；该句柄不能用于新查询。
 
 | 会话结果 | 应如何处理 |
 | --- | --- |
@@ -192,7 +192,7 @@ class FirstCandidate {
 | `CommitResult retry(const RetryPermit& permit)` | 使用一次允许的重试许可推进，没有许可不能自行重放 |
 | `CommitResult cancel_commit(const CommitHandle& transaction)` | 取消指定事务，保留已经发生的结果 |
 
-从当前显示页取得 `selection(slot)`，再调用 `confirm(selection)`。合法选择通常返回 `CommitStatus::Preparing`；继续 `tick(budget)` 并查看 `commit_result()`，直到出现最终结果。不要自己用屏幕上的文字代替引擎解析出的提交内容。
+从当前显示页取得 `selection(slot)`，再调用 `confirm(selection)`。合法选择通常返回 `CommitStatus::Preparing`；继续 `tick(budget)` 并查看 `commit_result()`，直到出现最终结果。提交内容由引擎解析，不能用显示帧中的文字替代事务输出。
 
 | `CommitStatus` | 含义与处理 |
 | --- | --- |
@@ -210,4 +210,4 @@ class FirstCandidate {
 
 `WorkBudget{max_read_calls, max_read_bytes, max_work_items}` 限制每一步允许使用的读取次数、字节数和逻辑工作项。`SessionStep::cost` 返回本次实际消耗，可用于宿主统计。可选的 `stop_requested` 回调只在这次调用期间借用，不能指向已经失效的上下文。
 
-引擎不负责给你的界面分配线程。回调用时也由宿主测量。缓冲区、页数和预算需要在目标硬件上共同验证；增加每步预算可能让一次界面响应等待更久。
+线程分配和回调用时测量由宿主负责。缓冲区、页数和预算需要在目标硬件上共同验证；增加每步预算可能让一次界面响应等待更久。

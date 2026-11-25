@@ -1,6 +1,6 @@
-# 五笔接口
+# Wubi（五笔86）
 
-五笔模块将编码规则与 Core 查询分开：`Wubi86Decoder` 维护编码，`DirectQueryBinding` 把编码计划交给一个 Core 候选会话。候选取字、翻页、显示和最终文字提交仍使用 Core。头文件见 [wubi.hpp](@source/integration/product/dependencies/wubi/include/hanime_wubi/wubi.hpp)，运行方法见[五笔示例](@doc/schemes)。
+Wubi 通过 `Wubi86Decoder` 维护编码，通过 `DirectQueryBinding` 将编码计划绑定至 Core 候选会话。候选取字、翻页、显示和最终文字提交仍使用 Core。头文件见 [wubi.hpp](@source/integration/product/dependencies/wubi/include/hanime_wubi/wubi.hpp)，运行方法见[五笔示例](@doc/schemes)。
 
 包含 `<hanime_wubi/wubi.hpp>`。五笔类型位于 `hanime::wubi`，Core 会话、状态和句柄位于 `hanime`。本页介绍直接查询路径；使用组合对象的五笔接入见[DirectQueryBinding 与 DirectExact 的比较](@doc/schemes#五笔的两条接入路径)。
 
@@ -10,13 +10,13 @@
 
 `DirectQueryPlan Decoder::plan() const` 返回编码计划，包含借用的编码 `code`、修订号 `revision` 和是否满码 `full_code`。编码视图只在下一次成功编辑前有效。若使用绑定层，应通过绑定层编辑，不要绕过它直接修改解码器或会话输入。
 
-## 创建并激活绑定
+## 绑定初始化与激活
 
 `DirectQueryBinding(Decoder& decoder, hanime::CandidateSession& session, hanime::PagedSchemeIndex& index, hanime::PagedSharedResource& shared, std::size_t page_size = 3)` 借用四个现有对象；默认页大小为 `3`，需要符合候选会话容量。它们都必须比绑定对象更早创建、更晚销毁。
 
 先完成共享词库与方案索引的配对校验，再完成 `CandidateSession` 的文字准入，然后调用 `hanime::SessionStatus activate()`。成功为 `Ready`；`Busy` 要检查绑定是否已经激活或输入是否仍有活动；`InvalidRequest` 要检查非零页大小、索引就绪状态和方案名；`Stale` 要核对文字准入、资源配对和有效性。分配失败会返回 `AllocationFailure`。绑定活动期间，不要在外部重新设置会话的输入或资源绑定。回调同样不能递归进入绑定对象。
 
-## 编辑和推进
+## 编码编辑与调度
 
 | 调用 | 参数、结果和后续动作 |
 | --- | --- |
@@ -28,7 +28,7 @@
 
 `EditStatus::InvalidCode` 表示字符不在配置字母表中，`Full` 表示编码长度已满；这两种拒绝不会改变当前编码或修订。`Busy` 表示提交等活动尚未完成。`Stale`、`Closed` 或 `Exhausted` 需要宿主停止使用旧操作并检查当前生命周期。
 
-## 显示、翻页与选择
+## 候选呈现、翻页与选择
 
 绑定层按页大小取得候选及文字，并在查询完成后发布页面。`Step::shared.status == SessionStatus::Ready` 时，在共享会话的 `present()` 回调内复制候选显示内容。翻页调用共享会话的 `request_range()`，随后继续通过 `binding.tick()` 推进，保持当前编码与逻辑输入不变。
 
@@ -43,13 +43,13 @@
 
 ## 满码唯一候选请求
 
-`Step::request == CommitReason::AutoUniqueFullCode` 是请宿主考虑提交的请求。当前首屏必须满足满码、只有一个候选、没有更多候选、排序仍有效且输出文字有效等条件。多个映射路径若指向同一词条身份，不会因此变成多个候选。
+`Step::request == CommitReason::AutoUniqueFullCode` 表示待宿主确认的提交请求。当前首屏必须满足满码、只有一个候选、没有更多候选、排序仍有效且输出文字有效等条件。多个映射路径若指向同一词条身份，不会因此变成多个候选。
 
 收到请求时，使用当次 `Step::selection` 和 `code_revision` 关联当前输入。由应用决定是否允许提交，允许后再调用 `confirm(selection, CommitReason::AutoUniqueFullCode)`。请求本身不会调用文本接收器。
 
 Draftor 在这些条件之外，还会检查自动提交资源、显示窗口、当前输入事件和编辑目标。完整的产品处理见 [wubi_product.cpp](@source/integration/product/src/wubi_product.cpp) 和 [device_ime.cpp](@source/integration/product/src/device_ime.cpp)。
 
-## 按键、显示和确认的调用示例
+## 直接查询与提交示例
 
 沿用 `host_wubi86` 的 `Resources`、`NoLearning` 和 `DemoDocument`：资源已经完整校验，`NoLearning` 提供固定计数所有者与命名空间，但不读取或记录个人次数。按顺序创建 `Wubi86Decoder`、`CandidateSession(index, shared, counts, sink, {4, 2, 1, 64, 64, 4})` 和 `DirectQueryBinding(decoder, session, index, shared, 1)`。完成会话文字准入、设置输出后，检查 `binding.activate() == SessionStatus::Ready`。绑定先销毁，随后才是会话、解码器及其他所有者。
 
@@ -113,15 +113,15 @@ CommitResult confirm(wb::DirectQueryBinding& binding, CandidateSession& session,
 } // namespace docs_wubi
 ```
 
-依次将 `a`、`b`、`c`、`d` 交给 `key(binding, session, 1, character)`。先检查 `edit`：`InvalidCode` 或 `Full` 时保留原编码，`Busy` 时暂存事件。再检查 `step.shared.status`：`Ready` 后调用 `read_first()` 复制候选，`NoMatches` 时清空显示，其他终止状态保留错误并停止使用该次结果。`key()` 仅用于这个无学习 Host 的基础模式，不要把每轮调度都改成 `restart_first()`。
+依次以 `a`、`b`、`c`、`d` 调用 `key(binding, session, 1, character)`。先检查 `edit`：`InvalidCode` 或 `Full` 时保留原编码，`Busy` 时暂存事件。再检查 `step.shared.status`：`Ready` 后调用 `read_first()` 复制候选，`NoMatches` 时清空显示，其他终止状态保留错误并停止使用该次结果。`key()` 仅用于这个无学习 Host 的基础模式，不要把每轮调度都改成 `restart_first()`。
 
 `read_first()` 返回 `Ready` 表示页面读取成功，仍需检查 `frame.output`。只有 `output_has_text(frame.output)` 为真时才显示文字并提供确认操作；没有有效文字时展示实际输出状态，例如 `OutputStatus::Blocked`，不把它当成没有匹配候选。返回 `NeedsRankRestart` 表示排序已过期，应重新建立当前排序并刷新显示；这一帧不保留可确认的选择。
 
-当最后一步含有自动请求，先核对 `step.code_revision == decoder.plan().revision`，确认编辑目标仍有效、应用允许自动提交且候选输出有效，再把 `step.selection` 与 `AutoUniqueFullCode` 交给 `confirm()`。显式选择则传入显示帧保存的 `choice` 与 `Explicit`。接收结果以 `CommitResult::status` 为准；`Stale` 要刷新候选，`UnknownOutcome` 要核对接收端，不能再次插入文字。
+当最后一步含有自动请求，先核对 `step.code_revision == decoder.plan().revision`，确认编辑目标仍有效、应用允许自动提交且候选输出有效，再向 `confirm()` 传入 `step.selection` 与 `AutoUniqueFullCode`。显式选择则传入显示帧保存的 `choice` 与 `Explicit`。接收结果以 `CommitResult::status` 为准；`Stale` 要刷新候选，`UnknownOutcome` 要核对接收端，不能再次插入文字。
 
 查询与提交中的循环是 CLI 示例的等待方式。界面程序应将每个 `binding.tick()` 安排到事件循环，保留本次查询状态；不要同时再调用 `session.tick()` 驱动同一个会话。达到宿主步数上限不会自动取消引擎工作。可对照[真实运行输出](@doc/schemes#五笔86)，观察请求出现前后 `sink_calls` 的变化。
 
-## 学习范围
+## 学习接入范围
 
 绑定只把提交和学习通知委托给 Core，不拥有第二份个人计数。`host_wubi86` 明确使用基础排序和禁用的学习通知源，没有个人状态文件。
 

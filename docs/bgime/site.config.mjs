@@ -1,16 +1,287 @@
 export const baseline = 'f18939f8880e2278c231739d553fbf983c19e0f6';
 export const repository = 'https://github.com/Ohhellboy/Draftor';
 export const pages = [
-  { slug: '', file: 'index.md', title: '认识 bgIME', group: '开始使用', description: '从候选词到你的程序，了解 bgIME 的用途、模块和适用范围。' },
-  { slug: 'quickstart', file: 'quickstart.md', title: '快速开始', group: '开始使用', description: '获取 Alpha 3 源码，编译并运行第一个命令行示例。' },
-  { slug: 'schemes', file: 'schemes.md', title: '输入方案与示例', group: '开始使用', description: '运行全拼、小鹤双拼和五笔86示例，选择适合的接入入口。' },
-  { slug: 'integration', file: 'integration.md', title: '接入自己的程序', group: '开始使用', description: '连接输入事件、候选显示、文本提交与宿主调度。' },
-  { slug: 'api', file: 'api.md', title: '接口导览', group: 'API 参考', description: '按任务查找公开头文件，区分推荐入口、底层接口与产品实现。' },
-  { slug: 'api/core', file: 'api-core.md', title: '资源、候选与提交', group: 'API 参考', description: 'Core 的资源打开、分步查询、候选生命周期和提交结果。' },
-  { slug: 'api/composition', file: 'api-composition.md', title: '拼音与组合输入', group: 'API 参考', description: 'Composition 与 Submission 的参数、顺序、返回值和数据有效期。' },
-  { slug: 'api/wubi', file: 'api-wubi.md', title: '五笔接口', group: 'API 参考', description: 'Wubi86Decoder 与 DirectQueryBinding 的使用约定。' },
-  { slug: 'learning', file: 'learning.md', title: '选词学习', group: '学习与资源', description: '理解 Alpha 3 的共享记录、选词事件、排序和保存，以及独立接入的边界。' },
-  { slug: 'resources', file: 'resources.md', title: '词库与配套资源', group: '学习与资源', description: '区分测试词库、正式资源和个人数据，取得版本匹配的文件。' },
-  { slug: 'about', file: 'about.md', title: '版本、许可与参与', group: '项目', description: '查阅模块版本、许可资料、源码及问题反馈入口。' },
+  { slug: '', file: 'index.md', title: '概述', group: '开始使用', description: 'C++17 引擎的模块划分、共享资源、工作预算、宿主边界与验证范围。' },
+  { slug: 'quickstart', file: 'quickstart.md', title: '快速开始', group: '开始使用', description: 'Alpha 3 源码、Host 构建环境、示例选型及运行输出。' },
+  { slug: 'schemes', file: 'schemes.md', title: '输入方案与示例', group: '开始使用', description: '全拼、小鹤双拼与五笔86的示例覆盖、模块依赖及接入路径。' },
+  { slug: 'integration', file: 'integration.md', title: '宿主集成', group: '开始使用', description: '资源访问、输入路由、串行调度、候选生命周期与文本提交。' },
+  { slug: 'api', file: 'api.md', title: '接口索引', group: 'API 参考', description: '模块、命名空间、构建目标、公开头文件与操作接口索引。' },
+  { slug: 'api/core', file: 'api-core.md', title: 'Core', group: 'API 参考', description: '资源挂载与验证、候选查询与呈现、输出状态及单候选提交。' },
+  { slug: 'api/composition', file: 'api-composition.md', title: 'Composition / Submission', group: 'API 参考', description: '编码编辑、候选选择、组合状态与提交事务的接口合同。' },
+  { slug: 'api/wubi', file: 'api-wubi.md', title: 'Wubi（五笔86）', group: 'API 参考', description: '五笔编码规则、DirectQueryBinding 生命周期、候选输出与提交请求。' },
+  { slug: 'learning', file: 'learning.md', title: '选词学习', group: '学习与资源', description: 'Alpha 3 共享学习的资格、计数、排序、状态持久化及宿主接入边界。' },
+  { slug: 'resources', file: 'resources.md', title: '词库与资源', group: '学习与资源', description: '正式资源结构、身份配对、文件校验、个人状态与获取条件。' },
+  { slug: 'about', file: 'about.md', title: '版本与许可', group: '项目', description: '固定源码、模块版本、许可范围、验证依据及参与开发入口。' },
 ];
 export const pageUrl = slug => `/bgime/${slug ? slug + '/' : ''}`;
+
+// Stable section IDs from source 651ab19 and the published f529b7e site.
+// The first ID is canonical; additional IDs are in-heading compatibility anchors.
+export const headingAnchors = {
+  "index.md": {
+    "bgIME 嵌入式中文输入引擎": [
+      "bgime-开发者文档",
+      "让中文输入-进入你的程序"
+    ],
+    "能力边界": [
+      "你可以用它做什么"
+    ],
+    "模块划分": [
+      "先认识三个模块"
+    ],
+    "Draftor 产品集成": [
+      "与-draftor-的关系"
+    ],
+    "验证与支持范围": [
+      "当前的使用范围"
+    ],
+    "文档入口": [
+      "按你的任务继续"
+    ]
+  },
+  "quickstart.md": {
+    "快速开始": [
+      "快速开始"
+    ],
+    "环境要求": [
+      "准备环境"
+    ],
+    "获取源码": [
+      "获取对应源码"
+    ],
+    "编译与运行": [
+      "编译并运行"
+    ],
+    "输出说明": [
+      "看懂输出"
+    ],
+    "示例结构": [
+      "沿着示例读代码"
+    ],
+    "后续步骤": [
+      "换成自己的项目时"
+    ],
+    "故障排查": [
+      "遇到问题"
+    ]
+  },
+  "schemes.md": {
+    "输入方案与示例": [
+      "输入方案与示例"
+    ],
+    "示例覆盖范围": [
+      "三个示例各自覆盖什么"
+    ],
+    "构建目标与依赖": [
+      "默认构建与指定目标"
+    ],
+    "全拼与小鹤双拼": [
+      "全拼与小鹤双拼"
+    ],
+    "五笔86": [
+      "五笔86"
+    ],
+    "五笔接入路径": [
+      "五笔的两条接入路径"
+    ],
+    "正式资源接入": [
+      "从示例过渡到真实输入"
+    ]
+  },
+  "integration.md": {
+    "宿主集成": [
+      "接入自己的程序"
+    ],
+    "接入路径": [
+      "先选接入入口"
+    ],
+    "资源加载与验证": [
+      "打开资源-再接收输入"
+    ],
+    "输入事件路由": [
+      "把输入事件交给方案模块"
+    ],
+    "查询调度": [
+      "分步查询与显示候选"
+    ],
+    "文本提交": [
+      "把文字交给应用"
+    ],
+    "五笔组合路径迁移": [
+      "五笔从直接查询转到组合路径"
+    ],
+    "宿主适配接口": [
+      "宿主需要提供的能力"
+    ],
+    "学习接入要求": [
+      "接入学习前还要确认什么"
+    ]
+  },
+  "api.md": {
+    "接口索引": [
+      "接口导览"
+    ],
+    "按操作分类": [
+      "按任务查找"
+    ],
+    "公开入口与内部实现": [
+      "公开入口与内部实现"
+    ],
+    "通用调用约定": [
+      "共通的调用约定"
+    ],
+    "公开头文件": [
+      "公开头文件索引"
+    ]
+  },
+  "api-core.md": {
+    "Core": [
+      "资源-候选与提交"
+    ],
+    "资源读取与挂载": [
+      "资源读取与打开"
+    ],
+    "候选会话与文字准入": [
+      "创建候选会话与文字准入"
+    ],
+    "查询、发布与取字": [
+      "查询-发布和取字"
+    ],
+    "候选查询与提交示例": [
+      "从查询到提交的调用示例"
+    ],
+    "翻页、取消与过期": [
+      "翻页-取消与过期"
+    ],
+    "确认提交与重试": [
+      "确认提交与重试"
+    ],
+    "预算与生命周期": [
+      "预算与生命周期"
+    ]
+  },
+  "api-composition.md": {
+    "Composition / Submission": [
+      "拼音与组合输入"
+    ],
+    "对象初始化": [
+      "创建输入对象"
+    ],
+    "编码编辑与查询": [
+      "编辑编码并发起查询"
+    ],
+    "候选读取与选择": [
+      "取得候选-文字与选择"
+    ],
+    "组合提交": [
+      "准备并提交整个组合"
+    ],
+    "组合输入与提交示例": [
+      "把输入-选词和提交连起来"
+    ],
+    "错误与有效期": [
+      "错误与有效期"
+    ]
+  },
+  "api-wubi.md": {
+    "Wubi（五笔86）": [
+      "五笔接口"
+    ],
+    "编码规则与生命周期": [
+      "编码规则与生命周期"
+    ],
+    "绑定初始化与激活": [
+      "创建并激活绑定"
+    ],
+    "编码编辑与调度": [
+      "编辑和推进"
+    ],
+    "候选呈现、翻页与选择": [
+      "显示-翻页与选择"
+    ],
+    "满码唯一候选请求": [
+      "满码唯一候选请求"
+    ],
+    "直接查询与提交示例": [
+      "按键-显示和确认的调用示例"
+    ],
+    "学习接入范围": [
+      "学习范围"
+    ]
+  },
+  "learning.md": {
+    "选词学习": [
+      "选词学习"
+    ],
+    "记录触发条件": [
+      "什么选择会被记录"
+    ],
+    "跨方案共享机制": [
+      "记录怎样跨方案使用"
+    ],
+    "宿主接入要求": [
+      "在自己的程序中接入学习"
+    ],
+    "选词资格与编辑": [
+      "选词资格与输入修改"
+    ],
+    "词条身份与状态结构": [
+      "个人记录绑定词条身份"
+    ],
+    "状态打开与调度": [
+      "打开与调度个人状态"
+    ],
+    "记录、保存与关闭": [
+      "记录结果与保存时机"
+    ],
+    "学习计数与排序": [
+      "次数怎样影响排序"
+    ],
+    "正式资源与状态文件": [
+      "正式资源与个人文件"
+    ]
+  },
+  "resources.md": {
+    "词库与资源": [
+      "词库与配套资源"
+    ],
+    "测试资源与正式资源": [
+      "测试词库与正式词库"
+    ],
+    "资源获取与摘要": [
+      "下载对应文件"
+    ],
+    "资源结构与身份绑定": [
+      "文件之间的关系"
+    ],
+    "资源校验与读取": [
+      "校验与读取方式"
+    ],
+    "个人状态与派生索引": [
+      "个人状态单独存放"
+    ],
+    "Draftor 设备安装": [
+      "安装到草稿机"
+    ]
+  },
+  "about.md": {
+    "版本与许可": [
+      "版本-许可与参与开发"
+    ],
+    "版本依据": [
+      "保留模块原有版本"
+    ],
+    "源码与资源获取": [
+      "源码与资源获取"
+    ],
+    "许可范围与未决事项": [
+      "源码-词库和字体的许可"
+    ],
+    "问题反馈": [
+      "报告问题"
+    ],
+    "参与开发": [
+      "参与开发"
+    ]
+  }
+};
