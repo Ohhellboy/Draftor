@@ -158,6 +158,10 @@ In short, if you need a distraction-free long-text recording device with Chinese
 
 Project-owned Draftor source is released under [Apache License 2.0](LICENSE). The standalone ST7306 display module retains its MIT license. Fonts, dictionaries, and other third-party materials retain their respective licensing and attribution requirements.
 
+Software licensing and project branding permissions are separate. See the [Name and Branding Policy](TRADEMARKS.md) for attribution, technical compatibility and downstream distribution guidance.
+
+[bgIME developer documentation](https://draftor.tcssn.org/bgime/)
+
 [Build guide](docs/BUILD.md) · [bgIME input engine](ime/bgime/README.en.md) · [ST7306 display module](display/st7306/) · [Third-party notices](THIRD_PARTY.md) · [Resources and licensing](docs/RESOURCE_STATUS.md)
 
 Questions, problems, and suggestions are welcome through [GitHub Issues](https://github.com/Ohhellboy/Draftor/issues).
