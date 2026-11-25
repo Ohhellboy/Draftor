@@ -92,7 +92,7 @@ for (const p of pages) {
 for (const term of ['共享选词', 'StateFilePort', 'UnknownOutcome', 'select_explicit', 'begin_input']) {
   assert(search.some(row => (row.title + row.heading + row.text).includes(term)), `Missing searchable topic ${term}`);
 }
-const assets = ['favicon.svg', 'reader-utils.js', 'site.css', 'site.js'];
+const assets = ['favicon.png', 'goose.png', 'reader-utils.js', 'site.css', 'site.js'];
 nodeAssert.deepEqual((await readdir(path.join(output, 'assets'))).sort(), assets, 'Use a clean build directory: browser asset inventory differs');
 for (const file of assets) nodeAssert.deepEqual(await readFile(path.join(output, 'assets', file)), await readFile(path.join(root, 'assets', file)), `Asset copy mismatch: ${file}`);
 const client = await readFile(path.join(output, 'assets/site.js'), 'utf8');

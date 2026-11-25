@@ -38,7 +38,7 @@ function navigation(current) {
     return `${heading}<a class="nav-link${p.slug === current.slug ? ' active' : ''}" href="${pageUrl(p.slug)}"${p.slug === current.slug ? ' aria-current="page"' : ''}>${p.title}</a>`;
   }).join('\n');
 }
-const mark = '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 25c-4-5-1-11 5-11h5V7c0-5 8-5 8 0v3h-5v9c0 6-8 10-13 6Z" fill="currentColor"/><path d="m26 7 5 2-5 1Z" fill="#a84732"/><circle cx="23" cy="6" r="1" fill="#fffaf4"/></svg>';
+const mark = '<img src="/bgime/assets/goose.png" width="37" height="37" alt="" aria-hidden="true">';
 function template(p, article, headings, index) {
   const previous = pages[index - 1], next = pages[index + 1];
   const tocItems = headings.filter(h => h.level === 2).map(h => `<a href="#${encodeURIComponent(h.id)}">${escape(h.text)}</a>`).join('');
@@ -50,7 +50,7 @@ function template(p, article, headings, index) {
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${p.title} · bgIME 开发者文档</title><meta name="description" content="${escape(p.description)}">
 <meta name="theme-color" content="#f7f5ef"><link rel="canonical" href="https://draftor.tcssn.org${pageUrl(p.slug)}">
-<link rel="icon" href="/bgime/assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/bgime/assets/site.css">
+<link rel="icon" href="/bgime/assets/favicon.png" type="image/png" sizes="64x64"><link rel="stylesheet" href="/bgime/assets/site.css">
 <script type="module" src="/bgime/assets/site.js"></script></head>
 <body><a class="skip-link" href="#main">跳到正文</a>
 <header class="topbar"><a class="brand" href="/bgime/">${mark}<span>bgIME<small>开发者文档</small></span></a>
@@ -118,7 +118,7 @@ export async function build() {
   await writeFile(path.join(output, 'search-index.json'), JSON.stringify(search));
   await writeFile(path.join(output, 'links.json'), JSON.stringify(links, null, 2) + '\n');
   await writeFile(path.join(output, 'version.json'), JSON.stringify({ product: 'Draftor Alpha 3', tag: 'v0.1.0-alpha.3', source: baseline }, null, 2) + '\n');
-  for (const file of ['site.css', 'site.js', 'reader-utils.js', 'favicon.svg']) await copyFile(path.join(root, 'assets', file), path.join(output, 'assets', file));
+  for (const file of ['site.css', 'site.js', 'reader-utils.js', 'goose.png', 'favicon.png']) await copyFile(path.join(root, 'assets', file), path.join(output, 'assets', file));
   await buildProjectPages(path.dirname(output));
   console.log(`Built ${pages.length} pages and ${search.length} search sections in ${output}`);
 }
