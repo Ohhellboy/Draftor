@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { normalize, codeLanguage, codeLabel, searchExcerpt, activeHeadingIndex, shortcutLabel } from './reader-utils.mjs';
+import { normalize, codeLanguage, codeLabel, searchExcerpt, activeHeadingIndex, shortcutLabel } from './reader-utils.js';
 const $ = selector => document.querySelector(selector);
 const toggle = $('.menu-toggle'), sidebar = $('#sidebar');
 function closeMenu() { sidebar.classList.remove('open'); toggle.setAttribute('aria-expanded', 'false'); }

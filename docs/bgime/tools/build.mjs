@@ -8,7 +8,7 @@ import cpp from 'highlight.js/lib/languages/cpp';
 import bash from 'highlight.js/lib/languages/bash';
 import cmake from 'highlight.js/lib/languages/cmake';
 import { baseline, repository, pages, pageUrl } from '../site.config.mjs';
-import { codeLabel } from '../assets/reader-utils.mjs';
+import { codeLabel } from '../assets/reader-utils.js';
 
 export const root = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 export const output = path.join(root, 'dist/bgime');
@@ -40,7 +40,9 @@ function template(p, article, headings, index) {
   const previous = pages[index - 1], next = pages[index + 1];
   const tocItems = headings.filter(h => h.level === 2).map(h => `<a href="#${encodeURIComponent(h.id)}">${escape(h.text)}</a>`).join('');
   const mobileToc = tocItems ? `<details class="mobile-toc"><summary>本页目录</summary><nav aria-label="本页目录（折叠）">${tocItems}</nav></details>` : '';
-  article = article.replace('</h1>', `</h1>${mobileToc}`);
+  article = p.slug === ''
+    ? article.replace(/<h2\b/, `${mobileToc}<h2`)
+    : article.replace('</h1>', `</h1>${mobileToc}`);
   return `<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${p.title} · bgIME 开发者文档</title><meta name="description" content="${escape(p.description)}">
@@ -104,7 +106,7 @@ export async function build() {
   await writeFile(path.join(output, 'search-index.json'), JSON.stringify(search));
   await writeFile(path.join(output, 'links.json'), JSON.stringify(links, null, 2) + '\n');
   await writeFile(path.join(output, 'version.json'), JSON.stringify({ product: 'Draftor Alpha 3', tag: 'v0.1.0-alpha.3', source: baseline }, null, 2) + '\n');
-  for (const file of ['site.css', 'site.js', 'reader-utils.mjs', 'favicon.svg']) await copyFile(path.join(root, 'assets', file), path.join(output, 'assets', file));
+  for (const file of ['site.css', 'site.js', 'reader-utils.js', 'favicon.svg']) await copyFile(path.join(root, 'assets', file), path.join(output, 'assets', file));
   console.log(`Built ${pages.length} pages and ${search.length} search sections in ${output}`);
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await build();

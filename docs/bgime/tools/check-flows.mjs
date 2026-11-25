@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 // Execute the exact documentation snippets with the existing Host fixture owners.
-// Build all three Host examples first; this script never edits engine sources.
+// Build the selected Host examples first; this script never edits engine sources.
 import { execFileSync } from 'node:child_process';
 import { readFile, writeFile, mkdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 import MarkdownIt from 'markdown-it';
 import { root } from './build.mjs';
 
-if (!process.argv[2]) throw Error('Usage: npm run check:flows -- /absolute/path/to/parent-of-host-builds');
+if (!process.argv[2]) throw Error('Usage: npm run check:flows -- /absolute/path/to/parent-of-host-builds [host_minimal|host_composition|host_wubi86]');
 const repo = path.resolve(root, '../..'), builds = path.resolve(process.argv[2]);
 const output = path.join(builds, 'docs-flows');
 await mkdir(output, { recursive: true });
@@ -98,11 +98,30 @@ const cases = [
     require(docs_wubi::read_first(stale.session, frame) == SessionStatus::Ready, "stale frame setup");
     require(docs_wubi::key(stale.binding, stale.session, 1, 'b').step.shared.status == SessionStatus::Ready, "stale replacement");
     require(docs_wubi::confirm(stale.binding, stale.session, frame.choice, wb::CommitReason::Explicit).status == CommitStatus::Stale && stale.document.calls == 0, "old Wubi choice committed");
-    std::cout << "Wubi: request without writes, host confirmation once, invalid/full key, stale selection: PASS\n";
+    require(docs_wubi::read_first(stale.session, frame) == SessionStatus::Ready && frame.text == u8"二", "explicit frame");
+    require(docs_wubi::confirm(stale.binding, stale.session, frame.choice, wb::CommitReason::Explicit).status == CommitStatus::Accepted &&
+            stale.document.calls == 1 && stale.document.text() == u8"二", "explicit selection did not commit once");
+    Host blocked(resources, 1, {"blocked", OutputInvocation::Explicit});
+    for (const char key : std::string("abcd")) {
+      query = docs_wubi::key(blocked.binding, blocked.session, 1, key);
+      require(query.edit == wb::EditStatus::Changed && query.step.shared.status == SessionStatus::Ready, "blocked query lost candidate page");
+    }
+    require(query.step.request == wb::CommitReason::None, "blocked output requested auto commit");
+    // Reuse a populated frame: restricted output must clear its text and choice.
+    require(!frame.text.empty(), "blocked test requires an earlier populated frame");
+    require(docs_wubi::read_first(blocked.session, frame) == SessionStatus::Ready &&
+            frame.output == OutputStatus::Blocked && !output_has_text(frame.output) && frame.text.empty(), "blocked output status/frame");
+    require(docs_wubi::confirm(blocked.binding, blocked.session, frame.choice, wb::CommitReason::Explicit).status == CommitStatus::Stale,
+            "restricted frame retained a confirmable choice");
+    blocked.no_writes();
+    std::cout << "Wubi: normal/explicit selection, request without writes, confirmation once, invalid/full key, stale selection: PASS\n"
+              << "Wubi restricted output: page=Ready output=Blocked text empty; no confirmable selection; sink_calls=0: PASS\n";
 ` },
 ];
+const selected = cases.filter(test => !process.argv[3] || test.example === process.argv[3]);
+if (!selected.length) throw Error('Unknown Host example: ' + process.argv[3]);
 const results = [];
-for (const test of cases) {
+for (const test of selected) {
   const markdown = await readFile(path.join(root, 'content', test.page), 'utf8');
   const blocks = new MarkdownIt().parse(markdown, {}).filter(t => t.type === 'fence' && t.info.trim().split(/\s+/u)[0] === 'cpp');
   if (blocks.length !== 1) throw Error(`${test.page}: expected one main C++ flow`);

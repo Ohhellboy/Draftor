@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
-import { readFile, stat } from 'node:fs/promises';
+import { readFile, stat, readdir } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import MarkdownIt from 'markdown-it';
 import { strict as nodeAssert } from 'node:assert';
-import { normalize, codeLanguage, codeLabel, searchExcerpt, activeHeadingIndex, shortcutLabel } from '../assets/reader-utils.mjs';
+import { normalize, codeLanguage, codeLabel, searchExcerpt, activeHeadingIndex, shortcutLabel } from '../assets/reader-utils.js';
 import { root, output } from './build.mjs';
 import { baseline, repository, pages, pageUrl } from '../site.config.mjs';
 
@@ -24,6 +24,17 @@ for (const p of pages) {
   const desktop = html.match(/<aside class="toc">([\s\S]*?)<\/aside>/)?.[1];
   assert(mobile && desktop, `${p.file}: missing responsive table of contents`);
   nodeAssert.deepEqual(attr(mobile, 'href'), attr(desktop, 'href'), `${p.file}: TOCs differ`);
+  const article = html.match(/<article class="[^"]*">([\s\S]*?)<\/article>/)?.[1];
+  assert(article, `${p.file}: article missing`);
+  const tocStart = article.indexOf('<details class="mobile-toc">');
+  if (p.slug === '') {
+    assert(/<h1[^>]*>bgIME 开发者文档<\/h1>/.test(article), 'Homepage H1');
+    assert(!article.includes('eyebrow') && !article.includes('route-number'), 'Decorative homepage labels remain');
+    assert(article.indexOf('class="flow"') < tocStart && tocStart < article.indexOf('<h2'), 'Homepage TOC must follow its introduction');
+    assert(/<\/p>\s*<details class="mobile-toc">/.test(article), 'Homepage introduction must remain continuous');
+    assert(/<\/details><h2/.test(article), 'Homepage TOC must precede first H2');
+  } else assert(/<\/h1><details class="mobile-toc">/.test(article), `${p.file}: article TOC must follow H1`);
+
   assert(!/@(?:source|doc)\//.test(html), `${p.file}: unresolved link shorthand`);
   documents.set(pageUrl(p.slug), { html, ids: new Set(ids) });
   for (const url of [...attr(html, 'href'), ...attr(html, 'src')]) allLinks.push({ from: pageUrl(p.slug), url });
@@ -57,6 +68,11 @@ for (const section of search) {
 for (const term of ['共享选词', 'StateFilePort', 'UnknownOutcome', 'select_explicit', 'begin_input']) {
   assert(search.some(row => (row.title + row.heading + row.text).includes(term)), `Missing searchable topic ${term}`);
 }
+const assets = ['favicon.svg', 'reader-utils.js', 'site.css', 'site.js'];
+nodeAssert.deepEqual((await readdir(path.join(output, 'assets'))).sort(), assets, 'Use a clean build directory: browser asset inventory differs');
+for (const file of assets) nodeAssert.deepEqual(await readFile(path.join(output, 'assets', file)), await readFile(path.join(root, 'assets', file)), `Asset copy mismatch: ${file}`);
+const client = await readFile(path.join(output, 'assets/site.js'), 'utf8');
+assert(client.includes("from './reader-utils.js'") && !client.includes('reader-utils.mjs'), 'Browser helper import must use .js');
 const parser = new MarkdownIt();
 let snippets = 0, outputs = 0;
 for (const p of pages) {
@@ -102,4 +118,4 @@ for (const [i, p] of pages.entries()) {
   nodeAssert.deepEqual(attr(turns, 'href'), [pages[i - 1], pages[i + 1]].filter(Boolean).map(p => pageUrl(p.slug)), `${p.file}: previous/next order`);
 }
 console.log(JSON.stringify({ pages: pages.length, localLinks: checkedLocal, pinnedSourceLinks: checkedSource, searchSections: search.length,
-  cppSyntaxChecks: snippets, outputBlocks: outputs, readerRegressions: 'PASS', installerAnchors: 'checked by prepare:pages against merged tree', result: 'PASS' }, null, 2));
+  cppSyntaxChecks: snippets, outputBlocks: outputs, browserAssets: assets, readerRegressions: 'PASS', installerAnchors: 'checked by prepare:pages against merged tree', result: 'PASS' }, null, 2));

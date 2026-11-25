@@ -1,6 +1,4 @@
-<div class="eyebrow">BIG GOOSE INPUT METHOD ENGINE</div>
-
-# 让中文输入，进入你的程序。
+# bgIME 开发者文档
 
 <p class="lead">bgIME（大鹅输入法）是一套面向嵌入式设备的中文输入引擎，支持全拼、小鹤双拼和五笔86。它负责查找候选词，并将用户选中的文字交给你的程序。</p>
 
@@ -34,7 +32,7 @@ bgIME 不是操作系统输入法安装包，也不包含一个可直接移植�
 
 [Draftor（草稿机）](https://github.com/Ohhellboy/Draftor) 是使用 bgIME 的开源写作设备。它把引擎与键盘、编辑器、屏幕和 TF 卡存储连接起来。Alpha 3 的微雪设备集成还负责确认可学习的选词事件、安排后台保存和显示保存状态。
 
-草稿机的候选布局、快捷键和保存操作是一个应用案例。你的程序可以使用不同的界面和按键，只需遵守接口的数据有效期、串行调用和提交约定。
+草稿机的候选布局、快捷键和保存操作是一个应用案例。你的程序可以使用不同的界面和按键，接入时应遵守接口的数据有效期、串行调用和提交约定。
 
 ## 当前的使用范围
 
@@ -48,4 +46,4 @@ bgIME 不是操作系统输入法安装包，也不包含一个可直接移植�
 
 ## 按你的任务继续
 
-<div class="route-grid"><a class="route-card" href="/bgime/quickstart/"><span class="route-number">01 / FIRST RUN</span><b>准备并运行示例 →</b><p>获取源码、准备环境，并看懂基本输出。</p></a><a class="route-card" href="/bgime/schemes/"><span class="route-number">02 / EXAMPLES</span><b>选择输入方案 →</b><p>按需求运行组合或五笔示例，比较接入路径。</p></a><a class="route-card" href="/bgime/integration/"><span class="route-number">03 / INTEGRATION</span><b>接入自己的程序 →</b><p>连接输入事件、候选显示与文字接收。</p></a><a class="route-card" href="/bgime/api/"><span class="route-number">04 / REFERENCE</span><b>按任务找接口 →</b><p>查参数、返回值、调用顺序和有效期。</p></a></div>
+<div class="route-grid"><a class="route-card" href="/bgime/quickstart/"><b>准备并运行示例 →</b><p>获取源码、准备环境，并看懂基本输出。</p></a><a class="route-card" href="/bgime/schemes/"><b>选择输入方案 →</b><p>按需求运行组合或五笔示例，比较接入路径。</p></a><a class="route-card" href="/bgime/integration/"><b>接入自己的程序 →</b><p>连接输入事件、候选显示与文字接收。</p></a><a class="route-card" href="/bgime/api/"><b>按任务找接口 →</b><p>查参数、返回值、调用顺序和有效期。</p></a></div>

@@ -30,7 +30,7 @@
 
 ## 显示、翻页与选择
 
-绑定层按页大小请求候选及文字，并在查询完成后发布页面。`Step::shared.status == SessionStatus::Ready` 时，从共享 `CandidateSession::present()` 复制候选显示内容；只在额外的按需取字场景下直接调用 `request_text()`。翻页直接调用共享会话的 `request_range()`，保持当前编码与逻辑输入不变。
+绑定层按页大小取得候选及文字，并在查询完成后发布页面。`Step::shared.status == SessionStatus::Ready` 时，在共享会话的 `present()` 回调内复制候选显示内容。翻页调用共享会话的 `request_range()`，随后继续通过 `binding.tick()` 推进，保持当前编码与逻辑输入不变。
 
 | 绑定层成员的完整类型签名 | 返回值 |
 | --- | --- |
@@ -84,10 +84,20 @@ Query key(wb::DirectQueryBinding& binding, CandidateSession& session,
 struct Frame { std::string text; SelectionHandle choice; OutputStatus output{OutputStatus::Pending}; };
 SessionStatus read_first(CandidateSession& session, Frame& frame) {
   frame = {};
-  return session.present([&](const CandidateViewPage& page) {
-    if (!page.order_stale && page.size)
-      frame = {std::string(page.text(0)), session.selection(0), page.items[0].output};
+  bool order_stale = false;
+  const auto status = session.present([&](const CandidateViewPage& page) {
+    order_stale = page.order_stale;
+    if (page.size) {
+      frame.output = page.items[0].output;
+      if (!order_stale && output_has_text(frame.output)) {
+        frame.text = page.text(0);
+        frame.choice = session.selection(0);
+      }
+    }
   });
+  if (status == SessionStatus::Ready && order_stale)
+    return SessionStatus::NeedsRankRestart;
+  return status;
 }
 // 选择事件或宿主已批准的自动请求；不能仅凭 request 自动调用这个函数。
 CommitResult confirm(wb::DirectQueryBinding& binding, CandidateSession& session,
@@ -104,6 +114,8 @@ CommitResult confirm(wb::DirectQueryBinding& binding, CandidateSession& session,
 ```
 
 依次将 `a`、`b`、`c`、`d` 交给 `key(binding, session, 1, character)`。先检查 `edit`：`InvalidCode` 或 `Full` 时保留原编码，`Busy` 时暂存事件。再检查 `step.shared.status`：`Ready` 后调用 `read_first()` 复制候选，`NoMatches` 时清空显示，其他终止状态保留错误并停止使用该次结果。`key()` 仅用于这个无学习 Host 的基础模式，不要把每轮调度都改成 `restart_first()`。
+
+`read_first()` 返回 `Ready` 表示页面读取成功，仍需检查 `frame.output`。只有 `output_has_text(frame.output)` 为真时才显示文字并提供确认操作；没有有效文字时展示实际输出状态，例如 `OutputStatus::Blocked`，不把它当成没有匹配候选。返回 `NeedsRankRestart` 表示排序已过期，应重新建立当前排序并刷新显示；这一帧不保留可确认的选择。
 
 当最后一步含有自动请求，先核对 `step.code_revision == decoder.plan().revision`，确认编辑目标仍有效、应用允许自动提交且候选输出有效，再把 `step.selection` 与 `AutoUniqueFullCode` 交给 `confirm()`。显式选择则传入显示帧保存的 `choice` 与 `Explicit`。接收结果以 `CommitResult::status` 为准；`Stale` 要刷新候选，`UnknownOutcome` 要核对接收端，不能再次插入文字。
 

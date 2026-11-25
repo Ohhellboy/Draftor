@@ -13,6 +13,8 @@ npm run check
 npm run preview
 ```
 
+For an asset rename, start with a fresh `dist/bgime/` directory; move any previous output aside before building. The asset inventory check rejects retired browser modules left in the output.
+
 Open `http://127.0.0.1:4178/bgime/`. The standalone preview serves only the documentation; links to the installer and guide need the combined Pages preview below. The preview server binds to loopback, does not connect to a serial port, and has no firmware operations.
 
 Markdown supports ordinary fenced code, tables, and explicit HTML for the introductory navigation. `@source/path` expands to the exact baseline GitHub blob URL. `@doc/slug` expands to a configured `/bgime/` page. New pages must be added to the navigation; missing pages, missing baseline source files and broken fragment links fail the static check. Search indexes headings, body text and code, and matches Chinese substrings and whitespace-separated terms without a remote service.
@@ -45,8 +47,8 @@ Syntax checking does not execute the examples. For runtime checks of the exact A
 npm run check:flows -- /absolute/path/to/build-parent
 ```
 
-`check:flows` extracts the main C++ fence from each API page, uses the original Host owners and fixture files, and links the existing Host build libraries. It writes its harnesses, executables and logs to `build-parent/docs-flows/`. It exercises candidate text, stale choices, mount mismatch, partial composition rejection, preparation before a sink call, and successful/duplicate confirmation. The original Host executables and CTest remain separate runtime checks. The snippets deliberately exclude learning and application-specific recovery for sink refusal or uncertain effects.
+`check:flows` extracts the main C++ fence from each API page, uses the original Host owners and fixture files, and links the existing Host build libraries. It writes its harnesses, executables and logs to `build-parent/docs-flows/`. It exercises candidate text, stale choices, Wubi restricted output without a confirmable selection or sink call, mount mismatch, partial composition rejection, preparation before a sink call, and successful/duplicate confirmation. To check only Wubi after a focused change, append `host_wubi86` to the command; only that Host build and fixture are then required. The original Host executables and CTest remain separate runtime checks. The snippets deliberately exclude learning and application-specific recovery for sink refusal or uncertain effects.
 
-The preview serves `.mjs` as JavaScript. Keep `reader-utils.mjs` and `site.js` together when copying assets; both are local modules. Browser checks are still needed for actual scroll geometry, native details, keyboard focus and independently scrolling search results.
+The browser assets use `.js`, served with a JavaScript MIME type. Node build tools retain their `.mjs` organization. Keep `reader-utils.js` and `site.js` together when copying assets; both are local modules. Browser checks are still needed for actual scroll geometry, native details, keyboard focus and independently scrolling search results.
 
 Browser checks and actual Host example runs belong in the delivery record, not in the public pages. All three standalone examples disable learning. Alpha 3 product learning uses public state/notification facilities plus product-specific event qualification and scheduling. Keep that distinction when editing these pages; do not advertise the basic examples as complete learning integration.
