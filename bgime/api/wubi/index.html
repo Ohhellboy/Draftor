@@ -1,35 +1,36 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>五笔接口 · bgIME 开发者文档</title><meta name="description" content="Wubi86Decoder 与 DirectQueryBinding 的使用约定。">
+<title>Wubi（五笔86） · bgIME 开发者文档</title><meta name="description" content="五笔编码规则、DirectQueryBinding 生命周期、候选输出与提交请求。">
 <meta name="theme-color" content="#f7f5ef"><link rel="canonical" href="https://draftor.tcssn.org/bgime/api/wubi/">
 <link rel="icon" href="/bgime/assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/bgime/assets/site.css">
 <script type="module" src="/bgime/assets/site.js"></script></head>
 <body><a class="skip-link" href="#main">跳到正文</a>
 <header class="topbar"><a class="brand" href="/bgime/"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 25c-4-5-1-11 5-11h5V7c0-5 8-5 8 0v3h-5v9c0 6-8 10-13 6Z" fill="currentColor"/><path d="m26 7 5 2-5 1Z" fill="#a84732"/><circle cx="23" cy="6" r="1" fill="#fffaf4"/></svg><span>bgIME<small>开发者文档</small></span></a>
-<div class="header-actions"><button class="search-trigger" type="button" aria-haspopup="dialog"><span>搜索文档</span><kbd>⌘ K</kbd></button>
+<div class="header-actions"><button class="search-trigger" type="button" aria-haspopup="dialog" aria-keyshortcuts="Control+k Meta+k"><span>搜索文档</span><kbd>Ctrl / ⌘ K</kbd></button>
 <a class="header-site" href="/">草稿机安装</a><a class="header-github" href="https://github.com/Ohhellboy/Draftor">GitHub <span aria-hidden="true">↗</span></a>
 <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="sidebar">目录</button></div></header>
-<div class="layout"><aside class="sidebar" id="sidebar"><nav aria-label="文档导航"><p class="nav-group">开始使用</p><a class="nav-link" href="/bgime/">认识 bgIME</a>
+<div class="layout"><aside class="sidebar" id="sidebar"><nav aria-label="文档导航"><p class="nav-group">开始使用</p><a class="nav-link" href="/bgime/">概述</a>
 <a class="nav-link" href="/bgime/quickstart/">快速开始</a>
-<a class="nav-link" href="/bgime/integration/">接入自己的程序</a>
 <a class="nav-link" href="/bgime/schemes/">输入方案与示例</a>
-<p class="nav-group">API 参考</p><a class="nav-link" href="/bgime/api/">接口导览</a>
-<a class="nav-link" href="/bgime/api/core/">资源、候选与提交</a>
-<a class="nav-link" href="/bgime/api/composition/">拼音与组合输入</a>
-<a class="nav-link active" href="/bgime/api/wubi/" aria-current="page">五笔接口</a>
+<a class="nav-link" href="/bgime/integration/">宿主集成</a>
+<p class="nav-group">API 参考</p><a class="nav-link" href="/bgime/api/">接口索引</a>
+<a class="nav-link" href="/bgime/api/core/">Core</a>
+<a class="nav-link" href="/bgime/api/composition/">Composition / Submission</a>
+<a class="nav-link active" href="/bgime/api/wubi/" aria-current="page">Wubi（五笔86）</a>
 <p class="nav-group">学习与资源</p><a class="nav-link" href="/bgime/learning/">选词学习</a>
-<a class="nav-link" href="/bgime/resources/">词库与配套资源</a>
-<p class="nav-group">项目</p><a class="nav-link" href="/bgime/about/">版本、许可与参与</a></nav>
+<a class="nav-link" href="/bgime/resources/">词库与资源</a>
+<p class="nav-group">项目</p><a class="nav-link" href="/bgime/about/">版本与许可</a></nav>
 <div class="version-note"><span class="status-dot"></span> 适用于 Draftor Alpha 3<br><a href="/bgime/about/">版本与源码依据 <span aria-hidden="true">↗</span></a></div></aside>
-<main id="main" tabindex="-1"><div class="breadcrumb">bgIME / API 参考</div><article class="prose"><h1 id="五笔接口">五笔接口</h1>
-<p>五笔模块将编码规则与 Core 查询分开：<code>Wubi86Decoder</code> 维护编码，<code>DirectQueryBinding</code> 把编码计划交给一个 Core 候选会话。候选取字、翻页、显示和最终文字提交仍使用 Core。头文件见 <a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/wubi/include/hanime_wubi/wubi.hpp">wubi.hpp</a>，运行方法见<a href="/bgime/schemes/">五笔示例</a>。</p>
+<main id="main" tabindex="-1"><div class="breadcrumb">bgIME / API 参考</div><article class="prose"><h1 id="wubi-五笔86"><span id="五笔接口" data-legacy-anchor style="display:block;scroll-margin-top:var(--anchor-offset)" aria-hidden="true"></span>Wubi（五笔86）</h1><details class="mobile-toc"><summary>本页目录</summary><nav aria-label="本页目录（折叠）"><a href="#%E7%BC%96%E7%A0%81%E8%A7%84%E5%88%99%E4%B8%8E%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F">编码规则与生命周期</a><a href="#%E7%BB%91%E5%AE%9A%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%8E%E6%BF%80%E6%B4%BB">绑定初始化与激活</a><a href="#%E7%BC%96%E7%A0%81%E7%BC%96%E8%BE%91%E4%B8%8E%E8%B0%83%E5%BA%A6">编码编辑与调度</a><a href="#%E5%80%99%E9%80%89%E5%91%88%E7%8E%B0-%E7%BF%BB%E9%A1%B5%E4%B8%8E%E9%80%89%E6%8B%A9">候选呈现、翻页与选择</a><a href="#%E6%BB%A1%E7%A0%81%E5%94%AF%E4%B8%80%E5%80%99%E9%80%89%E8%AF%B7%E6%B1%82">满码唯一候选请求</a><a href="#%E7%9B%B4%E6%8E%A5%E6%9F%A5%E8%AF%A2%E4%B8%8E%E6%8F%90%E4%BA%A4%E7%A4%BA%E4%BE%8B">直接查询与提交示例</a><a href="#%E5%AD%A6%E4%B9%A0%E6%8E%A5%E5%85%A5%E8%8C%83%E5%9B%B4">学习接入范围</a></nav></details>
+<p>Wubi 通过 <code>Wubi86Decoder</code> 维护编码，通过 <code>DirectQueryBinding</code> 将编码计划绑定至 Core 候选会话。候选取字、翻页、显示和最终文字提交仍使用 Core。头文件见 <a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/wubi/include/hanime_wubi/wubi.hpp">wubi.hpp</a>，运行方法见<a href="/bgime/schemes/">五笔示例</a>。</p>
+<p>包含 <code>&lt;hanime_wubi/wubi.hpp&gt;</code>。五笔类型位于 <code>hanime::wubi</code>，Core 会话、状态和句柄位于 <code>hanime</code>。本页介绍直接查询路径；使用组合对象的五笔接入见<a href="/bgime/schemes/#%E4%BA%94%E7%AC%94%E6%8E%A5%E5%85%A5%E8%B7%AF%E5%BE%84">DirectQueryBinding 与 DirectExact 的比较</a>。</p>
 <h2 id="编码规则与生命周期">编码规则与生命周期</h2>
 <p><code>wubi86_profile</code> 的方案名为 <code>wubi86</code>，字母表为 <code>a</code>–<code>y</code>，普通编码上限为四码，并启用满码唯一候选的提交请求。使用其他五笔配置时，需要核对其字母表、编码长度和提交规则。</p>
-<p><code>Decoder::plan()</code> 返回 <code>DirectQueryPlan</code>，包含借用的编码 <code>code</code>、修订号 <code>revision</code> 和是否满码 <code>full_code</code>。编码视图只在下一次成功编辑前有效。若使用绑定层，应通过绑定层编辑，不要绕过它直接修改解码器或会话输入。</p>
-<h2 id="创建并激活绑定">创建并激活绑定</h2>
-<p><code>DirectQueryBinding(decoder, session, index, shared, page_size)</code> 借用四个现有对象；默认页大小为 <code>3</code>，需要符合候选会话容量。它们都必须比绑定对象更早创建、更晚销毁。</p>
-<p>先完成共享词库与方案索引的配对校验，再完成 <code>CandidateSession</code> 的文字准入，然后调用 <code>activate()</code> 并检查结果。绑定活动期间，不要在外部重新设置会话的输入或资源绑定。回调同样不能递归进入绑定对象。</p>
-<h2 id="编辑和推进">编辑和推进</h2>
+<p><code>DirectQueryPlan Decoder::plan() const</code> 返回编码计划，包含借用的编码 <code>code</code>、修订号 <code>revision</code> 和是否满码 <code>full_code</code>。编码视图只在下一次成功编辑前有效。若使用绑定层，应通过绑定层编辑，不要绕过它直接修改解码器或会话输入。</p>
+<h2 id="绑定初始化与激活"><span id="创建并激活绑定" data-legacy-anchor style="display:block;scroll-margin-top:var(--anchor-offset)" aria-hidden="true"></span>绑定初始化与激活</h2>
+<p><code>DirectQueryBinding(Decoder&amp; decoder, hanime::CandidateSession&amp; session, hanime::PagedSchemeIndex&amp; index, hanime::PagedSharedResource&amp; shared, std::size_t page_size = 3)</code> 借用四个现有对象；默认页大小为 <code>3</code>，需要符合候选会话容量。它们都必须比绑定对象更早创建、更晚销毁。</p>
+<p>先完成共享词库与方案索引的配对校验，再完成 <code>CandidateSession</code> 的文字准入，然后调用 <code>hanime::SessionStatus activate()</code>。成功为 <code>Ready</code>；<code>Busy</code> 要检查绑定是否已经激活或输入是否仍有活动；<code>InvalidRequest</code> 要检查非零页大小、索引就绪状态和方案名；<code>Stale</code> 要核对文字准入、资源配对和有效性。分配失败会返回 <code>AllocationFailure</code>。绑定活动期间，不要在外部重新设置会话的输入或资源绑定。回调同样不能递归进入绑定对象。</p>
+<h2 id="编码编辑与调度"><span id="编辑和推进" data-legacy-anchor style="display:block;scroll-margin-top:var(--anchor-offset)" aria-hidden="true"></span>编码编辑与调度</h2>
 <div class="table-scroll" tabindex="0" role="region" aria-label="可横向滚动的表格"><table>
 <thead>
 <tr>
@@ -39,42 +40,132 @@
 </thead>
 <tbody>
 <tr>
-<td><code>append(char)</code></td>
+<td><code>EditStatus append(char routed_ascii)</code></td>
 <td>传入由宿主路由的 ASCII 字符；大写折为小写。成功为 <code>Changed</code>，随后调用 <code>tick()</code></td>
 </tr>
 <tr>
-<td><code>backspace()</code></td>
+<td><code>EditStatus backspace()</code></td>
 <td>删除最后一码。空输入可返回 <code>Unchanged</code>；成功编辑产生新的修订</td>
 </tr>
 <tr>
-<td><code>cancel()</code></td>
+<td><code>EditStatus cancel()</code></td>
 <td>放弃当前编码和查询，不提交文字</td>
 </tr>
 <tr>
-<td><code>leave()</code></td>
+<td><code>EditStatus leave()</code></td>
 <td>明确离开输入方案并放弃当前输入，不隐式提交</td>
 </tr>
 <tr>
-<td><code>tick(budget)</code></td>
+<td><code>Step tick(const hanime::WorkBudget&amp; budget)</code></td>
 <td>推进绑定和共享会话，返回 <code>Step</code>：其中 <code>shared</code> 是会话状态与消耗，<code>request</code> 是提交请求，另有对应选择和编码修订</td>
 </tr>
 </tbody>
 </table></div>
 <p><code>EditStatus::InvalidCode</code> 表示字符不在配置字母表中，<code>Full</code> 表示编码长度已满；这两种拒绝不会改变当前编码或修订。<code>Busy</code> 表示提交等活动尚未完成。<code>Stale</code>、<code>Closed</code> 或 <code>Exhausted</code> 需要宿主停止使用旧操作并检查当前生命周期。</p>
-<h2 id="显示-翻页与选择">显示、翻页与选择</h2>
-<p>从共享 <code>CandidateSession</code> 取得候选，使用 <code>request_text()</code> 请求文字，在 <code>present()</code> 回调内复制显示内容。翻页直接调用共享会话的 <code>request_range()</code>，保持当前编码与逻辑输入不变。</p>
+<h2 id="候选呈现-翻页与选择"><span id="显示-翻页与选择" data-legacy-anchor style="display:block;scroll-margin-top:var(--anchor-offset)" aria-hidden="true"></span>候选呈现、翻页与选择</h2>
+<p>绑定层按页大小取得候选及文字，并在查询完成后发布页面。<code>Step::shared.status == SessionStatus::Ready</code> 时，在共享会话的 <code>present()</code> 回调内复制候选显示内容。翻页调用共享会话的 <code>request_range()</code>，随后继续通过 <code>binding.tick()</code> 推进，保持当前编码与逻辑输入不变。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="可横向滚动的表格"><table>
+<thead>
+<tr>
+<th>绑定层成员的完整类型签名</th>
+<th>返回值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>hanime::CommitResult confirm(const hanime::SelectionHandle&amp; selection, CommitReason reason = CommitReason::Explicit)</code></td>
+<td>合法选择返回 <code>Preparing</code>；随后推进到 <code>Accepted</code> 或其他提交终态</td>
+</tr>
+<tr>
+<td><code>hanime::CommitResult retry(const hanime::RetryPermit&amp; permit)</code></td>
+<td>使用 Core 签发的许可重试，不新建一份学习或提交状态</td>
+</tr>
+<tr>
+<td><code>hanime::SessionStatus query_status() const</code></td>
+<td>当前查询状态</td>
+</tr>
+<tr>
+<td><code>CommitReason commit_reason() const</code></td>
+<td>当前记录的提交原因；不代表接收器已接受文字</td>
+</tr>
+</tbody>
+</table></div>
 <p>用户确认当前候选时调用 <code>binding.confirm(selection, CommitReason::Explicit)</code>。接下来观察提交结果；需要重试时使用返回的 <code>RetryPermit</code> 调用绑定的 <code>retry()</code>。状态语义与 <a href="/bgime/api/core/">Core 提交</a>相同。接受成功后绑定清空编码；重复确认已接受事务不会再次交付文字。</p>
 <h2 id="满码唯一候选请求">满码唯一候选请求</h2>
-<p><code>Step::request == CommitReason::AutoUniqueFullCode</code> 是请宿主考虑提交的请求。当前首屏必须满足满码、只有一个候选、没有更多候选、排序仍有效且输出文字有效等条件。多个映射路径若指向同一词条身份，不会因此变成多个候选。</p>
+<p><code>Step::request == CommitReason::AutoUniqueFullCode</code> 表示待宿主确认的提交请求。当前首屏必须满足满码、只有一个候选、没有更多候选、排序仍有效且输出文字有效等条件。多个映射路径若指向同一词条身份，不会因此变成多个候选。</p>
 <p>收到请求时，使用当次 <code>Step::selection</code> 和 <code>code_revision</code> 关联当前输入。由应用决定是否允许提交，允许后再调用 <code>confirm(selection, CommitReason::AutoUniqueFullCode)</code>。请求本身不会调用文本接收器。</p>
 <p>Draftor 在这些条件之外，还会检查自动提交资源、显示窗口、当前输入事件和编辑目标。完整的产品处理见 <a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/src/wubi_product.cpp">wubi_product.cpp</a> 和 <a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/src/device_ime.cpp">device_ime.cpp</a>。</p>
-<h2 id="学习范围">学习范围</h2>
+<h2 id="直接查询与提交示例"><span id="按键-显示和确认的调用示例" data-legacy-anchor style="display:block;scroll-margin-top:var(--anchor-offset)" aria-hidden="true"></span>直接查询与提交示例</h2>
+<p>沿用 <code>host_wubi86</code> 的 <code>Resources</code>、<code>NoLearning</code> 和 <code>DemoDocument</code>：资源已经完整校验，<code>NoLearning</code> 提供固定计数所有者与命名空间，但不读取或记录个人次数。按顺序创建 <code>Wubi86Decoder</code>、<code>CandidateSession(index, shared, counts, sink, {4, 2, 1, 64, 64, 4})</code> 和 <code>DirectQueryBinding(decoder, session, index, shared, 1)</code>。完成会话文字准入、设置输出后，检查 <code>binding.activate() == SessionStatus::Ready</code>。绑定先销毁，随后才是会话、解码器及其他所有者。</p>
+<pre><span class="code-label">cpp</span><code class="language-cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;hanime_wubi/wubi.hpp&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdexcept&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;string&gt;</span></span>
+
+<span class="hljs-keyword">namespace</span> docs_wubi {
+<span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> hanime;
+<span class="hljs-keyword">namespace</span> wb = hanime::wubi;
+<span class="hljs-keyword">constexpr</span> WorkBudget budget{<span class="hljs-number">1</span>, <span class="hljs-number">17</span>, <span class="hljs-number">3</span>};
+<span class="hljs-keyword">constexpr</span> std::<span class="hljs-type">size_t</span> limit = <span class="hljs-number">100000</span>;
+<span class="hljs-keyword">struct</span> <span class="hljs-title class_">Query</span> { wb::EditStatus edit; wb::Step step; };
+
+<span class="hljs-comment">// 字符事件 + 命令行调度；page_size 要与构造绑定时相同。</span>
+<span class="hljs-function">Query <span class="hljs-title">key</span><span class="hljs-params">(wb::DirectQueryBinding&amp; binding, CandidateSession&amp; session,
+          std::<span class="hljs-type">size_t</span> page_size, <span class="hljs-type">char</span> character)</span> </span>{
+  Query result{binding.<span class="hljs-built_in">append</span>(character), {}};
+  <span class="hljs-keyword">if</span> (result.edit != wb::EditStatus::Changed) <span class="hljs-keyword">return</span> result;
+  <span class="hljs-comment">// 与 host_wubi86 一致：第一次 tick 只建立逻辑输入。</span>
+  result.step = binding.<span class="hljs-built_in">tick</span>(budget);
+  <span class="hljs-keyword">if</span> (result.step.shared.status != SessionStatus::Pending) <span class="hljs-keyword">return</span> result;
+  <span class="hljs-comment">// 本示例无个人状态，在任何计数读取前明确改用基础排序。</span>
+  result.step.shared.status = session.<span class="hljs-built_in">restart_first</span>(page_size, page_size, ScoringMode::BaseOnly);
+  <span class="hljs-keyword">for</span> (std::<span class="hljs-type">size_t</span> n = <span class="hljs-number">0</span>; result.step.shared.status == SessionStatus::Pending; ++n) {
+    <span class="hljs-keyword">if</span> (n == limit) <span class="hljs-keyword">throw</span> std::<span class="hljs-built_in">runtime_error</span>(<span class="hljs-string">&quot;Wubi query did not finish&quot;</span>);
+    result.step = binding.<span class="hljs-built_in">tick</span>(budget); <span class="hljs-comment">// GUI 每次调度只做一步。</span>
+  }
+  <span class="hljs-keyword">return</span> result; <span class="hljs-comment">// Ready、NoMatches 或实际错误；这里从未调用 confirm。</span>
+}
+<span class="hljs-keyword">struct</span> <span class="hljs-title class_">Frame</span> { std::string text; SelectionHandle choice; OutputStatus output{OutputStatus::Pending}; };
+<span class="hljs-function">SessionStatus <span class="hljs-title">read_first</span><span class="hljs-params">(CandidateSession&amp; session, Frame&amp; frame)</span> </span>{
+  frame = {};
+  <span class="hljs-type">bool</span> order_stale = <span class="hljs-literal">false</span>;
+  <span class="hljs-type">const</span> <span class="hljs-keyword">auto</span> status = session.<span class="hljs-built_in">present</span>([&amp;](<span class="hljs-type">const</span> CandidateViewPage&amp; page) {
+    order_stale = page.order_stale;
+    <span class="hljs-keyword">if</span> (page.size) {
+      frame.output = page.items[<span class="hljs-number">0</span>].output;
+      <span class="hljs-keyword">if</span> (!order_stale &amp;&amp; <span class="hljs-built_in">output_has_text</span>(frame.output)) {
+        frame.text = page.<span class="hljs-built_in">text</span>(<span class="hljs-number">0</span>);
+        frame.choice = session.<span class="hljs-built_in">selection</span>(<span class="hljs-number">0</span>);
+      }
+    }
+  });
+  <span class="hljs-keyword">if</span> (status == SessionStatus::Ready &amp;&amp; order_stale)
+    <span class="hljs-keyword">return</span> SessionStatus::NeedsRankRestart;
+  <span class="hljs-keyword">return</span> status;
+}
+<span class="hljs-comment">// 选择事件或宿主已批准的自动请求；不能仅凭 request 自动调用这个函数。</span>
+<span class="hljs-function">CommitResult <span class="hljs-title">confirm</span><span class="hljs-params">(wb::DirectQueryBinding&amp; binding, CandidateSession&amp; session,
+                     <span class="hljs-type">const</span> SelectionHandle&amp; choice, wb::CommitReason reason)</span> </span>{
+  <span class="hljs-keyword">auto</span> result = binding.<span class="hljs-built_in">confirm</span>(choice, reason);
+  <span class="hljs-keyword">for</span> (std::<span class="hljs-type">size_t</span> n = <span class="hljs-number">0</span>; result.status == CommitStatus::Preparing; ++n) {
+    <span class="hljs-keyword">if</span> (n == limit) <span class="hljs-keyword">throw</span> std::<span class="hljs-built_in">runtime_error</span>(<span class="hljs-string">&quot;Wubi commit did not finish&quot;</span>);
+    binding.<span class="hljs-built_in">tick</span>(budget);
+    result = session.<span class="hljs-built_in">commit_result</span>();
+  }
+  <span class="hljs-keyword">return</span> result; <span class="hljs-comment">// Stale、OutputRestricted、UnknownOutcome 等不自动重试。</span>
+}
+} <span class="hljs-comment">// namespace docs_wubi</span>
+</code></pre>
+<p>依次以 <code>a</code>、<code>b</code>、<code>c</code>、<code>d</code> 调用 <code>key(binding, session, 1, character)</code>。先检查 <code>edit</code>：<code>InvalidCode</code> 或 <code>Full</code> 时保留原编码，<code>Busy</code> 时暂存事件。再检查 <code>step.shared.status</code>：<code>Ready</code> 后调用 <code>read_first()</code> 复制候选，<code>NoMatches</code> 时清空显示，其他终止状态保留错误并停止使用该次结果。<code>key()</code> 仅用于这个无学习 Host 的基础模式，不要把每轮调度都改成 <code>restart_first()</code>。</p>
+<p><code>read_first()</code> 返回 <code>Ready</code> 表示页面读取成功，仍需检查 <code>frame.output</code>。只有 <code>output_has_text(frame.output)</code> 为真时才显示文字并提供确认操作；没有有效文字时展示实际输出状态，例如 <code>OutputStatus::Blocked</code>，不把它当成没有匹配候选。返回 <code>NeedsRankRestart</code> 表示排序已过期，应重新建立当前排序并刷新显示；这一帧不保留可确认的选择。</p>
+<p>当最后一步含有自动请求，先核对 <code>step.code_revision == decoder.plan().revision</code>，确认编辑目标仍有效、应用允许自动提交且候选输出有效，再向 <code>confirm()</code> 传入 <code>step.selection</code> 与 <code>AutoUniqueFullCode</code>。显式选择则传入显示帧保存的 <code>choice</code> 与 <code>Explicit</code>。接收结果以 <code>CommitResult::status</code> 为准；<code>Stale</code> 要刷新候选，<code>UnknownOutcome</code> 要核对接收端，不能再次插入文字。</p>
+<p>查询与提交中的循环是 CLI 示例的等待方式。界面程序应将每个 <code>binding.tick()</code> 安排到事件循环，保留本次查询状态；不要同时再调用 <code>session.tick()</code> 驱动同一个会话。达到宿主步数上限不会自动取消引擎工作。可对照<a href="/bgime/schemes/#%E4%BA%94%E7%AC%9486">真实运行输出</a>，观察请求出现前后 <code>sink_calls</code> 的变化。</p>
+<h2 id="学习接入范围"><span id="学习范围" data-legacy-anchor style="display:block;scroll-margin-top:var(--anchor-offset)" aria-hidden="true"></span>学习接入范围</h2>
 <p>绑定只把提交和学习通知委托给 Core，不拥有第二份个人计数。<code>host_wubi86</code> 明确使用基础排序和禁用的学习通知源，没有个人状态文件。</p>
 <p>Alpha 3 产品的五笔共享学习走 Draftor 的组合与选词资格路径。接入这套学习行为时，除计数源外还需要处理选词资格和共享状态的生命周期，详见<a href="/bgime/learning/">选词学习</a>。</p>
 </article>
-<nav class="page-turn" aria-label="章节翻页"><a href="/bgime/api/composition/"><small>← 上一篇</small>拼音与组合输入</a><a class="next" href="/bgime/learning/"><small>下一篇 →</small>选词学习</a></nav>
+<nav class="page-turn" aria-label="章节翻页"><a href="/bgime/api/composition/"><small>← 上一篇</small>Composition / Submission</a><a class="next" href="/bgime/learning/"><small>下一篇 →</small>选词学习</a></nav>
 <footer class="article-footer">本文档适用于 Draftor Alpha 3 中使用的 bgIME。<br><a href="https://github.com/Ohhellboy/Draftor/tree/f18939f8880e2278c231739d553fbf983c19e0f6">查看对应源码</a><span>·</span><a href="https://github.com/Ohhellboy/Draftor/issues">反馈文档问题</a><span>·</span><a href="/guide.html">草稿机操作指南</a></footer></main>
-<aside class="toc"><nav aria-label="本页目录"><p>本页内容</p><a href="#%E7%BC%96%E7%A0%81%E8%A7%84%E5%88%99%E4%B8%8E%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F">编码规则与生命周期</a><a href="#%E5%88%9B%E5%BB%BA%E5%B9%B6%E6%BF%80%E6%B4%BB%E7%BB%91%E5%AE%9A">创建并激活绑定</a><a href="#%E7%BC%96%E8%BE%91%E5%92%8C%E6%8E%A8%E8%BF%9B">编辑和推进</a><a href="#%E6%98%BE%E7%A4%BA-%E7%BF%BB%E9%A1%B5%E4%B8%8E%E9%80%89%E6%8B%A9">显示、翻页与选择</a><a href="#%E6%BB%A1%E7%A0%81%E5%94%AF%E4%B8%80%E5%80%99%E9%80%89%E8%AF%B7%E6%B1%82">满码唯一候选请求</a><a href="#%E5%AD%A6%E4%B9%A0%E8%8C%83%E5%9B%B4">学习范围</a></nav></aside></div>
+<aside class="toc"><nav aria-label="本页目录"><p>本页内容</p><a href="#%E7%BC%96%E7%A0%81%E8%A7%84%E5%88%99%E4%B8%8E%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F">编码规则与生命周期</a><a href="#%E7%BB%91%E5%AE%9A%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%8E%E6%BF%80%E6%B4%BB">绑定初始化与激活</a><a href="#%E7%BC%96%E7%A0%81%E7%BC%96%E8%BE%91%E4%B8%8E%E8%B0%83%E5%BA%A6">编码编辑与调度</a><a href="#%E5%80%99%E9%80%89%E5%91%88%E7%8E%B0-%E7%BF%BB%E9%A1%B5%E4%B8%8E%E9%80%89%E6%8B%A9">候选呈现、翻页与选择</a><a href="#%E6%BB%A1%E7%A0%81%E5%94%AF%E4%B8%80%E5%80%99%E9%80%89%E8%AF%B7%E6%B1%82">满码唯一候选请求</a><a href="#%E7%9B%B4%E6%8E%A5%E6%9F%A5%E8%AF%A2%E4%B8%8E%E6%8F%90%E4%BA%A4%E7%A4%BA%E4%BE%8B">直接查询与提交示例</a><a href="#%E5%AD%A6%E4%B9%A0%E6%8E%A5%E5%85%A5%E8%8C%83%E5%9B%B4">学习接入范围</a></nav></aside></div>
 <dialog class="search-dialog" aria-labelledby="search-title"><div class="search-top"><label id="search-title" for="search-input">搜索 bgIME 文档</label><button type="button" class="search-close" aria-label="关闭搜索">关闭 <kbd>Esc</kbd></button></div>
 <input id="search-input" type="search" placeholder="输入关键词或接口名，例如：学习、confirm" autocomplete="off" spellcheck="false" aria-controls="search-results">
 <p id="search-status" role="status" aria-live="polite">支持中文与接口名。多个关键词用空格分隔。</p><ol id="search-results"></ol></dialog>

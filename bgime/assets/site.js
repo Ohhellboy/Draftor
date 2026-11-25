@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { normalize, codeLanguage, codeLabel, searchExcerpt, activeHeadingIndex, shortcutLabel } from './reader-utils.js';
 const $ = selector => document.querySelector(selector);
 const toggle = $('.menu-toggle'), sidebar = $('#sidebar');
 function closeMenu() { sidebar.classList.remove('open'); toggle.setAttribute('aria-expanded', 'false'); }
@@ -8,19 +9,21 @@ toggle.addEventListener('click', () => {
 document.addEventListener('click', e => { if (!sidebar.contains(e.target) && !toggle.contains(e.target)) closeMenu(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && sidebar.classList.contains('open')) { closeMenu(); toggle.focus(); } });
 for (const pre of document.querySelectorAll('.prose pre')) {
-  const code = pre.querySelector('code'), button = document.createElement('button'), label = document.createElement('span');
-  label.className = 'code-label'; label.textContent = code.className.replace('language-', '') || 'code';
-  button.type = 'button'; button.className = 'copy-code'; button.textContent = '复制'; button.setAttribute('aria-label', '复制代码');
+  const code = pre.querySelector('code'); if (!code) continue;
+  const button = document.createElement('button');
+  const label = pre.querySelector('.code-label');
+  const name = label?.textContent || codeLabel(codeLanguage(code.className));
+  button.type = 'button'; button.className = 'copy-code'; button.textContent = '复制'; button.setAttribute('aria-label', name === '输出' ? '复制输出' : '复制代码');
   button.addEventListener('click', async () => {
     try { await navigator.clipboard.writeText(code.textContent); button.textContent = '已复制'; }
     catch { button.textContent = '请选中代码复制'; }
     setTimeout(() => { button.textContent = '复制'; }, 2500);
   });
-  pre.prepend(label, button);
+  pre.prepend(button);
 }
+$('.search-trigger kbd').textContent = shortcutLabel(navigator.userAgentData?.platform || navigator.platform || '');
 const dialog = $('.search-dialog'), input = $('#search-input'), results = $('#search-results'), status = $('#search-status');
 let index, loading, sequence = 0;
-const normalize = s => s.normalize('NFKC').toLocaleLowerCase();
 async function getIndex() {
   if (index) return index;
   if (!loading) loading = fetch('/bgime/search-index.json').then(r => {
@@ -42,8 +45,7 @@ async function search() {
     for (const r of matches.slice(0, 24)) {
       const li = document.createElement('li'), a = document.createElement('a'), title = document.createElement('strong'), snippet = document.createElement('p');
       a.href = r.url; title.textContent = r.title === r.heading ? r.title : r.title + ' · ' + r.heading;
-      const text = r.text.replace(/\s+/g, ' '), at = Math.max(0, normalize(text).indexOf(terms[0]) - 28);
-      snippet.textContent = (at ? '…' : '') + text.slice(at, at + 130) + (text.length > at + 130 ? '…' : '');
+      snippet.textContent = searchExcerpt(r.text, terms);
       a.addEventListener('click', () => dialog.close());
       a.append(title, snippet); li.append(a); results.append(li);
     }
@@ -64,9 +66,26 @@ dialog.addEventListener('keydown', e => {
 document.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); if (dialog.open) dialog.close(); else openSearch(); }
 });
-const tocLinks = [...document.querySelectorAll('.toc a')];
-const observer = new IntersectionObserver(entries => {
-  const entry = entries.find(e => e.isIntersecting); if (!entry) return;
-  for (const a of tocLinks) a.classList.toggle('current', decodeURIComponent(a.hash.slice(1)) === entry.target.id);
-}, { rootMargin: '-90px 0px -60% 0px', threshold: 0 });
-document.querySelectorAll('.prose h2').forEach(h => observer.observe(h));
+const tocLinks = [...document.querySelectorAll('.toc a, .mobile-toc a')];
+const headings = [...document.querySelectorAll('.prose h2')];
+let tocFrame;
+function updateToc() {
+  tocFrame = undefined;
+  const line = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--anchor-offset')) + 1;
+  const bottom = window.scrollY > 0 && window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+  const index = activeHeadingIndex(headings.map(h => h.getBoundingClientRect().top), line, bottom);
+  for (const link of tocLinks) {
+    const current = index >= 0 && decodeURIComponent(link.hash.slice(1)) === headings[index].id;
+    link.classList.toggle('current', current);
+    if (current) link.setAttribute('aria-current', 'location');
+    else link.removeAttribute('aria-current');
+  }
+}
+function scheduleToc() { if (tocFrame === undefined) tocFrame = requestAnimationFrame(updateToc); }
+window.addEventListener('scroll', scheduleToc, { passive: true });
+window.addEventListener('resize', scheduleToc);
+window.addEventListener('hashchange', scheduleToc);
+window.addEventListener('load', scheduleToc);
+new ResizeObserver(scheduleToc).observe($('.prose'));
+document.fonts?.ready.then(scheduleToc);
+scheduleToc();
