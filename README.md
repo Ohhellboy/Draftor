@@ -164,6 +164,10 @@ WriterDeck（书写板？我不知道该怎么翻译了）是拉丁语系市场�
 
 Draftor 自有源码采用 [Apache License 2.0](LICENSE)。独立 ST7306 显示模块保留其 MIT 许可证，字体、词库及其他第三方材料适用各自的许可与署名要求。
 
+软件许可与项目名称及品牌标识的使用权相互独立。第三方研究、修改、移植、集成及商业使用遵循相应许可证；独立发行应准确标明来源及发行身份。详见[名称与标识使用政策](TRADEMARKS.md)。
+
+[bgIME 开发者文档](https://draftor.tcssn.org/bgime/)
+
 [构建指南](docs/BUILD.md) · [bgIME 输入引擎](ime/bgime/README.md) · [ST7306 显示模块](display/st7306/) · [第三方声明](THIRD_PARTY.md) · [资源与许可说明](docs/RESOURCE_STATUS.md)
 
 使用问题和建议，欢迎通过 [GitHub Issues](https://github.com/Ohhellboy/Draftor/issues)反馈。

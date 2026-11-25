@@ -12,6 +12,10 @@ bgIME（大鹅中文输入法引擎，Big Goose Input Method Engine）是一套�
 
 目前，bgIME 已应用于开源写作设备 [Draftor（草稿机）](../../README.md)。微雪版 Draftor Alpha 3 已接入选词学习：全拼、小鹤双拼和五笔86共享个人选词习惯。引擎核心可以独立编译，仓库中也提供了命令行示例，供其他项目参考和集成。
 
+[官方开发者文档](https://draftor.tcssn.org/bgime/) · [名称与标识使用政策](../../TRADEMARKS.md)
+
+软件许可与项目品牌使用权相互独立；独立集成和发行应准确说明来源与维护身份。技术标识可依适用许可保留。
+
 ## 为什么叫“大鹅”？
 
 「大鹅」或 Big Goose 得名于汉字「鹅」的多种写法。在 Unicode 中，「鹅」「鵝」「鵞」「䳗」「䳘」和「𨿍」（左我右隹）分别拥有独立的码位。而据[《异体字字典》](https://dict.variants.moe.edu.tw/dictView.jsp?ID=52649)记载，「鵝」还有11种异体字形。
