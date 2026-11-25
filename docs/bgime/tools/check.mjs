@@ -26,6 +26,8 @@ for (const p of pages) {
   nodeAssert.deepEqual(attr(mobile, 'href'), attr(desktop, 'href'), `${p.file}: TOCs differ`);
   const article = html.match(/<article class="[^"]*">([\s\S]*?)<\/article>/)?.[1];
   assert(article, `${p.file}: article missing`);
+  const sectionIds = [...article.matchAll(/<h2 id="([^"]+)"/g)].map(h => h[1]);
+  nodeAssert.deepEqual(attr(desktop, 'href'), sectionIds.map(id => `#${encodeURIComponent(id)}`), `${p.file}: TOCs must use canonical section IDs`);
   const tocStart = article.indexOf('<details class="mobile-toc">');
   if (p.slug === '') {
     assert(/<h1[^>]*>(?:<span[^>]*><\/span>)*bgIME 嵌入式中文输入引擎<\/h1>/.test(article), 'Homepage H1');
@@ -42,7 +44,9 @@ for (const p of pages) {
   }
 
   assert(!/@(?:source|doc)\//.test(html), `${p.file}: unresolved link shorthand`);
-  documents.set(pageUrl(p.slug), { html, ids: new Set(ids) });
+  const canonical = new Set(Object.values(headingAnchors[p.file]).map(ids => ids[0]));
+  const aliases = new Set(Object.values(headingAnchors[p.file]).flatMap(ids => ids.slice(1)));
+  documents.set(pageUrl(p.slug), { html, ids: new Set(ids), canonical, aliases });
   for (const url of [...attr(html, 'href'), ...attr(html, 'src')]) allLinks.push({ from: pageUrl(p.slug), url });
 }
 const installerLinks = new Set(['/', '/guide.html', '/first-install.html', '/recovery.html']);
@@ -52,7 +56,11 @@ for (const { from, url } of allLinks) {
   if (target.origin === 'http://preview') {
     if (installerLinks.has(target.pathname)) continue;
     if (documents.has(target.pathname)) {
-      if (target.hash) assert(documents.get(target.pathname).ids.has(decodeURIComponent(target.hash.slice(1))), `Broken anchor ${from} -> ${url}`);
+      if (target.hash) {
+        const id = decodeURIComponent(target.hash.slice(1)), document = documents.get(target.pathname);
+        assert(document.ids.has(id), `Broken anchor ${from} -> ${url}`);
+        assert(!document.aliases.has(id), `Use the canonical section ID: ${from} -> ${url}`);
+      }
     } else {
       assert(target.pathname.startsWith('/bgime/'), `Unexpected local link ${from} -> ${url}`);
       assert((await stat(path.join(root, 'dist', decodeURIComponent(target.pathname)))).isFile(), `Missing asset ${url}`);
@@ -69,7 +77,7 @@ const search = JSON.parse(await readFile(path.join(output, 'search-index.json'),
 for (const section of search) {
   const target = new URL(section.url, 'http://preview');
   assert(documents.has(target.pathname), `Missing search target ${section.url}`);
-  if (target.hash) assert(documents.get(target.pathname).ids.has(decodeURIComponent(target.hash.slice(1))), `Missing search fragment ${section.url}`);
+  if (target.hash) assert(documents.get(target.pathname).canonical.has(decodeURIComponent(target.hash.slice(1))), `Search must use a canonical heading: ${section.url}`);
 }
 nodeAssert.equal(new Set(search.map(row => row.url)).size, search.length, 'Duplicate search sections');
 for (const p of pages) {

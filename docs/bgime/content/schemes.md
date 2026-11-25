@@ -110,9 +110,9 @@ commit=AutoUniqueFullCode (Host confirmed) Accepted UTF-8="四" sink_calls=1; du
 
 `DirectExact` 不自动限制五笔字母表或四码长度；它的 `edit_raw()` 接受小写 `a`–`z`，支持大写按键的宿主要先规范化输入。实际产品可参考 [admitWubiEdit 与自动提交条件](@source/integration/product/src/wubi_product.cpp)，按宿主输入目标配置检查。
 
-两条路径都需要配对的 `shared.hns` 和 `wubi86.hnm`。`DirectExact` 只提供组合路径，**不自动提供完整 Alpha 3 学习接入**。公开的 `select()` 不签发产品使用的显式非首选资格；共享状态、资格入口和保存调度仍需接入。当前尚无完整独立学习示例，详见[学习接入缺口](@doc/learning#在自己的程序中接入学习)。
+两条路径都需要配对的 `shared.hns` 和 `wubi86.hnm`。`DirectExact` 只提供组合路径，**不自动提供完整 Alpha 3 学习接入**。公开的 `select()` 不签发产品使用的显式非首选资格；共享状态、资格入口和保存调度仍需接入。当前尚无完整独立学习示例，详见[学习接入缺口](@doc/learning#宿主接入要求)。
 
-从直接查询改用组合对象时，按[迁移步骤](@doc/integration#五笔从直接查询转到组合路径)调整宿主。两条路径的性能、内存占用和迁移工作量需要结合目标设备、容量配置和宿主实现测量。
+从直接查询改用组合对象时，按[迁移步骤](@doc/integration#五笔组合路径迁移)调整宿主。两条路径的性能、内存占用和迁移工作量需要结合目标设备、容量配置和宿主实现测量。
 
 ## 正式资源接入
 

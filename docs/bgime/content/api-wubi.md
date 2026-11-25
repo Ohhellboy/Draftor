@@ -2,7 +2,7 @@
 
 Wubi 通过 `Wubi86Decoder` 维护编码，通过 `DirectQueryBinding` 将编码计划绑定至 Core 候选会话。候选取字、翻页、显示和最终文字提交仍使用 Core。头文件见 [wubi.hpp](@source/integration/product/dependencies/wubi/include/hanime_wubi/wubi.hpp)，运行方法见[五笔示例](@doc/schemes)。
 
-包含 `<hanime_wubi/wubi.hpp>`。五笔类型位于 `hanime::wubi`，Core 会话、状态和句柄位于 `hanime`。本页介绍直接查询路径；使用组合对象的五笔接入见[DirectQueryBinding 与 DirectExact 的比较](@doc/schemes#五笔的两条接入路径)。
+包含 `<hanime_wubi/wubi.hpp>`。五笔类型位于 `hanime::wubi`，Core 会话、状态和句柄位于 `hanime`。本页介绍直接查询路径；使用组合对象的五笔接入见[DirectQueryBinding 与 DirectExact 的比较](@doc/schemes#五笔接入路径)。
 
 ## 编码规则与生命周期
 

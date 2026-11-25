@@ -24,7 +24,7 @@ Draftor 产品版本与模块版本分别维护。`kCompositionLearningApiVersio
 
 ## 验证范围
 
-现有产品验证针对微雪 ESP32-S3 与 ST7305 4.2 英寸设备。三个 Host 示例有 macOS 运行记录；其他 POSIX 环境、Windows 原生环境及新硬件需另行验证，具体条件见[快速开始](@doc/quickstart#准备环境)。
+现有产品验证针对微雪 ESP32-S3 与 ST7305 4.2 英寸设备。三个 Host 示例有 macOS 运行记录；其他 POSIX 环境、Windows 原生环境及新硬件需另行验证，具体条件见[快速开始](@doc/quickstart#环境要求)。
 
 Alpha 3 的产品验证范围见 [ALPHA3_VALIDATION.md](@source/docs/ALPHA3_VALIDATION.md)。早期的查询与取字改进、对照测试和设备移植过程保留在[性能记录](@source/docs/PERFORMANCE.md)、[版本说明](@source/docs/RELEASE_NOTES.md)及[微雪版本历史](@source/docs/WAVESHARE_A3_HISTORY.md)中；学习接口以本页固定的 Alpha 3 源码为准。
 

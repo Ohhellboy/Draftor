@@ -10,7 +10,7 @@
 | 全拼或小鹤双拼逐键输入，并组合多个词 | Extension `Composition` + `Submission` | `host_composition` |
 | 五笔86逐键输入并直接提交候选 | `Wubi86Decoder` + `DirectQueryBinding` + `CandidateSession` | `host_wubi86` |
 
-五笔还可以使用 `Composition` 的 `DirectExact` 路径。模块依赖与行为差异见[五笔接入路径](@doc/schemes#五笔的两条接入路径)。
+五笔还可以使用 `Composition` 的 `DirectExact` 路径。模块依赖与行为差异见[五笔接入路径](@doc/schemes#五笔接入路径)。
 
 示例的 CMake 文件给出了各路径的模块依赖。Core 的目标名为 `HanIME::Core`，Extension 为 `HanIME::Extension`；五笔示例从现有 `wubi.cpp` 建立本地库目标，目前没有独立的 Wubi 安装包。只需要 Core 库时可以这样构建：
 
@@ -52,7 +52,17 @@ Host 示例使用 `HostResourceFile` 和完整的分步校验。`open()` 成功�
 
 ## 候选呈现与选择
 
-Core 候选会话先生成暂存页，`publish()` 后成为当前可用页。文字可以按需通过 `request_text()` 请求；在 `present()` 的同步回调内复制文字和当前选择句柄，供渲染层读取。Extension 则使用 `page()`、`selection()`、`read_text()` 和 `last_text()`。
+三条接入路径的候选准备与推进方式不同：
+
+| 接入路径 | 候选准备与呈现 |
+| --- | --- |
+| [Core 直接接入](@doc/api/core#查询-发布与取字) | 宿主通过会话 `tick()` 推进查询，调用 `publish()` 发布暂存页。按需调用 `request_text()` 后，继续通过会话 `tick()` 取得文字；在 `present()` 的同步回调内复制候选显示内容和当前选择句柄 |
+| [Extension](@doc/api/composition#候选读取与选择) | 通过 `Composition::page()` 读取当前候选页，以 `selection()` 取得选择，通过 `read_text()` 发起取字并由 `Composition::tick()` 推进，再读取 `last_text()`。遵守组合页、借用文字和选择句柄各自的生命周期 |
+| [Wubi 直接查询](@doc/api/wubi#候选呈现-翻页与选择) | `DirectQueryBinding` 按页准备候选及文字，并在查询完成后发布页面。宿主通过 `binding.tick()` 推进，在 `Step::shared.status == SessionStatus::Ready` 时，通过共享会话的 `present()` 同步回调复制候选显示内容和当前选择句柄 |
+
+五笔绑定层已完成本页取字，不应对已发布页额外调用 `request_text()` 后继续用 `binding.tick()` 推进；这种组合会使绑定层尝试发布无效的暂存页并返回 `Stale`。翻页调用共享会话的 `request_range()`，随后继续通过 `binding.tick()` 推进，保持当前编码与逻辑输入不变。
+
+在五笔页读取中，`Ready` 表示页面读取成功，仍需检查候选的输出状态。仅在 `output_has_text()` 为真、排序未过期且选择仍有效时提供确认操作；没有有效文字时展示相应输出状态。排序过期时刷新排序，不保留可确认的旧选择。
 
 **不要在回调结束后持有借用的字符地址。** 页面序号只是当前页面中的位置；用户按下选择键时，应检查显示内容仍对应当前输入和排序。若接口返回 `Stale`，刷新候选并让用户重新选择，不能凭相同文字自动替换成另一词条身份。
 
@@ -87,7 +97,7 @@ Core 的 `confirm()` 开始一次候选提交，随后 `tick()` 推进到终态�
 
 ## 五笔组合路径迁移
 
-如果已有 `DirectQueryBinding` 接入，可保留资源和接收端，按以下步骤调整控制流程。两条路径的适用需求见[方案选择](@doc/schemes#五笔的两条接入路径)。
+如果已有 `DirectQueryBinding` 接入，可保留资源和接收端，按以下步骤调整控制流程。两条路径的适用需求见[方案选择](@doc/schemes#五笔接入路径)。
 
 1. **更换输入对象。** 用 Core + Extension 构建 `Composition(index, shared, SchemePolicy{SchemeRules::DirectExact, "wubi86"})` 和 `Submission`。停止由直接绑定层驱动同一份输入；新的操作由 `Composition::tick()` 与 `Submission::advance()` 推进。
 2. **重新连接编辑事件。** 将追加、删除转换为 `edit_raw()` 的字节区间，再调用 `query_next()`。Wubi 解码器可以复用于输入校验，但原始编码由组合对象持有；必须让校验结果与实际编辑一致。编辑会废弃 DirectExact 的原有已选成员，不能把旧选择直接搬到新编码上。

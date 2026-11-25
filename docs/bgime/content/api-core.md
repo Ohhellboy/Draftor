@@ -64,7 +64,7 @@ Host 示例使用 [HostResourceFile](@source/integration/product/dependencies/co
 
 1. `begin_input(code, epoch, q, text_count, mode)` 开始新输入。`code` 被复制到有界缓冲区；`q` 是本页希望取得的候选数，必须大于零且不超过 `snapshot_slots`。`text_count` 不超过 `q`，为 `0` 时先只取候选身份。`mode` 是 `Exact` 或 `BaseOnly`。
 
-   `epoch` 的类型是 `MountEpoch`，应与打开共享资源时使用的[挂载代次](#资源读取与打开)一致。同一次挂载内的多次查询可以复用这个值，不能按按键或查询次数递增；传入与当前资源不一致的代次会返回 `Stale`。
+   `epoch` 的类型是 `MountEpoch`，应与打开共享资源时使用的[挂载代次](#资源读取与挂载)一致。同一次挂载内的多次查询可以复用这个值，不能按按键或查询次数递增；传入与当前资源不一致的代次会返回 `Stale`。
 
 2. 返回 `Pending` 后反复调用 `tick(budget)`；到 `StagingReady` 时，调用 `publish(staging())` 发布这一页。
 3. 如需补取文字，调用 `request_text(published(), start, count)`，其中 `start` 是从零开始的页内位置。继续 `tick()`，直到文字准备完成。

@@ -56,7 +56,7 @@ cmake --build build/host_minimal \
 
 CMake 会构建 `HanIME::Core`、POSIX Host 适配器和已有的测试资源生成器 `hanime_build_fixture`。生成器在 `build/host_minimal/fixture/` 下写出 `shared.hns`、`full_pinyin.hnm`、`xiaohe.hnm` 和清单。运行程序只读这些词库文件；唯一的命令行参数就是它们所在的目录。
 
-这里指定的可执行目标会自动带上测试词库依赖。省略 `--target` 表示构建该示例工程的默认目标；三个工程的依赖差别见[构建目标说明](@doc/schemes#默认构建与指定目标)。
+这里指定的可执行目标会自动带上测试词库依赖。省略 `--target` 表示构建该示例工程的默认目标；三个工程的依赖差别见[构建目标说明](@doc/schemes#构建目标与依赖)。
 
 程序按固定脚本运行，不接收终端交互输入。正常结束时退出码为 `0`；任何内置检查失败都会报告错误并以非零状态退出。也可以通过 CTest 运行同一个示例：
 

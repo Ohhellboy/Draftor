@@ -12,7 +12,7 @@
 | Extension | `hanime_extension` | `HanIME::Extension`；依赖 Core |
 | Wubi | `hanime::wubi` | Host 示例将 `wubi.cpp` 编入本地目标 `bgime_demo_wubi86`，链接 Core；未提供独立安装包 |
 
-构建配置与宿主依赖见[宿主集成](@doc/integration#先选接入入口)。
+构建配置与宿主依赖见[宿主集成](@doc/integration#接入路径)。
 
 ## 按操作分类
 
@@ -27,7 +27,7 @@
 | 读取个人次数、接收学习通知 | `CountSource`、`BoundedUserState` | [选词学习](@doc/learning) |
 | 持久化个人状态 | `StateFilePort`、`StateV3` | [选词学习](@doc/learning) |
 
-五笔组合路径的选型见[DirectQueryBinding 与 DirectExact](@doc/schemes#五笔的两条接入路径)。
+五笔组合路径的选型见[DirectQueryBinding 与 DirectExact](@doc/schemes#五笔接入路径)。
 
 ## 公开入口与内部实现
 
