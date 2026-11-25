@@ -1,0 +1,37 @@
+# bgIME — Big Goose Input Method Engine
+
+> bgIME（大鹅输入法）is a C++17 Chinese input engine for resource-constrained embedded systems. It supports full Pinyin, Xiaohe double Pinyin and Wubi86. Draftor（草稿机）is a writing-device product that integrates the engine.
+
+This documentation describes bgIME as used in Draftor Alpha 3, tag v0.1.0-alpha.3, source commit f18939f8880e2278c231739d553fbf983c19e0f6. Modules retain their actual version numbers; there is no separate invented bgIME release version. HanIME namespaces, headers, paths and CMake targets are retained technical compatibility identifiers.
+
+Each input scheme has its own code index. RuntimeLexemeRef identifies an entry in the current shared resource; StableLexemeKey and the lexeme namespace identify persistent personal records. Equal display text does not necessarily mean equal lexeme identity. Core handles shared resources, candidate queries and ranking, output resolution, commit transactions and personal records. Extension provides Pinyin parsing, composition and submission; its DirectExact path queries the complete code without Pinyin segmentation. Wubi provides Wubi86 editing and validation plus DirectQueryBinding for a Core candidate session.
+
+The host supplies external resource reads, input events, serialized scheduling, candidate presentation and a text commit sink. WorkBudget bounds each step's read counts, bytes and logical work; it is not a hard real-time guarantee. Text acceptance, application document saving and learning persistence are separate outcomes.
+
+Alpha 3 shares qualified selection records across schemes and uses them for personal ranking. Draftor integrates product-specific selection qualification, state storage and save scheduling. Other hosts must supply those integrations; the general public interfaces do not expose every product selection-qualification step. The three standalone Host examples demonstrate basic input, candidates and submission with artificial fixtures and learning disabled. A complete standalone Alpha 3 learning example and a Wubi DirectExact Host example are not yet provided. DirectExact alone does not provide complete Alpha 3 learning integration.
+
+This is an auxiliary discovery index; it does not guarantee adoption by all AI services. The linked documentation and pinned source describe interface contracts and limits.
+
+## Start and integrate
+
+- [Overview](https://draftor.tcssn.org/bgime/): Engine responsibilities, modules and verified scope.
+- [Quickstart](https://draftor.tcssn.org/bgime/quickstart/): Obtain Alpha 3 source and build the appropriate Host example.
+- [Input schemes and examples](https://draftor.tcssn.org/bgime/schemes/): Pinyin and Wubi examples, dependencies and direct-query versus composition paths.
+- [Host integration](https://draftor.tcssn.org/bgime/integration/): Resource mounting, input events, scheduling, candidate lifetimes and text submission.
+
+## Interfaces and resources
+
+- [API index](https://draftor.tcssn.org/bgime/api/): Recommended public entry points, headers, namespaces and build targets.
+- [Core](https://draftor.tcssn.org/bgime/api/core/): ResourceReader, MountEpoch, CandidateSession, output states and single-candidate commit.
+- [Composition and Submission](https://draftor.tcssn.org/bgime/api/composition/): Editing, selection, composition lifetime and submission transactions.
+- [Wubi](https://draftor.tcssn.org/bgime/api/wubi/): Wubi86Decoder, DirectQueryBinding, paging and commit requests.
+- [Selection learning](https://draftor.tcssn.org/bgime/learning/): Qualified events, shared state, ranking, StateFilePort, persistence and integration gaps.
+- [Dictionaries and resources](https://draftor.tcssn.org/bgime/resources/): Fixtures versus release resources, identity binding, validation and personal files.
+
+## Version, licensing and identity
+
+- [Versions and licensing](https://draftor.tcssn.org/bgime/about/): Actual module versions, third-party terms, validation scope and contribution links.
+- [Name and Branding Policy](https://draftor.tcssn.org/branding/): Names, factual attribution, retained HanIME identifiers and independent distribution identity.
+- [Alpha 3 source](https://github.com/Ohhellboy/Draftor/tree/f18939f8880e2278c231739d553fbf983c19e0f6): Technical baseline for this documentation.
+- [Official repository](https://github.com/Ohhellboy/Draftor): Current project source and identity files.
+- [Official releases](https://github.com/Ohhellboy/Draftor/releases): Firmware and matching resource downloads with their release instructions.

@@ -589,6 +589,10 @@
   },
   {
     "from": "about.md",
+    "url": "/branding/"
+  },
+  {
+    "from": "about.md",
     "url": "https://github.com/Ohhellboy/Draftor/issues"
   },
   {

@@ -1,0 +1,34 @@
+# Draftor / bgIME
+
+> Draftor（草稿机）is an open-source writing-device project. bgIME（大鹅输入法, Big Goose Input Method Engine）is its embeddable Chinese input engine and can also be integrated into independent software and hardware.
+
+This index provides auxiliary discovery links. It does not imply that every AI service reads it or follows it. Technical behaviour should be checked against the relevant release and version-pinned documentation.
+
+Project-owned source uses Apache License 2.0. Independently licensed modules, third-party libraries, dictionaries, fonts and other resources retain their own terms. Software permissions and branding permissions are separate. Forks, technical identifiers and independently modified builds do not by themselves indicate official release status; downstream distributions should identify their actual source, modifications and maintainer.
+
+## Official project sources
+
+- [Repository](https://github.com/Ohhellboy/Draftor): Default-branch source and project overview.
+- [Releases](https://github.com/Ohhellboy/Draftor/releases): Maintainer-published releases, firmware and matching resources; use the release instructions for the selected hardware.
+- [Draftor website](https://draftor.tcssn.org/): Official installation entry and device guidance.
+- [bgIME developer documentation](https://draftor.tcssn.org/bgime/): Engine overview, Host examples and integration reference for Draftor Alpha 3.
+- [bgIME discovery index](https://draftor.tcssn.org/bgime/llms.txt): Engine architecture, API and learning links.
+
+## Hardware, installation and development
+
+- [Hardware](https://github.com/Ohhellboy/Draftor/blob/main/docs/HARDWARE.md): Waveshare ESP32-S3 / ST7305, original ESP32-S3 / ST7306 and Pico 2 W hardware tracks; firmware is not interchangeable between devices.
+- [Release notes](https://github.com/Ohhellboy/Draftor/blob/main/docs/RELEASE_NOTES.md): Release scope and hardware-specific changes.
+- [Installation instructions](https://github.com/Ohhellboy/Draftor/blob/main/docs/INSTALL.md): Firmware and resource preparation for the documented release.
+- [Device guide](https://draftor.tcssn.org/guide.html): Installation, TF resources and everyday use.
+- [Build guide](https://github.com/Ohhellboy/Draftor/blob/main/docs/BUILD.md): Build prerequisites and target selection.
+- [Resource status](https://github.com/Ohhellboy/Draftor/blob/main/docs/RESOURCE_STATUS.md): Dictionary and font sources, distribution terms and unresolved resource licensing details.
+- [Issues](https://github.com/Ohhellboy/Draftor/issues): Project feedback and maintainer contact.
+
+## Licensing and identity
+
+- [Apache License 2.0](https://github.com/Ohhellboy/Draftor/blob/main/LICENSE): License for project-owned source.
+- [NOTICE](https://github.com/Ohhellboy/Draftor/blob/main/NOTICE): Project and attribution notices.
+- [Third-party notices](https://github.com/Ohhellboy/Draftor/blob/main/THIRD_PARTY.md): Separate terms and attribution for included materials.
+- [Name and Branding Policy](https://draftor.tcssn.org/branding/): Bilingual policy for descriptive use, technical compatibility, independent products and official identity; generated from the repository's authoritative file.
+- [Policy source](https://github.com/Ohhellboy/Draftor/blob/main/TRADEMARKS.md): Authoritative policy text.
+- [Development agent guidance](https://github.com/Ohhellboy/Draftor/blob/main/AGENTS.md): Project identity, attribution and downstream development guidance.
