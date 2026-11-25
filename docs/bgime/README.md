@@ -29,7 +29,7 @@ npm run prepare:pages -- origin/gh-pages
 npm run preview -- dist-pages
 ```
 
-The output directory must not already exist; use an explicit second argument for another candidate, for example `npm run prepare:pages -- origin/gh-pages dist-pages-next`. The preparer exports the whole selected Pages tree, adds/replaces only `bgime/`, inserts one documentation link in the homepage footer, and regenerates the root `SITE_SHA256SUMS`. It requires `.nojekyll`, `CNAME`, the homepage, first-install page, guide and recovery page. It checks every pre-existing file outside `bgime/` for byte identity except the deliberate homepage link and root file manifest. `BUILD.json`, JavaScript bundles, firmware, recovery tools, license files, source archives and original URLs are preserved. The documented source homepage also contains the same footer link for future installer builds.
+The output directory must not already exist; use an explicit second argument for another candidate, for example `npm run prepare:pages -- origin/gh-pages dist-pages-next`. The preparer exports the whole selected Pages tree, adds/replaces only `bgime/`, inserts one documentation link in the homepage footer, and regenerates the root `SITE_SHA256SUMS`. It requires `.nojekyll`, `CNAME`, the homepage, first-install page, guide and recovery page. After merging, it also resolves documentation links into the installer, including page fragments such as `/guide.html#tf`; a missing page or anchor fails preparation. It checks every pre-existing file outside `bgime/` for byte identity except the deliberate homepage link and root file manifest. `BUILD.json`, JavaScript bundles, firmware, recovery tools, license files, source archives and original URLs are preserved. The documented source homepage also contains the same footer link for future installer builds.
 
 The preservation check result is written beside the output tree as `<output>-preservation.json`, not into public content. Keep it with the delivery evidence. The original Pages parent is recorded there; if the remote changes before publication, prepare again from the new head. For the repository's existing manual publication process, create a new Pages commit with that verified parent and the **combined tree**, then use a normal fast-forward push. Never force-push or reset the source checkout to the Alpha 3 tag. No automatic deployment, Pages setting change or firmware rebuild is part of these commands.
 
@@ -37,6 +37,16 @@ Future full installer releases must preserve this subtree or overlay a fresh doc
 
 ## Validation and public wording
 
-`npm run check` validates all generated local links, anchors, navigation, indexed search targets and pinned source paths. It also compiles the complete C++ sink snippet from the integration page with `-fsyntax-only` against the real headers. C++17, Git and the baseline commit must therefore be available when running this check.
+`npm run check` validates all generated local links, anchors, navigation, indexed search targets and pinned source paths. It parses every C++ fence (including fence metadata) and checks it with `-fsyntax-only` against the Core, Extension and Wubi headers. It checks the shared desktop/mobile TOC data, previous/next order, output labels, mixed title/body search excerpts, scroll-position selection and platform shortcut labels. C++17, Git and the baseline commit must therefore be available when running this check.
+
+Syntax checking does not execute the examples. For runtime checks of the exact API snippets, first configure and build `host_minimal`, `host_composition` and `host_wubi86` in sibling directories under a chosen build parent, using the commands in the public tutorials. Include the Wubi fixture target (or use its default build). Then run:
+
+```sh
+npm run check:flows -- /absolute/path/to/build-parent
+```
+
+`check:flows` extracts the main C++ fence from each API page, uses the original Host owners and fixture files, and links the existing Host build libraries. It writes its harnesses, executables and logs to `build-parent/docs-flows/`. It exercises candidate text, stale choices, mount mismatch, partial composition rejection, preparation before a sink call, and successful/duplicate confirmation. The original Host executables and CTest remain separate runtime checks. The snippets deliberately exclude learning and application-specific recovery for sink refusal or uncertain effects.
+
+The preview serves `.mjs` as JavaScript. Keep `reader-utils.mjs` and `site.js` together when copying assets; both are local modules. Browser checks are still needed for actual scroll geometry, native details, keyboard focus and independently scrolling search results.
 
 Browser checks and actual Host example runs belong in the delivery record, not in the public pages. All three standalone examples disable learning. Alpha 3 product learning uses public state/notification facilities plus product-specific event qualification and scheduling. Keep that distinction when editing these pages; do not advertise the basic examples as complete learning integration.

@@ -8,7 +8,9 @@
 | --- | --- | --- |
 | 已经有完整编码，只需查询并提交一个候选 | Core `CandidateSession` | `host_minimal` |
 | 全拼或小鹤双拼逐键输入，并组合多个词 | Extension `Composition` + `Submission` | `host_composition` |
-| 五笔86逐键输入 | `Wubi86Decoder` + `DirectQueryBinding` + `CandidateSession` | `host_wubi86` |
+| 五笔86逐键输入并直接提交候选 | `Wubi86Decoder` + `DirectQueryBinding` + `CandidateSession` | `host_wubi86` |
+
+五笔还可以使用 `Composition` 的 `DirectExact` 路径。先阅读[两条路径的选型说明](@doc/schemes#五笔的两条接入路径)，再决定是否沿用组合接口。
 
 先复用示例的 CMake 文件，使程序链接实际使用的模块。Core 的目标名为 `HanIME::Core`，Extension 为 `HanIME::Extension`；五笔示例从现有 `wubi.cpp` 建立本地库目标，目前没有独立的 Wubi 安装包。只需要 Core 库时可以这样构建：
 
@@ -22,7 +24,7 @@ cmake -S integration/product/dependencies/core \
 cmake --build build/bgime-core --target hanime_core
 ```
 
-这只生成库，不是一个可直接输入中文的程序。嵌入自己的 CMake 工程时，先设置这些选项，再用 `add_subdirectory()` 引入 Core；需要拼音时接着引入 Extension。参考三个示例的构建文件，不必引入整个 Draftor 产品工程。
+这只生成库，不是一个可直接输入中文的程序。嵌入自己的 CMake 工程时，先设置这些选项，再用 `add_subdirectory()` 引入 Core；需要组合路径时接着引入 Extension。参考三个示例的构建文件，不必引入整个 Draftor 产品工程。
 
 ## 打开资源，再接收输入
 
@@ -36,7 +38,7 @@ Host 示例使用 `HostResourceFile` 和完整的分步校验。`open()` 成功�
 
 ## 把输入事件交给方案模块
 
-宿主先决定事件属于输入法还是应用快捷键，再调用相应模块。全拼和小鹤双拼使用 `Composition::edit_raw(begin, end, replacement)` 修改编码，随后用 `query_next()` 查询当前未选部分。五笔使用绑定层的 `append()`、`backspace()` 和 `cancel()`。
+宿主先决定事件属于输入法还是应用快捷键，再调用相应模块。全拼和小鹤双拼使用 `Composition::edit_raw(begin, end, replacement)` 修改编码，随后用 `query_next()` 查询当前未选部分。五笔直接查询使用绑定层的 `append()`、`backspace()` 和 `cancel()`；组合路径则在宿主校验字母和长度后，也使用 `edit_raw()` 与 `query_next()`。
 
 编码编辑、查询和文字读取是串行操作。收到 `Busy` 时保留用户事件，在当前操作结束或明确取消后再处理；不要在另一个线程中强行改写输入。取消操作使用当次操作的句柄，不使用早先输入留下的句柄。
 
@@ -81,6 +83,18 @@ Core 的 `confirm()` 开始一次候选提交，随后 `tick()` 推进到终态�
 
 收到 `RetryableNoEffect` 时，只能使用接口提供的重试许可或当次事务重试。收到 `UnknownOutcome` 时不要重新插入文字：应用可能已经改动，需要先核对接收端状态。成功后的学习错误也不能通过再次提交正文来恢复。
 
+## 五笔从直接查询转到组合路径
+
+如果已有 `DirectQueryBinding` 接入，先保留原来的资源和接收端，再逐项替换控制流程。两条路径的适用需求见[方案选择](@doc/schemes#五笔的两条接入路径)。
+
+1. **更换输入对象。** 用 Core + Extension 构建 `Composition(index, shared, SchemePolicy{SchemeRules::DirectExact, "wubi86"})` 和 `Submission`。停止由直接绑定层驱动同一份输入；新的操作由 `Composition::tick()` 与 `Submission::advance()` 推进。
+2. **重新连接编辑事件。** 将追加、删除转换为 `edit_raw()` 的字节区间，再调用 `query_next()`。Wubi 解码器可以复用于输入校验，但组合对象自己持有原始编码；必须让校验结果与实际编辑一致。编辑会废弃 DirectExact 的原有已选成员，不能把旧选择直接搬到新编码上。
+3. **更新候选显示和选择。** 将 Core 页与 `SelectionHandle` 改为组合页、`read_text()` 和 `Selection`。界面可继续使用复制后的 UTF-8 字符串，但需要重新绑定当前输入、页面和选择句柄。旧类型的句柄不能转换后复用。
+4. **更新提交与取消。** 选择完成后检查 `AllSelected`，再准备和确认 `Submission` 事务。重新连接准备期间的 `Busy`、取消、重试及 `UnknownOutcome` 处理。原先绑定层发出的自动提交请求不再存在，宿主需单独实现自己的触发和上下文检查。
+5. **单独安排学习。** 使用公开 `select()` 能完成普通输入与提交；Alpha 3 的非首选学习还缺少通用公开资格入口，不能仅设置 `apply_learning` 就完成。存储、状态调度和保存也要按[学习章节](@doc/learning)接入。
+
+配对且仍有效的只读词库文件、平台 `ResourceReader` 和 `TextCommitSink` 实现通常可以复用；重新创建对象时仍要遵守挂载代次和所有者生命周期。旧的会话缓冲区、候选帧和提交句柄不随迁移继承。若已有个人状态，先核对词条命名空间与计数所有者的一致性，不按显示文字转换记录。
+
 ## 宿主需要提供的能力
 
 | 能力 | 最小输入示例 | 接入学习或正式设备时 |
@@ -98,3 +112,5 @@ Core 的 `confirm()` 开始一次候选提交，随后 `tick()` 推进到终态�
 `BoundedUserState` 和 `StateV3` 已提供共享计数与持久化能力。Alpha 3 的产品学习还依赖显式选择非首选候选的事件资格，并不是每次提交都增加次数。当前通用公开接口没有暴露与 Draftor 候选窗口等价的资格签发入口。
 
 先完成上面的基本输入，再按[选词学习](@doc/learning)准备学习接入。除可写的计数源外，还需要解决选词资格入口、共享状态的存储与调度，以及保存失败后的处理。
+
+完成这些连接后，可从[接口导览](@doc/api)查找具体声明与完整调用示例。

@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build, root, output } from './build.mjs';
+import { checkInstallerLinks } from './check-installer-links.mjs';
 
 const repo = path.resolve(root, '../..');
 const git = (...args) => execFileSync('git', args, { cwd: repo, encoding: 'utf8', maxBuffer: 8 * 1024 * 1024 }).trim();
@@ -63,6 +64,7 @@ async function inventory(dir = '') {
 }
 await inventory(); files.sort((a,b) => a.name < b.name ? -1 : 1);
 await writeFile(path.join(target, 'SITE_SHA256SUMS'), files.map(f => `${f.sha256}  ${f.name}\n`).join(''));
-const receipt = { parent, output: target, unchangedInstallerFiles: preserved, allowedInstallerChanges: ['index.html: one docs link', 'SITE_SHA256SUMS: combined inventory'], docsFiles: files.filter(f => f.name.startsWith('bgime/')).length, totalFiles: files.length + 1, result: 'PASS', deployment: false };
+const installerLinks = await checkInstallerLinks(target);
+const receipt = { parent, installerLinks, output: target, unchangedInstallerFiles: preserved, allowedInstallerChanges: ['index.html: one docs link', 'SITE_SHA256SUMS: combined inventory'], docsFiles: files.filter(f => f.name.startsWith('bgime/')).length, totalFiles: files.length + 1, result: 'PASS', deployment: false };
 await writeFile(target + '-preservation.json', JSON.stringify(receipt, null, 2) + '\n');
 console.log(JSON.stringify(receipt, null, 2));

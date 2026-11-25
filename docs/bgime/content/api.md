@@ -13,9 +13,11 @@
 | 接收最终文字 | `TextCommitSink::commit()` | [接入自己的程序](@doc/integration) |
 | 逐键编辑全拼和小鹤双拼 | `Composition`、`SchemeRules` | [拼音与组合输入](@doc/api/composition) |
 | 一次提交多个已选词 | `Submission` | [拼音与组合输入](@doc/api/composition) |
-| 编辑五笔码并驱动查询 | `Wubi86Decoder`、`DirectQueryBinding` | [五笔接口](@doc/api/wubi) |
+| 五笔直接查询 | `Wubi86Decoder`、`DirectQueryBinding` | [五笔接口](@doc/api/wubi) |
 | 读取个人次数、接收学习通知 | `CountSource`、`BoundedUserState` | [选词学习](@doc/learning) |
 | 持久化个人状态 | `StateFilePort`、`StateV3` | [选词学习](@doc/learning) |
+
+五笔如需沿用组合对象，先比较[DirectQueryBinding 与 DirectExact](@doc/schemes#五笔的两条接入路径)，再查对应页面。
 
 ## 公开入口与内部实现
 

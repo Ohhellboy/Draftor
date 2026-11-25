@@ -6,6 +6,7 @@
   "scripts": {
     "build": "node tools/build.mjs",
     "check": "node tools/check.mjs",
+    "check:flows": "node tools/check-flows.mjs",
     "preview": "node tools/serve.mjs",
     "prepare:pages": "node tools/prepare-pages.mjs"
   },

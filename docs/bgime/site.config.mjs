@@ -3,8 +3,8 @@ export const repository = 'https://github.com/Ohhellboy/Draftor';
 export const pages = [
   { slug: '', file: 'index.md', title: '认识 bgIME', group: '开始使用', description: '从候选词到你的程序，了解 bgIME 的用途、模块和适用范围。' },
   { slug: 'quickstart', file: 'quickstart.md', title: '快速开始', group: '开始使用', description: '获取 Alpha 3 源码，编译并运行第一个命令行示例。' },
-  { slug: 'integration', file: 'integration.md', title: '接入自己的程序', group: '开始使用', description: '连接输入事件、候选显示、文本提交与宿主调度。' },
   { slug: 'schemes', file: 'schemes.md', title: '输入方案与示例', group: '开始使用', description: '运行全拼、小鹤双拼和五笔86示例，选择适合的接入入口。' },
+  { slug: 'integration', file: 'integration.md', title: '接入自己的程序', group: '开始使用', description: '连接输入事件、候选显示、文本提交与宿主调度。' },
   { slug: 'api', file: 'api.md', title: '接口导览', group: 'API 参考', description: '按任务查找公开头文件，区分推荐入口、底层接口与产品实现。' },
   { slug: 'api/core', file: 'api-core.md', title: '资源、候选与提交', group: 'API 参考', description: 'Core 的资源打开、分步查询、候选生命周期和提交结果。' },
   { slug: 'api/composition', file: 'api-composition.md', title: '拼音与组合输入', group: 'API 参考', description: 'Composition 与 Submission 的参数、顺序、返回值和数据有效期。' },
