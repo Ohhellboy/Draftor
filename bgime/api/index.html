@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>接口导览 · bgIME 开发者文档</title><meta name="description" content="按任务查找公开头文件，区分推荐入口、底层接口与产品实现。">
+<meta name="theme-color" content="#f7f5ef"><link rel="canonical" href="https://draftor.tcssn.org/bgime/api/">
+<link rel="icon" href="/bgime/assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/bgime/assets/site.css">
+<script type="module" src="/bgime/assets/site.js"></script></head>
+<body><a class="skip-link" href="#main">跳到正文</a>
+<header class="topbar"><a class="brand" href="/bgime/"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 25c-4-5-1-11 5-11h5V7c0-5 8-5 8 0v3h-5v9c0 6-8 10-13 6Z" fill="currentColor"/><path d="m26 7 5 2-5 1Z" fill="#a84732"/><circle cx="23" cy="6" r="1" fill="#fffaf4"/></svg><span>bgIME<small>开发者文档</small></span></a>
+<div class="header-actions"><button class="search-trigger" type="button" aria-haspopup="dialog"><span>搜索文档</span><kbd>⌘ K</kbd></button>
+<a class="header-site" href="/">草稿机安装</a><a class="header-github" href="https://github.com/Ohhellboy/Draftor">GitHub <span aria-hidden="true">↗</span></a>
+<button class="menu-toggle" type="button" aria-expanded="false" aria-controls="sidebar">目录</button></div></header>
+<div class="layout"><aside class="sidebar" id="sidebar"><nav aria-label="文档导航"><p class="nav-group">开始使用</p><a class="nav-link" href="/bgime/">认识 bgIME</a>
+<a class="nav-link" href="/bgime/quickstart/">快速开始</a>
+<a class="nav-link" href="/bgime/integration/">接入自己的程序</a>
+<a class="nav-link" href="/bgime/schemes/">输入方案与示例</a>
+<p class="nav-group">API 参考</p><a class="nav-link active" href="/bgime/api/" aria-current="page">接口导览</a>
+<a class="nav-link" href="/bgime/api/core/">资源、候选与提交</a>
+<a class="nav-link" href="/bgime/api/composition/">拼音与组合输入</a>
+<a class="nav-link" href="/bgime/api/wubi/">五笔接口</a>
+<p class="nav-group">学习与资源</p><a class="nav-link" href="/bgime/learning/">选词学习</a>
+<a class="nav-link" href="/bgime/resources/">词库与配套资源</a>
+<p class="nav-group">项目</p><a class="nav-link" href="/bgime/about/">版本、许可与参与</a></nav>
+<div class="version-note"><span class="status-dot"></span> 适用于 Draftor Alpha 3<br><a href="/bgime/about/">版本与源码依据 <span aria-hidden="true">↗</span></a></div></aside>
+<main id="main" tabindex="-1"><div class="breadcrumb">bgIME / API 参考</div><article class="prose"><h1 id="接口导览">接口导览</h1>
+<p>先按需要完成的任务找到入口，再查看相应的参数与调用顺序。本页按 Alpha 3 的公开头文件和实际示例整理推荐接入路径。</p>
+<p>所有源码链接固定到 <code>f18939f8880e2278c231739d553fbf983c19e0f6</code>。公开类型仍使用 <code>hanime</code>、<code>hanime_extension</code> 和 <code>hanime::wubi</code> 命名空间。</p>
+<h2 id="按任务查找">按任务查找</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="可横向滚动的表格"><table>
+<thead>
+<tr>
+<th>任务</th>
+<th>类型或接口</th>
+<th>参考页</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>打开词库与编码索引</td>
+<td><code>ResourceReader</code>、<code>PagedSharedResource</code>、<code>PagedSchemeIndex</code></td>
+<td><a href="/bgime/api/core/">资源、候选与提交</a></td>
+</tr>
+<tr>
+<td>查询完整编码、翻页和取字</td>
+<td><code>CandidateSession</code></td>
+<td><a href="/bgime/api/core/">资源、候选与提交</a></td>
+</tr>
+<tr>
+<td>接收最终文字</td>
+<td><code>TextCommitSink::commit()</code></td>
+<td><a href="/bgime/integration/">接入自己的程序</a></td>
+</tr>
+<tr>
+<td>逐键编辑全拼和小鹤双拼</td>
+<td><code>Composition</code>、<code>SchemeRules</code></td>
+<td><a href="/bgime/api/composition/">拼音与组合输入</a></td>
+</tr>
+<tr>
+<td>一次提交多个已选词</td>
+<td><code>Submission</code></td>
+<td><a href="/bgime/api/composition/">拼音与组合输入</a></td>
+</tr>
+<tr>
+<td>编辑五笔码并驱动查询</td>
+<td><code>Wubi86Decoder</code>、<code>DirectQueryBinding</code></td>
+<td><a href="/bgime/api/wubi/">五笔接口</a></td>
+</tr>
+<tr>
+<td>读取个人次数、接收学习通知</td>
+<td><code>CountSource</code>、<code>BoundedUserState</code></td>
+<td><a href="/bgime/learning/">选词学习</a></td>
+</tr>
+<tr>
+<td>持久化个人状态</td>
+<td><code>StateFilePort</code>、<code>StateV3</code></td>
+<td><a href="/bgime/learning/">选词学习</a></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="公开入口与内部实现">公开入口与内部实现</h2>
+<p><code>include/hanime/</code> 和 <code>include/hanime_extension/</code> 包含公开声明，但并不代表所有声明都属于同一代接入路径。例如，<code>core.hpp</code> 中仍保留 <code>ImeSession</code>、<code>UserStateStore</code> 等旧式同步接口。本版教程采用三个 Host 示例实际使用的分步资源、候选与组合接口，不混用旧接口的状态和保存约定。</p>
+<p><code>ExactRanker</code>、<code>OutputReader</code>、<code>CompositionCommitter</code> 等较低层的公开类型服务于需要自己组合查询或提交过程的使用方。第一次接入请优先使用会话和组合适配器；不要同时驱动适配器及其持有的内部查询。</p>
+<p><code>integration/product/src/</code> 是 Draftor 产品集成。<code>CandidateWindow</code>、<code>DeviceIme</code>、<code>LearningTrial</code> 和 <code>PersonalIndex</code> 可以帮助理解 Alpha 3，但不是一个通用 SDK 的安装入口。其中 <code>Composition::select_explicit()</code> 是私有函数，由友元 <code>CandidateWindow</code> 调用，不能作为普通宿主的公开 API。这个区别直接影响<a href="/bgime/learning/">学习事件资格</a>。</p>
+<h2 id="共通的调用约定">共通的调用约定</h2>
+<p><strong>串行调用。</strong> 同一个资源或会话由一个调度者推进。显示与提交回调可以把后续事件加入队列，但不能递归 <code>tick()</code>、销毁对象或在回调内重用借用缓冲区。</p>
+<p><strong>所有者先创建、后销毁。</strong> 文件读者、共享资源、方案索引、计数源和接收器应活得比借用它们的会话更久。<code>Submission</code> 要在 <code>Composition</code> 之后创建、之前销毁。</p>
+<p><strong>区分待完成与失败。</strong> <code>Pending</code>、<code>Working</code>、<code>Preparing</code> 意味着还要推进。<code>Ready</code> 在不同类型中分别可能表示资源可用或提交已准备好；提交完成要检查 <code>Accepted</code>，不能只看名字中有 <code>Ready</code>。</p>
+<p><strong>句柄不延长操作权限。</strong> 可以保存一个选择或事务句柄，但新输入、重试、资源更换或排序变化后，它可能过期。<code>Stale</code> 是要求重新核对当前上下文的结果，不是应被忽略的偶发错误。</p>
+<p><strong>字节长度不等于字符数。</strong> 文本与编码边界中的长度、偏移和容量以字节为单位。C++ 的 <code>std::string_view</code> 通常借用别处的内存；只有明确说明复制的接口才可在返回后释放输入数据。</p>
+<h2 id="公开头文件索引">公开头文件索引</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="可横向滚动的表格"><table>
+<thead>
+<tr>
+<th>头文件</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/core.hpp">core.hpp</a></td>
+<td>基础资源、预算、方案索引和文本接收器声明</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/paged_shared_resource.hpp">paged_shared_resource.hpp</a></td>
+<td>共享资源的打开、校验和生命周期</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/candidate_session.hpp">candidate_session.hpp</a></td>
+<td>候选页、选择与单候选提交</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/bounded_output.hpp">bounded_output.hpp</a></td>
+<td>文字准入、输出形式与输出状态</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/extension/include/hanime_extension/extension.hpp">extension.hpp</a></td>
+<td>编码编辑、规划、候选及组合状态</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/extension/include/hanime_extension/submission.hpp">submission.hpp</a></td>
+<td>组合到提交事务的适配</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/wubi/include/hanime_wubi/wubi.hpp">wubi.hpp</a></td>
+<td>五笔解码器与直接查询绑定</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/bounded_user_state.hpp">bounded_user_state.hpp</a></td>
+<td>共享计数、学习记录、后台工作与关闭</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/state_v3.hpp">state_v3.hpp</a></td>
+<td>个人状态文件端口与分步持久化</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/composition_commit.hpp">composition_commit.hpp</a></td>
+<td>组合事务、学习通知与结果观察</td>
+</tr>
+</tbody>
+</table></div>
+<p>使用这一版源码时，按相同的配置重新编译模块和使用方；跨版本的二进制兼容性需要另行确认。Core、Extension 各自的版本号见<a href="/bgime/about/">版本说明</a>。</p>
+</article>
+<nav class="page-turn" aria-label="章节翻页"><a href="/bgime/schemes/"><small>← 上一篇</small>输入方案与示例</a><a class="next" href="/bgime/api/core/"><small>下一篇 →</small>资源、候选与提交</a></nav>
+<footer class="article-footer">本文档适用于 Draftor Alpha 3 中使用的 bgIME。<br><a href="https://github.com/Ohhellboy/Draftor/tree/f18939f8880e2278c231739d553fbf983c19e0f6">查看对应源码</a><span>·</span><a href="https://github.com/Ohhellboy/Draftor/issues">反馈文档问题</a><span>·</span><a href="/guide.html">草稿机操作指南</a></footer></main>
+<aside class="toc"><nav aria-label="本页目录"><p>本页内容</p><a href="#%E6%8C%89%E4%BB%BB%E5%8A%A1%E6%9F%A5%E6%89%BE">按任务查找</a><a href="#%E5%85%AC%E5%BC%80%E5%85%A5%E5%8F%A3%E4%B8%8E%E5%86%85%E9%83%A8%E5%AE%9E%E7%8E%B0">公开入口与内部实现</a><a href="#%E5%85%B1%E9%80%9A%E7%9A%84%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A">共通的调用约定</a><a href="#%E5%85%AC%E5%BC%80%E5%A4%B4%E6%96%87%E4%BB%B6%E7%B4%A2%E5%BC%95">公开头文件索引</a></nav></aside></div>
+<dialog class="search-dialog" aria-labelledby="search-title"><div class="search-top"><label id="search-title" for="search-input">搜索 bgIME 文档</label><button type="button" class="search-close" aria-label="关闭搜索">关闭 <kbd>Esc</kbd></button></div>
+<input id="search-input" type="search" placeholder="输入关键词或接口名，例如：学习、confirm" autocomplete="off" spellcheck="false" aria-controls="search-results">
+<p id="search-status" role="status" aria-live="polite">支持中文与接口名。多个关键词用空格分隔。</p><ol id="search-results"></ol></dialog>
+</body></html>

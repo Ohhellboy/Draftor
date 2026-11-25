@@ -1,0 +1,498 @@
+[
+  {
+    "from": "index.md",
+    "url": "/bgime/learning/"
+  },
+  {
+    "from": "index.md",
+    "url": "/bgime/quickstart/"
+  },
+  {
+    "from": "index.md",
+    "url": "/bgime/schemes/"
+  },
+  {
+    "from": "index.md",
+    "url": "/bgime/api/wubi/"
+  },
+  {
+    "from": "index.md",
+    "url": "https://github.com/Ohhellboy/Draftor"
+  },
+  {
+    "from": "index.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/docs/PERFORMANCE.md"
+  },
+  {
+    "from": "quickstart.md",
+    "url": "https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.3"
+  },
+  {
+    "from": "quickstart.md",
+    "url": "/bgime/learning/"
+  },
+  {
+    "from": "quickstart.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/ime/bgime/examples/host_minimal/main.cpp"
+  },
+  {
+    "from": "quickstart.md",
+    "url": "/bgime/integration/"
+  },
+  {
+    "from": "quickstart.md",
+    "url": "/bgime/schemes/"
+  },
+  {
+    "from": "quickstart.md",
+    "url": "/bgime/resources/"
+  },
+  {
+    "from": "integration.md",
+    "url": "/bgime/api/core/"
+  },
+  {
+    "from": "integration.md",
+    "url": "/bgime/resources/"
+  },
+  {
+    "from": "integration.md",
+    "url": "/bgime/learning/"
+  },
+  {
+    "from": "schemes.md",
+    "url": "/bgime/quickstart/"
+  },
+  {
+    "from": "schemes.md",
+    "url": "/bgime/learning/"
+  },
+  {
+    "from": "schemes.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/ime/bgime/examples/host_composition/main.cpp"
+  },
+  {
+    "from": "schemes.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/ime/bgime/examples/host_composition/CMakeLists.txt"
+  },
+  {
+    "from": "schemes.md",
+    "url": "/bgime/api/composition/"
+  },
+  {
+    "from": "schemes.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/src/wubi_product.cpp"
+  },
+  {
+    "from": "schemes.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/ime/bgime/examples/host_wubi86/main.cpp"
+  },
+  {
+    "from": "schemes.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/ime/bgime/examples/host_wubi86/fixture.cpp"
+  },
+  {
+    "from": "schemes.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/ime/bgime/examples/host_wubi86/CMakeLists.txt"
+  },
+  {
+    "from": "schemes.md",
+    "url": "/bgime/api/wubi/"
+  },
+  {
+    "from": "api.md",
+    "url": "/bgime/api/core/"
+  },
+  {
+    "from": "api.md",
+    "url": "/bgime/api/core/"
+  },
+  {
+    "from": "api.md",
+    "url": "/bgime/integration/"
+  },
+  {
+    "from": "api.md",
+    "url": "/bgime/api/composition/"
+  },
+  {
+    "from": "api.md",
+    "url": "/bgime/api/composition/"
+  },
+  {
+    "from": "api.md",
+    "url": "/bgime/api/wubi/"
+  },
+  {
+    "from": "api.md",
+    "url": "/bgime/learning/"
+  },
+  {
+    "from": "api.md",
+    "url": "/bgime/learning/"
+  },
+  {
+    "from": "api.md",
+    "url": "/bgime/learning/"
+  },
+  {
+    "from": "api.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/core.hpp"
+  },
+  {
+    "from": "api.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/paged_shared_resource.hpp"
+  },
+  {
+    "from": "api.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/candidate_session.hpp"
+  },
+  {
+    "from": "api.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/bounded_output.hpp"
+  },
+  {
+    "from": "api.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/extension/include/hanime_extension/extension.hpp"
+  },
+  {
+    "from": "api.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/extension/include/hanime_extension/submission.hpp"
+  },
+  {
+    "from": "api.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/wubi/include/hanime_wubi/wubi.hpp"
+  },
+  {
+    "from": "api.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/bounded_user_state.hpp"
+  },
+  {
+    "from": "api.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/state_v3.hpp"
+  },
+  {
+    "from": "api.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/composition_commit.hpp"
+  },
+  {
+    "from": "api.md",
+    "url": "/bgime/about/"
+  },
+  {
+    "from": "api-core.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/ime/bgime/examples/host_minimal/main.cpp"
+  },
+  {
+    "from": "api-core.md",
+    "url": "/bgime/api/composition/"
+  },
+  {
+    "from": "api-core.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/host_resource_file.hpp"
+  },
+  {
+    "from": "api-core.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/core.hpp"
+  },
+  {
+    "from": "api-core.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/paged_shared_resource.hpp"
+  },
+  {
+    "from": "api-core.md",
+    "url": "#%E8%B5%84%E6%BA%90%E8%AF%BB%E5%8F%96%E4%B8%8E%E6%89%93%E5%BC%80"
+  },
+  {
+    "from": "api-core.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/candidate_session.hpp"
+  },
+  {
+    "from": "api-core.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/bounded_output.hpp"
+  },
+  {
+    "from": "api-core.md",
+    "url": "/bgime/learning/"
+  },
+  {
+    "from": "api-composition.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/ime/bgime/examples/host_composition/main.cpp"
+  },
+  {
+    "from": "api-composition.md",
+    "url": "/bgime/learning/"
+  },
+  {
+    "from": "api-composition.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/extension/include/hanime_extension/extension.hpp"
+  },
+  {
+    "from": "api-composition.md",
+    "url": "/bgime/learning/"
+  },
+  {
+    "from": "api-composition.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/extension/include/hanime_extension/submission.hpp"
+  },
+  {
+    "from": "api-composition.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/extension/src/submission.cpp"
+  },
+  {
+    "from": "api-composition.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/composition_commit.hpp"
+  },
+  {
+    "from": "api-wubi.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/wubi/include/hanime_wubi/wubi.hpp"
+  },
+  {
+    "from": "api-wubi.md",
+    "url": "/bgime/schemes/"
+  },
+  {
+    "from": "api-wubi.md",
+    "url": "/bgime/api/core/"
+  },
+  {
+    "from": "api-wubi.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/src/wubi_product.cpp"
+  },
+  {
+    "from": "api-wubi.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/src/device_ime.cpp"
+  },
+  {
+    "from": "api-wubi.md",
+    "url": "/bgime/learning/"
+  },
+  {
+    "from": "learning.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/extension/src/composition.cpp"
+  },
+  {
+    "from": "learning.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/src/candidate_window.cpp"
+  },
+  {
+    "from": "learning.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/src/composition_commit.cpp"
+  },
+  {
+    "from": "learning.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/extension/src/submission.cpp"
+  },
+  {
+    "from": "learning.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/host_state_files.hpp"
+  },
+  {
+    "from": "learning.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/src/daily_learning.cpp"
+  },
+  {
+    "from": "learning.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/src/learning_trial.cpp"
+  },
+  {
+    "from": "learning.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/score_policy.hpp"
+  },
+  {
+    "from": "learning.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/scripts/build_s3.py"
+  },
+  {
+    "from": "learning.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/src/r2_storage.hpp"
+  },
+  {
+    "from": "learning.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/platform/device_main.cpp"
+  },
+  {
+    "from": "learning.md",
+    "url": "/bgime/resources/"
+  },
+  {
+    "from": "learning.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/bounded_user_state.hpp"
+  },
+  {
+    "from": "learning.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/state_v3.hpp"
+  },
+  {
+    "from": "learning.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/composition_commit.hpp"
+  },
+  {
+    "from": "learning.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/src/learning_trial.cpp"
+  },
+  {
+    "from": "learning.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/src/device_ime.cpp"
+  },
+  {
+    "from": "resources.md",
+    "url": "https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.3"
+  },
+  {
+    "from": "resources.md",
+    "url": "https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.1/Draftor_v0.1.0-alpha.2.1_Resources.zip"
+  },
+  {
+    "from": "resources.md",
+    "url": "https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.3/Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_LearningIndex.zip"
+  },
+  {
+    "from": "resources.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/release/alpha3/TF_RESOURCES.json"
+  },
+  {
+    "from": "resources.md",
+    "url": "https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.3/SHA256SUMS"
+  },
+  {
+    "from": "resources.md",
+    "url": "/bgime/quickstart/"
+  },
+  {
+    "from": "resources.md",
+    "url": "/bgime/about/"
+  },
+  {
+    "from": "resources.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/verified_resource.hpp"
+  },
+  {
+    "from": "resources.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/src/resource_release.cpp"
+  },
+  {
+    "from": "resources.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/src/tf_resources.cpp"
+  },
+  {
+    "from": "resources.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/tools/generate_learning_index.py"
+  },
+  {
+    "from": "resources.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/docs/RESOURCE_STATUS.md"
+  },
+  {
+    "from": "resources.md",
+    "url": "/bgime/learning/"
+  },
+  {
+    "from": "resources.md",
+    "url": "/"
+  },
+  {
+    "from": "resources.md",
+    "url": "/guide.html"
+  },
+  {
+    "from": "resources.md",
+    "url": "/guide.html#tf"
+  },
+  {
+    "from": "about.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/CMakeLists.txt"
+  },
+  {
+    "from": "about.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/extension/CMakeLists.txt"
+  },
+  {
+    "from": "about.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/composition_commit.hpp"
+  },
+  {
+    "from": "about.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/VERSIONING.md"
+  },
+  {
+    "from": "about.md",
+    "url": "https://github.com/Ohhellboy/Draftor"
+  },
+  {
+    "from": "about.md",
+    "url": "/bgime/quickstart/"
+  },
+  {
+    "from": "about.md",
+    "url": "/bgime/resources/"
+  },
+  {
+    "from": "about.md",
+    "url": "/"
+  },
+  {
+    "from": "about.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/docs/ALPHA3_VALIDATION.md"
+  },
+  {
+    "from": "about.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/docs/PERFORMANCE.md"
+  },
+  {
+    "from": "about.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/docs/RELEASE_NOTES.md"
+  },
+  {
+    "from": "about.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/docs/WAVESHARE_A3_HISTORY.md"
+  },
+  {
+    "from": "about.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/LICENSE"
+  },
+  {
+    "from": "about.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/NOTICE"
+  },
+  {
+    "from": "about.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/docs/RESOURCE_STATUS.md"
+  },
+  {
+    "from": "about.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/THIRD_PARTY.md"
+  },
+  {
+    "from": "about.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/docs/LICENSE_INVENTORY.md"
+  },
+  {
+    "from": "about.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/docs/FONT_DISTRIBUTION.md"
+  },
+  {
+    "from": "about.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/docs/FONT_DISTRIBUTION.md"
+  },
+  {
+    "from": "about.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/docs/RESOURCE_STATUS.md"
+  },
+  {
+    "from": "about.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/docs/LICENSE_INVENTORY.md"
+  },
+  {
+    "from": "about.md",
+    "url": "https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/docs/RESOURCE_FILES.json"
+  },
+  {
+    "from": "about.md",
+    "url": "https://github.com/Ohhellboy/Draftor/issues"
+  },
+  {
+    "from": "about.md",
+    "url": "/bgime/learning/"
+  }
+]

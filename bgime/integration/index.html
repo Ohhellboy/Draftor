@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>接入自己的程序 · bgIME 开发者文档</title><meta name="description" content="连接输入事件、候选显示、文本提交与宿主调度。">
+<meta name="theme-color" content="#f7f5ef"><link rel="canonical" href="https://draftor.tcssn.org/bgime/integration/">
+<link rel="icon" href="/bgime/assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/bgime/assets/site.css">
+<script type="module" src="/bgime/assets/site.js"></script></head>
+<body><a class="skip-link" href="#main">跳到正文</a>
+<header class="topbar"><a class="brand" href="/bgime/"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 25c-4-5-1-11 5-11h5V7c0-5 8-5 8 0v3h-5v9c0 6-8 10-13 6Z" fill="currentColor"/><path d="m26 7 5 2-5 1Z" fill="#a84732"/><circle cx="23" cy="6" r="1" fill="#fffaf4"/></svg><span>bgIME<small>开发者文档</small></span></a>
+<div class="header-actions"><button class="search-trigger" type="button" aria-haspopup="dialog"><span>搜索文档</span><kbd>⌘ K</kbd></button>
+<a class="header-site" href="/">草稿机安装</a><a class="header-github" href="https://github.com/Ohhellboy/Draftor">GitHub <span aria-hidden="true">↗</span></a>
+<button class="menu-toggle" type="button" aria-expanded="false" aria-controls="sidebar">目录</button></div></header>
+<div class="layout"><aside class="sidebar" id="sidebar"><nav aria-label="文档导航"><p class="nav-group">开始使用</p><a class="nav-link" href="/bgime/">认识 bgIME</a>
+<a class="nav-link" href="/bgime/quickstart/">快速开始</a>
+<a class="nav-link active" href="/bgime/integration/" aria-current="page">接入自己的程序</a>
+<a class="nav-link" href="/bgime/schemes/">输入方案与示例</a>
+<p class="nav-group">API 参考</p><a class="nav-link" href="/bgime/api/">接口导览</a>
+<a class="nav-link" href="/bgime/api/core/">资源、候选与提交</a>
+<a class="nav-link" href="/bgime/api/composition/">拼音与组合输入</a>
+<a class="nav-link" href="/bgime/api/wubi/">五笔接口</a>
+<p class="nav-group">学习与资源</p><a class="nav-link" href="/bgime/learning/">选词学习</a>
+<a class="nav-link" href="/bgime/resources/">词库与配套资源</a>
+<p class="nav-group">项目</p><a class="nav-link" href="/bgime/about/">版本、许可与参与</a></nav>
+<div class="version-note"><span class="status-dot"></span> 适用于 Draftor Alpha 3<br><a href="/bgime/about/">版本与源码依据 <span aria-hidden="true">↗</span></a></div></aside>
+<main id="main" tabindex="-1"><div class="breadcrumb">bgIME / 开始使用</div><article class="prose"><h1 id="接入自己的程序">接入自己的程序</h1>
+<p>接入的目标是让用户输入编码、看到候选，再把选中的文字写入你的应用。先以一个已经跑通的 Host 示例为起点，逐项替换输入、显示、文本接收和存储部分，能更容易分清问题发生在哪一层。</p>
+<h2 id="先选接入入口">先选接入入口</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="可横向滚动的表格"><table>
+<thead>
+<tr>
+<th>你要完成的事</th>
+<th>推荐入口</th>
+<th>可运行的参照</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>已经有完整编码，只需查询并提交一个候选</td>
+<td>Core <code>CandidateSession</code></td>
+<td><code>host_minimal</code></td>
+</tr>
+<tr>
+<td>全拼或小鹤双拼逐键输入，并组合多个词</td>
+<td>Extension <code>Composition</code> + <code>Submission</code></td>
+<td><code>host_composition</code></td>
+</tr>
+<tr>
+<td>五笔86逐键输入</td>
+<td><code>Wubi86Decoder</code> + <code>DirectQueryBinding</code> + <code>CandidateSession</code></td>
+<td><code>host_wubi86</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>先复用示例的 CMake 文件，使程序链接实际使用的模块。Core 的目标名为 <code>HanIME::Core</code>，Extension 为 <code>HanIME::Extension</code>；五笔示例从现有 <code>wubi.cpp</code> 建立本地库目标，目前没有独立的 Wubi 安装包。只需要 Core 库时可以这样构建：</p>
+<pre><code class="language-bash">cmake -S integration/product/dependencies/core \
+  -B build/bgime-core \
+  -DHANIME_BUILD_HOST_ADAPTERS=OFF \
+  -DHANIME_BUILD_TOOLS=OFF \
+  -DHANIME_BUILD_FIXTURES=OFF \
+  -DHANIME_BUILD_TESTS=OFF
+cmake --build build/bgime-core --target hanime_core
+</code></pre>
+<p>这只生成库，不是一个可直接输入中文的程序。嵌入自己的 CMake 工程时，先设置这些选项，再用 <code>add_subdirectory()</code> 引入 Core；需要拼音时接着引入 Extension。参考三个示例的构建文件，不必引入整个 Draftor 产品工程。</p>
+<h2 id="打开资源-再接收输入">打开资源，再接收输入</h2>
+<p>共享词库保存词条身份和文字，方案索引把编码映射到词条。初始化时先打开共享资源，再用它的资源包身份打开方案索引。<strong>命名空间</strong>用来区分不同词条身份体系，<strong>资源包 ID</strong>用来约束共享词库与方案索引的配对；这两个值都不能靠文件名猜测。</p>
+<p>Host 示例使用 <code>HostResourceFile</code> 和完整的分步校验。<code>open()</code> 成功只表示初步打开成功，随后仍要执行 <code>advance_validation()</code> 到 <code>Ready</code>。构建 <code>CandidateSession</code> 后，还需运行 <code>begin_text_access()</code> 和 <code>advance_text_access()</code>，确认文字容量满足要求。参数和错误处理见<a href="/bgime/api/core/">资源接口</a>。</p>
+<p>自己的设备需要实现 <code>ResourceReader</code>，提供大小、按偏移读取及有效性检查。底层存储更换或卸载后，应让旧读者失效，并废弃依赖它的会话与候选；缓存读取也需要遵守这一有效性检查。</p>
+<blockquote>
+<p>正式资源使用已固定身份的读取与校验路径。调用 <code>open_verified()</code> 前，需要准备可信的发行描述和验证读者。请参考<a href="/bgime/resources/">资源章节</a>和产品资源加载代码。</p>
+</blockquote>
+<h2 id="把输入事件交给方案模块">把输入事件交给方案模块</h2>
+<p>宿主先决定事件属于输入法还是应用快捷键，再调用相应模块。全拼和小鹤双拼使用 <code>Composition::edit_raw(begin, end, replacement)</code> 修改编码，随后用 <code>query_next()</code> 查询当前未选部分。五笔使用绑定层的 <code>append()</code>、<code>backspace()</code> 和 <code>cancel()</code>。</p>
+<p>编码编辑、查询和文字读取是串行操作。收到 <code>Busy</code> 时保留用户事件，在当前操作结束或明确取消后再处理；不要在另一个线程中强行改写输入。取消操作使用当次操作的句柄，不使用早先输入留下的句柄。</p>
+<p>你的键盘布局、候选快捷键和取消策略由应用决定。接入触摸屏也可以沿用同样的查询与选择接口，并不要求模拟草稿机的按键。</p>
+<h2 id="分步查询与显示候选">分步查询与显示候选</h2>
+<p>引擎把可能较长的工作拆成小步。应用在事件循环中调用 <code>tick()</code> 或 <code>advance()</code>，并用 <code>WorkBudget</code> 限制这一步的读取次数、读取字节和逻辑工作量。出现 <code>Pending</code> 或 <code>Working</code> 时安排下一步；出现终止状态时按接口处理，不要无限重试。</p>
+<p>这些步骤由宿主主动调用，<code>WorkBudget</code> 限制的是工作量。一次存储调用或文字接收回调仍可能耗时。嵌入式程序应在各步之间处理输入与显示，并测量目标存储的实际延迟。示例中的循环会一直运行到完成；接入设备时，需要将这些调用安排到自己的事件调度器中。</p>
+<p>Core 候选会话先生成暂存页，<code>publish()</code> 后成为当前可用页。文字可以按需通过 <code>request_text()</code> 请求；在 <code>present()</code> 的同步回调内复制文字和当前选择句柄，然后再交给界面。Extension 则使用 <code>page()</code>、<code>selection()</code>、<code>read_text()</code> 和 <code>last_text()</code>。</p>
+<p><strong>不要在回调结束后持有借用的字符地址。</strong> 页面序号只是当前页面中的位置；用户按下选择键时，应检查显示内容仍对应当前输入和排序。若接口返回 <code>Stale</code>，刷新候选并让用户重新选择，不能凭相同文字自动替换成另一词条身份。</p>
+<h2 id="把文字交给应用">把文字交给应用</h2>
+<p>实现 <code>TextCommitSink::commit(std::string_view)</code>，在回调返回前接收完整的 UTF-8 文本。下面是一个容量固定的内存接收器，适合先观察调用关系：</p>
+<pre><code class="language-cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;hanime/core.hpp&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;array&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;cstring&gt;</span></span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">TextBuffer</span> <span class="hljs-keyword">final</span> : <span class="hljs-keyword">public</span> hanime::TextCommitSink {
+ <span class="hljs-keyword">public</span>:
+  std::array&lt;<span class="hljs-type">char</span>, 1024&gt; bytes{};
+  std::<span class="hljs-type">size_t</span> used = <span class="hljs-number">0</span>;
+
+  <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">commit</span><span class="hljs-params">(std::string_view text)</span> <span class="hljs-keyword">override</span> </span>{
+    <span class="hljs-keyword">if</span> (text.<span class="hljs-built_in">size</span>() &gt; bytes.<span class="hljs-built_in">size</span>() - used) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+    <span class="hljs-keyword">if</span> (!text.<span class="hljs-built_in">empty</span>()) std::<span class="hljs-built_in">memcpy</span>(bytes.<span class="hljs-built_in">data</span>() + used, text.<span class="hljs-built_in">data</span>(), text.<span class="hljs-built_in">size</span>());
+    used += text.<span class="hljs-built_in">size</span>();
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+  }
+};
+</code></pre>
+<p>它不追加字符串终止符，读取时用 <code>used</code> 确定字节长度。换成编辑器时，请让一次提交要么完整接收，要么完全不改变文档：<code>true</code> 表示已接收；<code>false</code> 必须表示没有产生任何效果。不要写入半段后返回 <code>false</code>。</p>
+<p>Core 的 <code>confirm()</code> 开始一次候选提交，随后 <code>tick()</code> 推进到终态。Extension 则在所有编码都已选择后执行 <code>Submission::prepare()</code> → <code>advance()</code> → <code>confirm()</code>，一次交付整个组合的文字。<code>Accepted</code> 表示应用接收成功，不表示文稿已写入磁盘，也不表示个人学习已保存。</p>
+<p>收到 <code>RetryableNoEffect</code> 时，只能使用接口提供的重试许可或当次事务重试。收到 <code>UnknownOutcome</code> 时不要重新插入文字：应用可能已经改动，需要先核对接收端状态。成功后的学习错误也不能通过再次提交正文来恢复。</p>
+<h2 id="宿主需要提供的能力">宿主需要提供的能力</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="可横向滚动的表格"><table>
+<thead>
+<tr>
+<th>能力</th>
+<th>最小输入示例</th>
+<th>接入学习或正式设备时</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>只读资源存储</td>
+<td>POSIX 文件读者，完整校验小型资源</td>
+<td>按偏移读取、有效性检查、匹配的正式资源与验证数据</td>
+</tr>
+<tr>
+<td>调度</td>
+<td>有上限的循环推进</td>
+<td>串行事件循环、取消和过期处理、前台与后台工作机会</td>
+</tr>
+<tr>
+<td>显示</td>
+<td>终端输出复制后的文字</td>
+<td>UTF-8 绘制、候选与当前页面绑定、足够的文字缓冲区</td>
+</tr>
+<tr>
+<td>文本接收</td>
+<td>内存字符串或固定缓冲区</td>
+<td>一次完整接收的语义、编辑目标检查、错误与不确定结果处理</td>
+</tr>
+<tr>
+<td>个人状态</td>
+<td>示例禁用学习</td>
+<td>可写的 <code>StateFilePort</code>、同一记录所有者、后台写入与明确关闭保存</td>
+</tr>
+</tbody>
+</table></div>
+<p>资源读者、共享资源、计数源和文本接收器的生命周期必须长于使用它们的会话。组合提交适配器先于 <code>Composition</code> 销毁；不要从显示或提交回调递归调用引擎。</p>
+<h2 id="接入学习前还要确认什么">接入学习前还要确认什么</h2>
+<p><code>BoundedUserState</code> 和 <code>StateV3</code> 已提供共享计数与持久化能力。Alpha 3 的产品学习还依赖显式选择非首选候选的事件资格，并不是每次提交都增加次数。当前通用公开接口没有暴露与 Draftor 候选窗口等价的资格签发入口。</p>
+<p>先完成上面的基本输入，再按<a href="/bgime/learning/">选词学习</a>准备学习接入。除可写的计数源外，还需要解决选词资格入口、共享状态的存储与调度，以及保存失败后的处理。</p>
+</article>
+<nav class="page-turn" aria-label="章节翻页"><a href="/bgime/quickstart/"><small>← 上一篇</small>快速开始</a><a class="next" href="/bgime/schemes/"><small>下一篇 →</small>输入方案与示例</a></nav>
+<footer class="article-footer">本文档适用于 Draftor Alpha 3 中使用的 bgIME。<br><a href="https://github.com/Ohhellboy/Draftor/tree/f18939f8880e2278c231739d553fbf983c19e0f6">查看对应源码</a><span>·</span><a href="https://github.com/Ohhellboy/Draftor/issues">反馈文档问题</a><span>·</span><a href="/guide.html">草稿机操作指南</a></footer></main>
+<aside class="toc"><nav aria-label="本页目录"><p>本页内容</p><a href="#%E5%85%88%E9%80%89%E6%8E%A5%E5%85%A5%E5%85%A5%E5%8F%A3">先选接入入口</a><a href="#%E6%89%93%E5%BC%80%E8%B5%84%E6%BA%90-%E5%86%8D%E6%8E%A5%E6%94%B6%E8%BE%93%E5%85%A5">打开资源，再接收输入</a><a href="#%E6%8A%8A%E8%BE%93%E5%85%A5%E4%BA%8B%E4%BB%B6%E4%BA%A4%E7%BB%99%E6%96%B9%E6%A1%88%E6%A8%A1%E5%9D%97">把输入事件交给方案模块</a><a href="#%E5%88%86%E6%AD%A5%E6%9F%A5%E8%AF%A2%E4%B8%8E%E6%98%BE%E7%A4%BA%E5%80%99%E9%80%89">分步查询与显示候选</a><a href="#%E6%8A%8A%E6%96%87%E5%AD%97%E4%BA%A4%E7%BB%99%E5%BA%94%E7%94%A8">把文字交给应用</a><a href="#%E5%AE%BF%E4%B8%BB%E9%9C%80%E8%A6%81%E6%8F%90%E4%BE%9B%E7%9A%84%E8%83%BD%E5%8A%9B">宿主需要提供的能力</a><a href="#%E6%8E%A5%E5%85%A5%E5%AD%A6%E4%B9%A0%E5%89%8D%E8%BF%98%E8%A6%81%E7%A1%AE%E8%AE%A4%E4%BB%80%E4%B9%88">接入学习前还要确认什么</a></nav></aside></div>
+<dialog class="search-dialog" aria-labelledby="search-title"><div class="search-top"><label id="search-title" for="search-input">搜索 bgIME 文档</label><button type="button" class="search-close" aria-label="关闭搜索">关闭 <kbd>Esc</kbd></button></div>
+<input id="search-input" type="search" placeholder="输入关键词或接口名，例如：学习、confirm" autocomplete="off" spellcheck="false" aria-controls="search-results">
+<p id="search-status" role="status" aria-live="polite">支持中文与接口名。多个关键词用空格分隔。</p><ol id="search-results"></ol></dialog>
+</body></html>

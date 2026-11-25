@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>选词学习 · bgIME 开发者文档</title><meta name="description" content="理解 Alpha 3 的共享记录、选词事件、排序和保存，以及独立接入的边界。">
+<meta name="theme-color" content="#f7f5ef"><link rel="canonical" href="https://draftor.tcssn.org/bgime/learning/">
+<link rel="icon" href="/bgime/assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/bgime/assets/site.css">
+<script type="module" src="/bgime/assets/site.js"></script></head>
+<body><a class="skip-link" href="#main">跳到正文</a>
+<header class="topbar"><a class="brand" href="/bgime/"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 25c-4-5-1-11 5-11h5V7c0-5 8-5 8 0v3h-5v9c0 6-8 10-13 6Z" fill="currentColor"/><path d="m26 7 5 2-5 1Z" fill="#a84732"/><circle cx="23" cy="6" r="1" fill="#fffaf4"/></svg><span>bgIME<small>开发者文档</small></span></a>
+<div class="header-actions"><button class="search-trigger" type="button" aria-haspopup="dialog"><span>搜索文档</span><kbd>⌘ K</kbd></button>
+<a class="header-site" href="/">草稿机安装</a><a class="header-github" href="https://github.com/Ohhellboy/Draftor">GitHub <span aria-hidden="true">↗</span></a>
+<button class="menu-toggle" type="button" aria-expanded="false" aria-controls="sidebar">目录</button></div></header>
+<div class="layout"><aside class="sidebar" id="sidebar"><nav aria-label="文档导航"><p class="nav-group">开始使用</p><a class="nav-link" href="/bgime/">认识 bgIME</a>
+<a class="nav-link" href="/bgime/quickstart/">快速开始</a>
+<a class="nav-link" href="/bgime/integration/">接入自己的程序</a>
+<a class="nav-link" href="/bgime/schemes/">输入方案与示例</a>
+<p class="nav-group">API 参考</p><a class="nav-link" href="/bgime/api/">接口导览</a>
+<a class="nav-link" href="/bgime/api/core/">资源、候选与提交</a>
+<a class="nav-link" href="/bgime/api/composition/">拼音与组合输入</a>
+<a class="nav-link" href="/bgime/api/wubi/">五笔接口</a>
+<p class="nav-group">学习与资源</p><a class="nav-link active" href="/bgime/learning/" aria-current="page">选词学习</a>
+<a class="nav-link" href="/bgime/resources/">词库与配套资源</a>
+<p class="nav-group">项目</p><a class="nav-link" href="/bgime/about/">版本、许可与参与</a></nav>
+<div class="version-note"><span class="status-dot"></span> 适用于 Draftor Alpha 3<br><a href="/bgime/about/">版本与源码依据 <span aria-hidden="true">↗</span></a></div></aside>
+<main id="main" tabindex="-1"><div class="breadcrumb">bgIME / 学习与资源</div><article class="prose"><h1 id="选词学习">选词学习</h1>
+<p><strong>Draftor Alpha 3 已实际使用共享选词学习。</strong> 引擎记录符合条件的选词次数，并在之后的查询中用它调整候选排序。全拼、小鹤双拼和五笔86共用同一份个人记录。</p>
+<h2 id="什么选择会被记录">什么选择会被记录</h2>
+<p>用户明确选择<strong>当前候选序列中并非首选的词</strong>，并且应用成功接收正文后，这次选择才可能计入个人记录。这里的首选是全局排序中的第一个候选，不是每一页的第一个位置。选择首选项或由程序自动选择首选项，都不产生这项学习资格。</p>
+<p>一次输入可以先选中多个词，再将它们作为一个组合提交。提交时只记录最终仍保留、学习资格有效的成员；同一选词动作与同一词条只计一次，不同的选词动作分别处理。查找与重命名目标不记录正文学习。</p>
+<h2 id="记录怎样跨方案使用">记录怎样跨方案使用</h2>
+<p>个人次数跟随词条身份。使用匹配的资源时，同一个词通过全拼、小鹤双拼或五笔86命中，都可以使用已有次数参与排序。切换输入方案不需要再为这个词建立一份记录。</p>
+<p>文字相同但身份不同的两个词条分别计数。更换资源时，需要核对词条身份体系是否兼容；按屏幕文字匹配旧记录会混淆这些词条。三种方案各自的编码和候选集合仍然不同，因此共享次数后的候选顺序也可能不同。</p>
+<h2 id="在自己的程序中接入学习">在自己的程序中接入学习</h2>
+<p>引擎已有真实次数读取、提交后的学习通知、分步持久化和保存状态观察接口。Draftor 在此基础上接入了候选选择事件、个人索引、文件读写和前后台调度。其他宿主需要安排以下工作：</p>
+<ol>
+<li><strong>确认有效的选词事件。</strong> 将用户操作与当时显示的候选、输入修订及排序关联，再确定是否为明确选择非首选项。</li>
+<li><strong>提供共享的个人存储。</strong> 为三种方案使用同一个计数所有者，提供两个可写的个人状态文件，并配对正式资源与通用学习索引。</li>
+<li><strong>持续推进和保存。</strong> 在事件循环中安排记录与后台写入；退出前显式关闭，处理存储不可用、容量不足和保存失败。</li>
+</ol>
+<p>当前公开的 <code>Composition::select()</code> 不签发 Alpha 3 所需的选择资格。签发入口 <code>select_explicit()</code> 是私有函数，只向 Draftor 的候选窗口友元开放。因此，其他宿主接入同样的学习规则前，还需要约定并提供可公开的资格入口及调用责任。</p>
+<p><strong>目前尚无完整独立学习示例。</strong> 三个 Host 示例展示基本输入、候选和提交，均关闭了学习。后续独立示例需要使用匹配的构建配置，覆盖显式非首选、自动首选不记录、跨方案共享、重复确认不重复计数、关闭重开和保存失败处理。省略 Alpha 3 的资格检查构建开关会改变记录筛选行为。</p>
+<h2 id="选词资格与输入修改">选词资格与输入修改</h2>
+<p>Draftor 的 <code>CandidateWindow</code> 在检查显示帧、输入修订、候选身份和当前排序后，调用 <code>Composition::select_explicit()</code>，并传入候选的全局位置。位置大于零时，选中的成员会携带 <code>SelectionLearningProof</code>，用于标识这次有资格参与学习的选择。</p>
+<p>编辑输入、重新绑定资源和重新验证成员，对资格的影响不同：</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="可横向滚动的表格"><table>
+<thead>
+<tr>
+<th>操作</th>
+<th>对成员与学习资格的影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>edit_raw()</code></td>
+<td>与编辑区间重叠的成员被移除；位于编辑结束位置及其后的成员调整范围、标为待验证，并清除资格。不受影响的前缀成员保留原有资格。<code>DirectExact</code> 路径在编辑时不保留原有成员，包括在编码末尾追加的情况</td>
+</tr>
+<tr>
+<td><code>rebind()</code></td>
+<td>成功重新绑定资源后，将所有保留成员标为待验证，并清除它们原有的资格</td>
+</tr>
+<tr>
+<td><code>revalidate()</code></td>
+<td>重新检查成员的编码映射、词条身份和输出，保留成员携带的选择凭据。本身不清空资格，也不会创建或重新签发用户选择资格；已被编辑或 <code>rebind()</code> 清除的资格不会因此恢复</td>
+</tr>
+</tbody>
+</table></div>
+<p>在空闲状态下，<code>edit_raw(begin, begin, {})</code> 是空操作，直接返回 <code>Ready</code>，不会修改成员。</p>
+<p>最终是否记录，还取决于提交时成员与选择凭据是否匹配。学习通知在正文被接收器接受后发出。相关实现见 <a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/extension/src/composition.cpp">composition.cpp</a>、<a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/src/candidate_window.cpp">产品候选选择</a>、<a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/src/composition_commit.cpp">组合成员筛选与提交</a>和<a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/extension/src/submission.cpp">输入目标决定</a>。</p>
+<h2 id="个人记录绑定词条身份">个人记录绑定词条身份</h2>
+<p>接口以 <code>RegistryNamespaceId</code> 和完整的 <code>StableLexemeKey</code> 关联个人记录。前者标识词条身份体系的命名空间；后者是<strong>稳定词条键</strong>，用于在这个体系中识别同一个词。<code>RuntimeLexemeRef</code> 只是当前资源中的运行期位置，不能当作跨资源版本保存的个人身份。</p>
+<p>更换命名空间或不兼容的资源后，宿主需要处理状态不兼容并保留原有记录。需要迁移时，先确定词条身份的对应关系。</p>
+<p><code>BoundedUserState</code> 是当前计数的统一所有者，同时提供排序读取和提交后的学习通知。<code>StateV3</code> 在文件端口之上维护持久状态。派生的个人索引用于快速定位受影响的词条和方案行，计数仍来自同一份个人状态。</p>
+<h2 id="打开与调度个人状态">打开与调度个人状态</h2>
+<p>先由宿主准备两个独立、可写的个人状态文件路径，再实现 <code>StateFilePort</code>；在 POSIX Host 上可参考 <a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/host_state_files.hpp">HostStateFiles</a>。个人状态应存放在只读词库包之外，与词库的 <code>shared.hns</code> 分开管理。随后按以下顺序打开并推进状态：</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="可横向滚动的表格"><table>
+<thead>
+<tr>
+<th>顺序或接口</th>
+<th>参数、返回值与责任</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>StateV3(port, config)</code></td>
+<td><code>port</code> 必须比状态对象更长寿；<code>config</code> 固定命名空间、状态 lineage、单次 I/O 和文件容量等。lineage 是状态存储谱系标识，应由宿主固定维护</td>
+</tr>
+<tr>
+<td><code>begin_open(create_if_both_missing)</code></td>
+<td>默认不创建；显式允许后，也只有两个文件都不存在时才创建新存储。损坏或不兼容时保留现有文件并处理错误</td>
+</tr>
+<tr>
+<td><code>advance_open(state_budget)</code></td>
+<td>推进到 <code>StateStatus::Ready</code> 后才能建立可用计数源；每步返回状态、I/O 成本与是否需要更多预算</td>
+</tr>
+<tr>
+<td><code>BoundedUserState(state, namespace, config)</code></td>
+<td>为同一份状态创建一个计数和学习所有者，检查 <code>valid()</code>。后端必须比它更长寿，它又必须比会话更长寿</td>
+</tr>
+<tr>
+<td><code>begin_count(view, key)</code> → <code>advance_count(ticket, budget)</code></td>
+<td>取得当前视图后读取完整稳定键的真实次数。返回 <code>Found</code>、<code>NotFound</code>、<code>Pending</code>、<code>Unavailable</code> 或 <code>Stale</code></td>
+</tr>
+<tr>
+<td><code>advance_state(state_budget)</code></td>
+<td>推进已接受学习意图、脏记录写入和维护。应用需要持续提供调度机会</td>
+</tr>
+<tr>
+<td><code>foreground_advanced()</code>、<code>background_due()</code></td>
+<td>在前台步骤间记录推进情况，判断应给后台的工作机会。保存耗时仍需在目标存储上测量</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>StateFilePort</code> 提供按文件编号进行的 <code>open</code>、<code>size</code>、<code>read</code>、<code>write</code>、<code>sync</code>、<code>truncate</code> 和 <code>close</code>。读写结果要报告实际字节数，包括短读或短写；单次调用的重试次数需要有上限，以便宿主继续调度其他工作。<code>current()</code> 用于不做 I/O 的生命周期检查，TF 卡被移走时应让缓存访问也能发现失效。</p>
+<p><code>NotFound</code> 表示真实存储中没有该键，不能用于表示缓存未命中或存储离线；后两者需要等待或报告不可用。调用方应根据状态决定继续个人排序、刷新排序或明确转为基础模式。</p>
+<h2 id="记录结果与保存时机">记录结果与保存时机</h2>
+<p>接受正文与保存个人记录是两个不同结果。Core 在接受后通过 <code>CommitCountSource::notify_committed()</code> 或 <code>CompositionCountSource::notify_composition()</code> 通知同一个计数所有者；不要再手工补发一次通知或重放正文。组合的 <code>learning_ticket()</code> 可读取汇总和每个成员的结果；单候选事务可用 <code>observe_learning()</code> 观察对应凭据。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="可横向滚动的表格"><table>
+<thead>
+<tr>
+<th>学习或状态结果</th>
+<th>对应用的含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Pending</code></td>
+<td>已有待处理意图，继续安排状态工作</td>
+</tr>
+<tr>
+<td><code>RecordedDirty</code></td>
+<td>已计入当前个人状态，但尚未确认持久保存</td>
+</tr>
+<tr>
+<td><code>Persisted</code>、成员的 <code>persisted</code></td>
+<td>对应记录已得到存储确认；正文保存仍由应用负责</td>
+</tr>
+<tr>
+<td><code>PausedUnavailable</code>、<code>PausedCapacity</code> 等</td>
+<td>此次记录因不可用或容量等原因暂停；显示实际状态，不能再次插入已经接受的正文</td>
+</tr>
+<tr>
+<td><code>ClosedSaved</code></td>
+<td>显式关闭已完成，可作为个人状态保存完成的依据</td>
+</tr>
+<tr>
+<td><code>CloseUnsaved</code>、<code>Corrupt</code>、<code>TailUncertain</code>、<code>Incompatible</code></td>
+<td>保存未完成、存储损坏或状态不兼容；保留文件，报告具体结果，避免自动覆写状态</td>
+</tr>
+</tbody>
+</table></div>
+<p>应用准备退出或允许断电时，先停止产生新的学习事件，处理活动提交，调用 <code>BoundedUserState::begin_close()</code>，然后按预算推进 <code>advance_close()</code> 直到 <code>ClosedSaved</code>。保存应通过这条显式关闭流程完成；仅销毁对象不足以确认已持久化。打开、写入与关闭过程中出现的失败，需要结合实际存储处理。</p>
+<p>Draftor 把这套生命周期与正文保存合并安排：学习开启时，完成当前输入后按 <code>Ctrl+F6</code> 请求保存正文和学习并暂停学习；只有正文、个人状态及相关后台工作均达到它要求的条件，才显示可以断电的提示。这是草稿机的界面选择，你的程序可使用菜单、按钮或其他退出流程。对应代码为 <a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/src/daily_learning.cpp">daily_learning.cpp</a>。</p>
+<h2 id="次数怎样影响排序">次数怎样影响排序</h2>
+<p>引擎支持基础排序与结合真实个人次数的排序。Alpha 3 产品选择 <code>score_policy.hpp</code> 中 <code>ARev1PolicyRevision</code> 所指的规则：先变换词条的基础权重，再增加有上限的个人次数奖励，并保留原始权重用于细化顺序。</p>
+<p>在这条规则下，次数 <code>0</code> 和 <code>1</code> 没有个人奖励；从 <code>2</code> 起随次数增加奖励，到 <code>49</code> 及以上时奖励不再增长。<code>49</code> 是奖励封顶的起点，个人次数仍可继续累积。词条仍需匹配当前编码和输出条件。</p>
+<p>Core 中还保留较早的权重规则。接入 Alpha 3 学习时，应按产品配置设置 <code>RankRule</code>，使用上述规则。实际配置见 <a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/src/learning_trial.cpp">LearningTrial::configure</a>、<a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/score_policy.hpp">排序规则</a>和<a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/scripts/build_s3.py">Alpha 3 构建配置</a>。</p>
+<h2 id="正式资源与个人文件">正式资源与个人文件</h2>
+<p>Alpha 3 的 format4 共享词库与方案索引来自既有资源包，另配 format 301 的 <code>relations.bgr</code> 和验证页 <code>relations.hnv</code>。它们记录通用词条与方案行的位置关系，独立于个人数据，也不会包含某个用户的选词习惯。</p>
+<p>产品将真实个人记录保存在两个状态文件 <code>a.hns</code>、<code>b.hns</code> 中，还使用 <code>a.hns.relations</code> 等派生个人索引文件。准确路径由 <a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/src/r2_storage.hpp">r2_storage.hpp</a>和<a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/platform/device_main.cpp">平台初始化</a>结合构建配置确定。独立宿主应为这些文件配置自己的固定路径。</p>
+<p>派生索引依赖真实个人记录及匹配的通用资源。升级资源、卡片不可用或状态损坏时，需要执行相应的有效性与恢复检查。恢复派生索引时保留个人状态文件，避免丢失选词记录。资源下载和身份核对见<a href="/bgime/resources/">词库与配套资源</a>。</p>
+<p>参考：<a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/bounded_user_state.hpp">BoundedUserState</a> · <a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/state_v3.hpp">StateV3</a> · <a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/composition_commit.hpp">学习凭据</a> · <a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/src/learning_trial.cpp">产品调度</a> · <a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/src/device_ime.cpp">产品输入与提交</a>。</p>
+</article>
+<nav class="page-turn" aria-label="章节翻页"><a href="/bgime/api/wubi/"><small>← 上一篇</small>五笔接口</a><a class="next" href="/bgime/resources/"><small>下一篇 →</small>词库与配套资源</a></nav>
+<footer class="article-footer">本文档适用于 Draftor Alpha 3 中使用的 bgIME。<br><a href="https://github.com/Ohhellboy/Draftor/tree/f18939f8880e2278c231739d553fbf983c19e0f6">查看对应源码</a><span>·</span><a href="https://github.com/Ohhellboy/Draftor/issues">反馈文档问题</a><span>·</span><a href="/guide.html">草稿机操作指南</a></footer></main>
+<aside class="toc"><nav aria-label="本页目录"><p>本页内容</p><a href="#%E4%BB%80%E4%B9%88%E9%80%89%E6%8B%A9%E4%BC%9A%E8%A2%AB%E8%AE%B0%E5%BD%95">什么选择会被记录</a><a href="#%E8%AE%B0%E5%BD%95%E6%80%8E%E6%A0%B7%E8%B7%A8%E6%96%B9%E6%A1%88%E4%BD%BF%E7%94%A8">记录怎样跨方案使用</a><a href="#%E5%9C%A8%E8%87%AA%E5%B7%B1%E7%9A%84%E7%A8%8B%E5%BA%8F%E4%B8%AD%E6%8E%A5%E5%85%A5%E5%AD%A6%E4%B9%A0">在自己的程序中接入学习</a><a href="#%E9%80%89%E8%AF%8D%E8%B5%84%E6%A0%BC%E4%B8%8E%E8%BE%93%E5%85%A5%E4%BF%AE%E6%94%B9">选词资格与输入修改</a><a href="#%E4%B8%AA%E4%BA%BA%E8%AE%B0%E5%BD%95%E7%BB%91%E5%AE%9A%E8%AF%8D%E6%9D%A1%E8%BA%AB%E4%BB%BD">个人记录绑定词条身份</a><a href="#%E6%89%93%E5%BC%80%E4%B8%8E%E8%B0%83%E5%BA%A6%E4%B8%AA%E4%BA%BA%E7%8A%B6%E6%80%81">打开与调度个人状态</a><a href="#%E8%AE%B0%E5%BD%95%E7%BB%93%E6%9E%9C%E4%B8%8E%E4%BF%9D%E5%AD%98%E6%97%B6%E6%9C%BA">记录结果与保存时机</a><a href="#%E6%AC%A1%E6%95%B0%E6%80%8E%E6%A0%B7%E5%BD%B1%E5%93%8D%E6%8E%92%E5%BA%8F">次数怎样影响排序</a><a href="#%E6%AD%A3%E5%BC%8F%E8%B5%84%E6%BA%90%E4%B8%8E%E4%B8%AA%E4%BA%BA%E6%96%87%E4%BB%B6">正式资源与个人文件</a></nav></aside></div>
+<dialog class="search-dialog" aria-labelledby="search-title"><div class="search-top"><label id="search-title" for="search-input">搜索 bgIME 文档</label><button type="button" class="search-close" aria-label="关闭搜索">关闭 <kbd>Esc</kbd></button></div>
+<input id="search-input" type="search" placeholder="输入关键词或接口名，例如：学习、confirm" autocomplete="off" spellcheck="false" aria-controls="search-results">
+<p id="search-status" role="status" aria-live="polite">支持中文与接口名。多个关键词用空格分隔。</p><ol id="search-results"></ol></dialog>
+</body></html>

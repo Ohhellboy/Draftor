@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>词库与配套资源 · bgIME 开发者文档</title><meta name="description" content="区分测试词库、正式资源和个人数据，取得版本匹配的文件。">
+<meta name="theme-color" content="#f7f5ef"><link rel="canonical" href="https://draftor.tcssn.org/bgime/resources/">
+<link rel="icon" href="/bgime/assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/bgime/assets/site.css">
+<script type="module" src="/bgime/assets/site.js"></script></head>
+<body><a class="skip-link" href="#main">跳到正文</a>
+<header class="topbar"><a class="brand" href="/bgime/"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 25c-4-5-1-11 5-11h5V7c0-5 8-5 8 0v3h-5v9c0 6-8 10-13 6Z" fill="currentColor"/><path d="m26 7 5 2-5 1Z" fill="#a84732"/><circle cx="23" cy="6" r="1" fill="#fffaf4"/></svg><span>bgIME<small>开发者文档</small></span></a>
+<div class="header-actions"><button class="search-trigger" type="button" aria-haspopup="dialog"><span>搜索文档</span><kbd>⌘ K</kbd></button>
+<a class="header-site" href="/">草稿机安装</a><a class="header-github" href="https://github.com/Ohhellboy/Draftor">GitHub <span aria-hidden="true">↗</span></a>
+<button class="menu-toggle" type="button" aria-expanded="false" aria-controls="sidebar">目录</button></div></header>
+<div class="layout"><aside class="sidebar" id="sidebar"><nav aria-label="文档导航"><p class="nav-group">开始使用</p><a class="nav-link" href="/bgime/">认识 bgIME</a>
+<a class="nav-link" href="/bgime/quickstart/">快速开始</a>
+<a class="nav-link" href="/bgime/integration/">接入自己的程序</a>
+<a class="nav-link" href="/bgime/schemes/">输入方案与示例</a>
+<p class="nav-group">API 参考</p><a class="nav-link" href="/bgime/api/">接口导览</a>
+<a class="nav-link" href="/bgime/api/core/">资源、候选与提交</a>
+<a class="nav-link" href="/bgime/api/composition/">拼音与组合输入</a>
+<a class="nav-link" href="/bgime/api/wubi/">五笔接口</a>
+<p class="nav-group">学习与资源</p><a class="nav-link" href="/bgime/learning/">选词学习</a>
+<a class="nav-link active" href="/bgime/resources/" aria-current="page">词库与配套资源</a>
+<p class="nav-group">项目</p><a class="nav-link" href="/bgime/about/">版本、许可与参与</a></nav>
+<div class="version-note"><span class="status-dot"></span> 适用于 Draftor Alpha 3<br><a href="/bgime/about/">版本与源码依据 <span aria-hidden="true">↗</span></a></div></aside>
+<main id="main" tabindex="-1"><div class="breadcrumb">bgIME / 学习与资源</div><article class="prose"><h1 id="词库与配套资源">词库与配套资源</h1>
+<p>先用测试词库跑通接口，再为实际中文输入准备正式资源。资源文件的后缀相似，不代表可以互换；共享词库、方案索引、验证文件和个人状态需要分别管理。</p>
+<h2 id="测试词库与正式词库">测试词库与正式词库</h2>
+<p>三个 Host 示例在构建时自动生成小型测试资源。Core 与组合示例使用已有 <code>small_fixture.cpp</code>，五笔示例有自己的人工条目。它们使用隔离的命名空间，既不代表真实词库覆盖，也不应与用户个人记录混用。</p>
+<p>正式资源保存更多词条及实际方案编码。Alpha 3 沿用 format4 的共享词库和三种方案索引，并增加通用学习位置索引。首次接入正式资源时，先下载配套文件，再核对身份和许可；资源构建工具与原始材料的范围见下文。</p>
+<h2 id="下载对应文件">下载对应文件</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="可横向滚动的表格"><table>
+<thead>
+<tr>
+<th>材料</th>
+<th>获取方式</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Alpha 3 源码</td>
+<td><a href="https://github.com/Ohhellboy/Draftor/releases/tag/v0.1.0-alpha.3">发布页</a> 或快速开始中的固定标签</td>
+<td>引擎、产品集成、示例与生成工具</td>
+</tr>
+<tr>
+<td>format4 运行词库与既有正文字体</td>
+<td><a href="https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.2.1/Draftor_v0.1.0-alpha.2.1_Resources.zip">Alpha 2.1 Resources.zip</a></td>
+<td>Alpha 3 继续使用这套共享词库、方案索引和正文字体</td>
+</tr>
+<tr>
+<td>Alpha 3 通用学习索引</td>
+<td><a href="https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.3/Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_LearningIndex.zip">Alpha 3 LearningIndex.zip</a></td>
+<td>format 301 位置索引与验证文件</td>
+</tr>
+<tr>
+<td>精确文件身份与 TF 相对路径</td>
+<td><a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/release/alpha3/TF_RESOURCES.json">TF_RESOURCES.json</a></td>
+<td>按文件核对字节大小、SHA-256、角色和来源</td>
+</tr>
+<tr>
+<td>Alpha 3 下载包摘要</td>
+<td><a href="https://github.com/Ohhellboy/Draftor/releases/download/v0.1.0-alpha.3/SHA256SUMS">SHA256SUMS</a></td>
+<td>核对 Alpha 3 发布附件</td>
+</tr>
+</tbody>
+</table></div>
+<p>下载压缩包后，先核对发行清单，再解压并逐文件比对 <code>TF_RESOURCES.json</code>。例如在 macOS 上核对原资源包：</p>
+<pre><code class="language-bash">shasum -a 256 Draftor_v0.1.0-alpha.2.1_Resources.zip
+</code></pre>
+<p>预期摘要为 <code>460096846036bd01c941bc07ab98e6db4e130a247563e44fa3cb01d12a9c6636</code>。Alpha 3 学习索引包的摘要为 <code>05da4128d132c0673ae28bf9a1f35d3997a017cd1995d51d38051dc15f55c3eb</code>；请同时核对发布页的配套清单。不要只凭压缩包文件名或目录名称确认版本。</p>
+<blockquote>
+<p>Host 示例不需要这两个正式资源包。若只想完成第一次运行，回到<a href="/bgime/quickstart/">快速开始</a>即可。为自己的程序重新分发词库之前，还应阅读<a href="/bgime/about/">许可与来源说明</a>。</p>
+</blockquote>
+<h2 id="文件之间的关系">文件之间的关系</h2>
+<p>Alpha 3 共享资源包 ID 为 <code>17304919664082782091</code>，词库格式为 <code>4</code>。在 Draftor TF 卡中，主要词库目录为 <code>HANIME/IME/B_SHORT_TEXT_20261018/</code>；独立程序可选择自己的路径，但必须保留资源之间的配对身份。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="可横向滚动的表格"><table>
+<thead>
+<tr>
+<th>文件</th>
+<th>内容与调用关系</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>shared.hns</code></td>
+<td>共享词条身份、文字与输出关系，由 <code>PagedSharedResource</code> 读取</td>
+</tr>
+<tr>
+<td><code>full_pinyin.hnm</code>、<code>xiaohe.hnm</code>、<code>wubi86.hnm</code></td>
+<td>各方案的编码索引，由 <code>PagedSchemeIndex</code> 读取并与共享资源配对</td>
+</tr>
+<tr>
+<td>各方案的 <code>*_base.hbo</code></td>
+<td>基础排序与方案行数据，供相应的优化查询路径使用</td>
+</tr>
+<tr>
+<td>各资源的 <code>.hnv</code></td>
+<td>与该文件匹配的验证页，不是可选的个人学习记录</td>
+</tr>
+<tr>
+<td><code>relations.bgr</code>、<code>relations.hnv</code></td>
+<td>通用学习位置索引及验证文件；产品路径由清单给出</td>
+</tr>
+<tr>
+<td><code>matched28.hbf1</code> 等字体</td>
+<td>Draftor 的文字绘制资源；Core 交付 UTF-8，不要求独立宿主使用同一字体</td>
+</tr>
+</tbody>
+</table></div>
+<p>format4 目录中还有 <code>CANDIDATE_READY.json</code> 安装标记。完整安装应按清单逐项处理，不以这张表替代文件清单。原词库运行集的 14 个文件、正文字体、安装标记及两个学习索引文件都列在 Alpha 3 的 <code>TF_RESOURCES.json</code> 中。</p>
+<h2 id="校验与读取方式">校验与读取方式</h2>
+<p>小型示例走 <code>open()</code> 加 <code>advance_validation()</code> 的完整校验路径，并明确检查命名空间与包 ID。它不演示正式发布认证。</p>
+<p>产品使用固定的 <code>ResourceReleaseSpec</code>、<code>VerifiedResourceReader</code> 与验证页，对正式资源建立受约束的读取路径，再调用 <code>open_verified()</code>。换用自己的资源时，先准备相应的可信描述与配套验证材料，再使用这条读取路径。</p>
+<p>参考：<a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/dependencies/core/include/hanime/verified_resource.hpp">verified_resource.hpp</a>、<a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/src/resource_release.cpp">产品固定资源身份</a>、<a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/integration/product/src/tf_resources.cpp">产品资源加载</a>、<a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/tools/generate_learning_index.py">通用学习索引生成器</a>。重新生成历史混合词库或字体前，还需核对<a href="https://github.com/Ohhellboy/Draftor/blob/f18939f8880e2278c231739d553fbf983c19e0f6/docs/RESOURCE_STATUS.md">资源来源与原始材料的缺口</a>；现有材料未覆盖全部资源的逐字节重建。</p>
+<h2 id="个人状态单独存放">个人状态单独存放</h2>
+<p>个人选词次数由可写状态文件保存，不能写回正式词库。Alpha 3 的通用学习索引也不包含个人记录。为每个用户或独立环境规划状态路径，使用相同命名空间的统一计数所有者，并通过明确的打开、后台推进和关闭流程管理它。</p>
+<p>状态损坏、命名空间不兼容或存储不可用时，不应自动当作空文件覆盖。排序回退和保存失败的处理见<a href="/bgime/learning/">选词学习</a>。</p>
+<h2 id="安装到草稿机">安装到草稿机</h2>
+<p>如果目标是已有草稿机设备，而不是接入自己的程序，请使用<a href="/">安装网站</a>、<a href="/guide.html">操作指南</a>和<a href="/guide.html#tf">TF 资源步骤</a>。开发者文档描述引擎与接入约定，不替代设备安装或恢复流程。</p>
+</article>
+<nav class="page-turn" aria-label="章节翻页"><a href="/bgime/learning/"><small>← 上一篇</small>选词学习</a><a class="next" href="/bgime/about/"><small>下一篇 →</small>版本、许可与参与</a></nav>
+<footer class="article-footer">本文档适用于 Draftor Alpha 3 中使用的 bgIME。<br><a href="https://github.com/Ohhellboy/Draftor/tree/f18939f8880e2278c231739d553fbf983c19e0f6">查看对应源码</a><span>·</span><a href="https://github.com/Ohhellboy/Draftor/issues">反馈文档问题</a><span>·</span><a href="/guide.html">草稿机操作指南</a></footer></main>
+<aside class="toc"><nav aria-label="本页目录"><p>本页内容</p><a href="#%E6%B5%8B%E8%AF%95%E8%AF%8D%E5%BA%93%E4%B8%8E%E6%AD%A3%E5%BC%8F%E8%AF%8D%E5%BA%93">测试词库与正式词库</a><a href="#%E4%B8%8B%E8%BD%BD%E5%AF%B9%E5%BA%94%E6%96%87%E4%BB%B6">下载对应文件</a><a href="#%E6%96%87%E4%BB%B6%E4%B9%8B%E9%97%B4%E7%9A%84%E5%85%B3%E7%B3%BB">文件之间的关系</a><a href="#%E6%A0%A1%E9%AA%8C%E4%B8%8E%E8%AF%BB%E5%8F%96%E6%96%B9%E5%BC%8F">校验与读取方式</a><a href="#%E4%B8%AA%E4%BA%BA%E7%8A%B6%E6%80%81%E5%8D%95%E7%8B%AC%E5%AD%98%E6%94%BE">个人状态单独存放</a><a href="#%E5%AE%89%E8%A3%85%E5%88%B0%E8%8D%89%E7%A8%BF%E6%9C%BA">安装到草稿机</a></nav></aside></div>
+<dialog class="search-dialog" aria-labelledby="search-title"><div class="search-top"><label id="search-title" for="search-input">搜索 bgIME 文档</label><button type="button" class="search-close" aria-label="关闭搜索">关闭 <kbd>Esc</kbd></button></div>
+<input id="search-input" type="search" placeholder="输入关键词或接口名，例如：学习、confirm" autocomplete="off" spellcheck="false" aria-controls="search-results">
+<p id="search-status" role="status" aria-live="polite">支持中文与接口名。多个关键词用空格分隔。</p><ol id="search-results"></ol></dialog>
+</body></html>
