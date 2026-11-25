@@ -9,6 +9,7 @@ import bash from 'highlight.js/lib/languages/bash';
 import cmake from 'highlight.js/lib/languages/cmake';
 import { baseline, repository, pages, pageUrl, headingAnchors } from '../site.config.mjs';
 import { codeLabel } from '../assets/reader-utils.js';
+import { buildProjectPages } from './project-pages.mjs';
 
 export const root = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 export const output = path.join(root, 'dist/bgime');
@@ -118,6 +119,7 @@ export async function build() {
   await writeFile(path.join(output, 'links.json'), JSON.stringify(links, null, 2) + '\n');
   await writeFile(path.join(output, 'version.json'), JSON.stringify({ product: 'Draftor Alpha 3', tag: 'v0.1.0-alpha.3', source: baseline }, null, 2) + '\n');
   for (const file of ['site.css', 'site.js', 'reader-utils.js', 'favicon.svg']) await copyFile(path.join(root, 'assets', file), path.join(output, 'assets', file));
+  await buildProjectPages(path.dirname(output));
   console.log(`Built ${pages.length} pages and ${search.length} search sections in ${output}`);
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await build();

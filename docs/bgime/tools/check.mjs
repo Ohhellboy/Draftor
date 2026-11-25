@@ -7,6 +7,7 @@ import { strict as nodeAssert } from 'node:assert';
 import { normalize, codeLanguage, codeLabel, searchExcerpt, activeHeadingIndex, shortcutLabel } from '../assets/reader-utils.js';
 import { root, output } from './build.mjs';
 import { baseline, repository, pages, pageUrl, headingAnchors } from '../site.config.mjs';
+import { checkProjectPages } from './check-project-pages.mjs';
 
 const repo = path.resolve(root, '../..');
 const sourcePaths = new Set(execFileSync('git', ['ls-tree', '-r', '--name-only', baseline], { cwd: repo, encoding: 'utf8' }).trim().split('\n'));
@@ -49,7 +50,8 @@ for (const p of pages) {
   documents.set(pageUrl(p.slug), { html, ids: new Set(ids), canonical, aliases });
   for (const url of [...attr(html, 'href'), ...attr(html, 'src')]) allLinks.push({ from: pageUrl(p.slug), url });
 }
-const installerLinks = new Set(['/', '/guide.html', '/first-install.html', '/recovery.html']);
+const installerLinks = new Set(['/', '/guide.html', '/first-install.html', '/recovery.html', '/branding/']);
+await checkProjectPages(path.dirname(output));
 let checkedLocal = 0, checkedSource = 0;
 for (const { from, url } of allLinks) {
   const target = new URL(url, 'http://preview' + from);
