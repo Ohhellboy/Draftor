@@ -46,7 +46,7 @@ export function startPublicUI({build,sourceCommit,offlineToolSha256,requestDrive
   $('connect-section').hidden=!!session||closed||!browserIsQualified();
   $('connect-read').disabled=busy||!release||!$('physical-board').checked||!$('prepared-tf').checked;
   const plan=session?.plan;
-  if(plan){$('plan-section').hidden=closed;$('plan-title').textContent=t(plan.mode==='fresh'?'fresh':'update');$('plan-summary').textContent=t(plan.mode==='fresh'?'freshImpact':'updateImpact');$('plan-json').textContent=JSON.stringify(plan,null,2);const blank=plan.initialState==='blank';
+  if(plan){const blank=plan.initialState==='blank';$('plan-section').hidden=closed;$('plan-title').textContent=t(blank?'blankFresh':plan.mode==='fresh'?'fresh':'update');$('plan-summary').textContent=t(blank?'blankImpact':plan.mode==='fresh'?'freshImpact':'updateImpact');$('plan-json').textContent=JSON.stringify(plan,null,2);
    $('backup-workflow').hidden=blank;$('tool-section').hidden=blank;
    $('original-state').textContent=t(blank?'blank':plan.initialState==='unrecognized'?'unrecognized':plan.mode==='fresh'?'knownFactory':'knownDraftor');
    document.querySelector('#plan-confirmed + span').textContent=t(plan.mode==='fresh'?'eraseConsent':'planConsent');$('current-app-label').hidden=plan.mode==='fresh';}
