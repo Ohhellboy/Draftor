@@ -18,5 +18,5 @@ for (const fault of ['short', 'long', 'corrupt', '404']) test(`compressed ${faul
     if (fault === 'corrupt') b[0] ^= 1;
     return new Response(b, { status: fault === '404' ? 404 : 200, headers: { 'content-encoding': 'gzip', 'content-length': '740' } });
   }));
-  assert.equal(calls, fault === 'corrupt' ? 8 : 1);
+  assert.equal(calls, 1); // Reject before caching/downloading further files.
 });

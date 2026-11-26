@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import {dict} from './content.js';
 import {installationCopy} from './r11-copy.js';
-import {loadRelease} from './firmware.js';
+import {downloadPanel} from './download-ui.js';
 import {PINS} from './pins.js';
 import {MAX_PACKAGE_BYTES} from './recovery-zip.js';
 import {requireSafe} from './safety.js';
@@ -24,6 +24,7 @@ export function startPublicUI({build,sourceCommit,offlineToolSha256,requestDrive
  <section id="confirm-section">${check('plan-confirmed','planConsent')}<div id="current-app-label">${field('current-app','oldApp','.bin')}</div><button id="execute-plan" class="install-primary" data-r10="execute" disabled></button></section></section>
  <progress id="write-progress" max="1" value="0" hidden></progress><p id="finished-note" class="notice" data-r10="finished" hidden></p><p><a href="recovery.html" data-r10="recoveryLink"></a> · <a href="docs/TF_GUIDE.html">TF</a> · <a href="docs/PUBLIC_STATUS.html" data-r10="scopeLink"></a></p><div class="workflow-actions"><button id="save-receipt" data-r10="receipt" disabled></button><button id="stop-close" data-r10="close"></button></div></div></div>`;
  document.body.append(modal);
+ const downloads=downloadPanel({anchor:$('workflow-error'),onChange:()=>render(),onRetry:()=>prepareFiles()});
  const platformNotice=document.createElement('p');platformNotice.id='platform-notice';platformNotice.className='notice';$('install-btn').after(platformNotice);
  const externalReceipt=document.createElement('button');externalReceipt.id='closed-receipt';externalReceipt.dataset.r10='receipt';externalReceipt.hidden=true;document.querySelector('.footer nav').append(externalReceipt);
  function renderInfo(){
@@ -41,9 +42,10 @@ export function startPublicUI({build,sourceCommit,offlineToolSha256,requestDrive
   for(const e of document.querySelectorAll('[data-r10]'))e.textContent=t(e.dataset.r10);
   $('board-name').textContent=lang==='zh'?'微雪 ESP32-S3-RLCD-4.2':'Waveshare ESP32-S3-RLCD-4.2';
   const modified=(session?.receipt()||lastReceipt)?.mutationStarted===true;
-  $('workflow-status').textContent=phase==='STOP'?t(modified?'stoppedHelp':'notModified'):installationCopy[lang].phases[phase]||t(phase);
+  downloads.render(lang,['loading','DOWNLOAD_FAILED','DOWNLOAD_CANCELLED'].includes(phase));
+  $('workflow-status').textContent=['loading','DOWNLOAD_FAILED','DOWNLOAD_CANCELLED'].includes(phase)?downloads.status(lang):phase==='STOP'?t(modified?'stoppedHelp':'notModified'):installationCopy[lang].phases[phase]||t(phase);
   $('workflow-error').hidden=!error;$('workflow-error').textContent=error?`${error} · ${serialErrorHelp(error,lang)||t(error==='PACKAGE_METADATA'?'wrongOriginal':error.startsWith('PACKAGE_')?'badPackage':modified?'stoppedHelp':'notModified')}`:'';
-  $('connect-section').hidden=!!session||closed||!browserIsQualified();
+  $('connect-section').hidden=!!session||closed||!release||!browserIsQualified();
   $('connect-read').disabled=busy||!release||!$('physical-board').checked||!$('prepared-tf').checked;
   const plan=session?.plan;
   if(plan){const blank=plan.initialState==='blank';$('plan-section').hidden=closed;$('plan-title').textContent=t(blank?'blankFresh':plan.mode==='fresh'?'fresh':'update');$('plan-summary').textContent=t(blank?'blankImpact':plan.mode==='fresh'?'freshImpact':'updateImpact');$('plan-json').textContent=JSON.stringify(plan,null,2);
@@ -57,15 +59,21 @@ export function startPublicUI({build,sourceCommit,offlineToolSha256,requestDrive
   $('download-tool').disabled=busy||!prepared;$('tool-ready').hidden=!session?.offlineToolVerified;
   $('tool-saved').disabled=busy||!session?.offlineToolVerified;
   $('execute-plan').disabled=busy||!prepared||!session?.backupVerified||(plan?.initialState!=='blank'&&(!session?.offlineToolVerified||!$('tool-saved').checked))||!['plan-confirmed','prepared-tf'].every(id=>$(id).checked);
-  $('save-receipt').disabled=!diagnostics;$('stop-close').textContent=t(busy?'stop':'close');
+  $('save-receipt').disabled=!diagnostics&&!downloads.snapshot().attempt;$('stop-close').textContent=t(busy?'stop':'close');
   if($('info-dialog').open)renderInfo();
  }
  function clearPrivate(){zip?.fill(0);zip=undefined;packageName='';for(const id of ['existing-raw','saved-backup','current-app'])$(id).value='';for(const id of ['physical-board','prepared-tf','plan-confirmed','tool-saved'])$(id).checked=false;for(const u of urls)URL.revokeObjectURL(u);urls.clear();}
- async function releaseSession(){if(closed)return;try{await session?.close();}finally{closed=true;clearPrivate();diagnostics?.check('cleanup',{sessionPrivateReferencesCleared:true,domIdentityCleared:true,fileInputsCleared:true,objectUrlsRevoked:true,physicalMemoryErasureGuaranteed:false});lastReceipt=session?.receipt()||{diagnostics:diagnostics?.snapshot()};session=undefined;$('plan-section').hidden=true;$('plan-json').textContent='';externalReceipt.hidden=!diagnostics;}}
+ async function releaseSession(){if(closed)return;try{await session?.close();}finally{closed=true;clearPrivate();diagnostics?.check('cleanup',{sessionPrivateReferencesCleared:true,domIdentityCleared:true,fileInputsCleared:true,objectUrlsRevoked:true,physicalMemoryErasureGuaranteed:false});lastReceipt=session?.receipt()||{diagnostics:diagnostics?.snapshot()};session=undefined;$('plan-section').hidden=true;$('plan-json').textContent='';externalReceipt.hidden=!diagnostics&&!downloads.snapshot().attempt;}}
  function download(bytes,name,type){const u=URL.createObjectURL(new Blob([bytes],{type}));urls.add(u);const a=document.createElement('a');a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>{URL.revokeObjectURL(u);urls.delete(u);},30000);}
  async function run(fn){if(busy)return;busy=true;render();activeTask=(async()=>{try{await fn();}catch(e){error=publicErrorCode(e);diagnostics?.error({code:error});session?.cancel(error);try{await releaseSession();}catch{error+=' / CLOSE_FAILED';}phase='STOP';}finally{busy=false;render();}})();return activeTask;}
  function onState(next,data={}){phase=next;if(data.progress!==undefined||data.backupProgress!==undefined){$('write-progress').hidden=false;$('write-progress').value=data.progress??data.backupProgress;}render();}
- $('install-btn').addEventListener('click',()=>{if(modal.open||busy)return;closed=false;phase=browserIsQualified()?'loading':'unsupported';error='';release=undefined;diagnostics=undefined;lastReceipt=undefined;$('plan-section').hidden=true;$('finished-note').hidden=true;$('write-progress').hidden=true;clearPrivate();modal.showModal();render();if(browserIsQualified())run(async()=>{release=await loadRelease(new URL('../firmware/',import.meta.url));phase='ready';});});
+ async function prepareFiles(){
+  if(busy||session||closed||!['loading','DOWNLOAD_FAILED'].includes(phase))return;
+  busy=true;phase='loading';error='';render();
+  activeTask=(async()=>{try{release=await downloads.load();phase='ready';}catch(e){release=undefined;phase=e.detail?.category==='CANCELLED'?'DOWNLOAD_CANCELLED':'DOWNLOAD_FAILED';}finally{busy=false;render();}})();
+  return activeTask;
+ }
+ $('install-btn').addEventListener('click',()=>{if(modal.open||busy)return;closed=false;phase=browserIsQualified()?'loading':'unsupported';error='';release=undefined;diagnostics=undefined;lastReceipt=undefined;downloads.reset();$('plan-section').hidden=true;$('finished-note').hidden=true;$('write-progress').hidden=true;clearPrivate();modal.showModal();render();if(browserIsQualified())prepareFiles();});
  $('connect-read').addEventListener('click',()=>{if($('connect-read').disabled)return;diagnostics=new Diagnostics({build,sourceCommit,originType:location.protocol==='https:'?'HTTPS':'LOOPBACK',origin:location.origin,mode:'installation'});run(async()=>{requireSafe(browserIsQualified(),'PLATFORM');const driver=await requestDriver(diagnostics);session=new PublicInstallSession(driver,release,{build,sourceCommit,offlineToolSha256,platformQualified:browserIsQualified(),diagnostics,onState});await session.prepare({boardConfirmed:$('physical-board').checked,tfRemoved:$('prepared-tf').checked});});});
  $('capture-backup').addEventListener('click',()=>{if(!$('capture-backup').disabled)run(async()=>{zip=await session.captureBackup();packageName=`Draftor-private-${session.plan.mode==='fresh'?'device-original':'draftor-original'}-${new Date().toISOString().replace(/[:.]/g,'-')}.zip`;});});
  $('existing-raw').addEventListener('change',()=>{const f=$('existing-raw').files[0];if(!f)return;run(async()=>{requireSafe(f.size===PINS.flashBytes,'PACKAGE_SIZE');let b;try{b=new Uint8Array(await f.arrayBuffer());zip=await session.importExistingRaw(b);packageName=`Draftor-private-${session.plan.mode==='fresh'?'device-original':'draftor-original'}-${new Date().toISOString().replace(/[:.]/g,'-')}.zip`;}finally{b?.fill(0);$('existing-raw').value='';}});});
@@ -76,13 +84,13 @@ export function startPublicUI({build,sourceCommit,offlineToolSha256,requestDrive
  $('current-app').addEventListener('change',()=>{$('plan-confirmed').checked=false;if(busy)session?.cancel('PACKAGE_CHANGED');render();});
  $('execute-plan').addEventListener('click',()=>{if($('execute-plan').disabled)return;run(async()=>{const f=$('current-app').files[0];let b;try{if(f){requireSafe(f.size>=24&&f.size<=PINS.slotCapacity,'CURRENT_APP');b=new Uint8Array(await f.arrayBuffer());}await session.execute({backupConfirmed:session.backupVerified,tfRemoved:$('prepared-tf').checked,planConfirmed:$('plan-confirmed').checked,eraseConfirmed:session.plan.mode==='fresh'&&$('plan-confirmed').checked,offlineToolSaved:$('tool-saved').checked,currentApp:b});await releaseSession();$('finished-note').hidden=false;}finally{b?.fill(0);}});});
  for(const id of ['physical-board','prepared-tf','plan-confirmed','tool-saved'])$(id).addEventListener('change',()=>{if(busy)session?.cancel('CONSENT_CHANGED');render();});
- async function close(){if(busy){session?.cancel();await activeTask;}try{await releaseSession();modal.close();}catch{error='CLOSE_FAILED';phase='STOP';render();}}
+ async function close(){downloads.cancel();if(busy){session?.cancel();await activeTask;}try{await releaseSession();downloads.dispose();release=undefined;modal.close();}catch{error='CLOSE_FAILED';phase='STOP';render();}}
  $('install-close').addEventListener('click',close);$('stop-close').addEventListener('click',close);modal.addEventListener('cancel',e=>{e.preventDefault();close();});
- function receipt(){const r=session?.receipt()||lastReceipt;if(r)download(new TextEncoder().encode(JSON.stringify(r,null,2)+'\n'),'Draftor-install-sanitized-receipt.json','application/json');}
+ function receipt(){const r={schema:'draftor-install-download-receipt/1',build,sourceCommit,flashOutcome:'NO_FLASH_WRITE_ATTEMPT',...(session?.receipt()||lastReceipt),downloadPreparation:downloads.snapshot()};if(r)download(new TextEncoder().encode(JSON.stringify(r,null,2)+'\n'),'Draftor-install-sanitized-receipt.json','application/json');}
  $('save-receipt').addEventListener('click',receipt);externalReceipt.addEventListener('click',receipt);
  $('lang-toggle').addEventListener('click',()=>{lang=lang==='zh'?'en':'zh';render();});
  $('board-change').addEventListener('click',()=>{$('board-chooser').hidden=!$('board-chooser').hidden;$('board-change').setAttribute('aria-expanded',String(!$('board-chooser').hidden));});
  for(const e of document.querySelectorAll('[data-modal]'))e.addEventListener('click',()=>{infoKey=e.dataset.modal;renderInfo();$('info-dialog').showModal();});
  $('dialog-close').addEventListener('click',()=>$('info-dialog').close());
- addEventListener('beforeunload',e=>{if(busy||session){e.preventDefault();e.returnValue='';}});addEventListener('pagehide',()=>{session?.cancel();session?.close().catch(()=>{});clearPrivate();});render();
+ addEventListener('beforeunload',e=>{if(busy||session){e.preventDefault();e.returnValue='';}});addEventListener('pagehide',()=>{downloads.dispose();release=undefined;session?.cancel();session?.close().catch(()=>{});clearPrivate();});render();
 }

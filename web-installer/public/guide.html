@@ -38,7 +38,7 @@
       <h2>第一次安装，或备份后清空安装</h2>
       <p>不同厂家版本、其他固件、未知分区和空白板都可以选择这个入口。网页核对实际硬件、安全状态和目标固件后，再提供安装。清空安装会覆盖设备内部的全部内容。</p>
       <ol>
-        <li>从首页点<strong>第一次安装／清空安装</strong>。在打开的页面点<strong>连接设备并安装</strong>。</li>
+        <li>从首页点<strong>第一次安装／清空安装</strong>。在打开的页面点<strong>连接设备并安装</strong>。等“正在准备安装文件”的下载量增加，随后网页会“正在检查安装文件”。核验完成才显示连接按钮。</li>
         <li>核对板型、文稿已保存和 TF 已取出，勾选对应准备项。点<strong>选择串口并只读检查</strong>，选择这块板并连接。等待检查。看到“旧固件未识别”时可继续备份。</li>
         <li>点<strong>读取完整 Flash（只读）</strong>。读完后点<strong>保存私人恢复 ZIP</strong>，把 <code>Draftor-private-device-original-….zip</code> 保存到自己的电脑。等下载完成，在<strong>回选已保存的私人恢复 ZIP</strong>选择这个 ZIP，保持压缩格式。</li>
         <li>等页面显示<strong>保存文件回选通过，与当前同一设备完整 Flash 一致。</strong> 点<strong>下载离线恢复工具（HTML）</strong>，把 <code>Draftor_Recovery_R13_Offline.html</code> 和 ZIP 放在一起，确认保存完成。它们可把本次原机完整内容写回这块板，请私下保留。</li>
@@ -53,7 +53,7 @@
     <section id="reinstall">
       <h2>已经在用 Alpha 3，重新安装</h2>
       <ol>
-        <li>从首页点<strong>重新安装 Alpha 3</strong>，再点<strong>以上准备已完成，连接设备</strong>。在浏览器的窗口选这块板，点<strong>连接</strong>。</li>
+        <li>从首页点<strong>重新安装 Alpha 3</strong>，等待安装文件下载和检查完成，再点<strong>以上准备已完成，连接设备</strong>。在浏览器的窗口选这块板，点<strong>连接</strong>。</li>
         <li>等页面核对设备和需要保留的数据。看到<strong>重新安装当前版本</strong>并且按钮可用后，点<strong>保存保护文件并重新安装</strong>。</li>
         <li>在保存窗口把 <code>Draftor-install-protection-….json</code> 存到自己的电脑，保留默认文件名。点<strong>保存</strong>后网页会自动读回，核对成功就开始重装。这个小文件记录原板的身份、原状态和少量保护数据。它依赖板上保留的私人区域，不能代替完整系统备份。私下留存，出现中断时需要它。</li>
         <li>如果页面改为显示<strong>下载安装保护文件</strong>，点它并保存 JSON。在<strong>回选已保存的保护文件</strong>选择同一文件。核验通过后点<strong>按上述范围安装</strong>。</li>
@@ -85,6 +85,7 @@
     <section id="failure">
       <h2>遇到问题</h2>
       <dl>
+        <dt>下载失败或下载较慢</dt><dd>只要收到的数据量持续增加，就继续等待，超过一分钟也可以。若显示“下载失败，请检查网络后重试”，检查网络后点<strong>重新下载</strong>。网页只重试文件准备，复用本次已校验的文件，不连接串口、不擦写或复位设备。可展开“下载详情”查看文件名、错误类别和 HTTP 状态，或保存脱敏回执。若一直校验失败，请反馈回执。关闭安装弹窗会取消下载；重新打开会建立新的下载会话。</dd>
         <dt>串口窗口里找不到设备</dt><dd>先取消选口。换一根能传数据的线，关闭占用串口的程序，然后重复上面的 BOOT＋PWR 顺序。在 Windows 的“设备管理器 → 端口（COM 和 LPT）”查看这块板插入后出现的项目。<a href="docs/WINDOWS_FIRST_USER_GUIDE.zh-CN.md">Windows 连接帮助</a></dd>
         <dt>在系统保存窗口点了取消</dt><dd>重装页会提示“已取消保存，未开始写入，连接已关闭”。关掉弹窗，从首页再点“重新安装 Alpha 3”，重新选择设备并保存。清空安装页若取消了 ZIP 或 HTML 下载，先重新保存对应文件，完成回选或保存确认后再安装。</dd>
         <dt>连接中断</dt><dd>如果页面显示“尚未擦除或写入，原机 Flash 内容未被本次操作修改”，可关闭弹窗、检查连接后重新开始。只有已开始擦写后中断，才需要用下一条的恢复方式处理。</dd>
@@ -93,6 +94,7 @@
     </section>
     <section id="english" lang="en">
       <h2>Installation guide</h2>
+      <p>After opening either installer, wait for <strong>Preparing installation files</strong> and the actual received size, then <strong>Checking installation files</strong>. There is no one-minute limit while data keeps arriving. If the page says <strong>Download failed. Check your network and retry.</strong>, fix the connection and click <strong>Retry download</strong>. Only file preparation is repeated; already verified files from this session are reused. No serial connection, erase, write or reset starts. Details and a sanitized receipt are available. Close the dialog to cancel downloads. A write or USB failure still requires the separate failure instructions below.</p>
       <p>Use desktop Chrome or Edge on Windows 10/11, or Chrome on macOS. Use a USB data cable and the Waveshare ESP32-S3-RLCD-4.2 (ST7305). Windows hardware testing is pending.</p>
       <ol>
         <li>Save your writing and end transfers. Disconnect USB and battery power. Remove the TF card. Disconnect other boards and close serial monitors. With USB connected, hold <strong>PWR</strong> to power off, hold <strong>BOOT</strong>, briefly press <strong>PWR</strong> to power on, then release BOOT after about two seconds.</li>

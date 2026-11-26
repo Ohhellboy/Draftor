@@ -8,13 +8,13 @@ import path from 'node:path';
 import { verifyReleaseInputs } from './verify-release.mjs';
 import { PINS } from '../src/pins.js';
 
-const [out, baseline = 'dist-r13-baseline'] = process.argv.slice(2);
-if (out !== 'dist-r13-public') throw Error('Expected dist-r13-public');
+const [out, baseline = 'dist-r13-public'] = process.argv.slice(2);
+if (out !== 'dist-r13-download-public') throw Error('Expected dist-r13-download-public');
 const hash = b => createHash('sha256').update(b).digest('hex');
 const b64 = b => createHash('sha256').update(b).digest('base64');
 const baseManifest = await readFile(path.join(baseline, 'SITE_SHA256SUMS'));
-if (hash(baseManifest) !== '91af817923c4d658518d83915d216bf5f2ce687bcb7b8919b40cbd92dfc4381a') throw Error('Publication baseline mismatch');
-const previousPages = '505e2e597faa441a14b0cf6adb48d6240226ad8f';
+if (hash(baseManifest) !== '5f0daa7a3e4610d5d68a0d53eb93e45e7f90017231f2f065f41543b5461eca82') throw Error('Publication baseline mismatch');
+const previousPages = 'b673e971da06cc4b8fc9d14a0ea656cac5634657';
 let source;
 try { source = JSON.parse(await readFile('SOURCE_IDENTITY.json', 'utf8')).sourceCommit; }
 catch (e) {
@@ -33,9 +33,10 @@ const readBase = name => readFile(path.join(baseline, name), 'utf8');
 for (const row of baseManifest.toString().trim().split('\n')) {
   const name = row.slice(66), data = await readFile(path.join(baseline, name));
   if (hash(data) !== row.slice(0, 64)) throw Error('Baseline file mismatch ' + name);
-  await put(name, data);
+  // Recreate the current corresponding-source archive; preserve the prior site on disk.
+  if (name !== 'sources/Draftor_Web_R13_source.zip') await put(name, data);
 }
-const version = 'R13-public-' + source.slice(0, 12);
+const version = 'R13.1-public-' + source.slice(0, 12);
 const offlineName = 'Draftor_Recovery_R13_Offline.html';
 const defines = { __R11_BUILD__: JSON.stringify(version), __R11_SOURCE__: JSON.stringify(source), __INSTALLER_OFFLINE_NAME__: JSON.stringify(offlineName) };
 const config = { bundle: true, target: ['chrome120'], legalComments: 'inline' };
@@ -63,16 +64,16 @@ await build({ ...config, entryPoints: ['src/r12-local-app0.js'], format: 'esm', 
 
 for (const name of ['index.html', 'first-install.html', 'recovery.html']) {
   let html = await readBase(name);
-  html = html.replaceAll(/R12-public-[a-f0-9]{12}/g, version)
+  html = html.replaceAll(/R(?:12|13(?:\.1)?)-public-[a-f0-9]{12}/g, version)
     .replaceAll('Draftor_Recovery_R11_Offline.html', offlineName)
     .replaceAll('Draftor_Recovery_R9_Offline.html', offlineName);
   if (name === 'index.html') html = html.replace(/assets\/reinstall-[a-f0-9]{12}\.js/, reinstallScript)
     .replaceAll('第一次安装草稿机', '第一次安装／清空安装')
     .replace('手里的微雪板还在运行厂家演示，请选“第一次安装／清空安装”。已经在用 Alpha 3，请选“重新安装 Alpha 3”。', '已在用 Alpha 3，可选择保留数据重装。其他固件或希望清空设备，请选“第一次安装／清空安装”。');
-  if (name === 'first-install.html') html = html.replace('src="assets/app.js"', 'src="assets/app.js?v=' + version + '"')
+  if (name === 'first-install.html') html = html.replace(/src="assets\/app\.js(?:\?[^"]*)?"/, 'src="assets/app.js?v=' + version + '"')
     .replace('第一次安装草稿机 / First-time installation', '第一次安装／清空安装 / Clean installation')
     .replace('查看首装步骤 / Instructions', '查看清空安装步骤 / Instructions');
-  if (name === 'recovery.html') html = html.replace('src="assets/recovery.js"', 'src="assets/recovery.js?v=' + version + '"');
+  if (name === 'recovery.html') html = html.replace(/src="assets\/recovery\.js(?:\?[^"]*)?"/, 'src="assets/recovery.js?v=' + version + '"');
   await put(name, html);
 }
 await put('guide.html', await readFile('public/guide.html'));
@@ -88,6 +89,7 @@ execFileSync('python3', ['tools/package-r12-source.py', out + '/sources/Draftor_
 const metadata = {
   schema: 'draftor-public-release/1', profile: 'R13_SUPPORTED_HARDWARE_CLEAN_INSTALL',
   version, sourceCommit: source, previousPages, reviewOnly: false, software: false, realUsbAvailable: true, frozen: true,
+  download: { idleTimeoutMs: 60000, totalFileDeadlineMs: null, progress: 'actual-decoded-bytes', retry: 'user-only-network-preparation', cache: 'session-length-sha256-md5-verified-files' },
   release: PINS.version, appSha256: PINS.files['app.bin'].sha256, windowsDevice: 'PENDING',
   installation: { firstPage: 'first-install.html', reinstallPage: 'index.html', cleanInstall: 'confirmed-board-chip-capacity-security-target-and-current-full-backup', blank: 'ROM-full-blank-proof-no-backup', preservedReinstall: 'exact-alpha3-app0' },
   recovery: { packageSchemas: ['draftor-private-recovery/1', 'draftor-private-recovery/2'], online: 'backup-and-read-only', offlineHtml: 'offline/' + offlineName, offlineSha256: offlineHash, scope: 'validated-full-original-image-same-board-current-image-may-be-damaged' },

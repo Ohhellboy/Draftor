@@ -45,7 +45,7 @@ for (const fault of ['reject', 'http', 'redirect', 'truncated', 'oversized', 'sh
     if (fault === 'stream-error') return new Response(new ReadableStream({ start(c) { c.enqueue(source.slice(0, 10)); c.error(new Error('interrupt')); } }));
     return new Response(source);
   }));
-  assert.equal(calls, fault === 'sha' ? 8 : 1);
+  assert.equal(calls, 1); // Per-file verification fails immediately.
 });
 
 for (const slot of [0, 1]) test(`app${slot}: exact active-slot update, independent verify and all other Flash preserved`, async () => {
