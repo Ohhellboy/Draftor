@@ -1,9 +1,9 @@
 {
   "schema": "draftor-public-release/1",
   "profile": "R13_SUPPORTED_HARDWARE_CLEAN_INSTALL",
-  "version": "R13.1-public-651ff0719ac8",
-  "sourceCommit": "651ff0719ac8a89b5163fedf6b76b763516e13c6",
-  "previousPages": "b673e971da06cc4b8fc9d14a0ea656cac5634657",
+  "version": "R13.2-public-be3ca2c906e5",
+  "sourceCommit": "be3ca2c906e576d97abfadc881ab117ebf0a60de",
+  "previousPages": "33258cb0eaf70669b6569ecfc749be6d617d20cb",
   "reviewOnly": false,
   "software": false,
   "realUsbAvailable": true,
@@ -13,7 +13,13 @@
     "totalFileDeadlineMs": null,
     "progress": "actual-decoded-bytes",
     "retry": "user-only-network-preparation",
-    "cache": "session-length-sha256-md5-verified-files"
+    "cache": "session-length-sha256-md5-verified-files",
+    "offlineTool": {
+      "idleTimeoutMs": 60000,
+      "sha256Pinned": true,
+      "networkRetry": "same-read-only-prepared-session",
+      "closeOrder": "abort-http-before-close-device"
+    }
   },
   "release": "v0.1.0-alpha.3",
   "appSha256": "165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd",
@@ -32,7 +38,7 @@
     ],
     "online": "backup-and-read-only",
     "offlineHtml": "offline/Draftor_Recovery_R13_Offline.html",
-    "offlineSha256": "92e69ad0679c7333cea8ccb45fd8e4119812d47044b9bc5c05432f134b4cce8b",
+    "offlineSha256": "02fc6517e7f4ad6e4e0487b5f156f668119effd1193bc4c17e18f91c1f3acb63",
     "scope": "validated-full-original-image-same-board-current-image-may-be-damaged"
   },
   "qualification": {
@@ -40,10 +46,10 @@
     "genericRestore": "SOFTWARE_TESTED_DEVICE_PENDING",
     "priorDeviceResults": "R12_SAME_VERSION_MACOS_AND_R6_EXACT_FACTORY_INHERITED"
   },
-  "appBundleSha256": "e742e66b22836881394c289e8e4af17fa617fc2c9aaff6a31d81a981ff498104",
+  "appBundleSha256": "c13f1e78f9036ac740896b7f87b7c2db9dd7cdd59ebd453eee50e6347be3a5c4",
   "reinstall": {
-    "script": "assets/reinstall-651ff0719ac8.js",
-    "sha256": "337dbb5b53600d53c04c160bcec153dcdab0d719eac4c60866ef0092ccdea564"
+    "script": "assets/reinstall-be3ca2c906e5.js",
+    "sha256": "d065f5f00db031d75f33d13f282dee1fecc49533866c02b22fe55af496140c9e"
   },
-  "recoveryBundleSha256": "dd22e7fc1d707f1aee8a963b627631a371f1a653c7b56a5169faaa87794e3553"
+  "recoveryBundleSha256": "8b6f4254cc0d8cfa6726e026790cfb0602bb7602ac12b08792e71098bf26b3a5"
 }

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta name="color-scheme" content="light"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-eOv1E1CnQR+AF53la2sHXq3ObUYLAljf5qvJSdtAYzk='; style-src 'sha256-jz+6CUS7U/EZQsv3WWDLEQ7wY4MCO/9pOHdAGMfg+mE='; img-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><title>Draftor · 备份与恢复 / Backup & Recovery</title><link rel="icon" href="data:,"><style>    :root { --paper:#f7f5ef; --ink:#292924; --cinnabar:#a74539; --quiet:#766f64; --line:#d9d5c9; --focus:#815a50; }
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta name="color-scheme" content="light"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-61WeIHeE5xoiypad7vZllsl9u0uBA5H3P82E2AiQeNw='; style-src 'sha256-jz+6CUS7U/EZQsv3WWDLEQ7wY4MCO/9pOHdAGMfg+mE='; img-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><title>Draftor · 备份与恢复 / Backup & Recovery</title><link rel="icon" href="data:,"><style>    :root { --paper:#f7f5ef; --ink:#292924; --cinnabar:#a74539; --quiet:#766f64; --line:#d9d5c9; --focus:#815a50; }
     * { box-sizing:border-box; }
     html { background:var(--paper); scroll-behavior:smooth; }
     body { margin:0; min-height:100vh; color:var(--ink); background:var(--paper);
@@ -156,7 +156,7 @@ summary:focus-visible { outline:3px solid var(--focus); outline-offset:4px; }
 Restore returns the saved original firmware and data, including other firmware, a factory demo or blank content. Normal boot depends on the original image. Preserve TF separately.
 
 A pre-write failure has not modified Flash. Correct its stated cause before starting again. Stop and retain the receipt after an interrupted write. Use the R13 tool for new raw-original packages. Keep private ZIP and protection JSON files local.
-</pre></section><section id="offline-licenses"><h2>Source &amp; licenses</h2><p>Combined browser program GPL-3.0. Source 651ff0719ac8a89b5163fedf6b76b763516e13c6. Corresponding source and build instructions at https://draftor.tcssn.org/sources/Draftor_Web_R13_source.zip</p><details><summary>GNU_GPL_v3.txt</summary><pre>                    GNU GENERAL PUBLIC LICENSE
+</pre></section><section id="offline-licenses"><h2>Source &amp; licenses</h2><p>Combined browser program GPL-3.0. Source be3ca2c906e576d97abfadc881ab117ebf0a60de. Corresponding source and build instructions at https://draftor.tcssn.org/sources/Draftor_Web_R13_source.zip</p><details><summary>GNU_GPL_v3.txt</summary><pre>                    GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
  Copyright (C) 2007 Free Software Foundation, Inc. &lt;https://fsf.org/&gt;
@@ -4331,8 +4331,8 @@ Public License instead of this License.
   var offlineName = false ? "Draftor_Recovery_R11_Offline.html" : "Draftor_Recovery_R13_Offline.html";
   var offline = true;
   startRecoveryUI({
-    build: "R13.1-public-651ff0719ac8",
-    sourceCommit: "651ff0719ac8a89b5163fedf6b76b763516e13c6",
+    build: "R13.2-public-be3ca2c906e5",
+    sourceCommit: "be3ca2c906e576d97abfadc881ab117ebf0a60de",
     recoveryEnabled: offline,
     copyOverrides: Object.fromEntries(["zh", "en"].map((l) => [l, { ...publicRecoveryCopy[l], supported: platformMessage(l), unsupported: platformMessage(l) }])),
     mapError: publicErrorCode,

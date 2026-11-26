@@ -1,5 +1,5 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Draftor 安装范围</title><link rel="stylesheet" href="../style.css"></head><body><main class="wrap resource-guide">
-<h1>安装支持范围</h1><p>R13.1-public-651ff0719ac8 · 目标固件 v0.1.0-alpha.3</p>
+<h1>安装支持范围</h1><p>R13.2-public-be3ca2c906e5 · 目标固件 v0.1.0-alpha.3</p>
 <h2>清空安装</h2><p>用户核实微雪 ESP32-S3-RLCD-4.2 / ST7305 后，核对 ESP32-S3、16 MiB 容量、安全状态和目标发行文件。不同厂家版本、未知旧固件、未知分区、残留数据和全空白均可清空安装。非空设备先保存、回选实际原机完整 ZIP 并保存 R13 离线工具，最后明确确认一次覆盖全部内部 Flash。全空白必须经完整 ROM 摘要核实才可跳过备份。</p>
 <h2>保留数据重装</h2><p>仍限准确 Alpha 3 app0 同版本，保留分区、安全和保护区域检查。无法确认兼容时提供“备份后清空安装”入口。</p>
 <h2>完整备份和恢复</h2><p>未知原固件按实际全部 16 MiB 内容保存。通用包使用 draftor-private-recovery/2，原有 /1 包继续可读。恢复核对包完整性、原设备身份和安全条件，不要求当前 Flash 能启动或分区完好。擦除与写回后均核对实际内容。小型保护 JSON 与完整 ZIP 用途不同，离线完整恢复仍使用 ZIP。</p>
