@@ -8,13 +8,13 @@ import path from 'node:path';
 import { verifyReleaseInputs } from './verify-release.mjs';
 import { PINS } from '../src/pins.js';
 
-const [out, baseline = 'dist-r13-public'] = process.argv.slice(2);
-if (out !== 'dist-r13-download-public') throw Error('Expected dist-r13-download-public');
+const [out, baseline = 'dist-r13-download-public'] = process.argv.slice(2);
+if (out !== 'dist-r13-audit-public') throw Error('Expected dist-r13-audit-public');
 const hash = b => createHash('sha256').update(b).digest('hex');
 const b64 = b => createHash('sha256').update(b).digest('base64');
 const baseManifest = await readFile(path.join(baseline, 'SITE_SHA256SUMS'));
-if (hash(baseManifest) !== '5f0daa7a3e4610d5d68a0d53eb93e45e7f90017231f2f065f41543b5461eca82') throw Error('Publication baseline mismatch');
-const previousPages = 'b673e971da06cc4b8fc9d14a0ea656cac5634657';
+if (hash(baseManifest) !== 'e06642effd57e34dd6838d90e7708789d0f51b86a2a81e865882ae2d660949e3') throw Error('Publication baseline mismatch');
+const previousPages = '33258cb0eaf70669b6569ecfc749be6d617d20cb';
 let source;
 try { source = JSON.parse(await readFile('SOURCE_IDENTITY.json', 'utf8')).sourceCommit; }
 catch (e) {
@@ -36,7 +36,7 @@ for (const row of baseManifest.toString().trim().split('\n')) {
   // Recreate the current corresponding-source archive; preserve the prior site on disk.
   if (name !== 'sources/Draftor_Web_R13_source.zip') await put(name, data);
 }
-const version = 'R13.1-public-' + source.slice(0, 12);
+const version = 'R13.2-public-' + source.slice(0, 12);
 const offlineName = 'Draftor_Recovery_R13_Offline.html';
 const defines = { __R11_BUILD__: JSON.stringify(version), __R11_SOURCE__: JSON.stringify(source), __INSTALLER_OFFLINE_NAME__: JSON.stringify(offlineName) };
 const config = { bundle: true, target: ['chrome120'], legalComments: 'inline' };
@@ -89,7 +89,7 @@ execFileSync('python3', ['tools/package-r12-source.py', out + '/sources/Draftor_
 const metadata = {
   schema: 'draftor-public-release/1', profile: 'R13_SUPPORTED_HARDWARE_CLEAN_INSTALL',
   version, sourceCommit: source, previousPages, reviewOnly: false, software: false, realUsbAvailable: true, frozen: true,
-  download: { idleTimeoutMs: 60000, totalFileDeadlineMs: null, progress: 'actual-decoded-bytes', retry: 'user-only-network-preparation', cache: 'session-length-sha256-md5-verified-files' },
+  download: { idleTimeoutMs: 60000, totalFileDeadlineMs: null, progress: 'actual-decoded-bytes', retry: 'user-only-network-preparation', cache: 'session-length-sha256-md5-verified-files', offlineTool: { idleTimeoutMs: 60000, sha256Pinned: true, networkRetry: 'same-read-only-prepared-session', closeOrder: 'abort-http-before-close-device' } },
   release: PINS.version, appSha256: PINS.files['app.bin'].sha256, windowsDevice: 'PENDING',
   installation: { firstPage: 'first-install.html', reinstallPage: 'index.html', cleanInstall: 'confirmed-board-chip-capacity-security-target-and-current-full-backup', blank: 'ROM-full-blank-proof-no-backup', preservedReinstall: 'exact-alpha3-app0' },
   recovery: { packageSchemas: ['draftor-private-recovery/1', 'draftor-private-recovery/2'], online: 'backup-and-read-only', offlineHtml: 'offline/' + offlineName, offlineSha256: offlineHash, scope: 'validated-full-original-image-same-board-current-image-may-be-damaged' },

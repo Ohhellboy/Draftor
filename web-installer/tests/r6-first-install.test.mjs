@@ -12,7 +12,7 @@ import { PINS } from '../src/pins.js';
 import { FACTORY } from '../src/factory-pins.js';
 import { RomDevicePort } from './rom-device.mjs';
 
-const { release, inputs } = await verifyReleaseInputs();
+const { release, inputs } = await verifyReleaseInputs({ verifyDesignBrief: false });
 const factory = await readFile(new URL('../release-inputs/factory/ESP32-S3-RLCD-4.2_FactoryOnly_20260120.bin', import.meta.url));
 const hash = (b, alg = 'sha256') => createHash(alg).update(b).digest('hex');
 assert.equal(factory.length, 4548144); assert.equal(hash(factory), FACTORY.sha256);

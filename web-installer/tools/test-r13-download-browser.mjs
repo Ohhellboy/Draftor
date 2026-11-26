@@ -2,10 +2,20 @@
 // Tests real browser networking and production UI; never selects a real port.
 import {chromium} from '@playwright/test';
 import {build} from 'esbuild';
-import {mkdir,readFile,writeFile} from 'node:fs/promises';
+import {mkdir,readFile,writeFile,realpath} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 import {networkServer} from '../tests/r13-network-server.mjs';
 const finalRoot=process.argv[2],root=finalRoot||'.test-cache/r13-download';
+const digest=b=>createHash('sha256').update(b).digest('hex');
+let artifactIdentity={classification:'DEVELOPMENT_BUILD',root};
+if(finalRoot){
+ const b=JSON.parse(await readFile(root+'/BUILD.json','utf8'));
+ const appSha=digest(await readFile(root+'/assets/app.js'));assert.equal(appSha,b.appBundleSha256);
+ const reinstallSha=digest(await readFile(root+'/'+b.reinstall.script));assert.equal(reinstallSha,b.reinstall.sha256);
+ artifactIdentity={classification:'FORMAL_RELEASE_ARTIFACT',root:await realpath(root),version:b.version,sourceCommit:b.sourceCommit,manifestSha256:digest(await readFile(root+'/SITE_SHA256SUMS')),appBundleSha256:appSha,reinstallSha256:reinstallSha,offlineSha256:digest(await readFile(root+'/'+b.recovery.offlineHtml))};
+ assert.equal(artifactIdentity.offlineSha256,b.recovery.offlineSha256);
+}
 const evidence=process.argv[3]||'delivery/R13_Download_Fix_20261126/browser-development.json';
 if(!finalRoot){
  await mkdir(root+'/assets',{recursive:true});
@@ -13,18 +23,18 @@ if(!finalRoot){
   const html=(await readFile('dist-r13-public/'+name,'utf8')).replace(/assets\/reinstall-[a-f0-9]+\.js/g,'assets/reinstall.js');await writeFile(root+'/'+name,html);
  }
  const config={bundle:true,target:['chrome120'],legalComments:'inline',format:'esm'};
- await build({...config,entryPoints:['src/r11-main.js'],outfile:root+'/assets/app.js',define:{__R11_BUILD__:'"R13.1-DOWNLOAD-TEST"',__R11_SOURCE__:'"a34806354cf5864a37e923e4a2cca386bda87124"',__R11_OFFLINE_HASH__:'"TEST_NOT_USED"'}});
+ await build({...config,entryPoints:['src/r11-main.js'],outfile:root+'/assets/app.js',define:{__R11_BUILD__:'"R13.1-DOWNLOAD-TEST"',__R11_SOURCE__:'"a34806354cf5864a37e923e4a2cca386bda87124"',__R11_OFFLINE_HASH__:JSON.stringify(JSON.parse(await readFile('dist-r13-download-public/BUILD.json','utf8')).recovery.offlineSha256)}});
  await build({...config,entryPoints:['src/r12-local-app0.js'],outfile:root+'/assets/reinstall.js',define:{__R12_PUBLIC__:'true',__R12_BUILD__:'"R13.1-DOWNLOAD-TEST"',__R12_SOURCE__:'"a34806354cf5864a37e923e4a2cca386bda87124"'}});
  for(const name of ['style.css','recovery.css','install-navigation.css'])await writeFile(root+'/'+name,await readFile('dist-r13-public/'+name));
 }
 const edgeExecutable=process.argv[4];
-const net=await networkServer(root),browser=await chromium.launch(edgeExecutable?{executablePath:edgeExecutable,headless:true}:{channel:'chrome',headless:true});
+const net=await networkServer(root,{artifactOnly:!!finalRoot}),browser=await chromium.launch(edgeExecutable?{executablePath:edgeExecutable,headless:false}:{channel:'chrome',headless:true});
 const browserKind=edgeExecutable?'macOS Microsoft Edge':'macOS Google Chrome';
 const results=[];
 async function run(scenario,pageName='first-install.html',language='zh',edge=false){
  const ctx=await browser.newContext(edge?{reducedMotion:'reduce',viewport:{width:1280,height:900},userAgent:'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0'}:{reducedMotion:'reduce',viewport:{width:1280,height:900}});
  await ctx.addInitScript(()=>{globalThis.__portRequests=0;Object.defineProperty(navigator,'serial',{value:{requestPort(){globalThis.__portRequests++;throw Error('Test forbids physical USB');}}});});
- const page=await ctx.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ const page=await ctx.newPage(),errors=[],scriptReads=[];page.on('response',r=>{if(new URL(r.url()).pathname.includes('/assets/')&&new URL(r.url()).pathname.endsWith('.js'))scriptReads.push(r.body().then(b=>({file:new URL(r.url()).pathname.split('/assets/')[1],sha256:digest(b)})));});page.on('pageerror',e=>errors.push(e.message));
  const route=(edge?'edge-':'')+scenario;
  await page.goto(`${net.base}/${route}/${pageName}`);await page.bringToFront();
  if(language==='en')await page.locator('#lang-toggle').click();
@@ -67,7 +77,9 @@ async function run(scenario,pageName='first-install.html',language='zh',edge=fal
  }
  // Receipt must also be available when no device session has ever existed.
  assert.equal(await page.locator('#save-receipt').isEnabled(),true);
- results.push({scenario,page:pageName,language,environment:edge?browserKind+' with Windows Edge UA (compatibility simulation only)':browserKind,browserVersion:browser.version(),elapsedMs,progressSample,final,portRequests:0,deviceWrites:0,pageErrors:errors});
+ const loadedScripts=await Promise.all(scriptReads);
+ if(finalRoot){for(const r of loadedScripts)assert.equal(r.sha256,digest(await readFile(root+'/assets/'+r.file)));}
+ results.push({artifactIdentity,loadedScripts,scenario,page:pageName,language,environment:edge?browserKind+' with Windows Edge UA (compatibility simulation only)':browserKind,browserVersion:browser.version(),elapsedMs,progressSample,final,portRequests:0,deviceWrites:0,pageErrors:errors});
  if(await page.locator('#install-dialog').isVisible())await page.locator('#stop-close').click();await ctx.close();
 }
 async function pageExit(){
@@ -90,5 +102,5 @@ try{
   for(const row of net.records.filter(r=>r.scenario===scenario&&r.file.endsWith('.json')&&r.file.startsWith('firmware/')))assert.equal(row.request,1);
  }
 }catch(e){error=String(e.stack||e);}
-finally{await browser.close();await net.close();await writeFile(evidence,JSON.stringify({result:error?'FAIL':'PASS',sourceBuildRoot:root,realTimeSlowTest:!process.env.R13_FAST_BROWSER,windowsDevice:'NOT_RUN',edgeNative:edgeExecutable?'MACOS_TESTED_WINDOWS_NOT_RUN':'NOT_RUN_IN_THIS_INVOCATION',results,http:net.records,error},null,2)+'\n');}
+finally{await browser.close();await net.close();await writeFile(evidence,JSON.stringify({result:error?'FAIL':'PASS',sourceBuildRoot:root,artifactIdentity,realTimeSlowTest:!process.env.R13_FAST_BROWSER,windowsDevice:'NOT_RUN',edgeNative:edgeExecutable?'MACOS_TESTED_WINDOWS_NOT_RUN':'NOT_RUN_IN_THIS_INVOCATION',results,http:net.records,error},null,2)+'\n');}
 if(error)throw Error(error);console.log(JSON.stringify({result:'PASS',cases:results.length,evidence}));

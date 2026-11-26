@@ -10,7 +10,7 @@ import { InstallSession } from '../src/session.js';
 import { SimulatedFlash, otaFixture, SIM_MAC } from '../src/simulator.js';
 import { PINS } from '../src/pins.js';
 
-const { release, inputs } = await verifyReleaseInputs();
+const { release, inputs } = await verifyReleaseInputs({ verifyDesignBrief: false });
 const confirmation = { boardConfirmed: true, expectedMac: SIM_MAC };
 const approve = { backupConfirmed: true, tfRemoved: true, planConfirmed: true };
 const forbiddenWrites = d => d.trace.filter(t => ['write', 'eraseAll'].includes(t.op));

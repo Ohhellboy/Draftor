@@ -61,6 +61,100 @@ function abortable(work, signal) {
   });
 }
 
+// Shared bounded, progress-aware transfer for firmware and the offline HTML.
+// The caller owns the returned bytes and must clear them when no longer needed.
+async function readPinnedAsset({ entry, controller, fetcher, idleTimeoutMs, onProgress }) {
+  const { name, pin, url } = entry, signal = controller.signal, limit = pin.bytes ?? pin.maxBytes;
+  let reader, response, buffer, received = 0, expected = pin.bytes, httpStatus = null, stage = 'CONNECTING', timer, complete = false;
+  const detail = () => ({ file: name, stage, httpStatus, receivedBytes: received, expectedBytes: expected });
+  const failure = category => new DownloadFailure(category, detail());
+  const emit = () => onProgress(detail());
+  const arm = () => { clearTimeout(timer); timer = setTimeout(() => controller.abort('IDLE_TIMEOUT'), idleTimeoutMs); };
+  const alive = () => { if (signal.aborted) throw failure(signal.reason === 'IDLE_TIMEOUT' ? 'IDLE_TIMEOUT' : 'CANCELLED'); };
+  emit(); arm();
+  try {
+    alive();
+    response = await abortable(fetcher.call(globalThis, url, { redirect: 'error', credentials: 'omit', cache: 'no-store', signal }), signal);
+    alive(); httpStatus = response.status;
+    if (!response.ok || response.redirected) throw failure('HTTP_STATUS');
+    if (!response.body) throw failure('INCOMPLETE');
+    // Fetch delivers decoded bytes, not compressed Content-Length bytes.
+    const encoding = response.headers.get('content-encoding'), length = response.headers.get('content-length');
+    if ((!encoding || encoding === 'identity') && length !== null) {
+      const n = Number(length);
+      if (!Number.isSafeInteger(n) || n < 0 || n > limit || (pin.bytes !== undefined && n !== pin.bytes)) throw failure('LENGTH');
+      expected = n;
+    }
+    reader = response.body.getReader(); buffer = new Uint8Array(limit); stage = 'RECEIVING'; emit();
+    while (true) {
+      alive(); const { value, done } = await abortable(reader.read(), signal); alive();
+      if (done) break;
+      if (!(value instanceof Uint8Array)) throw failure('INCOMPLETE');
+      if (!value.byteLength) continue;
+      if (received + value.byteLength > limit || (expected !== undefined && received + value.byteLength > expected)) throw failure('LENGTH');
+      buffer.set(value, received); received += value.byteLength; arm(); emit();
+    }
+    clearTimeout(timer);
+    if (!received || (expected !== undefined && received !== expected)) throw failure('INCOMPLETE');
+    stage = 'VERIFYING'; emit();
+    const bytes = buffer.subarray(0, received);
+    if (await sha256(bytes) !== pin.sha256) throw failure('SHA256');
+    alive(); if (pin.md5 && md5(bytes) !== pin.md5) throw failure('MD5');
+    alive();
+    const result = received === buffer.length ? buffer : bytes.slice();
+    if (result !== buffer) buffer.fill(0);
+    complete = true; return result;
+  } catch (error) {
+    throw signal.aborted ? failure(signal.reason === 'IDLE_TIMEOUT' ? 'IDLE_TIMEOUT' : 'CANCELLED')
+      : error instanceof DownloadFailure ? error : failure('NETWORK');
+  } finally {
+    clearTimeout(timer);
+    if (!complete) {
+      buffer?.fill(0); controller.abort(signal.reason || 'FAILED');
+      // A broken body may never acknowledge cancel. Abort and release ownership
+      // without waiting for that acknowledgement (or keeping a serial port open).
+      try { Promise.resolve(reader ? reader.cancel() : response?.body?.cancel()).catch(() => {}); } catch {}
+    }
+    try { reader?.releaseLock(); } catch {}
+  }
+}
+
+export const isDownloadNetworkFailure = error => error instanceof DownloadFailure &&
+  ['NETWORK', 'IDLE_TIMEOUT', 'HTTP_STATUS', 'INCOMPLETE'].includes(error.detail.category);
+
+// One public, SHA-pinned file; no cache, device methods or write authority.
+export class PinnedAssetDownloader {
+  #entry; #fetch; #idle; #notify; #active; #disposed = false;
+  #attempt = 0; #history = []; #state = { stage: 'IDLE' };
+  constructor({ url, name, sha256: hash, maxBytes, fetcher = fetch, idleTimeoutMs = DOWNLOAD_IDLE_MS, onProgress = () => {} }) {
+    requireSafe(/^[A-Za-z0-9_.-]+$/.test(name) && /^[a-f0-9]{64}$/.test(hash), 'DOWNLOAD_CONFIG');
+    requireSafe(Number.isSafeInteger(maxBytes) && maxBytes > 0 && maxBytes < 4000000, 'DOWNLOAD_CONFIG');
+    requireSafe(Number.isFinite(idleTimeoutMs) && idleTimeoutMs > 0, 'DOWNLOAD_CONFIG');
+    this.#entry = { name, url: new URL(url), pin: { sha256: hash, maxBytes } };
+    this.#fetch = fetcher; this.#idle = idleTimeoutMs; this.#notify = onProgress;
+  }
+  snapshot() { return structuredClone({ schema: 'draftor-download/1', attempt: this.#attempt, idleTimeoutMs: this.#idle, totalDeadlineMs: null,
+    fileCount: 1, fileIndex: 1, ...this.#state, history: this.#history }); }
+  #emit(value) { this.#state = value; this.#notify(this.snapshot()); }
+  cancel() { this.#active?.abort('CANCELLED'); }
+  dispose() { this.#disposed = true; this.cancel(); }
+  async load() {
+    requireSafe(!this.#active && !this.#disposed, 'DOWNLOAD_STATE');
+    const controller = new AbortController(), started = performance.now(); this.#active = controller; this.#attempt++;
+    try {
+      const bytes = await readPinnedAsset({ entry: this.#entry, controller, fetcher: this.#fetch, idleTimeoutMs: this.#idle,
+        onProgress: value => this.#emit(value) });
+      this.#history.push({ attempt: this.#attempt, ...this.#state, elapsedMs: Math.round(performance.now() - started), result: 'VERIFIED' });
+      if (this.#history.length > 64) this.#history.shift();
+      this.#emit({ ...this.#state, stage: 'READY', verifiedCount: 1 }); return bytes;
+    } catch (e) {
+      this.#history.push({ attempt: this.#attempt, ...e.detail, elapsedMs: Math.round(performance.now() - started), result: 'FAILED' });
+      if (this.#history.length > 64) this.#history.shift();
+      this.#emit({ stage: e.detail?.category === 'CANCELLED' ? 'CANCELLED' : 'FAILED', error: e.detail }); throw e;
+    } finally { this.#history = this.#history.slice(-64); this.#active = undefined; }
+  }
+}
+
 // Cache ownership stays inside one preparation session. Nothing enters this cache
 // until the actual bytes pass the pinned length, SHA-256 and (where pinned) MD5.
 export class ReleaseDownloader {
@@ -87,54 +181,17 @@ export class ReleaseDownloader {
   dispose() { this.#disposed = true; this.cancel(); for (const b of this.#cache.values()) b.fill(0); this.#cache.clear(); }
   extraFile(name) { requireSafe(this.#cache.has(name) && !PINS.files[name] && !PINS.documents[name], 'ASSET'); return this.#cache.get(name).slice(); }
   async #read(entry, controller, index) {
-    const { name, pin, url } = entry, signal = controller.signal;
-    let reader, response, buffer, received = 0, httpStatus = null, stage = 'CONNECTING', timer, complete = false;
     const started = performance.now();
-    const detail = () => ({ file: name, stage, httpStatus, receivedBytes: received, expectedBytes: pin.bytes });
-    const failure = category => new DownloadFailure(category, detail());
-    const emit = () => this.#emit({ ...detail(), fileIndex: index + 1 });
-    const arm = () => { clearTimeout(timer); timer = setTimeout(() => controller.abort('IDLE_TIMEOUT'), this.#idle); };
-    const alive = () => { if (signal.aborted) throw failure(signal.reason === 'IDLE_TIMEOUT' ? 'IDLE_TIMEOUT' : 'CANCELLED'); };
-    emit(); arm();
     try {
-      alive();
-      response = await abortable(this.#fetch.call(globalThis, url, { redirect: 'error', credentials: 'omit', cache: 'no-store', signal }), signal);
-      alive(); httpStatus = response.status;
-      if (!response.ok || response.redirected) throw failure('HTTP_STATUS');
-      if (!response.body) throw failure('INCOMPLETE');
-      // Fetch yields decoded bytes; compressed Content-Length is not their size.
-      const encoding = response.headers.get('content-encoding'), length = response.headers.get('content-length');
-      if ((!encoding || encoding === 'identity') && length !== null && Number(length) !== pin.bytes) throw failure('LENGTH');
-      reader = response.body.getReader(); buffer = new Uint8Array(pin.bytes); stage = 'RECEIVING'; emit();
-      while (true) {
-        alive(); const { value, done } = await abortable(reader.read(), signal); alive();
-        if (done) break;
-        if (!(value instanceof Uint8Array)) throw failure('INCOMPLETE');
-        if (!value.byteLength) continue; // Empty chunks are not download progress.
-        if (received + value.byteLength > pin.bytes) throw failure('LENGTH');
-        buffer.set(value, received); received += value.byteLength; arm(); emit();
-      }
-      clearTimeout(timer);
-      if (received !== pin.bytes) throw failure('INCOMPLETE');
-      stage = 'VERIFYING'; emit();
-      if (await sha256(buffer) !== pin.sha256) throw failure('SHA256');
-      alive(); if (pin.md5 && md5(buffer) !== pin.md5) throw failure('MD5');
-      alive(); this.#cache.set(name, buffer); complete = true; stage = 'VERIFIED'; emit();
-      this.#remember({ attempt: this.#attempt, ...detail(), elapsedMs: Math.round(performance.now() - started), result: 'VERIFIED' });
-    } catch (error) {
-      const e = signal.aborted ? failure(signal.reason === 'IDLE_TIMEOUT' ? 'IDLE_TIMEOUT' : 'CANCELLED')
-        : error instanceof DownloadFailure ? error : failure('NETWORK');
+      const bytes = await readPinnedAsset({ entry, controller, fetcher: this.#fetch, idleTimeoutMs: this.#idle,
+        onProgress: value => this.#emit({ ...value, fileIndex: index + 1 }) });
+      this.#cache.set(entry.name, bytes);
+      const detail = { file: entry.name, stage: 'VERIFIED', receivedBytes: bytes.length, expectedBytes: entry.pin.bytes };
+      this.#emit({ ...detail, fileIndex: index + 1 });
+      this.#remember({ attempt: this.#attempt, ...detail, elapsedMs: Math.round(performance.now() - started), result: 'VERIFIED' });
+    } catch (e) {
       this.#remember({ attempt: this.#attempt, ...e.detail, elapsedMs: Math.round(performance.now() - started), result: 'FAILED' });
       throw e;
-    } finally {
-      clearTimeout(timer);
-      if (!complete) {
-        buffer?.fill(0); controller.abort(signal.reason || 'FAILED');
-        // Abort fetch and release ownership immediately; do not wait indefinitely
-        // for a broken stream's cancel acknowledgement.
-        try { Promise.resolve(reader ? reader.cancel() : response?.body?.cancel()).catch(() => {}); } catch {}
-      }
-      try { reader?.releaseLock(); } catch {}
     }
   }
   async load({ signal } = {}) {

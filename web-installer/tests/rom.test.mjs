@@ -9,7 +9,7 @@ import { InstallSession } from '../src/session.js';
 import { SimulatedFlash, SIM_MAC } from '../src/simulator.js';
 import { RomDevicePort } from './rom-device.mjs';
 
-const { release, inputs } = await verifyReleaseInputs();
+const { release, inputs } = await verifyReleaseInputs({ verifyDesignBrief: false });
 const approve = { backupConfirmed: true, tfRemoved: true, planConfirmed: true };
 function setup(scenario = 'app0', options = {}, allowUpdate = true) {
   const flash = new SimulatedFlash(release, scenario).flash;

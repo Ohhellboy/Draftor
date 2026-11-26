@@ -86,6 +86,7 @@
       <h2>遇到问题</h2>
       <dl>
         <dt>下载失败或下载较慢</dt><dd>只要收到的数据量持续增加，就继续等待，超过一分钟也可以。若显示“下载失败，请检查网络后重试”，检查网络后点<strong>重新下载</strong>。网页只重试文件准备，复用本次已校验的文件，不连接串口、不擦写或复位设备。可展开“下载详情”查看文件名、错误类别和 HTTP 状态，或保存脱敏回执。若一直校验失败，请反馈回执。关闭安装弹窗会取消下载；重新打开会建立新的下载会话。</dd>
+        <dt>离线恢复工具下载失败或一直等待</dt><dd>若显示“离线恢复工具下载失败，请检查网络后重试”，检查网络后点<strong>重新下载离线恢复工具</strong>。这只重试 HTML 文件，保留当前只读准备会话，不重新连接或开始擦写。点击“停止操作”会先中止下载，再关闭连接。文件摘要不符时会停止并关闭连接，请保存脱敏回执，不使用未通过检查的 HTML。</dd>
         <dt>串口窗口里找不到设备</dt><dd>先取消选口。换一根能传数据的线，关闭占用串口的程序，然后重复上面的 BOOT＋PWR 顺序。在 Windows 的“设备管理器 → 端口（COM 和 LPT）”查看这块板插入后出现的项目。<a href="docs/WINDOWS_FIRST_USER_GUIDE.zh-CN.md">Windows 连接帮助</a></dd>
         <dt>在系统保存窗口点了取消</dt><dd>重装页会提示“已取消保存，未开始写入，连接已关闭”。关掉弹窗，从首页再点“重新安装 Alpha 3”，重新选择设备并保存。清空安装页若取消了 ZIP 或 HTML 下载，先重新保存对应文件，完成回选或保存确认后再安装。</dd>
         <dt>连接中断</dt><dd>如果页面显示“尚未擦除或写入，原机 Flash 内容未被本次操作修改”，可关闭弹窗、检查连接后重新开始。只有已开始擦写后中断，才需要用下一条的恢复方式处理。</dd>
@@ -103,6 +104,7 @@
         <li>Leave USB, power and the page connected until verification finishes. Power off fully, insert the prepared TF card, release BOOT and start normally. Pair the keyboard on first install or use its original channel after reinstall. Open the writing screen and check that a new document survives a restart.</li>
         <li>For a new TF card, download both ZIPs from the home page and unzip them. Copy <code>Resources/HANIME/</code> from the base ZIP and <code>Resources/WAVESHARE_R7_L1_AREV1_RES_20261112/</code> from the LearningIndex ZIP directly to the card root, without the <code>Resources</code> wrapper. Preserve personal files. <a href="docs/TF_GUIDE.html">TF file list</a></li>
       </ol>
+      <p>If downloading the offline recovery HTML fails, use <strong>Retry offline recovery tool download</strong>. This retries only the public HTML in the same read-only prepared session. Stop aborts HTTP first, then closes the device connection. An incorrect file hash stops the session; keep the sanitized receipt and do not use that HTML.</p>
       <p>If the board is absent, check the cable, BOOT and PWR sequence and Windows Device Manager. Cancelling the native protection save closes the connection before writing, so you can restart from the home page. After a write failure or uncertain interruption, stop and keep the sanitized receipt. Use your own full ZIP and offline tool through <a href="recovery.html">Backup &amp; recovery</a>, or contact <a href="https://github.com/Ohhellboy/Draftor/issues">project support</a> with the error and sanitized receipt. Keep private files on your computer.</p>
     </section>
     <footer><a href="./#install-title">返回安装首页</a> · <a href="docs/PUBLIC_STATUS.html">支持范围 / Scope</a></footer>
