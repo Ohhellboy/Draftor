@@ -2946,8 +2946,8 @@
   var offlineName = false ? "Draftor_Recovery_R11_Offline.html" : "Draftor_Recovery_R13_Offline.html";
   var offline = false;
   startRecoveryUI({
-    build: "R13-public-a34806354cf5",
-    sourceCommit: "a34806354cf5864a37e923e4a2cca386bda87124",
+    build: "R13.1-public-651ff0719ac8",
+    sourceCommit: "651ff0719ac8a89b5163fedf6b76b763516e13c6",
     recoveryEnabled: offline,
     copyOverrides: Object.fromEntries(["zh", "en"].map((l) => [l, { ...publicRecoveryCopy[l], supported: platformMessage(l), unsupported: platformMessage(l) }])),
     mapError: publicErrorCode,

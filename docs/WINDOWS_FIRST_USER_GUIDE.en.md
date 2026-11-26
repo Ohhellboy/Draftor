@@ -2,6 +2,8 @@
 
 Use desktop Chrome or Edge with Web Serial. Windows Home and Pro editions use the same capability and device checks.
 
+After opening an installer, wait for Preparing installation files (actual received size), then Checking installation files. A transfer that keeps receiving data may take longer than one minute. On Download failed, check the network and click Retry download. This only prepares files, reuses verified files from the current session and does not connect or write to a device. Close the dialog to cancel. Download details and a sanitized receipt show the specific error.
+
 With USB connected, hold PWR to power off, hold BOOT, briefly press PWR to power on, then release BOOT after about two seconds. Before this, save documents, fully power off and remove TF. Select the corresponding USB Serial Device (COM…) or USB JTAG/serial debug unit.
 
 [Installation steps](https://draftor.tcssn.org/guide.html)

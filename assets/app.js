@@ -879,11 +879,11 @@ async function verifyRelease(inputs) {
   for (const [name, pin] of Object.entries({ ...PINS.documents, ...PINS.files })) {
     const bytes = inputs[name];
     requireSafe(bytes instanceof Uint8Array && bytes.length === pin.bytes, "ASSET");
-    const copy = bytes.slice();
-    requireSafe(await sha256(copy) === pin.sha256, "ASSET");
+    const copy2 = bytes.slice();
+    requireSafe(await sha256(copy2) === pin.sha256, "ASSET");
     if (PINS.files[name]) {
-      requireSafe(md5(copy) === pin.md5, "ASSET");
-      files[name] = copy;
+      requireSafe(md5(copy2) === pin.md5, "ASSET");
+      files[name] = copy2;
     }
   }
   const manifest = JSON.parse(new TextDecoder().decode(inputs["FIRMWARE_MANIFEST.json"]));
@@ -906,46 +906,279 @@ async function verifyRelease(inputs) {
   verified.set(release, files);
   return release;
 }
-async function loadRelease(base = new URL("../firmware/", import.meta.url), fetcher = fetch) {
-  const inputs = {};
-  for (const [name, pin] of Object.entries({ ...PINS.documents, ...PINS.files })) {
-    const url = new URL(name, base);
-    requireSafe(url.origin === base.origin, "ASSET");
-    let response;
+var DOWNLOAD_IDLE_MS = 6e4;
+var DownloadFailure = class extends Stop {
+  constructor(category, detail = {}) {
+    super(["LENGTH", "SHA256", "MD5", "RELEASE"].includes(category) ? "ASSET" : category === "CANCELLED" ? "CANCELLED" : "DOWNLOAD");
+    this.name = "DownloadFailure";
+    this.detail = Object.freeze({ category, ...detail });
+  }
+};
+function abortable(work, signal) {
+  if (signal.aborted) return Promise.reject(new Error("download aborted"));
+  return new Promise((resolve, reject) => {
+    const abort = () => {
+      signal.removeEventListener("abort", abort);
+      reject(new Error("download aborted"));
+    };
+    signal.addEventListener("abort", abort, { once: true });
+    Promise.resolve(work).then((value) => {
+      signal.removeEventListener("abort", abort);
+      resolve(value);
+    }, (error) => {
+      signal.removeEventListener("abort", abort);
+      reject(error);
+    });
+  });
+}
+var ReleaseDownloader = class {
+  #base;
+  #fetch;
+  #idle;
+  #notify;
+  #entries;
+  #cache = /* @__PURE__ */ new Map();
+  #active;
+  #attempt = 0;
+  #history = [];
+  #current = { stage: "IDLE" };
+  #disposed = false;
+  constructor({ base = new URL("../firmware/", import.meta.url), fetcher = fetch, idleTimeoutMs = DOWNLOAD_IDLE_MS, onProgress = () => {
+  }, extras = [] } = {}) {
+    requireSafe(Number.isFinite(idleTimeoutMs) && idleTimeoutMs > 0, "DOWNLOAD_CONFIG");
+    this.#base = new URL(base);
+    this.#fetch = fetcher;
+    this.#idle = idleTimeoutMs;
+    this.#notify = onProgress;
+    this.#entries = Object.entries({ ...PINS.documents, ...PINS.files }).map(([name, pin]) => ({ name, pin, url: new URL(name, this.#base) }));
+    for (const extra of extras) {
+      requireSafe(/^[A-Za-z0-9_.-]+$/.test(extra.name) && !this.#entries.some((e) => e.name === extra.name), "DOWNLOAD_CONFIG");
+      requireSafe(Number.isSafeInteger(extra.pin.bytes) && extra.pin.bytes > 0 && extra.pin.bytes <= PINS.flashBytes && /^[a-f0-9]{64}$/.test(extra.pin.sha256), "DOWNLOAD_CONFIG");
+      this.#entries.push({ name: extra.name, pin: Object.freeze({ ...extra.pin }), url: new URL(extra.url, this.#base) });
+    }
+    for (const entry of this.#entries) requireSafe(entry.url.origin === this.#base.origin, "ASSET");
+  }
+  snapshot() {
+    return structuredClone({
+      schema: "draftor-download/1",
+      attempt: this.#attempt,
+      idleTimeoutMs: this.#idle,
+      totalDeadlineMs: null,
+      ...this.#current,
+      verifiedFiles: [...this.#cache.keys()],
+      history: this.#history
+    });
+  }
+  #emit(value) {
+    this.#current = { ...value, attempt: this.#attempt, verifiedCount: this.#cache.size, fileCount: this.#entries.length };
+    this.#notify(this.snapshot());
+  }
+  #remember(value) {
+    this.#history.push(value);
+    if (this.#history.length > 64) this.#history.shift();
+  }
+  cancel() {
+    this.#active?.abort("CANCELLED");
+  }
+  dispose() {
+    this.#disposed = true;
+    this.cancel();
+    for (const b of this.#cache.values()) b.fill(0);
+    this.#cache.clear();
+  }
+  extraFile(name) {
+    requireSafe(this.#cache.has(name) && !PINS.files[name] && !PINS.documents[name], "ASSET");
+    return this.#cache.get(name).slice();
+  }
+  async #read(entry, controller, index) {
+    const { name, pin, url } = entry, signal = controller.signal;
+    let reader, response, buffer, received = 0, httpStatus = null, stage = "CONNECTING", timer, complete = false;
+    const started = performance.now();
+    const detail = () => ({ file: name, stage, httpStatus, receivedBytes: received, expectedBytes: pin.bytes });
+    const failure = (category) => new DownloadFailure(category, detail());
+    const emit = () => this.#emit({ ...detail(), fileIndex: index + 1 });
+    const arm = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => controller.abort("IDLE_TIMEOUT"), this.#idle);
+    };
+    const alive = () => {
+      if (signal.aborted) throw failure(signal.reason === "IDLE_TIMEOUT" ? "IDLE_TIMEOUT" : "CANCELLED");
+    };
+    emit();
+    arm();
     try {
-      response = await fetcher(url, { redirect: "error", credentials: "omit", cache: "no-store", signal: AbortSignal.timeout(6e4) });
-      requireSafe(response.ok && !response.redirected && response.body, "DOWNLOAD");
-      const encoding = response.headers.get("content-encoding");
-      if ((!encoding || encoding === "identity") && response.headers.get("content-length"))
-        requireSafe(Number(response.headers.get("content-length")) === pin.bytes, "ASSET");
-      const reader = response.body.getReader(), out = new Uint8Array(pin.bytes);
-      let at = 0;
-      try {
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          requireSafe(at + value.length <= out.length, "ASSET");
-          out.set(value, at);
-          at += value.length;
-        }
-        requireSafe(at === out.length, "DOWNLOAD");
-      } catch (error) {
-        await reader.cancel().catch(() => {
-        });
-        throw error;
-      } finally {
-        reader.releaseLock();
+      alive();
+      response = await abortable(this.#fetch.call(globalThis, url, { redirect: "error", credentials: "omit", cache: "no-store", signal }), signal);
+      alive();
+      httpStatus = response.status;
+      if (!response.ok || response.redirected) throw failure("HTTP_STATUS");
+      if (!response.body) throw failure("INCOMPLETE");
+      const encoding = response.headers.get("content-encoding"), length = response.headers.get("content-length");
+      if ((!encoding || encoding === "identity") && length !== null && Number(length) !== pin.bytes) throw failure("LENGTH");
+      reader = response.body.getReader();
+      buffer = new Uint8Array(pin.bytes);
+      stage = "RECEIVING";
+      emit();
+      while (true) {
+        alive();
+        const { value, done } = await abortable(reader.read(), signal);
+        alive();
+        if (done) break;
+        if (!(value instanceof Uint8Array)) throw failure("INCOMPLETE");
+        if (!value.byteLength) continue;
+        if (received + value.byteLength > pin.bytes) throw failure("LENGTH");
+        buffer.set(value, received);
+        received += value.byteLength;
+        arm();
+        emit();
       }
-      inputs[name] = out;
+      clearTimeout(timer);
+      if (received !== pin.bytes) throw failure("INCOMPLETE");
+      stage = "VERIFYING";
+      emit();
+      if (await sha256(buffer) !== pin.sha256) throw failure("SHA256");
+      alive();
+      if (pin.md5 && md5(buffer) !== pin.md5) throw failure("MD5");
+      alive();
+      this.#cache.set(name, buffer);
+      complete = true;
+      stage = "VERIFIED";
+      emit();
+      this.#remember({ attempt: this.#attempt, ...detail(), elapsedMs: Math.round(performance.now() - started), result: "VERIFIED" });
     } catch (error) {
-      throw error instanceof Stop ? error : new Stop("DOWNLOAD");
+      const e = signal.aborted ? failure(signal.reason === "IDLE_TIMEOUT" ? "IDLE_TIMEOUT" : "CANCELLED") : error instanceof DownloadFailure ? error : failure("NETWORK");
+      this.#remember({ attempt: this.#attempt, ...e.detail, elapsedMs: Math.round(performance.now() - started), result: "FAILED" });
+      throw e;
+    } finally {
+      clearTimeout(timer);
+      if (!complete) {
+        buffer?.fill(0);
+        controller.abort(signal.reason || "FAILED");
+        try {
+          Promise.resolve(reader ? reader.cancel() : response?.body?.cancel()).catch(() => {
+          });
+        } catch {
+        }
+      }
+      try {
+        reader?.releaseLock();
+      } catch {
+      }
     }
   }
-  return verifyRelease(inputs);
-}
+  async load({ signal } = {}) {
+    requireSafe(!this.#active && !this.#disposed, "DOWNLOAD_STATE");
+    const controller = new AbortController();
+    this.#active = controller;
+    this.#attempt++;
+    const abort = () => controller.abort("CANCELLED");
+    signal?.addEventListener("abort", abort, { once: true });
+    if (signal?.aborted) abort();
+    try {
+      for (let index = 0; index < this.#entries.length; index++) {
+        if (controller.signal.aborted) throw new DownloadFailure("CANCELLED", { file: this.#entries[index].name, stage: "CONNECTING", httpStatus: null });
+        const entry = this.#entries[index];
+        if (this.#cache.has(entry.name)) {
+          this.#emit({ file: entry.name, stage: "REUSED", fileIndex: index + 1, receivedBytes: entry.pin.bytes, expectedBytes: entry.pin.bytes });
+          this.#remember({ attempt: this.#attempt, file: entry.name, stage: "REUSED", result: "VERIFIED_CACHE" });
+        } else await this.#read(entry, controller, index);
+      }
+      this.#emit({ stage: "VERIFYING_RELEASE" });
+      let release;
+      try {
+        release = await verifyRelease(Object.fromEntries(this.#cache));
+      } catch {
+        if (controller.signal.aborted) throw new DownloadFailure("CANCELLED", { file: null, stage: "VERIFYING_RELEASE", httpStatus: null });
+        for (const b of this.#cache.values()) b.fill(0);
+        this.#cache.clear();
+        throw new DownloadFailure("RELEASE", { file: null, stage: "VERIFYING_RELEASE", httpStatus: null });
+      }
+      if (controller.signal.aborted) throw new DownloadFailure("CANCELLED", { file: null, stage: "VERIFYING_RELEASE", httpStatus: null });
+      this.#emit({ stage: "READY" });
+      return release;
+    } catch (error) {
+      const e = error instanceof DownloadFailure ? error : new DownloadFailure("NETWORK", { file: null, stage: this.#current.stage, httpStatus: null });
+      this.#emit({ stage: e.detail.category === "CANCELLED" ? "CANCELLED" : "FAILED", error: e.detail });
+      throw e;
+    } finally {
+      signal?.removeEventListener("abort", abort);
+      this.#active = void 0;
+    }
+  }
+};
 function tableMatchesRelease(release, actual) {
   checkPartitions(actual);
   requireSafe(bytesEqual(actual.slice(0, 3072), releaseFile(release, "partitions.bin")), "PARTITIONS");
+}
+
+// src/download-ui.js
+var copy = {
+  zh: { preparing: "\u6B63\u5728\u51C6\u5907\u5B89\u88C5\u6587\u4EF6", checking: "\u6B63\u5728\u68C0\u67E5\u5B89\u88C5\u6587\u4EF6", failed: "\u4E0B\u8F7D\u5931\u8D25\uFF0C\u8BF7\u68C0\u67E5\u7F51\u7EDC\u540E\u91CD\u8BD5", retry: "\u91CD\u65B0\u4E0B\u8F7D", details: "\u4E0B\u8F7D\u8BE6\u60C5\uFF08\u4E0D\u542B\u4E2A\u4EBA\u6570\u636E\uFF09", receiving: "\u6B63\u5728\u4E0B\u8F7D", file: "\u6587\u4EF6", idle: "\u8FDE\u63A5\u957F\u65F6\u95F4\u6CA1\u6709\u6536\u5230\u65B0\u6570\u636E\u3002", network: "\u7F51\u7EDC\u8FDE\u63A5\u5931\u8D25\u6216\u4E0B\u8F7D\u4E2D\u65AD\u3002", http: "\u670D\u52A1\u5668\u6682\u65F6\u65E0\u6CD5\u63D0\u4F9B\u6587\u4EF6\u3002", incomplete: "\u6587\u4EF6\u672A\u4E0B\u8F7D\u5B8C\u6574\u3002", invalid: "\u6587\u4EF6\u6821\u9A8C\u672A\u901A\u8FC7\uFF0C\u4E0D\u80FD\u7528\u4E8E\u5B89\u88C5\u3002", safe: "\u5C1A\u672A\u8FDE\u63A5\u8BBE\u5907\uFF0C\u672A\u64E6\u9664\u6216\u5199\u5165\u3002", cancelled: "\u5DF2\u53D6\u6D88\u4E0B\u8F7D\uFF0C\u672A\u64E6\u9664\u6216\u5199\u5165\u3002" },
+  en: { preparing: "Preparing installation files", checking: "Checking installation files", failed: "Download failed. Check your network and retry.", retry: "Retry download", details: "Download details (no personal data)", receiving: "Downloading", file: "File", idle: "No new data arrived for too long.", network: "The network connection failed or the download was interrupted.", http: "The server could not provide the file.", incomplete: "The file was not downloaded completely.", invalid: "File verification failed. It cannot be used for installation.", safe: "No device connection, erase or write has started.", cancelled: "Download cancelled. No erase or write has started." }
+};
+var amount = (n) => (n / 1e6).toFixed(2) + " MB";
+function downloadPanel({ anchor, onChange, onRetry, options = {} }) {
+  const section = document.createElement("section");
+  section.id = "download-preparation";
+  section.hidden = true;
+  section.innerHTML = '<p id="download-progress-text" aria-live="polite"></p><progress id="download-progress" max="1" value="0"></progress><p id="download-problem" role="alert"></p><button id="retry-download" type="button"></button><details id="download-details"><summary></summary><pre></pre></details>';
+  anchor.after(section);
+  const $ = (id) => section.querySelector("#" + id);
+  let loader, state = { stage: "IDLE" }, lang = "zh";
+  $("retry-download").addEventListener("click", () => {
+    if (state.stage === "FAILED") onRetry();
+  });
+  function status(language) {
+    const c = copy[language];
+    return state.stage === "FAILED" ? c.failed : state.stage === "CANCELLED" ? c.cancelled : ["VERIFYING", "VERIFYING_RELEASE"].includes(state.stage) ? c.checking : c.preparing;
+  }
+  function render(language, visible) {
+    lang = language;
+    const c = copy[lang];
+    section.hidden = !visible;
+    const failed = state.stage === "FAILED", active = ["CONNECTING", "RECEIVING"].includes(state.stage);
+    const detail = state.error, category = detail?.category;
+    $("download-progress-text").textContent = active ? `${c.file} ${state.fileIndex} / ${state.fileCount} \xB7 ${c.receiving}\uFF1A${amount(state.receivedBytes || 0)}${Number.isFinite(state.expectedBytes) ? " / " + amount(state.expectedBytes) : ""}` : "";
+    $("download-progress").hidden = !active;
+    if (Number.isFinite(state.expectedBytes)) {
+      $("download-progress").max = state.expectedBytes;
+      $("download-progress").value = state.receivedBytes || 0;
+    } else $("download-progress").removeAttribute("value");
+    $("download-problem").hidden = !failed;
+    $("download-problem").textContent = failed ? (category === "IDLE_TIMEOUT" ? c.idle : category === "HTTP_STATUS" ? c.http : category === "INCOMPLETE" ? c.incomplete : ["LENGTH", "SHA256", "MD5", "RELEASE"].includes(category) ? c.invalid : c.network) + " " + c.safe : "";
+    $("retry-download").hidden = !failed;
+    $("retry-download").disabled = !failed;
+    $("retry-download").textContent = c.retry;
+    $("download-details").querySelector("summary").textContent = c.details;
+    $("download-details").querySelector("pre").textContent = JSON.stringify(state, null, 2);
+  }
+  return {
+    reset() {
+      loader?.dispose();
+      state = { stage: "IDLE" };
+      loader = new ReleaseDownloader({ ...options, onProgress: (value) => {
+        state = value;
+        onChange();
+      } });
+    },
+    load() {
+      return loader.load();
+    },
+    extraFile(name) {
+      return loader.extraFile(name);
+    },
+    cancel() {
+      loader?.cancel();
+    },
+    dispose() {
+      loader?.dispose();
+    },
+    snapshot() {
+      return structuredClone(state);
+    },
+    status,
+    render
+  };
 }
 
 // src/recovery-zip.js
@@ -1044,7 +1277,7 @@ function browserEnvironment() {
 var browserIsQualified = () => desktopSerialStatus(browserEnvironment()).qualified;
 function platformMessage(language, environment = browserEnvironment()) {
   const reason = desktopSerialStatus(environment).reason;
-  const copy = { zh: {
+  const copy2 = { zh: {
     MOBILE: "\u624B\u673A\u548C\u5E73\u677F\u4E0D\u5F00\u653E USB \u64CD\u4F5C\u3002\u8BF7\u4F7F\u7528 Windows 10/11 \u684C\u9762 Chrome \u6216 Edge\uFF1B\u6B64\u5904\u4ECD\u53EF\u6D4F\u89C8\u548C\u4E0B\u8F7D\u3002",
     INSECURE_CONTEXT: "\u5F53\u524D\u9875\u9762\u4E0D\u662F\u5B89\u5168\u4E0A\u4E0B\u6587\uFF0C\u672A\u8FDE\u63A5\u8BBE\u5907\u3002\u8BF7\u6253\u5F00\u6B63\u5F0F HTTPS \u7F51\u7AD9\uFF1B\u79BB\u7EBF\u6062\u590D\u8BF7\u7528\u684C\u9762 Chrome/Edge \u76F4\u63A5\u6253\u5F00\u5DF2\u4FDD\u5B58\u7684 HTML\u3002\u4E0D\u8981\u5173\u95ED\u6D4F\u89C8\u5668\u5B89\u5168\u8BBE\u7F6E\u3002",
     SERIAL_POLICY: "\u6B64\u9875\u9762\u7684\u4E32\u53E3\u6743\u9650\u88AB\u7B56\u7565\u9650\u5236\uFF0C\u672A\u8FDE\u63A5\u8BBE\u5907\u3002\u53EF\u5C1D\u8BD5\u684C\u9762 Chrome\uFF1B\u53D7\u7BA1\u7406\u7684\u7535\u8111\u8BF7\u8054\u7CFB\u7BA1\u7406\u5458\u5141\u8BB8 Serial API\uFF0C\u4E0D\u8981\u7ED5\u8FC7\u7EC4\u7EC7\u7B56\u7565\u3002",
@@ -1057,7 +1290,7 @@ function platformMessage(language, environment = browserEnvironment()) {
     SERIAL_UNAVAILABLE: "Web Serial is unavailable; no device connected. On Windows use current desktop Chrome or Edge. If Edge is managed, try Chrome or ask your administrator. Open the offline HTML directly in that browser.",
     CAPABLE_DESKTOP: "Web Serial is available. Windows Chrome/Edge can be used; complete installation and recovery still await Windows device feedback. Save files as directed on this page."
   } };
-  return copy[language === "en" ? "en" : "zh"][reason];
+  return copy2[language === "en" ? "en" : "zh"][reason];
 }
 function publicErrorCode(error) {
   if (typeof error?.code === "string" && /^[A-Z_0-9]{1,48}$/.test(error.code)) return error.code;
@@ -2295,6 +2528,7 @@ function startPublicUI({ build, sourceCommit, offlineToolSha256, requestDriver, 
  <section id="confirm-section">${check("plan-confirmed", "planConsent")}<div id="current-app-label">${field("current-app", "oldApp", ".bin")}</div><button id="execute-plan" class="install-primary" data-r10="execute" disabled></button></section></section>
  <progress id="write-progress" max="1" value="0" hidden></progress><p id="finished-note" class="notice" data-r10="finished" hidden></p><p><a href="recovery.html" data-r10="recoveryLink"></a> \xB7 <a href="docs/TF_GUIDE.html">TF</a> \xB7 <a href="docs/PUBLIC_STATUS.html" data-r10="scopeLink"></a></p><div class="workflow-actions"><button id="save-receipt" data-r10="receipt" disabled></button><button id="stop-close" data-r10="close"></button></div></div></div>`;
   document.body.append(modal);
+  const downloads = downloadPanel({ anchor: $("workflow-error"), onChange: () => render(), onRetry: () => prepareFiles() });
   const platformNotice = document.createElement("p");
   platformNotice.id = "platform-notice";
   platformNotice.className = "notice";
@@ -2335,10 +2569,11 @@ function startPublicUI({ build, sourceCommit, offlineToolSha256, requestDriver, 
     for (const e of document.querySelectorAll("[data-r10]")) e.textContent = t(e.dataset.r10);
     $("board-name").textContent = lang === "zh" ? "\u5FAE\u96EA ESP32-S3-RLCD-4.2" : "Waveshare ESP32-S3-RLCD-4.2";
     const modified = (session?.receipt() || lastReceipt)?.mutationStarted === true;
-    $("workflow-status").textContent = phase === "STOP" ? t(modified ? "stoppedHelp" : "notModified") : installationCopy[lang].phases[phase] || t(phase);
+    downloads.render(lang, ["loading", "DOWNLOAD_FAILED", "DOWNLOAD_CANCELLED"].includes(phase));
+    $("workflow-status").textContent = ["loading", "DOWNLOAD_FAILED", "DOWNLOAD_CANCELLED"].includes(phase) ? downloads.status(lang) : phase === "STOP" ? t(modified ? "stoppedHelp" : "notModified") : installationCopy[lang].phases[phase] || t(phase);
     $("workflow-error").hidden = !error;
     $("workflow-error").textContent = error ? `${error} \xB7 ${serialErrorHelp(error, lang) || t(error === "PACKAGE_METADATA" ? "wrongOriginal" : error.startsWith("PACKAGE_") ? "badPackage" : modified ? "stoppedHelp" : "notModified")}` : "";
-    $("connect-section").hidden = !!session || closed || !browserIsQualified();
+    $("connect-section").hidden = !!session || closed || !release || !browserIsQualified();
     $("connect-read").disabled = busy || !release || !$("physical-board").checked || !$("prepared-tf").checked;
     const plan = session?.plan;
     if (plan) {
@@ -2363,7 +2598,7 @@ function startPublicUI({ build, sourceCommit, offlineToolSha256, requestDriver, 
     $("tool-ready").hidden = !session?.offlineToolVerified;
     $("tool-saved").disabled = busy || !session?.offlineToolVerified;
     $("execute-plan").disabled = busy || !prepared || !session?.backupVerified || plan?.initialState !== "blank" && (!session?.offlineToolVerified || !$("tool-saved").checked) || !["plan-confirmed", "prepared-tf"].every((id) => $(id).checked);
-    $("save-receipt").disabled = !diagnostics;
+    $("save-receipt").disabled = !diagnostics && !downloads.snapshot().attempt;
     $("stop-close").textContent = t(busy ? "stop" : "close");
     if ($("info-dialog").open) renderInfo();
   }
@@ -2388,7 +2623,7 @@ function startPublicUI({ build, sourceCommit, offlineToolSha256, requestDriver, 
       session = void 0;
       $("plan-section").hidden = true;
       $("plan-json").textContent = "";
-      externalReceipt.hidden = !diagnostics;
+      externalReceipt.hidden = !diagnostics && !downloads.snapshot().attempt;
     }
   }
   function download(bytes, name, type) {
@@ -2437,6 +2672,26 @@ function startPublicUI({ build, sourceCommit, offlineToolSha256, requestDriver, 
     }
     render();
   }
+  async function prepareFiles() {
+    if (busy || session || closed || !["loading", "DOWNLOAD_FAILED"].includes(phase)) return;
+    busy = true;
+    phase = "loading";
+    error = "";
+    render();
+    activeTask = (async () => {
+      try {
+        release = await downloads.load();
+        phase = "ready";
+      } catch (e) {
+        release = void 0;
+        phase = e.detail?.category === "CANCELLED" ? "DOWNLOAD_CANCELLED" : "DOWNLOAD_FAILED";
+      } finally {
+        busy = false;
+        render();
+      }
+    })();
+    return activeTask;
+  }
   $("install-btn").addEventListener("click", () => {
     if (modal.open || busy) return;
     closed = false;
@@ -2445,16 +2700,14 @@ function startPublicUI({ build, sourceCommit, offlineToolSha256, requestDriver, 
     release = void 0;
     diagnostics = void 0;
     lastReceipt = void 0;
+    downloads.reset();
     $("plan-section").hidden = true;
     $("finished-note").hidden = true;
     $("write-progress").hidden = true;
     clearPrivate();
     modal.showModal();
     render();
-    if (browserIsQualified()) run(async () => {
-      release = await loadRelease(new URL("../firmware/", import.meta.url));
-      phase = "ready";
-    });
+    if (browserIsQualified()) prepareFiles();
   });
   $("connect-read").addEventListener("click", () => {
     if ($("connect-read").disabled) return;
@@ -2555,12 +2808,15 @@ function startPublicUI({ build, sourceCommit, offlineToolSha256, requestDriver, 
     render();
   });
   async function close() {
+    downloads.cancel();
     if (busy) {
       session?.cancel();
       await activeTask;
     }
     try {
       await releaseSession();
+      downloads.dispose();
+      release = void 0;
       modal.close();
     } catch {
       error = "CLOSE_FAILED";
@@ -2575,7 +2831,7 @@ function startPublicUI({ build, sourceCommit, offlineToolSha256, requestDriver, 
     close();
   });
   function receipt() {
-    const r = session?.receipt() || lastReceipt;
+    const r = { schema: "draftor-install-download-receipt/1", build, sourceCommit, flashOutcome: "NO_FLASH_WRITE_ATTEMPT", ...session?.receipt() || lastReceipt, downloadPreparation: downloads.snapshot() };
     if (r) download(new TextEncoder().encode(JSON.stringify(r, null, 2) + "\n"), "Draftor-install-sanitized-receipt.json", "application/json");
   }
   $("save-receipt").addEventListener("click", receipt);
@@ -2601,6 +2857,8 @@ function startPublicUI({ build, sourceCommit, offlineToolSha256, requestDriver, 
     }
   });
   addEventListener("pagehide", () => {
+    downloads.dispose();
+    release = void 0;
     session?.cancel();
     session?.close().catch(() => {
     });
@@ -3673,9 +3931,9 @@ var S3Rom = class {
 // src/r11-main.js
 var offlineName = false ? "Draftor_Recovery_R11_Offline.html" : "Draftor_Recovery_R13_Offline.html";
 startPublicUI({
-  build: "R13-public-a34806354cf5",
-  sourceCommit: "a34806354cf5864a37e923e4a2cca386bda87124",
-  offlineToolSha256: "576484e7efc2e9f64e0552fa9286ee75715c65f18bcc3e3f862a65963a10d142",
+  build: "R13.1-public-651ff0719ac8",
+  sourceCommit: "651ff0719ac8a89b5163fedf6b76b763516e13c6",
+  offlineToolSha256: "92e69ad0679c7333cea8ccb45fd8e4119812d47044b9bc5c05432f134b4cce8b",
   offlineToolHref: "../offline/" + offlineName,
   offlineToolName: offlineName,
   requestDriver: async (diagnostics) => {

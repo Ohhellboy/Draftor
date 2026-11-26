@@ -1,13 +1,20 @@
 {
   "schema": "draftor-public-release/1",
   "profile": "R13_SUPPORTED_HARDWARE_CLEAN_INSTALL",
-  "version": "R13-public-a34806354cf5",
-  "sourceCommit": "a34806354cf5864a37e923e4a2cca386bda87124",
-  "previousPages": "505e2e597faa441a14b0cf6adb48d6240226ad8f",
+  "version": "R13.1-public-651ff0719ac8",
+  "sourceCommit": "651ff0719ac8a89b5163fedf6b76b763516e13c6",
+  "previousPages": "b673e971da06cc4b8fc9d14a0ea656cac5634657",
   "reviewOnly": false,
   "software": false,
   "realUsbAvailable": true,
   "frozen": true,
+  "download": {
+    "idleTimeoutMs": 60000,
+    "totalFileDeadlineMs": null,
+    "progress": "actual-decoded-bytes",
+    "retry": "user-only-network-preparation",
+    "cache": "session-length-sha256-md5-verified-files"
+  },
   "release": "v0.1.0-alpha.3",
   "appSha256": "165782a52c59f677579f92a0b35e950eed5f041df349813c37bff1e9ad5680bd",
   "windowsDevice": "PENDING",
@@ -25,7 +32,7 @@
     ],
     "online": "backup-and-read-only",
     "offlineHtml": "offline/Draftor_Recovery_R13_Offline.html",
-    "offlineSha256": "576484e7efc2e9f64e0552fa9286ee75715c65f18bcc3e3f862a65963a10d142",
+    "offlineSha256": "92e69ad0679c7333cea8ccb45fd8e4119812d47044b9bc5c05432f134b4cce8b",
     "scope": "validated-full-original-image-same-board-current-image-may-be-damaged"
   },
   "qualification": {
@@ -33,10 +40,10 @@
     "genericRestore": "SOFTWARE_TESTED_DEVICE_PENDING",
     "priorDeviceResults": "R12_SAME_VERSION_MACOS_AND_R6_EXACT_FACTORY_INHERITED"
   },
-  "appBundleSha256": "fd1fcda07c8336d305df18f9fcf756f2b0abc291add8879ffd2c3721cd65601a",
+  "appBundleSha256": "e742e66b22836881394c289e8e4af17fa617fc2c9aaff6a31d81a981ff498104",
   "reinstall": {
-    "script": "assets/reinstall-a34806354cf5.js",
-    "sha256": "0fb09d51845bcba1e2d76a4c7e3868c0497701c8a52ade30fb46feb91c16dbc3"
+    "script": "assets/reinstall-651ff0719ac8.js",
+    "sha256": "337dbb5b53600d53c04c160bcec153dcdab0d719eac4c60866ef0092ccdea564"
   },
-  "recoveryBundleSha256": "3f009107a642bc1fbcdf733e2816268d3e34c8878c4f86771157a641559597e6"
+  "recoveryBundleSha256": "dd22e7fc1d707f1aee8a963b627631a371f1a653c7b56a5169faaa87794e3553"
 }
