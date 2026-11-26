@@ -697,6 +697,53 @@
     "draftorInitializedFullMd5": "4e805a469b67740ccaad7e3807ba0509"
   });
 
+  // src/first-install.js
+  var FIRST_FILES = Object.freeze(["bootloader.bin", "partitions.bin", "boot_app0.bin", "app.bin"]);
+  var CLEAN_INITIAL_STATES = Object.freeze(["blank", "waveshare-factory-20260120", "unrecognized"]);
+  function cleanStateAllowed(state) {
+    return CLEAN_INITIAL_STATES.includes(state);
+  }
+  async function inspectOriginalFlash(driver, table, ota) {
+    if (await driver.flashMd5(0, PINS.flashBytes) === PINS.blankFlashMd5)
+      return { firmware: "blank", activeApp: "none" };
+    if (await isFactoryTable(table)) {
+      let matches = true;
+      for (const row of FACTORY.fingerprint) {
+        if (await driver.flashMd5(row.offset, row.bytes) !== row.md5) matches = false;
+      }
+      if (matches) return { firmware: "waveshare-factory-20260120", activeApp: "factory" };
+    }
+    if (await sha256(table.subarray(0, 3072)) === PINS.files["partitions.bin"].sha256) {
+      let slot;
+      try {
+        slot = activeSlot(ota);
+      } catch (error) {
+        if (!(error instanceof Stop) || error.code !== "OTA") throw error;
+      }
+      if (slot === 0) {
+        let matches = true;
+        for (const name of ["bootloader.bin", "app.bin"]) {
+          const pin = PINS.files[name];
+          if (await driver.flashMd5(pin.offset, pin.bytes) !== pin.md5) matches = false;
+        }
+        if (matches) return { firmware: "draftor-alpha3-app0", activeApp: "app0" };
+      }
+    }
+    return { firmware: "unrecognized", activeApp: "unknown" };
+  }
+  async function isFactoryTable(table) {
+    return table.length === 4096 && await sha256(table) === FACTORY.tableSha256;
+  }
+  async function verifyInitialFlash(driver, source) {
+    requireSafe(["blank", "waveshare-factory-20260120"].includes(source), "UNKNOWN");
+    if (source === "blank") {
+      requireSafe(await driver.flashMd5(0, PINS.flashBytes) === PINS.blankFlashMd5, "UNKNOWN");
+    } else {
+      for (const row of FACTORY.fingerprint)
+        requireSafe(await driver.flashMd5(row.offset, row.bytes) === row.md5, "FACTORY_FINGERPRINT");
+    }
+  }
+
   // src/recovery-zip.js
   var PACKAGE_NAMES = Object.freeze(["manifest.json", "flash.bin", "README.zh-CN.txt", "README.en.txt"]);
   var MAX_PACKAGE_BYTES = 16777216 + 32768;
@@ -780,6 +827,7 @@
 
   // src/recovery-package.js
   var RECOVERY_SCHEMA = "draftor-private-recovery/1";
+  var RAW_RECOVERY_SCHEMA = "draftor-private-recovery/2";
   var te2 = new TextEncoder();
   var td2 = new TextDecoder("utf-8", { fatal: true });
   var validated = /* @__PURE__ */ new WeakMap();
@@ -801,46 +849,63 @@
   }
   async function classifyRecoveryImage(bytes) {
     requireSafe(bytes instanceof Uint8Array && bytes.length === PINS.flashBytes, "PACKAGE_SIZE");
-    const table = bytes.subarray(32768, 36864), tableSha = await sha256(table);
-    if (tableSha === FACTORY.tableSha256) {
-      for (const pin of FACTORY.fingerprint) requireSafe(md5(bytes.subarray(pin.offset, pin.offset + pin.bytes)) === pin.md5, "FACTORY_FINGERPRINT");
-      return { firmware: "waveshare-factory-20260120", rule: "FACTORY_FIXED_THREE_RANGES_V1", partition: { offset: 32768, bytes: 4096, sha256: tableSha, md5: md5(table), rows: FACTORY.partitions }, ota: { applicable: false }, activeApp: "factory" };
+    const table = bytes.subarray(32768, 36864), ota = bytes.subarray(57344, 65536);
+    const tableSha = await sha256(table);
+    const original = await inspectOriginalFlash({
+      flashMd5: async (offset, size) => md5(bytes.subarray(offset, offset + size))
+    }, table, ota);
+    if (original.firmware === "waveshare-factory-20260120") {
+      return { firmware: original.firmware, rule: "FACTORY_FIXED_THREE_RANGES_V1", partition: { offset: 32768, bytes: 4096, sha256: tableSha, md5: md5(table), rows: FACTORY.partitions }, ota: { applicable: false }, activeApp: "factory" };
     }
-    const rows = checkPartitions(table);
-    requireSafe(await sha256(table.subarray(0, 3072)) === PINS.files["partitions.bin"].sha256, "PARTITIONS");
-    const ota = bytes.subarray(57344, 65536);
-    requireSafe(activeSlot(ota) === 0, "UNQUALIFIED_SLOT");
-    for (const name of ["bootloader.bin", "app.bin"]) {
-      const p = PINS.files[name];
-      requireSafe(await sha256(bytes.subarray(p.offset, p.offset + p.bytes)) === p.sha256, "UNQUALIFIED_FIRMWARE");
+    if (original.firmware === "draftor-alpha3-app0") {
+      const rows = checkPartitions(table);
+      for (const name of ["bootloader.bin", "app.bin"]) {
+        const pin = PINS.files[name];
+        requireSafe(await sha256(bytes.subarray(pin.offset, pin.offset + pin.bytes)) === pin.sha256, "PACKAGE_HASH");
+      }
+      return {
+        firmware: original.firmware,
+        rule: "ALPHA3_BOOT_APP0_B_TABLE_V1",
+        partition: { offset: 32768, bytes: 4096, sha256: tableSha, md5: md5(table), rows },
+        ota: { applicable: true, offset: 57344, bytes: 8192, sha256: await sha256(ota), md5: md5(ota), entries: [0, 4096].map((at) => ({ sequence: u32(ota, at), state: u32(ota, at + 24), crc: u32(ota, at + 28) })) },
+        activeApp: "app0"
+      };
     }
     return {
-      firmware: "draftor-alpha3-app0",
-      rule: "ALPHA3_BOOT_APP0_B_TABLE_V1",
-      partition: { offset: 32768, bytes: 4096, sha256: tableSha, md5: md5(table), rows },
-      ota: { applicable: true, offset: 57344, bytes: 8192, sha256: await sha256(ota), md5: md5(ota), entries: [0, 4096].map((at) => ({ sequence: u32(ota, at), state: u32(ota, at + 24), crc: u32(ota, at + 28) })) },
-      activeApp: "app0"
+      firmware: original.firmware,
+      rule: "RAW_FULL_FLASH_V1",
+      partition: { offset: 32768, bytes: 4096, sha256: tableSha, md5: md5(table), rows: null },
+      ota: { applicable: true, offset: 57344, bytes: 8192, sha256: await sha256(ota), md5: md5(ota), entries: null },
+      activeApp: original.activeApp
     };
   }
   var readmes = {
     "README.zh-CN.txt": "\u79C1\u4EBA\u5B8C\u6574 Flash \u6062\u590D\u5305\u3002\u4E0D\u8981\u4E0A\u4F20\u3001\u516C\u5F00\u6216\u53D1\u9001\u7ED9\u4ED6\u4EBA\u3002\u4EC5\u9002\u7528\u4E8E\u521B\u5EFA\u65F6\u7684\u539F\u5FAE\u96EA ESP32-S3-RLCD-4.2 / ST7305\u3002\u6062\u590D\u8986\u76D6\u5168\u90E8 16 MiB \u5185\u90E8 Flash\uFF0C\u8BBE\u7F6E\u3001\u914D\u5BF9\u53CA\u5185\u90E8\u6587\u7A3F\u56DE\u5230\u5907\u4EFD\u65F6\uFF1BTF \u6587\u4EF6\u4E0D\u5728\u672C\u5305\u4E2D\uFF0C\u5FC5\u987B\u72EC\u7ACB\u4FDD\u7559\u3002\u6062\u590D\u5382\u5BB6\u5907\u4EFD\u4F1A\u56DE\u5230\u5382\u5BB6\u6F14\u793A\uFF0C\u4E0D\u4F1A\u5B89\u88C5 Draftor\u3002\u4F7F\u7528\u968F\u9644\u79BB\u7EBF\u5DE5\u5177\uFF0C\u9009\u62E9\u672C ZIP \u5E76\u8FDE\u63A5\u539F\u8BBE\u5907\uFF1B\u6821\u9A8C\u901A\u8FC7\u540E\u624D\u786E\u8BA4\u6062\u590D\u3002\u5B8C\u6210\u540E\u5FC5\u987B\u65AD\u7535\u3001\u63D2\u56DE TF\u3001\u666E\u901A\u542F\u52A8\u9A8C\u6536\u3002\u6458\u8981\u548C MAC \u53EA\u9632\u8BEF\u9009\u53CA\u610F\u5916\u635F\u574F\uFF0C\u4E0D\u662F\u6570\u5B57\u7B7E\u540D\u6216\u8EAB\u4EFD\u8BA4\u8BC1\u3002\n",
     "README.en.txt": "PRIVATE full Flash recovery package. Do not upload, publish or share. Only for the original Waveshare ESP32-S3-RLCD-4.2 / ST7305. Recovery overwrites all 16 MiB of internal Flash and rolls settings, pairing and internal documents back to backup time. TF files are NOT included; preserve TF separately. Restoring a factory backup returns the factory demo, not Draftor. Open the offline recovery tool, select this ZIP, connect the original board and confirm only after checks pass. After verification, power off, insert TF and validate normal boot. Hashes and MAC are accidental-corruption / wrong-device safeguards, not signatures or authentication.\n"
   };
-  async function createRecoveryPackage(bytes, info, { boardConfirmed, romMd5Before, romMd5After, method, build, sourceCommit, createdAt = (/* @__PURE__ */ new Date()).toISOString(), id = crypto.randomUUID() } = {}) {
+  var proofMethods = ["ROM_READ_SLOW_MD5_V1", "ROM_MD5_MATCH_EXISTING_V1", "ROM_ORIGINAL_RECONSTRUCTED_V1"];
+  function checkReconstruction(p) {
+    keys(p, "pointSha256,originalCheckedAt,mode,currentPrivateRangesUnchanged,currentFlashIsOriginal");
+    requireSafe(/^[0-9a-f]{64}$/.test(p.pointSha256) && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(p.originalCheckedAt) && Number.isFinite(Date.parse(p.originalCheckedAt)), "PACKAGE_PROOF");
+    requireSafe(["fresh", "update"].includes(p.mode) && p.currentPrivateRangesUnchanged === (p.mode === "update") && p.currentFlashIsOriginal === false, "PACKAGE_PROOF");
+  }
+  async function createRecoveryPackage(bytes, info, { boardConfirmed, romMd5Before, romMd5After, method, build, sourceCommit, reconstruction, createdAt = (/* @__PURE__ */ new Date()).toISOString(), id = crypto.randomUUID() } = {}) {
     requireSafe(boardConfirmed === true, "BOARD_CONFIRM");
     const image = bytes.slice(), device = checkedIdentity(info), digest = md5(image);
     requireSafe(romMd5Before === digest && romMd5After === digest, "BACKUP_STALE");
-    requireSafe(["ROM_READ_SLOW_MD5_V1", "ROM_MD5_MATCH_EXISTING_V1"].includes(method), "PACKAGE_PROOF");
+    requireSafe(proofMethods.includes(method), "PACKAGE_PROOF");
+    if (method === "ROM_ORIGINAL_RECONSTRUCTED_V1") checkReconstruction(reconstruction);
+    else requireSafe(reconstruction === void 0, "PACKAGE_PROOF");
     const original = await classifyRecoveryImage(image);
     const manifest = {
-      schema: RECOVERY_SCHEMA,
+      schema: original.rule === "RAW_FULL_FLASH_V1" ? RAW_RECOVERY_SCHEMA : RECOVERY_SCHEMA,
       id,
       createdAt,
       tool: { name: "Draftor Recovery", build, sourceCommit },
       board: { model: "ESP32-S3-RLCD-4.2", controller: "ST7305", confirmation: "USER_PHYSICAL_CONFIRMATION" },
       device,
       image: { file: "flash.bin", offset: 0, bytes: PINS.flashBytes, sha256: await sha256(image), md5: digest },
-      creationProof: { method, romMd5Before, romMd5After, romMd5Match: true, identitySource: "ROM_READ_REG_EFUSE", securitySource: "ROM_GET_SECURITY_INFO", capacitySource: "JEDEC_RDID" },
+      creationProof: { method, romMd5Before, romMd5After, romMd5Match: true, identitySource: "ROM_READ_REG_EFUSE", securitySource: "ROM_GET_SECURITY_INFO", capacitySource: "JEDEC_RDID", ...reconstruction ? { reconstruction } : {} },
       original
     };
     const entries = { "manifest.json": te2.encode(json(manifest)), "flash.bin": image, ...Object.fromEntries(Object.entries(readmes).map(([k, v]) => [k, te2.encode(v)])) };
@@ -860,7 +925,7 @@
     }
     requireSafe(json(m) === raw, "PACKAGE_JSON");
     keys(m, "schema,id,createdAt,tool,board,device,image,creationProof,original");
-    requireSafe(m.schema === RECOVERY_SCHEMA, "PACKAGE_SCHEMA");
+    requireSafe([RECOVERY_SCHEMA, RAW_RECOVERY_SCHEMA].includes(m.schema), "PACKAGE_SCHEMA");
     requireSafe(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(m.id), "PACKAGE_SCHEMA");
     requireSafe(typeof m.createdAt === "string" && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(m.createdAt) && Number.isFinite(Date.parse(m.createdAt)), "PACKAGE_SCHEMA");
     keys(m.tool, "name,build,sourceCommit");
@@ -875,10 +940,14 @@
     keys(m.image, "file,offset,bytes,sha256,md5");
     const image = entries["flash.bin"];
     requireSafe(m.image.file === "flash.bin" && m.image.offset === 0 && m.image.bytes === PINS.flashBytes && m.image.sha256 === await sha256(image) && m.image.md5 === md5(image), "PACKAGE_HASH");
-    keys(m.creationProof, "method,romMd5Before,romMd5After,romMd5Match,identitySource,securitySource,capacitySource");
+    const rebuilt = m.creationProof?.method === "ROM_ORIGINAL_RECONSTRUCTED_V1";
+    keys(m.creationProof, "method,romMd5Before,romMd5After,romMd5Match,identitySource,securitySource,capacitySource" + (rebuilt ? ",reconstruction" : ""));
+    if (rebuilt) checkReconstruction(m.creationProof.reconstruction);
     requireSafe(m.creationProof.identitySource === "ROM_READ_REG_EFUSE" && m.creationProof.securitySource === "ROM_GET_SECURITY_INFO" && m.creationProof.capacitySource === "JEDEC_RDID", "PACKAGE_PROOF");
-    requireSafe(["ROM_READ_SLOW_MD5_V1", "ROM_MD5_MATCH_EXISTING_V1"].includes(m.creationProof.method) && m.creationProof.romMd5Match === true && m.creationProof.romMd5Before === m.image.md5 && m.creationProof.romMd5After === m.image.md5, "PACKAGE_PROOF");
+    requireSafe(proofMethods.includes(m.creationProof.method) && m.creationProof.romMd5Match === true && m.creationProof.romMd5Before === m.image.md5 && m.creationProof.romMd5After === m.image.md5, "PACKAGE_PROOF");
+    if (rebuilt) requireSafe(m.original.firmware === (m.creationProof.reconstruction.mode === "fresh" ? "waveshare-factory-20260120" : "draftor-alpha3-app0"), "PACKAGE_PROOF");
     requireSafe(JSON.stringify(await classifyRecoveryImage(image)) === JSON.stringify(m.original), "PACKAGE_METADATA");
+    requireSafe(m.schema === (m.original.rule === "RAW_FULL_FLASH_V1" ? RAW_RECOVERY_SCHEMA : RECOVERY_SCHEMA), "PACKAGE_SCHEMA");
     for (const [name, content] of Object.entries(readmes)) requireSafe(td2.decode(entries[name]) === content, "PACKAGE_FORMAT");
     const handle = Object.freeze({});
     validated.set(handle, { manifest: deepFreeze(m), image });
@@ -905,32 +974,20 @@
   // src/recovery-session.js
   async function inspectSupportedOriginal(driver, diagnostics) {
     const table = await driver.readFlash(32768, 4096);
-    diagnostics?.check("partitionRead", true);
-    const tableMatch = md5(table) === await driver.flashMd5(32768, 4096);
-    diagnostics?.check("partitionMd5Match", tableMatch);
-    requireSafe(tableMatch, "READBACK");
-    if (await sha256(table) === FACTORY.tableSha256) {
-      for (const p of FACTORY.fingerprint) requireSafe(await driver.flashMd5(p.offset, p.bytes) === p.md5, "FACTORY_FINGERPRINT");
-      diagnostics?.check("otaRead", "NOT_APPLICABLE_FACTORY");
-      diagnostics?.check("otaMd5Match", "NOT_APPLICABLE_FACTORY");
-      table.fill(0);
-      return { firmware: "waveshare-factory-20260120", activeApp: "factory" };
-    }
-    checkPartitions(table);
-    requireSafe(await sha256(table.subarray(0, 3072)) === PINS.files["partitions.bin"].sha256, "PARTITIONS");
-    table.fill(0);
     const ota = await driver.readFlash(57344, 8192);
-    diagnostics?.check("otaRead", true);
-    const otaMatch = md5(ota) === await driver.flashMd5(57344, 8192);
-    diagnostics?.check("otaMd5Match", otaMatch);
-    requireSafe(otaMatch, "READBACK");
-    requireSafe(activeSlot(ota) === 0, "UNQUALIFIED_SLOT");
-    ota.fill(0);
-    for (const name of ["bootloader.bin", "app.bin"]) {
-      const p = PINS.files[name];
-      requireSafe(await driver.flashMd5(p.offset, p.bytes) === p.md5, "UNQUALIFIED_FIRMWARE");
+    requireSafe(table.length === 4096 && ota.length === 8192, "READBACK");
+    for (const [label, offset, bytes] of [["partition", 32768, table], ["ota", 57344, ota]]) {
+      diagnostics?.check(label + "Read", true);
+      const match = md5(bytes) === await driver.flashMd5(offset, bytes.length);
+      diagnostics?.check(label + "Md5Match", match);
+      requireSafe(match, "READBACK");
     }
-    return { firmware: "draftor-alpha3-app0", activeApp: "app0" };
+    try {
+      return await inspectOriginalFlash(driver, table, ota);
+    } finally {
+      table.fill(0);
+      ota.fill(0);
+    }
   }
   var RecoverySession = class {
     #driver;
@@ -1508,6 +1565,7 @@
           }
           if (errorHelp?.(code, language)) error += ` ${errorHelp(code, language)}`;
           if (receipt().flashOutcome === "POSSIBLY_PARTIAL") error += ` ${t("partial")}`;
+          else error += language === "zh" ? " \u5C1A\u672A\u64E6\u9664\u6216\u5199\u5165\uFF0C\u539F\u673A Flash \u5185\u5BB9\u672A\u88AB\u672C\u6B21\u64CD\u4F5C\u4FEE\u6539\u3002" : " No erase or write has started. This operation has not modified the original Flash.";
         } finally {
           clearInterval(ticker);
           busy = false;
@@ -2336,16 +2394,20 @@
     }
   };
 
-  // src/first-install.js
-  var FIRST_FILES = Object.freeze(["bootloader.bin", "partitions.bin", "boot_app0.bin", "app.bin"]);
-  async function verifyInitialFlash(driver, source) {
-    requireSafe(["blank", "waveshare-factory-20260120"].includes(source), "UNKNOWN");
-    if (source === "blank") {
-      requireSafe(await driver.flashMd5(0, PINS.flashBytes) === PINS.blankFlashMd5, "UNKNOWN");
-    } else {
-      for (const row of FACTORY.fingerprint)
-        requireSafe(await driver.flashMd5(row.offset, row.bytes) === row.md5, "FACTORY_FINGERPRINT");
-    }
+  // src/firmware.js
+  deepFreeze(PINS);
+
+  // src/install-protection.js
+  var APP_END = 65536 + Math.ceil(PINS.files["app.bin"].bytes / 4096) * 4096;
+  var PRIVATE_RANGES = [[0, 65536], [APP_END, PINS.flashBytes - APP_END]];
+  var te3 = new TextEncoder();
+  var td3 = new TextDecoder("utf-8", { fatal: true });
+  var live = /* @__PURE__ */ new WeakMap();
+  function savedProtection(handle, { mode, mac } = {}) {
+    const x = live.get(handle);
+    requireSafe(x?.saved, "PROTECTION_SAVE");
+    requireSafe(x.point.mode === mode && x.point.device.mac === mac, "PROTECTION_SCOPE");
+    return structuredClone(x.point);
   }
 
   // src/rom.js
@@ -2381,6 +2443,12 @@
     #firstNext = 0;
     #candidate;
     #candidateMode;
+    #cleanInstall = false;
+    #grantedBackupMd5;
+    #mutationStarted = false;
+    get flashMutationStarted() {
+      return this.#mutationStarted;
+    }
     #recoveryAllowed;
     #recoveryStage = "IDLE";
     #recoveryHandle;
@@ -2420,6 +2488,9 @@
         new DataView(header.buffer).setUint16(2, payload.length, true);
         new DataView(header.buffer).setUint32(4, checksum, true);
         this.#diagnostics?.command(op, "attempted");
+        if (op === OP.FLASH_BEGIN || op === OP.FLASH_DATA) {
+          this.#mutationStarted = true;
+        }
         await this.#wire.write(concat(header, payload));
         this.#diagnostics?.command(op, "sent");
         let reply;
@@ -2535,13 +2606,19 @@
       }
       return digest;
     }
-    async grantExclusiveMode({ mode, initialState, expectedMac, metadataFingerprint, backupMd5 }) {
+    async grantExclusiveMode({ mode, initialState, boardConfirmed, cleanInstall = false, expectedMac, metadataFingerprint, backupMd5, protection }) {
       this.#alive();
       requireSafe(this.#candidate && this.#connected && this.#candidateMode === void 0 && !this.#writesAllowed && !this.#firstAllowed && !this.#writeUsed, "BUILD_SCOPE");
       this.#candidateMode = "RESERVING";
       try {
         requireSafe(["update", "fresh"].includes(mode), "BUILD_SCOPE");
-        requireSafe(normalizeMac((await this.identity()).mac) === normalizeMac(expectedMac), "IDENTITY");
+        const identity = await this.identity();
+        requireSafe(normalizeMac(identity.mac) === normalizeMac(expectedMac), "IDENTITY");
+        if (protection !== void 0) {
+          const p = savedProtection(protection, { mode, mac: normalizeMac(expectedMac) });
+          sameOriginalIdentity(identity, p.device);
+          backupMd5 = p.originalMd5;
+        }
         const table = await this.readFlash(32768, 4096), ota = await this.readFlash(57344, 8192);
         requireSafe(await this.flashMd5(32768, 4096) === md5(table) && await this.flashMd5(57344, 8192) === md5(ota), "READBACK");
         requireSafe(`${await sha256(table)}:${await sha256(ota)}` === metadataFingerprint, "STALE_PLAN");
@@ -2554,8 +2631,15 @@
           requireSafe(await this.flashMd5(65536, PINS.files["app.bin"].bytes) === PINS.files["app.bin"].md5, "UNQUALIFIED_FIRMWARE");
           this.#writesAllowed = true;
         } else {
-          requireSafe(initialState === "waveshare-factory-20260120", "UNQUALIFIED_BLANK");
-          await verifyInitialFlash(this, initialState);
+          if (cleanInstall) {
+            requireSafe(boardConfirmed === true && cleanStateAllowed(initialState) && protection === void 0, "BOARD_CONFIRM");
+            requireSafe(initialState !== "blank" || backupMd5 === PINS.blankFlashMd5, "BACKUP_STALE");
+            this.#cleanInstall = true;
+            this.#grantedBackupMd5 = backupMd5;
+          } else {
+            requireSafe(initialState === "waveshare-factory-20260120", "UNQUALIFIED_BLANK");
+            await verifyInitialFlash(this, initialState);
+          }
           this.#firstAllowed = true;
         }
         requireSafe(!(this.#writesAllowed && this.#firstAllowed), "BUILD_SCOPE");
@@ -2599,6 +2683,7 @@
         this.#alive();
         this.#diagnostics?.stage("RESTORING");
         await this.#command(OP.FLASH_BEGIN, le32(PINS.flashBytes, PINS.flashBytes / 1024, 1024, 0, 0), { timeout: 48e4 });
+        requireSafe(await this.flashMd5(0, PINS.flashBytes) === PINS.blankFlashMd5, "ERASE_VERIFY");
         for (let sequence = 0; sequence < PINS.flashBytes / 1024; sequence++) {
           const block = data.subarray(sequence * 1024, (sequence + 1) * 1024);
           await this.#command(OP.FLASH_DATA, concat(le32(1024, sequence, 0, 0), block), { checksum: block.reduce((n, b) => n ^ b, 239) });
@@ -2673,11 +2758,15 @@
         if (sequence % 32 === 0 || sequence === blocks - 1) progress(Math.min(1, (sequence + 1) / blocks));
       }
     }
-    async eraseAll({ source, expectedMac, backupConfirmed, tfRemoved, planConfirmed, eraseConfirmed } = {}) {
+    async eraseAll({ source, cleanInstall = false, expectedOriginalMd5, expectedMac, backupConfirmed, tfRemoved, planConfirmed, eraseConfirmed, protection } = {}) {
       this.#range(0, PINS.flashBytes);
       requireSafe(this.#firstAllowed && !this.#writesAllowed, "FRESH_DEVICE_PENDING");
-      requireSafe(!this.#candidate || this.#candidateMode === "fresh" && source === "waveshare-factory-20260120", "UNKNOWN");
-      requireSafe(backupConfirmed === true && tfRemoved === true && planConfirmed === true, "BACKUP");
+      requireSafe(!this.#candidate || this.#candidateMode === "fresh" && (this.#cleanInstall ? cleanInstall && cleanStateAllowed(source) : source === "waveshare-factory-20260120"), "UNKNOWN");
+      requireSafe(tfRemoved === true && planConfirmed === true, "BACKUP");
+      if (protection !== void 0) {
+        requireSafe(this.#candidate, "BUILD_SCOPE");
+        savedProtection(protection, { mode: "fresh", mac: normalizeMac(expectedMac) });
+      } else requireSafe(backupConfirmed === true, "BACKUP");
       requireSafe(eraseConfirmed === true, "ERASE_CONFIRM");
       requireSafe(this.#firstStage === "IDLE" && !this.#writeUsed, "STATE");
       this.#firstStage = "RESERVED";
@@ -2685,7 +2774,9 @@
       try {
         const info = await this.identity();
         requireSafe(normalizeMac(info.mac) === normalizeMac(expectedMac), "IDENTITY");
-        await verifyInitialFlash(this, source);
+        if (this.#cleanInstall) {
+          requireSafe(expectedOriginalMd5 === this.#grantedBackupMd5 && await this.flashMd5(0, PINS.flashBytes) === this.#grantedBackupMd5, "BACKUP_STALE");
+        } else await verifyInitialFlash(this, source);
         await this.#command(OP.FLASH_BEGIN, le32(PINS.flashBytes, PINS.flashBytes / 1024, 1024, 0, 0), { timeout: 48e4 });
         requireSafe(await this.flashMd5(0, PINS.flashBytes) === PINS.blankFlashMd5, "ERASE_VERIFY");
         this.#firstStage = "ERASED_VERIFIED";
@@ -2799,13 +2890,13 @@
       INSECURE_CONTEXT: "\u5F53\u524D\u9875\u9762\u4E0D\u662F\u5B89\u5168\u4E0A\u4E0B\u6587\uFF0C\u672A\u8FDE\u63A5\u8BBE\u5907\u3002\u8BF7\u6253\u5F00\u6B63\u5F0F HTTPS \u7F51\u7AD9\uFF1B\u79BB\u7EBF\u6062\u590D\u8BF7\u7528\u684C\u9762 Chrome/Edge \u76F4\u63A5\u6253\u5F00\u5DF2\u4FDD\u5B58\u7684 HTML\u3002\u4E0D\u8981\u5173\u95ED\u6D4F\u89C8\u5668\u5B89\u5168\u8BBE\u7F6E\u3002",
       SERIAL_POLICY: "\u6B64\u9875\u9762\u7684\u4E32\u53E3\u6743\u9650\u88AB\u7B56\u7565\u9650\u5236\uFF0C\u672A\u8FDE\u63A5\u8BBE\u5907\u3002\u53EF\u5C1D\u8BD5\u684C\u9762 Chrome\uFF1B\u53D7\u7BA1\u7406\u7684\u7535\u8111\u8BF7\u8054\u7CFB\u7BA1\u7406\u5458\u5141\u8BB8 Serial API\uFF0C\u4E0D\u8981\u7ED5\u8FC7\u7EC4\u7EC7\u7B56\u7565\u3002",
       SERIAL_UNAVAILABLE: "\u6D4F\u89C8\u5668\u6CA1\u6709\u63D0\u4F9B Web Serial\uFF0C\u672A\u8FDE\u63A5\u8BBE\u5907\u3002Windows \u8BF7\u7528\u6700\u65B0\u7248\u684C\u9762 Chrome \u6216 Edge\uFF1BEdge \u53D7\u7EC4\u7EC7\u7B56\u7565\u9650\u5236\u65F6\u53EF\u5C1D\u8BD5 Chrome\uFF0C\u6216\u8054\u7CFB\u7BA1\u7406\u5458\u3002\u79BB\u7EBF HTML \u5FC5\u987B\u76F4\u63A5\u5728\u8BE5\u6D4F\u89C8\u5668\u6253\u5F00\u3002",
-      CAPABLE_DESKTOP: "\u5F53\u524D\u684C\u9762\u73AF\u5883\u5177\u5907 Web Serial\u3002Windows Chrome/Edge \u6D4B\u8BD5\u6027\u5F00\u653E\uFF0C\u771F\u5B9E USB \u8DEF\u5F84\u4ECD\u5F85\u73B0\u573A\u9A8C\u8BC1\uFF08WINDOWS_DEVICE_FIELD_TEST_PENDING\uFF09\uFF1BmacOS Chrome \u7EE7\u627F\u65E2\u6709\u9A8C\u6536\u3002\u5B89\u88C5\u524D\u5FC5\u987B\u4FDD\u5B58\u5E76\u56DE\u9009\u5B8C\u6574 ZIP\uFF0C\u53E6\u5B58\u79BB\u7EBF HTML\u3002"
+      CAPABLE_DESKTOP: "\u5F53\u524D\u684C\u9762\u73AF\u5883\u53EF\u4EE5\u8FDE\u63A5\u4E32\u53E3\u3002Windows Chrome\uFF0FEdge \u53EF\u4F7F\u7528\uFF1B\u5B8C\u6574\u5B89\u88C5\u4E0E\u6062\u590D\u4ECD\u5F85 Windows \u5B9E\u673A\u53CD\u9988\u3002\u8BF7\u6309\u672C\u9875\u63D0\u793A\u4FDD\u5B58\u6587\u4EF6\u3002"
     }, en: {
       MOBILE: "USB operations are unavailable on phones/tablets. Use Windows 10/11 desktop Chrome or Edge. Reading and downloads remain available.",
       INSECURE_CONTEXT: "This page is not a secure context; no device connected. Use the official HTTPS site, or open the saved offline HTML directly in desktop Chrome/Edge. Do not disable browser security.",
       SERIAL_POLICY: "Serial access is restricted by policy; no device connected. Try desktop Chrome or ask your administrator to allow the Serial API. Do not bypass organizational policy.",
       SERIAL_UNAVAILABLE: "Web Serial is unavailable; no device connected. On Windows use current desktop Chrome or Edge. If Edge is managed, try Chrome or ask your administrator. Open the offline HTML directly in that browser.",
-      CAPABLE_DESKTOP: "Web Serial is available. Windows Chrome/Edge is open for informed beta use; real USB field testing remains pending (WINDOWS_DEVICE_FIELD_TEST_PENDING). macOS Chrome inherits prior qualification. Save and reselect the complete ZIP and keep the offline HTML before installation."
+      CAPABLE_DESKTOP: "Web Serial is available. Windows Chrome/Edge can be used; complete installation and recovery still await Windows device feedback. Save files as directed on this page."
     } };
     return copy[language === "en" ? "en" : "zh"][reason];
   }
@@ -2824,121 +2915,46 @@
   }
 
   // src/r11-copy.js
-  var installationCopy = { zh: {
-    browserHint: "Windows 10/11 \u684C\u9762 Chrome / Edge \u6D4B\u8BD5\u6027\u5F00\u653E\uFF1BmacOS Chrome \u4FDD\u7559\u652F\u6301\u3002",
-    wrongOriginal: "\u6062\u590D\u5305\u5185\u7684\u539F\u59CB\u56FA\u4EF6\u72B6\u6001\u4E0D\u7B26\u5408\u672C\u6B21\u8BA1\u5212\uFF0C\u53EF\u80FD\u9009\u5230\u4E86\u53E6\u4E00\u539F\u72B6\u6001\u7684\u5907\u4EFD\u3002\u5C1A\u672A\u56E0\u672C\u6B21\u5BFC\u5165\u5F00\u59CB\u5B89\u88C5\uFF1B\u8BF7\u4FDD\u7559\u539F\u6587\u4EF6\uFF0C\u5173\u95ED\u540E\u7528\u6B63\u786E\u6587\u4EF6\u91CD\u65B0\u68C0\u67E5\u3002",
-    badPackage: "\u6062\u590D ZIP \u7684\u5185\u5BB9\u3001\u683C\u5F0F\u6216\u6458\u8981\u672A\u901A\u8FC7\u68C0\u67E5\uFF0C\u672A\u6388\u4E88\u5B89\u88C5\u6743\u9650\u3002\u8BF7\u4FDD\u7559\u539F\u6587\u4EF6\u5E76\u6838\u5BF9\u672C\u6B21\u751F\u6210\u7684\u5B8C\u6574\u5305\u3002",
-    stoppedHelp: "\u5DF2\u505C\u6B62\uFF0C\u4E0D\u81EA\u52A8\u91CD\u8BD5\u3002\u8BF7\u4FDD\u7559\u56DE\u6267\uFF1B\u82E5\u5DF2\u5F00\u59CB\u5199\u5165\uFF0C\u4F7F\u7528\u5DF2\u4FDD\u5B58\u7684\u79BB\u7EBF\u5DE5\u5177\u6062\u590D\u539F\u8BBE\u5907\u3002",
-    previewHint: "v0.1.0-alpha.3 \xB7 \u5FAE\u96EA ST7305 \xB7 Windows Chrome / Edge \xB7 macOS Chrome",
-    intro: "\u8FDE\u63A5\u8BBE\u5907\u540E\u81EA\u52A8\u8BC6\u522B\u5B89\u88C5\u65B9\u5F0F\u3002\u5148\u4FDD\u5B58\u5E76\u56DE\u9009\u5B8C\u6574\u6062\u590D\u5305\uFF0C\u518D\u786E\u8BA4\u5B89\u88C5\u3002",
-    publicScope: "\u9650\u5B9A\u5F00\u653E\uFF1A16 MiB \u5FAE\u96EA ST7305\uFF0C\u51C6\u786E FactoryOnly 20260120 \u5382\u5BB6\u9996\u88C5\uFF0C\u6216\u51C6\u786E Alpha 3 app0 \u540C\u7248\u672C\u91CD\u65B0\u5B89\u88C5\u3002\u672A\u77E5\u72B6\u6001\u3001\u5168\u7A7A\u767D\u677F\u548C app1 \u62D2\u7EDD\u5B89\u88C5\u3002",
-    heading: "\u8FDE\u63A5\u8BBE\u5907\u5E76\u5B89\u88C5",
-    prepare: "\u4FDD\u5B58\u6587\u7A3F\u5E76\u7ED3\u675F\u4F20\u8F93\u3002\u5F7B\u5E95\u65AD\u7535\uFF08\u542B\u7535\u6C60\uFF09\u540E\u53D6\u51FA TF\uFF0C\u53EA\u8FDE\u63A5\u8FD9\u5757\u5FAE\u96EA\u3002\u6309\u4F4F BOOT \u63A5 USB\uFF0C\u7EA6\u4E24\u79D2\u540E\u91CA\u653E\uFF0C\u4FDD\u6301 ROM \u4E0B\u8F7D\u6A21\u5F0F\u5E76\u5173\u95ED\u4E32\u53E3\u76D1\u89C6\u5668\u3002Windows \u5728\u9009\u62E9\u6846\u4E2D\u9009\u5BF9\u5E94\u7684 USB Serial Device (COMx) \u6216 USB JTAG/serial debug unit\uFF1B\u4E0D\u8981\u6309 COM \u53F7\u7801\u731C\u8BBE\u5907\u3002",
-    board: "\u6211\u5DF2\u6838\u5BF9\u5B9E\u7269\u662F\u5FAE\u96EA ESP32-S3-RLCD-4.2 / ST7305\uFF0C\u4E14\u4EC5\u8BE5\u677F\u8FDE\u63A5\u3002",
-    tf: "\u6587\u7A3F\u5DF2\u4FDD\u5B58\u3001\u4F20\u8F93\u5DF2\u7ED3\u675F\uFF0CTF \u5DF2\u5728\u5F7B\u5E95\u65AD\u7535\u540E\u53D6\u51FA\u3002",
-    connect: "\u9009\u62E9\u4E32\u53E3\u5E76\u53EA\u8BFB\u68C0\u67E5",
-    unsupported: "\u9700\u8981\u684C\u9762\u5B89\u5168\u4E0A\u4E0B\u6587\u3001Web Serial \u4E0E\u7528\u6237\u6388\u6743\uFF1B\u8BF7\u67E5\u770B\u5F53\u524D\u80FD\u529B\u63D0\u793A\u3002\u672A\u8FDE\u63A5\u8BBE\u5907\u3002",
-    loading: "\u6B63\u5728\u6838\u9A8C\u56DB\u4EFD\u56FA\u5B9A\u53D1\u884C\u56FA\u4EF6\u2026",
-    ready: "\u56FA\u4EF6\u6587\u4EF6\u5DF2\u6838\u9A8C\uFF0C\u53EF\u4EE5\u9009\u62E9\u4E32\u53E3\u3002",
-    update: "\u91CD\u65B0\u5B89\u88C5\u5F53\u524D\u7248\u672C",
-    fresh: "\u9996\u6B21\u5B89\u88C5 Draftor",
-    updateImpact: "\u53EA\u5199\u5DF2\u786E\u8BA4\u7684\u6D3B\u52A8 App \u53CA\u5176\u8986\u76D6\u6247\u533A\uFF0C\u4FDD\u7559\u5176\u4ED6 App\u3001\u5206\u533A\u3001OTA\u3001\u8BBE\u7F6E\u548C\u914D\u5BF9\u3002\u4E2D\u65AD\u53EF\u80FD\u65E0\u6CD5\u542F\u52A8\uFF1B\u4E0D\u4F1A\u81EA\u52A8\u91CD\u8BD5\u3002",
-    freshImpact: "\u5C06\u6E05\u9664\u5168\u90E8 16 MiB \u5185\u90E8 Flash\uFF0C\u5305\u62EC\u5382\u5BB6\u7A0B\u5E8F\u3001\u8BBE\u7F6E\u3001\u914D\u5BF9\u53CA\u5185\u90E8\u6587\u4EF6\uFF0C\u518D\u5199\u5165\u56FA\u5B9A\u56DB\u4EFD Draftor \u56FA\u4EF6\u3002\u5FC5\u987B\u5148\u4FDD\u5B58\u5F53\u524D\u5382\u5BB6\u72B6\u6001\u3002TF \u4E0D\u4F1A\u88AB\u64CD\u4F5C\u3002",
-    plan: "\u5B8C\u6574\u8BA1\u5212\u4E0E\u68C0\u67E5\u8303\u56F4",
-    backupHelp: "\u6CA1\u6709\u65E7\u6587\u4EF6\u4E5F\u53EF\u7EE7\u7EED\uFF1A\u53EA\u8BFB\u6355\u83B7\u5B8C\u6574 16 MiB\uFF0C\u4FDD\u5B58\u751F\u6210\u7684\u79C1\u4EBA ZIP\uFF0C\u518D\u56DE\u9009\u5B9E\u9645\u4FDD\u5B58\u7684\u6587\u4EF6\u3002ROM \u6162\u8BFB\u9700\u8981\u8F83\u957F\u65F6\u95F4\uFF0C\u8BF7\u4FDD\u6301\u4F9B\u7535\u3001USB \u548C\u6B64\u9875\u3002\u5B8C\u6574 Flash \u5305\u542B\u8BBE\u7F6E\u3001\u914D\u5BF9\u53CA\u53EF\u80FD\u7684\u5185\u90E8\u6587\u7A3F\uFF1BTF \u6587\u7A3F\u4E0D\u5728\u5305\u5185\uFF0C\u987B\u5355\u72EC\u4FDD\u7BA1\u3002\u6587\u4EF6\u53EA\u5728\u672C\u673A\u5904\u7406\uFF0C\u4E0D\u4E0A\u4F20\u3002",
-    capture: "\u8BFB\u53D6\u5B8C\u6574 Flash\uFF08\u53EA\u8BFB\uFF09",
-    save: "\u4FDD\u5B58\u79C1\u4EBA\u6062\u590D ZIP",
-    raw: "\u53EF\u9009\uFF1A\u6211\u5DF2\u6709\u5B8C\u6574 16 MiB Flash .bin",
-    reselect: "\u56DE\u9009\u5DF2\u4FDD\u5B58\u7684\u79C1\u4EBA\u6062\u590D ZIP",
-    saved: "\u4FDD\u5B58\u6587\u4EF6\u56DE\u9009\u901A\u8FC7\uFF0C\u4E0E\u5F53\u524D\u540C\u4E00\u8BBE\u5907\u5B8C\u6574 Flash \u4E00\u81F4\u3002",
-    saveWarning: "\u70B9\u51FB\u4FDD\u5B58\u4E0D\u4EE3\u8868\u6587\u4EF6\u5DF2\u843D\u76D8\uFF1B\u5FC5\u987B\u7B49\u5F85\u4E0B\u8F7D\u5B8C\u6210\uFF0C\u518D\u56DE\u9009\u8BE5 ZIP\u3002\u8BF7\u52FF\u89E3\u538B\u3001\u4FEE\u6539\u6216\u516C\u5F00\u79C1\u4EBA\u5305\u3002",
-    tool: "\u4E0B\u8F7D\u79BB\u7EBF\u6062\u590D\u5DE5\u5177\uFF08HTML\uFF09",
-    toolKeep: "\u79BB\u7EBF HTML \u5DF2\u4FDD\u5B58\u5B8C\u6210\uFF0C\u6211\u4F1A\u5C06\u5B83\u4E0E\u79C1\u4EBA ZIP \u4E00\u8D77\u4FDD\u7BA1\u3002",
-    toolHelp: "\u5B89\u88C5\u524D\u4FDD\u5B58\u51C6\u786E\u7684\u79BB\u7EBF\u5DE5\u5177\u3002\u4EE5\u540E\u5173\u95ED\u7F51\u9875\uFF0C\u5728 Windows Chrome/Edge \u7528 Ctrl+O\uFF08Mac \u7528 \u2318O\uFF09\u91CD\u5F00 HTML\uFF1B\u65E0\u9700\u7F51\u7EDC\u3001Python \u6216\u6269\u5C55\u3002\u5DE5\u5177\u4E0B\u8F7D\u5931\u8D25\u65F6\u4E0D\u8981\u7EE7\u7EED\u5B89\u88C5\u3002",
-    toolReady: "\u79BB\u7EBF\u5DE5\u5177\u5185\u5BB9\u6458\u8981\u5DF2\u6838\u9A8C\uFF1B\u8BF7\u786E\u8BA4\u6D4F\u89C8\u5668\u4FDD\u5B58\u5B8C\u6210\u3002",
-    toolProblem: "\u5DE5\u5177\u672A\u4FDD\u5B58\uFF0F\u4E0B\u8F7D\u6709\u95EE\u9898",
-    backupConsent: "\u6211\u5DF2\u4FDD\u5B58\u5E76\u56DE\u9009\u6709\u6548\u5B8C\u6574\u6062\u590D\u5305\uFF0C\u4E14\u5DF2\u53E6\u884C\u4FDD\u7BA1 TF \u6587\u7A3F\u548C\u5B66\u4E60\u76EE\u5F55\u3002",
-    planConsent: "\u6211\u5DF2\u9605\u8BFB\u672C\u6B21\u8BA1\u5212\u53CA\u5F71\u54CD\uFF0C\u540C\u610F\u6307\u5B9A\u8303\u56F4\u7684\u5B89\u88C5\u3002",
-    eraseConsent: "\u5355\u72EC\u786E\u8BA4\uFF1A\u9996\u6B21\u5B89\u88C5\u4F1A\u6E05\u9664\u5168\u90E8 16 MiB \u5185\u90E8 Flash\uFF0C\u65E7\u56FA\u4EF6\u3001\u8BBE\u7F6E\u548C\u914D\u5BF9\u5C06\u4E22\u5931\u3002",
-    oldApp: "\u53EF\u9009\uFF1A\u51C6\u786E\u65E7 App .bin\uFF08\u672C\u5730\u6BD4\u5BF9\uFF0C\u4E0D\u4E0A\u4F20\uFF09",
-    execute: "\u6309\u5DF2\u6838\u9A8C\u8BA1\u5212\u5B89\u88C5",
-    close: "\u5173\u95ED\u8FDE\u63A5",
-    stop: "\u505C\u6B62\u64CD\u4F5C",
-    receipt: "\u4FDD\u5B58\u8131\u654F\u56DE\u6267",
-    finished: "Flash \u5185\u5BB9\u5DF2\u6821\u9A8C\uFF0C\u4E32\u53E3\u5DF2\u91CA\u653E\u3002\u8BF7\u5F7B\u5E95\u65AD\u7535\uFF08\u542B\u7535\u6C60\uFF09\uFF0C\u63D2\u56DE\u5DF2\u51C6\u5907\u597D\u7684 TF\uFF0C\u677E\u5F00 BOOT \u666E\u901A\u542F\u52A8\u3002\u9996\u88C5\u6309\u63D0\u793A\u914D\u5BF9\u952E\u76D8\uFF1B\u91CD\u65B0\u5B89\u88C5\u7528\u539F\u901A\u9053\u56DE\u8FDE\u3002\u68C0\u67E5\u663E\u793A\u3001\u8F93\u5165\u3001\u65E7\u7A3F\u4EE5\u53CA\u65B0\u7A3F\u4FDD\u5B58\u4E0E\u91CD\u542F\u8BFB\u53D6\u3002\u5185\u5BB9\u6821\u9A8C\u4E0D\u7B49\u4E8E\u6B63\u5E38\u542F\u52A8\u5DF2\u901A\u8FC7\u3002",
-    phases: { IDLE: "\u5C1A\u672A\u8FDE\u63A5", CONNECTING: "\u6B63\u5728\u8FDE\u63A5 ROM\u2026", CHECKING: "\u6B63\u5728\u53EA\u8BFB\u6838\u5BF9\u8EAB\u4EFD\u3001Flash\u3001\u5206\u533A\u548C OTA\u2026", PLAN_READY: "\u53EA\u8BFB\u8BA1\u5212\u5DF2\u5C31\u7EEA\uFF0C\u5C1A\u672A\u5199\u5165\u3002", BACKUP_READING: "\u6B63\u5728\u53EA\u8BFB\u6355\u83B7\u5B8C\u6574 Flash\u2026", BACKUP_VERIFYING: "\u6B63\u5728\u6838\u9A8C\u5B9E\u9645\u56DE\u9009\u6587\u4EF6\u4E0E\u5F53\u524D\u8BBE\u5907\u2026", RECHECKING: "\u5199\u5165\u524D\u91CD\u65B0\u6838\u5BF9\u539F\u8BBE\u5907\u4E0E\u8BA1\u5212\u2026", ERASING: "\u6B63\u5728\u6E05\u9664\u5DF2\u786E\u8BA4\u7684\u5185\u90E8 Flash\u2026", WRITING: "\u6B63\u5728\u5199\u5165\u8BA1\u5212\u6307\u5B9A\u533A\u57DF\u2026", VERIFYING: "\u6B63\u5728\u6838\u9A8C\u5B9E\u9645 Flash \u5185\u5BB9\u548C\u4FDD\u62A4\u533A\u2026", VERIFIED_BOOT_PENDING: "\u5185\u5BB9\u5DF2\u6821\u9A8C\uFF0C\u666E\u901A\u542F\u52A8\u5F85\u786E\u8BA4\u3002", STOP: "\u5DF2\u505C\u6B62\uFF0C\u4E0D\u81EA\u52A8\u91CD\u8BD5\u3002\u8BF7\u4FDD\u7559\u56DE\u6267\uFF1B\u82E5\u5DF2\u5F00\u59CB\u5199\u5165\uFF0C\u8BF7\u4F7F\u7528\u5DF2\u4FDD\u5B58\u7684\u79BB\u7EBF\u5DE5\u5177\u6062\u590D\u539F\u8BBE\u5907\u3002" },
-    helpTitle: "\u5B89\u88C5\u5E2E\u52A9",
-    advancedTitle: "\u53D1\u884C\u4FE1\u606F",
-    scopeLink: "\u652F\u6301\u8303\u56F4",
-    recoveryLink: "\u5907\u4EFD\u4E0E\u6062\u590D",
-    sourceLink: "\u6E90\u7801\u4E0E\u8BB8\u53EF"
-  }, en: {
-    browserHint: "Windows 10/11 desktop Chrome / Edge beta; macOS Chrome remains supported.",
-    wrongOriginal: "The package original firmware state does not match this plan. It may be a backup of another original state. This import did not start installation. Keep the file, close this session and inspect again with the correct package.",
-    badPackage: "Recovery ZIP contents, format or hashes failed validation. No installation permission granted. Keep the file and check the complete package created for this session.",
-    stoppedHelp: "Stopped without automatic retry. Keep the receipt. If writing began, use the saved offline tool to restore the original board.",
-    previewHint: "v0.1.0-alpha.3 \xB7 Waveshare ST7305 \xB7 Windows Chrome / Edge \xB7 macOS Chrome",
-    intro: "The device selects one supported installation path. Save and reselect a complete recovery package before confirming installation.",
-    publicScope: "Limited release: 16 MiB Waveshare ST7305, exact FactoryOnly 20260120 first installation or exact Alpha 3 app0 same-version reinstallation. Unknown states, blank boards and app1 are refused.",
-    heading: "Connect & Install",
-    prepare: "Save writing and finish transfers. Fully power off including the battery, remove TF and connect only this Waveshare. Hold BOOT while connecting USB, release after about two seconds, and stay in ROM mode. Close serial monitors. On Windows select the corresponding USB Serial Device (COMx) or USB JTAG/serial debug unit. Never identify a board by COM number alone.",
-    board: "I checked the physical Waveshare ESP32-S3-RLCD-4.2 / ST7305; only this board is connected.",
-    tf: "Writing is saved, transfers ended, and TF was removed after full power-off.",
-    connect: "Select port & inspect read-only",
-    unsupported: "Desktop secure Web Serial and user permission are required. See the capability message. No device connected.",
-    loading: "Verifying the four pinned release images\u2026",
-    ready: "Firmware files verified. Ready to select a port.",
-    update: "Reinstall the current version",
-    fresh: "First installation of Draftor",
-    updateImpact: "Write only the confirmed active App and its covered sectors. Preserve the other App, partitions, OTA, settings and pairing. Interruption may prevent boot. No automatic retry.",
-    freshImpact: "Erase all 16 MiB of internal Flash, including the factory demo, settings, pairing and internal files, then write the four pinned Draftor images. Save the current factory state first. TF is untouched.",
-    plan: "Complete plan and checked ranges",
-    backupHelp: "No old files needed: capture all 16 MiB read-only, save the private ZIP, then reselect the actual saved file. ROM slow reading takes time; keep power, USB and this page connected. Full Flash includes settings, pairing and possibly internal writing. TF documents are separate: keep them independently. Files stay local and are never uploaded.",
-    capture: "Read complete Flash (read-only)",
-    save: "Save private recovery ZIP",
-    raw: "Optional: I have a complete 16 MiB Flash .bin",
-    reselect: "Reselect saved private recovery ZIP",
-    saved: "Saved file verified against the same device\u2019s entire current Flash.",
-    saveWarning: "Clicking Save does not prove the file reached disk. Wait for download completion, then reselect that ZIP. Do not extract, modify or publish the private package.",
-    tool: "Download offline recovery tool (HTML)",
-    toolKeep: "The offline HTML has finished saving; I will keep it with my private ZIP.",
-    toolHelp: "Save the exact offline tool before installation. Later close the page and reopen the HTML using Ctrl+O in Windows Chrome/Edge (Command+O on Mac). No network, Python or extension required. Resolve download failures before installing.",
-    toolReady: "Offline tool contents verified. Confirm the browser finished saving.",
-    toolProblem: "Tool was not saved / download problem",
-    backupConsent: "I saved and reselected a valid full recovery package, and separately retained TF writing and learning directories.",
-    planConsent: "I reviewed this plan and its impact and approve the specified installation ranges.",
-    eraseConsent: "Separate confirmation: first installation erases all 16 MiB of internal Flash, removing firmware, settings and pairing.",
-    oldApp: "Optional: exact old App .bin (local comparison, never uploaded)",
-    execute: "Install the verified plan",
-    close: "Close connection",
-    stop: "Stop operation",
-    receipt: "Save sanitized receipt",
-    finished: "Flash contents verified and port released. Fully power off including the battery, insert the prepared TF and boot normally with BOOT released. Pair a keyboard after first installation; use the original channel after reinstallation. Check display, input, old writing, saving a new document and reading it after restart. Content verification does not prove normal boot.",
-    phases: { IDLE: "Not connected", CONNECTING: "Connecting to ROM\u2026", CHECKING: "Checking identity, Flash, partitions and OTA read-only\u2026", PLAN_READY: "Read-only plan ready. No write performed.", BACKUP_READING: "Capturing complete Flash read-only\u2026", BACKUP_VERIFYING: "Checking the reselected file against the current device\u2026", RECHECKING: "Rechecking the original device and plan\u2026", ERASING: "Erasing the confirmed internal Flash\u2026", WRITING: "Writing the planned ranges\u2026", VERIFYING: "Verifying actual Flash and protected regions\u2026", VERIFIED_BOOT_PENDING: "Contents verified; normal boot pending.", STOP: "Stopped. No automatic retry. Keep the receipt. If writing began, use the saved offline tool to restore the original device." },
-    helpTitle: "Installation help",
-    advancedTitle: "Release information",
-    scopeLink: "Supported scope",
-    recoveryLink: "Backup & recovery",
-    sourceLink: "Source & licenses"
-  } };
-  var publicRecoveryCopy = { zh: { locked: "\u5728\u7EBF\u5907\u4EFD\u4E0E\u53EA\u8BFB\u6838\u9A8C\uFF1A\u6B64\u9875\u4E0D\u6267\u884C\u6574\u7247\u6062\u590D\u3002\u8BF7\u4E0B\u8F7D\u79BB\u7EBF\u5DE5\u5177\uFF0C\u5728\u539F\u8BBE\u5907\u4E0A\u6062\u590D\u5DF2\u4FDD\u5B58\u7684\u79C1\u4EBA\u5305\u3002", candidate: "\u79BB\u7EBF\u6062\u590D\u5DE5\u5177 \xB7 \u9650 Windows Chrome / Edge \xB7 macOS Chrome \u4E0E\u539F\u5FAE\u96EA ST7305\u3002\u6BCF\u6B21\u6062\u590D\u987B\u91CD\u65B0\u6838\u9A8C\u539F\u8BBE\u5907\u3001\u5B8C\u6574\u5305\u53CA\u8986\u76D6\u8303\u56F4\u3002", offlineLocked: "\u4E0B\u8F7D\u5177\u6709\u5B8C\u6574\u6062\u590D\u80FD\u529B\u7684\u79BB\u7EBF HTML\uFF0C\u4E0E\u79C1\u4EBA\u6062\u590D ZIP \u4E00\u8D77\u4FDD\u5B58\u3002\u5173\u95ED\u7F51\u9875\u540E\u5728 Windows Chrome/Edge \u7528 Ctrl+O\uFF08Mac \u7528 \u2318O\uFF09\u91CD\u5F00 HTML\uFF1B\u65E0\u9700\u7F51\u7EDC\u3001Python \u6216\u6D4F\u89C8\u5668\u6269\u5C55\u3002", supported: "Windows Chrome / Edge \xB7 macOS Chrome \u73AF\u5883\u53EF\u7528\u3002\u5B9E\u6D4B\u57FA\u7EBF\u548C\u9650\u5B9A\u8303\u56F4\u89C1\u8BF4\u660E\uFF1B\u672A\u8FDE\u63A5\u524D\u4E0D\u4F1A\u8BBF\u95EE\u8BBE\u5907\u3002", unsupported: "\u9700\u8981\u684C\u9762\u5B89\u5168 Web Serial \u4E0E\u7528\u6237\u6388\u6743\uFF1B\u8BF7\u67E5\u770B\u5F53\u524D\u80FD\u529B\u63D0\u793A\u3002" }, en: { locked: "Online backup and read-only verification. This page does not restore Flash. Download the offline tool to restore a saved private package to its original board.", candidate: "Offline recovery tool \xB7 Windows Chrome / Edge \xB7 macOS Chrome and original Waveshare ST7305 only. Every restore rechecks the board, complete package and overwrite scope.", offlineLocked: "Download the writable offline HTML and keep it with the private ZIP. Close the page and reopen the HTML using Ctrl+O in Windows Chrome/Edge (Command+O on Mac). No network, Python or extension required.", supported: "Windows Chrome / Edge \xB7 macOS Chrome is available. See the guide for the tested baseline and limited scope. No device access before connection.", unsupported: "Desktop secure Web Serial and user permission are required; see the capability message." } };
-  for (const l of ["zh", "en"]) {
-    publicRecoveryCopy[l].prepare = installationCopy[l].prepare;
-    publicRecoveryCopy[l].offlineHelp = installationCopy[l].toolHelp;
-  }
+  var publicRecoveryCopy = {
+    "zh": {
+      "locked": "\u5728\u7EBF\u5907\u4EFD\u4E0E\u53EA\u8BFB\u6838\u9A8C\uFF1A\u6B64\u9875\u4E0D\u6267\u884C\u6574\u7247\u6062\u590D\u3002\u8BF7\u4E0B\u8F7D\u79BB\u7EBF\u5DE5\u5177\uFF0C\u5728\u539F\u8BBE\u5907\u4E0A\u6062\u590D\u5DF2\u4FDD\u5B58\u7684\u79C1\u4EBA\u5305\u3002",
+      "candidate": "\u79BB\u7EBF\u6062\u590D\u5DE5\u5177 \xB7 \u9650 Windows Chrome / Edge \xB7 macOS Chrome \u4E0E\u539F\u5FAE\u96EA ST7305\u3002\u6BCF\u6B21\u6062\u590D\u987B\u91CD\u65B0\u6838\u9A8C\u539F\u8BBE\u5907\u3001\u5B8C\u6574\u5305\u53CA\u8986\u76D6\u8303\u56F4\u3002",
+      "offlineLocked": "\u4E0B\u8F7D\u5177\u6709\u5B8C\u6574\u6062\u590D\u80FD\u529B\u7684\u79BB\u7EBF HTML\uFF0C\u4E0E\u79C1\u4EBA\u6062\u590D ZIP \u4E00\u8D77\u4FDD\u5B58\u3002\u5173\u95ED\u7F51\u9875\u540E\u5728 Windows Chrome/Edge \u7528 Ctrl+O\uFF08Mac \u7528 \u2318O\uFF09\u91CD\u5F00 HTML\uFF1B\u65E0\u9700\u7F51\u7EDC\u3001Python \u6216\u6D4F\u89C8\u5668\u6269\u5C55\u3002",
+      "supported": "Windows Chrome / Edge \xB7 macOS Chrome \u73AF\u5883\u53EF\u7528\u3002\u5B9E\u6D4B\u57FA\u7EBF\u548C\u9650\u5B9A\u8303\u56F4\u89C1\u8BF4\u660E\uFF1B\u672A\u8FDE\u63A5\u524D\u4E0D\u4F1A\u8BBF\u95EE\u8BBE\u5907\u3002",
+      "unsupported": "\u9700\u8981\u684C\u9762\u5B89\u5168 Web Serial \u4E0E\u7528\u6237\u6388\u6743\uFF1B\u8BF7\u67E5\u770B\u5F53\u524D\u80FD\u529B\u63D0\u793A\u3002",
+      "prepare": "\u4FDD\u5B58\u6587\u7A3F\u5E76\u7ED3\u675F\u4F20\u8F93\uFF0C\u5F7B\u5E95\u65AD\u7535\uFF08\u542B\u7535\u6C60\uFF09\u540E\u53D6\u51FA TF\uFF0C\u53EA\u8FDE\u63A5\u8FD9\u5757\u5FAE\u96EA\u3002Windows \u5DF2\u6210\u529F\u7684\u64CD\u4F5C\u662F\uFF1A\u8FDE\u63A5 USB \u2192 \u957F\u6309 PWR \u5173\u673A \u2192 \u6309\u4F4F BOOT \u2192 \u77ED\u6309 PWR \u5F00\u673A \u2192 \u7B49\u7EA6 2 \u79D2\u540E\u677E\u5F00 BOOT\u3002\u4FDD\u6301\u4E0B\u8F7D\u6A21\u5F0F\uFF0C\u5173\u95ED\u5176\u4ED6\u4E32\u53E3\u7A0B\u5E8F\u3002\u6D4F\u89C8\u5668\u9009\u62E9\u5BF9\u5E94 USB \u4E32\u884C\u8BBE\u5907\uFF08COM\u2026\uFF09\u6216 USB JTAG/serial debug unit\u3002",
+      "offlineHelp": "\u4FDD\u5B58\u672C\u9875\u63D0\u4F9B\u7684 Draftor_Recovery_R13_Offline.html\uFF0C\u4E0E\u5B8C\u6574 ZIP \u653E\u5728\u4E00\u8D77\u3002\u6062\u590D\u65F6\u5173\u95ED\u7F51\u9875\uFF0C\u5728 Chrome / Edge \u6309 Ctrl+O\uFF08Mac \u6309 \u2318O\uFF09\u6253\u5F00\u8BE5 HTML\u3002\u6B64\u5DE5\u5177\u540C\u65F6\u652F\u6301\u539F\u6709\u5907\u4EFD\u548C\u65B0\u751F\u6210\u7684\u672A\u77E5\u56FA\u4EF6\u5B8C\u6574\u5907\u4EFD\u3002",
+      "selectHelp": "\u9009\u62E9\u4FDD\u5B58\u7684\u5B8C\u6574\u79C1\u4EBA ZIP\uFF0C\u4FDD\u6301\u538B\u7F29\u683C\u5F0F\u3002\u652F\u6301\u539F\u6709\u5907\u4EFD\u4EE5\u53CA\u672A\u77E5\u56FA\u4EF6\u3001\u672A\u77E5\u5206\u533A\u548C\u7A7A\u767D\u5185\u5BB9\u7684\u5B8C\u6574\u5907\u4EFD\u3002\u6062\u590D\u4F1A\u5199\u56DE\u539F\u8BBE\u5907\u5B9E\u9645\u4FDD\u5B58\u7684\u5168\u90E8\u5185\u5BB9\u3002",
+      "bootHelp": "\u5148\u70B9\u201C\u5173\u95ED\u8FDE\u63A5\u5E76\u6E05\u9664\u79C1\u4EBA\u4F1A\u8BDD\u201D\u3002\u5F7B\u5E95\u65AD\u7535\uFF08\u542B\u7535\u6C60\uFF09\uFF0C\u6309\u539F\u7CFB\u7EDF\u9700\u8981\u63D2\u56DE TF\uFF0C\u677E\u5F00 BOOT \u666E\u901A\u542F\u52A8\u3002\u82E5\u5907\u4EFD\u6765\u81EA Draftor\uFF0C\u4F7F\u7528\u539F\u952E\u76D8\u901A\u9053\u68C0\u67E5\u6587\u7A3F\uFF1B\u5176\u4ED6\u7CFB\u7EDF\u8BF7\u68C0\u67E5\u5176\u539F\u6709\u529F\u80FD\u3002",
+      "factoryHelp": "\u6062\u590D\u4F1A\u56DE\u5230\u5907\u4EFD\u65F6\u7684\u539F\u7CFB\u7EDF\uFF0C\u4E0D\u4F1A\u628A\u672A\u77E5\u56FA\u4EF6\u53D8\u6210 Draftor\u3002\u7A7A\u767D\u5907\u4EFD\u6062\u590D\u540E\u4ECD\u7136\u7A7A\u767D\uFF1B\u5185\u5BB9\u4E00\u81F4\u4E0D\u7B49\u4E8E\u539F\u7CFB\u7EDF\u4E00\u5B9A\u80FD\u542F\u52A8\u3002"
+    },
+    "en": {
+      "locked": "Online backup and read-only verification. This page does not restore Flash. Download the offline tool to restore a saved private package to its original board.",
+      "candidate": "Offline recovery tool \xB7 Windows Chrome / Edge \xB7 macOS Chrome and original Waveshare ST7305 only. Every restore rechecks the board, complete package and overwrite scope.",
+      "offlineLocked": "Download the writable offline HTML and keep it with the private ZIP. Close the page and reopen the HTML using Ctrl+O in Windows Chrome/Edge (Command+O on Mac). No network, Python or extension required.",
+      "supported": "Windows Chrome / Edge \xB7 macOS Chrome is available. See the guide for the tested baseline and limited scope. No device access before connection.",
+      "unsupported": "Desktop secure Web Serial and user permission are required; see the capability message.",
+      "prepare": "Save writing and finish transfers. Power off completely, including the battery, and remove TF. Connect only this Waveshare. On Windows use USB connected \u2192 hold PWR to power off \u2192 hold BOOT \u2192 briefly press PWR to power on \u2192 release BOOT after about two seconds. Close serial monitors. Select the corresponding USB Serial Device (COM\u2026) or USB JTAG/serial debug unit.",
+      "offlineHelp": "Save Draftor_Recovery_R13_Offline.html beside your full ZIP. To restore, close the website and open that HTML using Ctrl+O in Chrome / Edge (Command+O on Mac). It reads existing packages and the new full backups of unrecognized firmware.",
+      "selectHelp": "Select your saved full private ZIP without extracting it. Existing packages and complete backups of unrecognized firmware, layouts and blank Flash are supported. Restore writes the saved contents back to the original device.",
+      "bootHelp": "Close the connection and clear the private session. Power off fully including the battery, reinsert TF if required by the original system, release BOOT and start normally. For a Draftor backup, use the original keyboard channel to check documents. For other systems, check their original functions.",
+      "factoryHelp": "Recovery returns the saved original system; it does not turn unrecognized firmware into Draftor. A blank backup restores blank Flash. Matching bytes do not guarantee the original system can boot."
+    }
+  };
 
   // src/r11-online-recovery.js
+  var offlineName = false ? "Draftor_Recovery_R11_Offline.html" : "Draftor_Recovery_R13_Offline.html";
   var offline = false;
   startRecoveryUI({
-    build: "R11-public-385a584bc24a",
-    sourceCommit: "385a584bc24ac4f31c93526e1f327f8451437eb7",
+    build: "R13-public-ac5e060f3e1c",
+    sourceCommit: "ac5e060f3e1c587e0622b0090c033e220df3d817",
     recoveryEnabled: offline,
     copyOverrides: Object.fromEntries(["zh", "en"].map((l) => [l, { ...publicRecoveryCopy[l], supported: platformMessage(l), unsupported: platformMessage(l) }])),
     mapError: publicErrorCode,
     errorHelp: serialErrorHelp,
     supportedEnvironment: browserIsQualified(),
     embeddedGuide: offline,
-    offlineHref: "offline/Draftor_Recovery_R11_Offline.html",
+    offlineHref: "offline/" + offlineName,
     requestDriver: async (mode, diagnostics) => {
       requireSafe(browserIsQualified(), "PLATFORM");
       const wire = new StrictSerialTransport(await requestSerialPort(navigator.serial, diagnostics), { diagnostics });

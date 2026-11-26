@@ -17,9 +17,9 @@
   </header>
   <main class="tester-guide">
     <h1>安装操作说明</h1>
-    <p>适用于微雪 ESP32-S3-RLCD-4.2（ST7305）。看看草稿机现在打开的画面，选下面一种。</p>
+    <p>适用于微雪 ESP32-S3-RLCD-4.2（ST7305）。请亲自核对板型。USB 名称和芯片型号只能辅助识别。根据你是否要保留原机数据，选择下面一种。</p>
     <nav class="guide-routes" aria-label="选择说明">
-      <a href="#first">还是厂家演示 → 第一次安装</a>
+      <a href="#first">第一次安装、其他固件 → 清空安装</a>
       <a href="#reinstall">已在用 Alpha 3 → 重新安装</a>
     </nav>
     <p class="guide-index"><a href="#prepare">开始前</a> · <a href="#boot">安装后开机</a> · <a href="#tf">准备 TF 卡</a> · <a href="#failure">遇到问题</a></p>
@@ -29,22 +29,25 @@
       <ol>
         <li>用 Windows 10/11 电脑打开桌面 Chrome 或 Edge，或在 Mac 上用桌面 Chrome。准备一根能传数据的 USB 线。</li>
         <li>保存打开的文稿，结束文件传输。拔下 USB，关掉电池供电。完全断电后取出 TF 卡，留到安装完成后再插。已经能写作的原卡可继续用。</li>
-        <li>断开其他开发板，关闭串口监视器及其他安装页。按住板上的 <strong>BOOT</strong>，用数据线接到电脑，约两秒后松开。保持 USB 接好。</li>
+        <li>断开其他开发板，关闭串口监视器及其他安装页。Windows 现场已成功的顺序为 <strong>连接 USB → 长按 PWR 关机 → 按住 BOOT → 短按 PWR 开机 → 等约 2 秒后松开 BOOT</strong>。保持 USB 接好。</li>
       </ol>
       <p>稍后浏览器会弹出串口选择框。选这块板对应的 <strong>USB JTAG/serial debug unit</strong>，再点<strong>连接</strong>。Windows 上也可能叫 <strong>USB 串行设备 (COM…)</strong> 或 <strong>USB Serial Device (COM…)</strong>。忽略蓝牙和调试控制台。</p>
     </section>
 
     <section id="first">
-      <h2>第一次安装草稿机</h2>
-      <p>用于仍在运行受支持的微雪厂家演示的板子。首次安装会清除板内原程序、设置和配对。网页会先帮你保存可用于恢复厂家状态的完整副本。</p>
+      <h2>第一次安装，或备份后清空安装</h2>
+      <p>不同厂家版本、其他固件、未知分区和空白板都可以选择这个入口。网页核对实际硬件、安全状态和目标固件后，再提供安装。清空安装会覆盖设备内部的全部内容。</p>
       <ol>
-        <li>从首页点<strong>第一次安装草稿机</strong>。在打开的页面点<strong>连接设备并安装</strong>。</li>
-        <li>核实板型和取卡两项准备，勾选对应方框。点<strong>选择串口并只读检查</strong>，按上面的说明选择 USB 设备。等页面显示<strong>首次安装 Draftor</strong>。若没有识别为首装，在这里停下。</li>
-        <li>点<strong>读取完整 Flash（只读）</strong>。读完后点<strong>保存私人恢复 ZIP</strong>，保存到电脑上只有自己能访问的文件夹。文件名以 <code>Draftor-private-factory-original-</code> 开头。等下载完成，在<strong>回选已保存的私人恢复 ZIP</strong>选刚才的原文件，保持压缩格式。</li>
-        <li>等页面显示<strong>保存文件回选通过，与当前同一设备完整 Flash 一致。</strong> 点<strong>下载离线恢复工具（HTML）</strong>。把 <code>Draftor_Recovery_R11_Offline.html</code> 和 ZIP 放在一起，确认两份文件都已保存。需要恢复这块板时要用它们。私人 ZIP 请勿上传。</li>
-        <li>勾选离线工具已保存、备份和安装范围确认。阅读并单独勾选清除板内数据的说明。点<strong>按已核验计划安装</strong>一次。保持供电、USB 和页面打开，等到<strong>内容已校验，普通启动待确认。</strong> 然后<a href="#boot">普通开机</a>。</li>
+        <li>从首页点<strong>第一次安装／清空安装</strong>。在打开的页面点<strong>连接设备并安装</strong>。</li>
+        <li>核对板型、文稿已保存和 TF 已取出，勾选对应准备项。点<strong>选择串口并只读检查</strong>，选择这块板并连接。等待检查。看到“旧固件未识别”时可继续备份。</li>
+        <li>点<strong>读取完整 Flash（只读）</strong>。读完后点<strong>保存私人恢复 ZIP</strong>，把 <code>Draftor-private-device-original-….zip</code> 保存到自己的电脑。等下载完成，在<strong>回选已保存的私人恢复 ZIP</strong>选择这个 ZIP，保持压缩格式。</li>
+        <li>等页面显示<strong>保存文件回选通过，与当前同一设备完整 Flash 一致。</strong> 点<strong>下载离线恢复工具（HTML）</strong>，把 <code>Draftor_Recovery_R13_Offline.html</code> 和 ZIP 放在一起，确认保存完成。它们可把本次原机完整内容写回这块板，请私下保留。</li>
+        <li>阅读覆盖影响，勾选<strong>我已阅读上述影响，确认清空这块设备的全部内部 Flash 并安装 Draftor。</strong> 点<strong>按已核验计划安装</strong>一次。等待擦除、安装与核验，保持 USB、供电和页面。</li>
+        <li>等到<strong>内容已校验，普通启动待确认。</strong> 再按下方步骤普通开机。</li>
       </ol>
-      <p><a href="first-install.html">打开首装页面</a></p>
+      <p>如果完整 Flash 已核对为全空白，页面会明确说明并跳过 ZIP 和离线工具保存。直接阅读并确认一次清空安装。</p>
+      <p>已经是受支持的 Alpha 3 时，本页可能提供保留数据的同版本重装。可以回到首页使用小型保护文件流程。若保留数据重装无法确认兼容，页面会给出清空安装入口。</p>
+      <p><a href="first-install.html">打开清空安装</a></p>
     </section>
 
     <section id="reinstall">
@@ -63,7 +66,7 @@
       <h2>安装后，开机写作</h2>
       <ol>
         <li>看到对应的完成提示，连接即已关闭。拔下 USB，关掉电池供电。完全断电后插回准备好的 TF 卡。</li>
-        <li>松开 BOOT，像平时一样开机。首装时按屏幕提示配对键盘。重装时切回原键盘通道，直接唤醒。</li>
+        <li>松开 BOOT，像平时一样开机。清空安装后按屏幕提示配对键盘。保留数据重装后切回原键盘通道，直接唤醒。</li>
         <li>看到写作界面后试一下输入。有旧稿就打开检查。用新名字保存一份短稿，正常关机再开机，确认还能读到。</li>
       </ol>
     </section>
@@ -82,23 +85,23 @@
     <section id="failure">
       <h2>遇到问题</h2>
       <dl>
-        <dt>串口窗口里找不到设备</dt><dd>先取消选口。换一根能传数据的线，关闭占用串口的程序，然后重复按住 BOOT 接 USB 的步骤。在 Windows 的“设备管理器 → 端口（COM 和 LPT）”查看这块板插入后出现的项目。<a href="docs/WINDOWS_FIRST_USER_GUIDE.zh-CN.md">Windows 连接帮助</a></dd>
-        <dt>在系统保存窗口点了取消</dt><dd>重装页会提示“已取消保存，未开始写入，连接已关闭”。关掉弹窗，从首页再点“重新安装 Alpha 3”，重新选择设备并保存。首装页若取消了 ZIP 或 HTML 下载，先重新保存对应文件，完成回选或保存确认后再安装。</dd>
-        <dt>连接中断</dt><dd>如果只取消了选口、页面明确提示尚未写入，可关闭弹窗，检查线缆后从同一入口重新连接。如果已经开始安装，或不确定停在哪一步，保留现场和文件，按下一条处理。</dd>
-        <dt>安装失败、写入中断或校验未通过</dt><dd>停止操作，保留供电，点“保存脱敏回执”，记下页面上的错误。已有这块板的完整私人 ZIP 和离线 HTML，请打开<a href="recovery.html">备份与原系统恢复说明</a>，按说明使用两份文件恢复。只有小型保护 JSON 时，请私下留存，并向<a href="https://github.com/Ohhellboy/Draftor/issues">项目反馈</a>提供错误文字和脱敏回执。公开恢复工具需要完整 ZIP。请勿上传私人 JSON、ZIP 或文稿，也不要直接再点安装。</dd>
+        <dt>串口窗口里找不到设备</dt><dd>先取消选口。换一根能传数据的线，关闭占用串口的程序，然后重复上面的 BOOT＋PWR 顺序。在 Windows 的“设备管理器 → 端口（COM 和 LPT）”查看这块板插入后出现的项目。<a href="docs/WINDOWS_FIRST_USER_GUIDE.zh-CN.md">Windows 连接帮助</a></dd>
+        <dt>在系统保存窗口点了取消</dt><dd>重装页会提示“已取消保存，未开始写入，连接已关闭”。关掉弹窗，从首页再点“重新安装 Alpha 3”，重新选择设备并保存。清空安装页若取消了 ZIP 或 HTML 下载，先重新保存对应文件，完成回选或保存确认后再安装。</dd>
+        <dt>连接中断</dt><dd>如果页面显示“尚未擦除或写入，原机 Flash 内容未被本次操作修改”，可关闭弹窗、检查连接后重新开始。只有已开始擦写后中断，才需要用下一条的恢复方式处理。</dd>
+        <dt>安装失败、写入中断或校验未通过</dt><dd>先看页面是否说明已经开始擦写。若尚未擦写，按错误提示纠正文件或连接后重新开始。若擦写已中断，保留设备现状，点“保存脱敏回执”，关闭连接。用本次完整 ZIP 和 R13 离线 HTML 恢复，具体步骤见<a href="recovery.html">备份与原系统恢复说明</a>，按说明使用两份文件恢复。恢复会覆盖内部内容并回到备份时的原固件，即使当前固件或分区已损坏也能先核验原板。只有小型保护 JSON 时，请私下留存，并向<a href="https://github.com/Ohhellboy/Draftor/issues">项目反馈</a>提供错误文字和脱敏回执。公开恢复工具需要完整 ZIP。请勿上传私人 JSON、ZIP 或文稿，也不要直接再点安装。</dd>
       </dl>
     </section>
     <section id="english" lang="en">
       <h2>Installation guide</h2>
       <p>Use desktop Chrome or Edge on Windows 10/11, or Chrome on macOS. Use a USB data cable and the Waveshare ESP32-S3-RLCD-4.2 (ST7305). Windows hardware testing is pending.</p>
       <ol>
-        <li>Save your writing and end transfers. Disconnect USB and battery power. Remove the TF card. Disconnect other boards and close serial monitors. Hold <strong>BOOT</strong> while connecting USB and release after about two seconds.</li>
-        <li><strong>Running the factory demo?</strong> Open <a href="first-install.html">First-time installation</a>. Click <strong>Connect &amp; Install</strong>, confirm the two preparation items and select the board. Windows may show USB Serial Device (COM…) or USB JTAG/serial debug unit. Wait for the first-install plan. Read the full Flash, save the private factory-original ZIP, then reselect the saved ZIP. Save the offline recovery HTML beside it. Confirm the saved files and the full internal erase, then start the verified plan. Keep both files private.</li>
+        <li>Save your writing and end transfers. Disconnect USB and battery power. Remove the TF card. Disconnect other boards and close serial monitors. With USB connected, hold <strong>PWR</strong> to power off, hold <strong>BOOT</strong>, briefly press <strong>PWR</strong> to power on, then release BOOT after about two seconds.</li>
+        <li><strong>First installation or other firmware?</strong> Open <a href="first-install.html">First-time / clean installation</a>. Confirm the board and preparation, then select its USB port. Unrecognized firmware can proceed after backup. Read the full Flash, save the original-device ZIP and reselect the saved file. Save <code>Draftor_Recovery_R13_Offline.html</code> beside it. Confirm once that all internal Flash will be erased, then start the verified plan. A verified entirely blank board skips backup. Keep personal files private.</li>
         <li><strong>Already on Alpha 3?</strong> Choose <a href="./#install-title">Reinstall Alpha 3</a>, then <strong>Preparation complete — connect</strong>. Select the board and connect. Once the current version is recognized, click <strong>Save protection and reinstall</strong>. Save the suggested protection JSON locally. The site reads it back, then starts the reinstall. If offered the download alternative, download the JSON, reselect that exact file, then start installation. Keep it private. Full backup and recovery use a separate ZIP.</li>
         <li>Leave USB, power and the page connected until verification finishes. Power off fully, insert the prepared TF card, release BOOT and start normally. Pair the keyboard on first install or use its original channel after reinstall. Open the writing screen and check that a new document survives a restart.</li>
         <li>For a new TF card, download both ZIPs from the home page and unzip them. Copy <code>Resources/HANIME/</code> from the base ZIP and <code>Resources/WAVESHARE_R7_L1_AREV1_RES_20261112/</code> from the LearningIndex ZIP directly to the card root, without the <code>Resources</code> wrapper. Preserve personal files. <a href="docs/TF_GUIDE.html">TF file list</a></li>
       </ol>
-      <p>If the board is absent, check the cable, BOOT sequence and Windows Device Manager. Cancelling the native protection save closes the connection before writing, so you can restart from the home page. After a write failure or uncertain interruption, stop and keep the sanitized receipt. Use your own full ZIP and offline tool through <a href="recovery.html">Backup &amp; recovery</a>, or contact <a href="https://github.com/Ohhellboy/Draftor/issues">project support</a> with the error and sanitized receipt. Keep private files on your computer.</p>
+      <p>If the board is absent, check the cable, BOOT and PWR sequence and Windows Device Manager. Cancelling the native protection save closes the connection before writing, so you can restart from the home page. After a write failure or uncertain interruption, stop and keep the sanitized receipt. Use your own full ZIP and offline tool through <a href="recovery.html">Backup &amp; recovery</a>, or contact <a href="https://github.com/Ohhellboy/Draftor/issues">project support</a> with the error and sanitized receipt. Keep private files on your computer.</p>
     </section>
     <footer><a href="./#install-title">返回安装首页</a> · <a href="docs/PUBLIC_STATUS.html">支持范围 / Scope</a></footer>
   </main>
