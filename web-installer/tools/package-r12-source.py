@@ -9,7 +9,7 @@ if identity.exists():
 else:
     tracked=subprocess.check_output(['git','ls-files','-z'],cwd=str(root)).decode().split('\0')
     exact={'index.html','interrupted.html','recovery.html','package.json','package-lock.json','release-lock.json','factory-lock.json','tools/verify-release.mjs','tools/build-r9.mjs','tools/package-r9-source.py','tools/validate-r9-pages.mjs','tools/serve-r9.mjs','tools/r9-software-check.mjs','tools/build-r9-ui-test.mjs','tools/r9-file-probe.html','docs/R9_BUILD.md','docs/RECOVERY_GUIDE.zh-CN.md','docs/RECOVERY_GUIDE.en.md','docs/WEB_LICENSE.md','docs/R10_BUILD.md','docs/R11_BUILD.md'}
-    names=sorted(n for n in tracked if n and (n in exact or (n.startswith('tools/') and ('r10' in n or 'r11' in n or 'r12' in n or n.endswith('inherited-core.json'))) or n.startswith(('docs/r10/','docs/r11/','docs/r12/')) or n.startswith(('src/','public/','tests/','reference/','release-inputs/')))
+    names=sorted(n for n in tracked if n and (n in exact or (n.startswith('tools/') and ('r10' in n or 'r11' in n or 'r12' in n or 'r13' in n or n.endswith('inherited-core.json'))) or n.startswith(('docs/r10/','docs/r11/','docs/r12/','docs/r13/')) or n.startswith(('src/','public/','tests/','reference/','release-inputs/')))
         and n!='release-inputs/BRIEF.md' and not(n.startswith('public/sources/') and n!='public/sources/Draftor_v0.1.0-alpha.3_WAVESHARE_RLCD42_Source.zip')
         and not(n.startswith('release-inputs/') and n.endswith('_Resources.zip')))
     factory='release-inputs/factory/ESP32-S3-RLCD-4.2_FactoryOnly_20260120.bin'

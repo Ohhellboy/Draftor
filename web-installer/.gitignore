@@ -24,3 +24,6 @@ playwright-report/
 /dist-r12-software-*/
 /dist-r12-local-app0-*/
 /dist-r12-public/
+/dist-r13-public/
+/dist-r13-baseline/
+/dist-r13-software/

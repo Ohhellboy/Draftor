@@ -6,7 +6,7 @@
 // Provenance and upstream anchors: docs/CAPABILITY_AUDIT.md.
 import { PINS } from './pins.js';
 import { Stop, requireSafe, u32, le32, concat, sha256, normalizeMac, md5, activeSlot, checkPartitions } from './safety.js';
-import { FIRST_FILES, verifyInitialFlash } from './first-install.js';
+import { FIRST_FILES, verifyInitialFlash, cleanStateAllowed } from './first-install.js';
 import { recoverySnapshot, recoverySummary, sameOriginalIdentity } from './recovery-package.js';
 import { savedProtection } from './install-protection.js';
 
@@ -26,7 +26,8 @@ export class S3Rom {
   kind = 'hardware';
   #wire; #fatal = false; #connected = false; #inFlight = false; #writesAllowed; #writeUsed = false;
   #firstAllowed; #firstStage = 'IDLE'; #firstNext = 0;
-  #candidate; #candidateMode;
+  #candidate; #candidateMode; #cleanInstall = false; #grantedBackupMd5; #mutationStarted = false;
+  get flashMutationStarted() { return this.#mutationStarted; }
   #recoveryAllowed; #recoveryStage='IDLE'; #recoveryHandle; #recoveryImage; #recoveryManifest;
   #diagnostics;
   constructor(wire, { allowUpdate = false, allowFirstInstall = false, candidate = false, allowRecovery = false, diagnostics } = {}) {
@@ -58,6 +59,7 @@ export class S3Rom {
       new DataView(header.buffer).setUint16(2, payload.length, true);
       new DataView(header.buffer).setUint32(4, checksum, true);
       this.#diagnostics?.command(op,'attempted');
+      if (op === OP.FLASH_BEGIN || op === OP.FLASH_DATA) { this.#mutationStarted = true;  }
       await this.#wire.write(concat(header, payload));
       this.#diagnostics?.command(op,'sent');
       let reply;
@@ -150,7 +152,7 @@ export class S3Rom {
     catch (error) { this.#fatal = true; throw error; }
     return digest;
   }
-  async grantExclusiveMode({ mode, initialState, expectedMac, metadataFingerprint, backupMd5, protection }) {
+  async grantExclusiveMode({ mode, initialState, boardConfirmed, cleanInstall = false, expectedMac, metadataFingerprint, backupMd5, protection }) {
     this.#alive();
     requireSafe(this.#candidate && this.#connected && this.#candidateMode === undefined && !this.#writesAllowed && !this.#firstAllowed && !this.#writeUsed, 'BUILD_SCOPE');
     this.#candidateMode = 'RESERVING'; // One attempt; no mode switching after failure.
@@ -171,8 +173,15 @@ export class S3Rom {
         requireSafe(await this.flashMd5(0x10000, PINS.files['app.bin'].bytes) === PINS.files['app.bin'].md5, 'UNQUALIFIED_FIRMWARE');
         this.#writesAllowed = true;
       } else {
-        requireSafe(initialState === 'waveshare-factory-20260120', 'UNQUALIFIED_BLANK');
-        await verifyInitialFlash(this, initialState);
+        if (cleanInstall) {
+          requireSafe(boardConfirmed === true && cleanStateAllowed(initialState) && protection === undefined, 'BOARD_CONFIRM');
+          requireSafe(initialState !== 'blank' || backupMd5 === PINS.blankFlashMd5, 'BACKUP_STALE');
+          this.#cleanInstall = true;
+          this.#grantedBackupMd5 = backupMd5;
+        } else {
+          requireSafe(initialState === 'waveshare-factory-20260120', 'UNQUALIFIED_BLANK');
+          await verifyInitialFlash(this, initialState);
+        }
         this.#firstAllowed = true;
       }
       requireSafe(!(this.#writesAllowed && this.#firstAllowed), 'BUILD_SCOPE');
@@ -205,6 +214,7 @@ export class S3Rom {
       sameOriginalIdentity(await this.identity(),manifest.device);
       this.#alive();this.#diagnostics?.stage('RESTORING');
       await this.#command(OP.FLASH_BEGIN,le32(PINS.flashBytes,PINS.flashBytes/1024,1024,0,0),{timeout:480000});
+      requireSafe(await this.flashMd5(0, PINS.flashBytes) === PINS.blankFlashMd5, 'ERASE_VERIFY');
       for(let sequence=0;sequence<PINS.flashBytes/1024;sequence++) {
         const block=data.subarray(sequence*1024,(sequence+1)*1024);
         await this.#command(OP.FLASH_DATA,concat(le32(1024,sequence,0,0),block),{checksum:block.reduce((n,b)=>n^b,0xef)});
@@ -254,10 +264,10 @@ export class S3Rom {
     }
     // No FLASH_END: in ROM it can run user code, violating --after no-reset.
   }
-  async eraseAll({ source, expectedMac, backupConfirmed, tfRemoved, planConfirmed, eraseConfirmed, protection } = {}) {
+  async eraseAll({ source, cleanInstall = false, expectedOriginalMd5, expectedMac, backupConfirmed, tfRemoved, planConfirmed, eraseConfirmed, protection } = {}) {
     this.#range(0, PINS.flashBytes);
     requireSafe(this.#firstAllowed && !this.#writesAllowed, 'FRESH_DEVICE_PENDING');
-    requireSafe(!this.#candidate || (this.#candidateMode === 'fresh' && source === 'waveshare-factory-20260120'), 'UNKNOWN');
+    requireSafe(!this.#candidate || (this.#candidateMode === 'fresh' && (this.#cleanInstall ? cleanInstall && cleanStateAllowed(source) : source === 'waveshare-factory-20260120')), 'UNKNOWN');
     requireSafe(tfRemoved === true && planConfirmed === true, 'BACKUP');
     if(protection!==undefined){requireSafe(this.#candidate,'BUILD_SCOPE');savedProtection(protection,{mode:'fresh',mac:normalizeMac(expectedMac)});}
     else requireSafe(backupConfirmed === true, 'BACKUP');
@@ -267,7 +277,9 @@ export class S3Rom {
     try {
       const info = await this.identity();
       requireSafe(normalizeMac(info.mac) === normalizeMac(expectedMac), 'IDENTITY');
-      await verifyInitialFlash(this, source);
+      if (this.#cleanInstall) {
+        requireSafe(expectedOriginalMd5 === this.#grantedBackupMd5 && await this.flashMd5(0, PINS.flashBytes) === this.#grantedBackupMd5, 'BACKUP_STALE');
+      } else await verifyInitialFlash(this, source);
       // esptool 5.3.1 cmds.erase_region() in ROM uses flash_begin(size, address).
       // SPI_PARAMS already sets the actual 16 MiB capacity. No stub-only 0xd0/d1.
       await this.#command(OP.FLASH_BEGIN, le32(PINS.flashBytes, PINS.flashBytes / 1024, 1024, 0, 0), { timeout: 480000 });

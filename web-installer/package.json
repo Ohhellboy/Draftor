@@ -6,6 +6,7 @@
   "engines": { "node": ">=22" },
   "scripts": {
     "verify:release": "node tools/verify-release.mjs",
+    "build:r13-public": "node tools/build-r13-public.mjs",
     "build:r12-public": "node tools/build-with-project-pages.mjs r12-public",
     "build": "node tools/build-with-project-pages.mjs default",
     "build:device-test": "node tools/build.mjs --device-test-update",

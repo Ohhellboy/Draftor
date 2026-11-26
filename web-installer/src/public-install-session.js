@@ -7,10 +7,9 @@ import {requireSafe,sha256,deepFreeze} from './safety.js';
 function publicPlan(plan) {
   if(!plan)return undefined;
   const {candidateOnly,publicApproval,blankHardwareQualification,deviceQualification,...p}=structuredClone(plan);
-  p.releaseScope='WAVESHARE_ST7305_MACOS_CHROME_ALPHA3_APP0_OR_EXACT_FACTORY_20260120';
-  p.qualificationEvidence=p.mode==='fresh'?'R6_FIRST_INSTALL_INHERITED':'R4_APP0_SAME_VERSION_INHERITED';
+  p.releaseScope='WAVESHARE_ST7305_CLEAN_INSTALL_OR_ALPHA3_APP0_REINSTALL';
+  p.qualificationEvidence=p.mode==='fresh'?'GENERIC_CLEAN_SOFTWARE_TESTED_HARDWARE_PENDING':'R4_APP0_SAME_VERSION_INHERITED';
   p.runtimeWritePermission='NOT_GRANTED_BY_PLAN';
-  if(p.mode==='fresh')p.requires=p.requires.map(x=>x==='proven blank or exact pinned factory fingerprint'?'exact pinned factory fingerprint':x);
   return deepFreeze(p);
 }
 
@@ -24,19 +23,19 @@ export class PublicInstallSession {
     requireSafe(platformQualified===true,'PLATFORM');
     requireSafe(/^[0-9a-f]{64}$/.test(offlineToolSha256),'ASSET');
     this.#driver=driver;this.#diag=diagnostics;this.#emit=onState;this.#build=build;this.#source=sourceCommit;this.#toolHash=offlineToolSha256;this.#diag?.check('writeLock',true);
-    this.#install=new InstallSession(driver,release,{candidate:true,bindSelectedIdentity:true,diagnostics,
+    this.#install=new InstallSession(driver,release,{candidate:true,bindSelectedIdentity:true,allowCleanInstall:true,diagnostics,
       onState:(phase,receipt)=>{this.#diag?.check('writeLock',!['ERASING','WRITING','VERIFYING'].includes(phase));if(this.#install?.plan)this.#diag?.check('plan',this.plan);this.#emit(phase,this.receipt(receipt));}});
   }
   get state(){return this.#stopped?'STOP':this.#phase||this.#install.state;}
   get plan(){return publicPlan(this.#install.plan);}
   get selectedIdentity(){return this.#closed?undefined:this.#install.selectedIdentity;}
-  get backupVerified(){return !this.#closed&&!this.#stopped&&this.#saved&&this.#install.backupVerified;}
+  get backupVerified(){return !this.#closed&&!this.#stopped&&(this.#saved||this.plan?.initialState==='blank')&&this.#install.backupVerified;}
   get offlineToolVerified(){return !this.#closed&&!this.#stopped&&this.#tool;}
   receipt(existing) {
     const r=existing||this.#install?.receipt()||{};
-    return structuredClone({...r,plan:this.plan,backup:this.#saved?'R9_SAVED_PACKAGE_REIMPORTED_AND_CURRENT_FLASH_MATCHED':r.backup,
+    return structuredClone({...r,plan:this.plan,backup:this.plan?.initialState==='blank'?'PROVEN_BLANK_NO_BACKUP_REQUIRED':this.#saved?'R9_SAVED_PACKAGE_REIMPORTED_AND_CURRENT_FLASH_MATCHED':r.backup,
       offlineTool:this.#tool?'EXACT_DISTRIBUTED_HTML_HASH_VERIFIED':'NOT_VERIFIED',
-      qualificationEvidence:this.plan?.qualificationEvidence,deviceQualification:'INHERITED_WITH_R10_SOFTWARE_INTEGRATION',
+      qualificationEvidence:this.plan?.qualificationEvidence,deviceQualification:this.plan?.qualificationEvidence,
       ...(this.#diag?{diagnostics:this.#diag.snapshot()}:{}),status:this.state});
   }
   #ready(){requireSafe(!this.#closed&&!this.#stopped,'STATE');requireSafe(!this.#busy,'BUSY');}
@@ -45,7 +44,7 @@ export class PublicInstallSession {
     this.#ready();requireSafe(tfRemoved===true,'BACKUP');this.#busy=true;
     try {
       const p=await this.#install.prepare({boardConfirmed});
-      requireSafe(p.hardwareWriteAllowed&&p.initialState!=='blank','UNQUALIFIED_BLANK');
+      requireSafe(p.hardwareWriteAllowed,'DEVICE_WRITES_LOCKED');
       this.#identity=checkedIdentity(await this.#driver.identity());
       const original=this.#identity,driver=this.#driver,owner=this.#install;
       const borrowedReads={kind:driver.kind,
@@ -55,7 +54,7 @@ export class PublicInstallSession {
         cancel:()=>driver.cancel(),disconnect:async()=>{}};
       this.#backup=new RecoverySession(borrowedReads,{mode:'backup',diagnostics:this.#diag,build:this.#build,sourceCommit:this.#source});
       const state=await this.#backup.prepare({boardConfirmed,tfRemoved});
-      requireSafe(state.firmware===(p.mode==='fresh'?'waveshare-factory-20260120':'draftor-alpha3-app0'),'STALE_PLAN');
+      requireSafe(state.firmware===(p.mode==='fresh'?p.initialState:'draftor-alpha3-app0'),'STALE_PLAN');
       this.#diag?.check('originalIdentityMatch',true);this.#diag?.check('plan',this.plan);this.#diag?.check('writeLock',true);
       this.#phaseChanged('PLAN_READY');return this.plan;
     } catch(e){this.cancel(e.code||'IO');throw e;}finally{this.#busy=false;}
@@ -81,7 +80,7 @@ export class PublicInstallSession {
       h=await validateRecoveryPackage(input);requireSafe(!this.#closed&&!this.#stopped,'CANCELLED');const snap=recoverySnapshot(h);image=snap.image;
       this.#phaseChanged('BACKUP_VERIFYING');communicating=true;
       const info=await this.#driver.identity();sameOriginalIdentity(info,this.#identity);sameOriginalIdentity(info,snap.manifest.device);
-      requireSafe(snap.manifest.original.firmware===(this.plan.mode==='fresh'?'waveshare-factory-20260120':'draftor-alpha3-app0'),'PACKAGE_METADATA');
+      requireSafe(snap.manifest.original.firmware===(this.plan.mode==='fresh'?this.plan.initialState:'draftor-alpha3-app0'),'PACKAGE_METADATA');
       // Existing installation metadata/current-full-Flash checks stay intact.
       await this.#install.verifySavedBackup(image);
       sameOriginalIdentity(await this.#driver.identity(),snap.manifest.device);
@@ -97,7 +96,7 @@ export class PublicInstallSession {
   }
   invalidateOfflineTool(){this.#tool=false;}
   async execute({offlineToolSaved,...consent}={}) {
-    this.#ready();requireSafe(this.backupVerified,'BACKUP_FILE');requireSafe(this.#tool&&offlineToolSaved===true,'RECOVERY_TOOL');this.#busy=true;this.#phase=undefined;
+    this.#ready();requireSafe(this.backupVerified,'BACKUP_FILE');requireSafe(this.plan?.initialState==='blank'||(this.#tool&&offlineToolSaved===true),'RECOVERY_TOOL');this.#busy=true;this.#phase=undefined;
     try {sameOriginalIdentity(await this.#driver.identity(),this.#identity);
       // No new write path: R7's exclusive grant + R4/R6 exact writes and checks.
       const result=await this.#install.execute(consent);return this.receipt(result);

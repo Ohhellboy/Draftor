@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 import { PINS } from './pins.js';
+import { inspectOriginalFlash } from './first-install.js';
 import { FACTORY } from './factory-pins.js';
 import { requireSafe, sha256, md5, normalizeMac, checkPartitions, activeSlot, u32, deepFreeze } from './safety.js';
 import { storePackage, readPackageArchive } from './recovery-zip.js';
 export const RECOVERY_SCHEMA='draftor-private-recovery/1';
+export const RAW_RECOVERY_SCHEMA='draftor-private-recovery/2';
 const te=new TextEncoder(),td=new TextDecoder('utf-8',{fatal:true});
 const validated=new WeakMap();
 const json=v=>JSON.stringify(v,null,2)+'\n';
@@ -22,18 +24,28 @@ export function sameOriginalIdentity(info,original) {
   requireSafe(JSON.stringify(actual)===JSON.stringify(original),'SECURITY_CHANGED');return actual;
 }
 export async function classifyRecoveryImage(bytes) {
-  requireSafe(bytes instanceof Uint8Array&&bytes.length===PINS.flashBytes,'PACKAGE_SIZE');
-  const table=bytes.subarray(0x8000,0x9000),tableSha=await sha256(table);
-  if(tableSha===FACTORY.tableSha256) {
-    for(const pin of FACTORY.fingerprint)requireSafe(md5(bytes.subarray(pin.offset,pin.offset+pin.bytes))===pin.md5,'FACTORY_FINGERPRINT');
-    return {firmware:'waveshare-factory-20260120',rule:'FACTORY_FIXED_THREE_RANGES_V1',partition:{offset:0x8000,bytes:4096,sha256:tableSha,md5:md5(table),rows:FACTORY.partitions},ota:{applicable:false},activeApp:'factory'};
+  requireSafe(bytes instanceof Uint8Array && bytes.length === PINS.flashBytes, 'PACKAGE_SIZE');
+  const table = bytes.subarray(0x8000, 0x9000), ota = bytes.subarray(0xe000, 0x10000);
+  const tableSha = await sha256(table);
+  const original = await inspectOriginalFlash({
+    flashMd5: async (offset, size) => md5(bytes.subarray(offset, offset + size))
+  }, table, ota);
+  if (original.firmware === 'waveshare-factory-20260120') {
+    return {firmware:original.firmware,rule:'FACTORY_FIXED_THREE_RANGES_V1',partition:{offset:0x8000,bytes:4096,sha256:tableSha,md5:md5(table),rows:FACTORY.partitions},ota:{applicable:false},activeApp:'factory'};
   }
-  const rows=checkPartitions(table);
-  requireSafe(await sha256(table.subarray(0,3072))===PINS.files['partitions.bin'].sha256,'PARTITIONS');
-  const ota=bytes.subarray(0xe000,0x10000);requireSafe(activeSlot(ota)===0,'UNQUALIFIED_SLOT');
-  for(const name of ['bootloader.bin','app.bin']) { const p=PINS.files[name];requireSafe(await sha256(bytes.subarray(p.offset,p.offset+p.bytes))===p.sha256,'UNQUALIFIED_FIRMWARE'); }
-  return {firmware:'draftor-alpha3-app0',rule:'ALPHA3_BOOT_APP0_B_TABLE_V1',partition:{offset:0x8000,bytes:4096,sha256:tableSha,md5:md5(table),rows},
-    ota:{applicable:true,offset:0xe000,bytes:8192,sha256:await sha256(ota),md5:md5(ota),entries:[0,4096].map(at=>({sequence:u32(ota,at),state:u32(ota,at+24),crc:u32(ota,at+28)}))},activeApp:'app0'};
+  if (original.firmware === 'draftor-alpha3-app0') {
+    const rows = checkPartitions(table);
+    for (const name of ['bootloader.bin', 'app.bin']) {
+      const pin = PINS.files[name];
+      requireSafe(await sha256(bytes.subarray(pin.offset, pin.offset + pin.bytes)) === pin.sha256, 'PACKAGE_HASH');
+    }
+    return {firmware:original.firmware,rule:'ALPHA3_BOOT_APP0_B_TABLE_V1',partition:{offset:0x8000,bytes:4096,sha256:tableSha,md5:md5(table),rows},
+      ota:{applicable:true,offset:0xe000,bytes:8192,sha256:await sha256(ota),md5:md5(ota),entries:[0,4096].map(at=>({sequence:u32(ota,at),state:u32(ota,at+24),crc:u32(ota,at+28)}))},activeApp:'app0'};
+  }
+  // These ranges are verified raw bytes. No interpretation of an unknown layout.
+  return {firmware:original.firmware,rule:'RAW_FULL_FLASH_V1',
+    partition:{offset:0x8000,bytes:4096,sha256:tableSha,md5:md5(table),rows:null},
+    ota:{applicable:true,offset:0xe000,bytes:8192,sha256:await sha256(ota),md5:md5(ota),entries:null},activeApp:original.activeApp};
 }
 const readmes={
  'README.zh-CN.txt':'私人完整 Flash 恢复包。不要上传、公开或发送给他人。仅适用于创建时的原微雪 ESP32-S3-RLCD-4.2 / ST7305。恢复覆盖全部 16 MiB 内部 Flash，设置、配对及内部文稿回到备份时；TF 文件不在本包中，必须独立保留。恢复厂家备份会回到厂家演示，不会安装 Draftor。使用随附离线工具，选择本 ZIP 并连接原设备；校验通过后才确认恢复。完成后必须断电、插回 TF、普通启动验收。摘要和 MAC 只防误选及意外损坏，不是数字签名或身份认证。\n',
@@ -51,7 +63,7 @@ export async function createRecoveryPackage(bytes,info,{boardConfirmed,romMd5Bef
   requireSafe(proofMethods.includes(method),'PACKAGE_PROOF');
   if(method==='ROM_ORIGINAL_RECONSTRUCTED_V1')checkReconstruction(reconstruction);else requireSafe(reconstruction===undefined,'PACKAGE_PROOF');
   const original=await classifyRecoveryImage(image);
-  const manifest={schema:RECOVERY_SCHEMA,id,createdAt,tool:{name:'Draftor Recovery',build,sourceCommit},board:{model:'ESP32-S3-RLCD-4.2',controller:'ST7305',confirmation:'USER_PHYSICAL_CONFIRMATION'},device,
+  const manifest={schema:original.rule==='RAW_FULL_FLASH_V1'?RAW_RECOVERY_SCHEMA:RECOVERY_SCHEMA,id,createdAt,tool:{name:'Draftor Recovery',build,sourceCommit},board:{model:'ESP32-S3-RLCD-4.2',controller:'ST7305',confirmation:'USER_PHYSICAL_CONFIRMATION'},device,
     image:{file:'flash.bin',offset:0,bytes:PINS.flashBytes,sha256:await sha256(image),md5:digest},creationProof:{method,romMd5Before,romMd5After,romMd5Match:true,identitySource:'ROM_READ_REG_EFUSE',securitySource:'ROM_GET_SECURITY_INFO',capacitySource:'JEDEC_RDID',...(reconstruction?{reconstruction}:{})},original};
   const entries={'manifest.json':te.encode(json(manifest)),'flash.bin':image,...Object.fromEntries(Object.entries(readmes).map(([k,v])=>[k,te.encode(v)]))};
   const archive=storePackage(entries);const checked=await validateRecoveryPackage(archive);destroyRecoveryPackage(checked);image.fill(0);return archive;
@@ -60,7 +72,7 @@ export async function validateRecoveryPackage(input) {
   const entries=readPackageArchive(input),raw=td.decode(entries['manifest.json']);let m;
   try { m=JSON.parse(raw); } catch { requireSafe(false,'PACKAGE_JSON'); }
   requireSafe(json(m)===raw,'PACKAGE_JSON'); // Canonical JSON also rejects duplicate keys.
-  keys(m,'schema,id,createdAt,tool,board,device,image,creationProof,original');requireSafe(m.schema===RECOVERY_SCHEMA,'PACKAGE_SCHEMA');
+  keys(m,'schema,id,createdAt,tool,board,device,image,creationProof,original');requireSafe([RECOVERY_SCHEMA,RAW_RECOVERY_SCHEMA].includes(m.schema),'PACKAGE_SCHEMA');
   requireSafe(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(m.id),'PACKAGE_SCHEMA');
   requireSafe(typeof m.createdAt==='string'&&/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(m.createdAt)&&Number.isFinite(Date.parse(m.createdAt)),'PACKAGE_SCHEMA');
   keys(m.tool,'name,build,sourceCommit');requireSafe(m.tool.name==='Draftor Recovery','PACKAGE_SCHEMA');text(m.tool.build);requireSafe(/^[0-9a-f]{40}$/.test(m.tool.sourceCommit),'PACKAGE_SCHEMA');
@@ -77,6 +89,7 @@ export async function validateRecoveryPackage(input) {
   requireSafe(proofMethods.includes(m.creationProof.method)&&m.creationProof.romMd5Match===true&&m.creationProof.romMd5Before===m.image.md5&&m.creationProof.romMd5After===m.image.md5,'PACKAGE_PROOF');
   if(rebuilt)requireSafe(m.original.firmware===(m.creationProof.reconstruction.mode==='fresh'?'waveshare-factory-20260120':'draftor-alpha3-app0'),'PACKAGE_PROOF');
   requireSafe(JSON.stringify(await classifyRecoveryImage(image))===JSON.stringify(m.original),'PACKAGE_METADATA');
+  requireSafe(m.schema === (m.original.rule === 'RAW_FULL_FLASH_V1' ? RAW_RECOVERY_SCHEMA : RECOVERY_SCHEMA), 'PACKAGE_SCHEMA');
   for(const [name,content]of Object.entries(readmes))requireSafe(td.decode(entries[name])===content,'PACKAGE_FORMAT');
   const handle=Object.freeze({});validated.set(handle,{manifest:deepFreeze(m),image});return handle;
 }

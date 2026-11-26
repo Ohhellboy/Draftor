@@ -1,7 +1,7 @@
 // Static-only local review server. No upload, serial proxy, directory listing or private files.
 import http from 'node:http';import {readFile,stat,realpath} from 'node:fs/promises';import path from 'node:path';
 const root=await realpath(process.argv[2]),port=Number(process.argv[3]||4199);
-if(!/\/dist-r11-(public|test)(-dev[0-9]+)?$/.test(root)||!Number.isInteger(port)||port<1024||port>65535)throw Error('Explicit R10 static build/port required');
+if(!/\/(dist-r11-(public|test)(-dev[0-9]+)?|dist-r13-(public|software))$/.test(root)||!Number.isInteger(port)||port<1024||port>65535)throw Error('Explicit installer static build/port required');
 const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.md':'text/plain; charset=utf-8','.zip':'application/zip','.bin':'application/octet-stream'};
 http.createServer(async(req,res)=>{try{
  if(req.method!=='GET'&&req.method!=='HEAD'){res.writeHead(405);return res.end();}

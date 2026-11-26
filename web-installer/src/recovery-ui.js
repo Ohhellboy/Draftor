@@ -76,6 +76,7 @@ export function startRecoveryUI({build,sourceCommit,recoveryEnabled=false,simula
         if(!recoverable){session?.cancel(code);try{await closeSession();}catch{}diagnostics.stage('STOP');}
         if(errorHelp?.(code,language))error+=` ${errorHelp(code,language)}`;
         if(receipt().flashOutcome==='POSSIBLY_PARTIAL')error+=` ${t('partial')}`;
+        else error+= language==='zh'?' 尚未擦除或写入，原机 Flash 内容未被本次操作修改。':' No erase or write has started. This operation has not modified the original Flash.';
       }finally{clearInterval(ticker);busy=false;render();}
     })();return activeTask;
   }

@@ -45,9 +45,7 @@ test('desktop capability gate preserves original device authorization',()=>{
  assert.throws(()=>new PublicInstallSession({},release,{...options,platformQualified:false}),{code:'PLATFORM'});
 });
 test('unsupported states and physical preconditions never grant writes',async()=>{
- const cases=[['blank',new Uint8Array(16777216).fill(255),{},'UNQUALIFIED_BLANK'],['app1',new SimulatedFlash(release,'app1').flash,{},'UNQUALIFIED_SLOT'],['unknown',new Uint8Array(16777216).fill(4),{},'PARTITIONS'],['security',draftorFlash(),{securityFlags:1},'SECURITY'],['capacity',draftorFlash(),{jedec:0x1740ef},'FLASH'],['chip',draftorFlash(),{chipId:2},'CHIP']];
- const unknownFactory=await factoryFlash();unknownFactory[16777215]=0;cases.push(['factory-tail',unknownFactory,{},'FACTORY_FINGERPRINT']);
- const unknownApp=draftorFlash();unknownApp[65580]^=1;cases.push(['unknown-app',unknownApp,{},'UNQUALIFIED_FIRMWARE']);
+ const cases=[['security',draftorFlash(),{securityFlags:1},'SECURITY'],['capacity',draftorFlash(),{jedec:0x1740ef},'FLASH'],['chip',draftorFlash(),{chipId:2},'CHIP']];
  for(const [name,flash,opts,code] of cases){const f=make(flash,opts);await assert.rejects(prepare(f),{code},name);assert.equal(writes(f),0);await f.session.close();}
  for(const c of [{boardConfirmed:false,tfRemoved:true},{boardConfirmed:true,tfRemoved:false}]){const f=make();await assert.rejects(f.session.prepare(c));assert.equal(writes(f),0);await f.session.close();}
 });

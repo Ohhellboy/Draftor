@@ -1,23 +1,21 @@
 // SPDX-License-Identifier: Apache-2.0
 import { PINS } from './pins.js';
-import { FACTORY } from './factory-pins.js';
+import { inspectOriginalFlash } from './first-install.js';
 import { requireSafe, Stop, sha256, md5, activeSlot, checkPartitions } from './safety.js';
 import { checkedIdentity, sameOriginalIdentity, createRecoveryPackage, validateRecoveryPackage, recoverySnapshot, recoverySummary, destroyRecoveryPackage } from './recovery-package.js';
 
-export async function inspectSupportedOriginal(driver,diagnostics) {
-  const table=await driver.readFlash(0x8000,4096);diagnostics?.check('partitionRead',true);
-  const tableMatch=md5(table)===await driver.flashMd5(0x8000,4096);diagnostics?.check('partitionMd5Match',tableMatch);requireSafe(tableMatch,'READBACK');
-  if(await sha256(table)===FACTORY.tableSha256) {
-    for(const p of FACTORY.fingerprint)requireSafe(await driver.flashMd5(p.offset,p.bytes)===p.md5,'FACTORY_FINGERPRINT');
-    diagnostics?.check('otaRead','NOT_APPLICABLE_FACTORY');diagnostics?.check('otaMd5Match','NOT_APPLICABLE_FACTORY');table.fill(0);
-    return {firmware:'waveshare-factory-20260120',activeApp:'factory'};
+export async function inspectSupportedOriginal(driver, diagnostics) {
+  const table = await driver.readFlash(0x8000, 4096);
+  const ota = await driver.readFlash(0xe000, 8192);
+  requireSafe(table.length === 4096 && ota.length === 8192, 'READBACK');
+  for (const [label, offset, bytes] of [['partition', 0x8000, table], ['ota', 0xe000, ota]]) {
+    diagnostics?.check(label + 'Read', true);
+    const match = md5(bytes) === await driver.flashMd5(offset, bytes.length);
+    diagnostics?.check(label + 'Md5Match', match);
+    requireSafe(match, 'READBACK');
   }
-  checkPartitions(table);requireSafe(await sha256(table.subarray(0,3072))===PINS.files['partitions.bin'].sha256,'PARTITIONS');table.fill(0);
-  const ota=await driver.readFlash(0xe000,8192);diagnostics?.check('otaRead',true);
-  const otaMatch=md5(ota)===await driver.flashMd5(0xe000,8192);diagnostics?.check('otaMd5Match',otaMatch);requireSafe(otaMatch,'READBACK');
-  requireSafe(activeSlot(ota)===0,'UNQUALIFIED_SLOT');ota.fill(0);
-  for(const name of ['bootloader.bin','app.bin']) { const p=PINS.files[name];requireSafe(await driver.flashMd5(p.offset,p.bytes)===p.md5,'UNQUALIFIED_FIRMWARE'); }
-  return {firmware:'draftor-alpha3-app0',activeApp:'app0'};
+  try { return await inspectOriginalFlash(driver, table, ota); }
+  finally { table.fill(0); ota.fill(0); }
 }
 export class RecoverySession {
   #driver;#diagnostics;#build;#source;#handle;#identity;#romInfo;#beforeMd5;#capture;#busy=false;#closed=false;#consent;#mode;

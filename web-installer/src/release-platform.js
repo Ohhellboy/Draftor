@@ -19,13 +19,13 @@ export function platformMessage(language,environment=browserEnvironment()){
  INSECURE_CONTEXT:'当前页面不是安全上下文，未连接设备。请打开正式 HTTPS 网站；离线恢复请用桌面 Chrome/Edge 直接打开已保存的 HTML。不要关闭浏览器安全设置。',
  SERIAL_POLICY:'此页面的串口权限被策略限制，未连接设备。可尝试桌面 Chrome；受管理的电脑请联系管理员允许 Serial API，不要绕过组织策略。',
  SERIAL_UNAVAILABLE:'浏览器没有提供 Web Serial，未连接设备。Windows 请用最新版桌面 Chrome 或 Edge；Edge 受组织策略限制时可尝试 Chrome，或联系管理员。离线 HTML 必须直接在该浏览器打开。',
- CAPABLE_DESKTOP:'当前桌面环境具备 Web Serial。Windows Chrome/Edge 测试性开放，真实 USB 路径仍待现场验证（WINDOWS_DEVICE_FIELD_TEST_PENDING）；macOS Chrome 继承既有验收。安装前必须保存并回选完整 ZIP，另存离线 HTML。'
+ CAPABLE_DESKTOP:'当前桌面环境可以连接串口。Windows Chrome／Edge 可使用；完整安装与恢复仍待 Windows 实机反馈。请按本页提示保存文件。'
  },en:{
  MOBILE:'USB operations are unavailable on phones/tablets. Use Windows 10/11 desktop Chrome or Edge. Reading and downloads remain available.',
  INSECURE_CONTEXT:'This page is not a secure context; no device connected. Use the official HTTPS site, or open the saved offline HTML directly in desktop Chrome/Edge. Do not disable browser security.',
  SERIAL_POLICY:'Serial access is restricted by policy; no device connected. Try desktop Chrome or ask your administrator to allow the Serial API. Do not bypass organizational policy.',
  SERIAL_UNAVAILABLE:'Web Serial is unavailable; no device connected. On Windows use current desktop Chrome or Edge. If Edge is managed, try Chrome or ask your administrator. Open the offline HTML directly in that browser.',
- CAPABLE_DESKTOP:'Web Serial is available. Windows Chrome/Edge is open for informed beta use; real USB field testing remains pending (WINDOWS_DEVICE_FIELD_TEST_PENDING). macOS Chrome inherits prior qualification. Save and reselect the complete ZIP and keep the offline HTML before installation.'
+ CAPABLE_DESKTOP:'Web Serial is available. Windows Chrome/Edge can be used; complete installation and recovery still await Windows device feedback. Save files as directed on this page.'
  }};return copy[language==='en'?'en':'zh'][reason];
 }
 export function publicErrorCode(error){if(typeof error?.code==='string'&&/^[A-Z_0-9]{1,48}$/.test(error.code))return error.code;if(error?.name==='NotFoundError')return 'PORT_SELECTION_CANCELLED';if(['SecurityError','NotAllowedError'].includes(error?.name))return 'SERIAL_PERMISSION_DENIED';return 'IO';}
