@@ -1,8 +1,8 @@
 {
   "schema": "draftor-public-release/1",
   "profile": "R13_SUPPORTED_HARDWARE_CLEAN_INSTALL",
-  "version": "R13-public-ac5e060f3e1c",
-  "sourceCommit": "ac5e060f3e1c587e0622b0090c033e220df3d817",
+  "version": "R13-public-a34806354cf5",
+  "sourceCommit": "a34806354cf5864a37e923e4a2cca386bda87124",
   "previousPages": "505e2e597faa441a14b0cf6adb48d6240226ad8f",
   "reviewOnly": false,
   "software": false,
@@ -25,7 +25,7 @@
     ],
     "online": "backup-and-read-only",
     "offlineHtml": "offline/Draftor_Recovery_R13_Offline.html",
-    "offlineSha256": "a899ab8b0d2ed92b53de46e66951b1f82d81f1a33b8d9f7803c56165b2cfb9f5",
+    "offlineSha256": "576484e7efc2e9f64e0552fa9286ee75715c65f18bcc3e3f862a65963a10d142",
     "scope": "validated-full-original-image-same-board-current-image-may-be-damaged"
   },
   "qualification": {
@@ -33,10 +33,10 @@
     "genericRestore": "SOFTWARE_TESTED_DEVICE_PENDING",
     "priorDeviceResults": "R12_SAME_VERSION_MACOS_AND_R6_EXACT_FACTORY_INHERITED"
   },
-  "appBundleSha256": "7be2136e0e70af23a93e20372d545b3692820b332f87aed09fa1a05eadde8e97",
+  "appBundleSha256": "fd1fcda07c8336d305df18f9fcf756f2b0abc291add8879ffd2c3721cd65601a",
   "reinstall": {
-    "script": "assets/reinstall-ac5e060f3e1c.js",
-    "sha256": "5736000186a6a3f9006a31e4a87f3501e1c20b3b53cb2ea91ec5d9b502e8ac42"
+    "script": "assets/reinstall-a34806354cf5.js",
+    "sha256": "0fb09d51845bcba1e2d76a4c7e3868c0497701c8a52ade30fb46feb91c16dbc3"
   },
-  "recoveryBundleSha256": "d1578ca607922ac3c484b908179178a8d0f6ce332ecebfdb7b4a8f92eacd7871"
+  "recoveryBundleSha256": "3f009107a642bc1fbcdf733e2816268d3e34c8878c4f86771157a641559597e6"
 }

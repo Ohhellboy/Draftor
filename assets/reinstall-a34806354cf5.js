@@ -3342,8 +3342,8 @@ var App0ReinstallRom = class extends S3Rom {
 };
 var publicSite = true;
 startProductUI({
-  build: "R13-public-ac5e060f3e1c",
-  sourceCommit: "ac5e060f3e1c587e0622b0090c033e220df3d817",
+  build: "R13-public-a34806354cf5",
+  sourceCommit: "a34806354cf5864a37e923e4a2cca386bda87124",
   app0Only: true,
   publicSite,
   async requestDriver(diagnostics) {

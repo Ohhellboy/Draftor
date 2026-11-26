@@ -3673,9 +3673,9 @@ var S3Rom = class {
 // src/r11-main.js
 var offlineName = false ? "Draftor_Recovery_R11_Offline.html" : "Draftor_Recovery_R13_Offline.html";
 startPublicUI({
-  build: "R13-public-ac5e060f3e1c",
-  sourceCommit: "ac5e060f3e1c587e0622b0090c033e220df3d817",
-  offlineToolSha256: "a899ab8b0d2ed92b53de46e66951b1f82d81f1a33b8d9f7803c56165b2cfb9f5",
+  build: "R13-public-a34806354cf5",
+  sourceCommit: "a34806354cf5864a37e923e4a2cca386bda87124",
+  offlineToolSha256: "576484e7efc2e9f64e0552fa9286ee75715c65f18bcc3e3f862a65963a10d142",
   offlineToolHref: "../offline/" + offlineName,
   offlineToolName: offlineName,
   requestDriver: async (diagnostics) => {
