@@ -12,7 +12,7 @@ const offlineName = typeof __INSTALLER_OFFLINE_NAME__ === 'undefined' ? 'Draftor
 const offline=true;
 startRecoveryUI({build:__R11_BUILD__,sourceCommit:__R11_SOURCE__,recoveryEnabled:offline,
  copyOverrides:Object.fromEntries(["zh","en"].map(l=>[l,{...publicRecoveryCopy[l],supported:platformMessage(l),unsupported:platformMessage(l)}])),mapError:publicErrorCode,errorHelp:serialErrorHelp,supportedEnvironment:browserIsQualified(),embeddedGuide:offline,
- offlineHref:'offline/'+offlineName,
+ offlineHref:new URL(offlineName,location.href).href,
  requestDriver:async(mode,diagnostics)=>{
   requireSafe(browserIsQualified(),'PLATFORM');
   const wire=new StrictSerialTransport(await requestSerialPort(navigator.serial,diagnostics),{diagnostics});
